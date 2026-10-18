@@ -83,6 +83,9 @@ SnoozeShare decides which data to open when it starts, **by looking for a file n
 
 3. Start the app as described in step 3 below.
 
+![The db folder holding snoozeshare-mock.db next to schema.sql and seed-mock-data.sql](images/quickstart-db-folder.png)
+*Figure: The db folder holding snoozeshare-mock.db next to schema.sql and seed-mock-data.sql.*
+
 #### To start blank
 
 Make sure there is no `db/snoozeshare-mock.db` (delete it or rename it), then start the app.
@@ -251,6 +254,9 @@ Log in with a Guest account. The top bar shows the SnoozeShare name, a **Guest P
 **wallet balance** (SGD) and **Log out**. Four tabs sit underneath: **Search**, **Trips**,
 **Messages** and **Wallet**. The app opens on **Search**.
 
+![Guest portal: top bar, wallet balance and the four tabs, opening on Search](images/guest-shell-overview.png)
+*Figure: Guest portal: top bar, wallet balance and the four tabs, opening on Search.*
+
 ### Search for a stay
 
 The **Search** tab lists available properties and lets you narrow them down.
@@ -361,12 +367,18 @@ withdrawals are mocked.
 ![Wallet with balance and transaction statement](images/wallet-dashboard.png)
 *Figure: Wallet with balance and transaction statement.*
 
+![Top up wallet dialog with preset amounts](images/wallet-topup-dialog.png)
+*Figure: Top up wallet dialog with preset amounts.*
+
 ---
 
 ## Host portal
 
 Log in with a Host account. The tabs are **Listings**, **Requests**, **Messages** and **Wallet**.
 The app opens on **Listings**. The top bar shows your wallet balance.
+
+![Host portal: the Listings, Requests, Messages and Wallet tabs](images/host-shell-overview.png)
+*Figure: Host portal: the Listings, Requests, Messages and Wallet tabs.*
 
 ### Your listings
 
@@ -379,6 +391,9 @@ listing or **Open Booking Calendar**.
 
 ![My listings cards](images/host1_1.png)
 *Figure: My listings cards.*
+
+![Listing detail with the Performance card, amenities and reviews](images/host-listing-detail.png)
+*Figure: Listing detail with the Performance card, amenities and reviews.*
 
 ### Create or edit a listing
 
@@ -439,6 +454,9 @@ completes automatically and the **net earning** is paid into your wallet.
 ![Booking requests table](images/host3.png)
 *Figure: Booking requests table.*
 
+![Approve booking request dialog showing the net earning](images/host-approve-dialog.png)
+*Figure: Approve booking request dialog showing the net earning.*
+
 ### Messages
 
 The **Messages** tab merges two kinds of conversation: private chat about a **booking** and the
@@ -463,6 +481,9 @@ separate row in your statement.
 
 Log in with an Agent account. The top bar reads **Support Agent workspace** and the tabs are
 **Disputes**, **Accounts**, **Audit Log** and **Categories**.
+
+![Agent workspace: the Disputes, Accounts, Audit Log and Categories tabs](images/agent-shell-overview.png)
+*Figure: Agent workspace: the Disputes, Accounts, Audit Log and Categories tabs.*
 
 ### Disputes
 
@@ -512,6 +533,9 @@ Agent accounts cannot be suspended here.
 
 ![Accounts table](images/admin4.png)
 *Figure: Accounts table.*
+
+![Suspend account dialog with the required reason](images/agent-suspend-dialog.png)
+*Figure: Suspend account dialog with the required reason.*
 
 ### Audit Log
 
