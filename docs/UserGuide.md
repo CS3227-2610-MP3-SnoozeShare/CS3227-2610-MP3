@@ -264,7 +264,7 @@ The **Search** tab lists available properties and lets you narrow them down.
 | Filter | What to enter |
 |---|---|
 | **Location** | Part of a city name, e.g. `Lisbon`. |
-| **Check-in** / **Check-out** | Pick both dates. Past dates are greyed out and cannot be chosen. Properties already booked or blocked for those dates are shown last and marked unavailable. |
+| **Check-in** / **Check-out** | Pick both dates. Past dates are greyed out, and a past date typed into the field is cleared with a message. Properties already booked or blocked for those dates are shown last and marked unavailable. |
 | **Guests** | The number of guests. Only properties that fit them are shown. |
 | **Max nightly budget** | The most you want to pay per night. |
 
@@ -308,7 +308,7 @@ The page updates by itself when a Host approves or rejects a request, so you do 
 | **File dispute** | Confirmed or completed trip card, once the trip has started and up to 7 days after check-out; hidden once a ticket exists for that booking | Opens the dispute form (see below). |
 | **Message host** | Confirmed trip card | Opens the Messages tab on your private chat with the Host about that booking. |
 
-When you press **Cancel**, a **Cancel this booking?** window shows the refund you will get (100% for a pending request;
+When you press **Cancel**, a **Cancel this booking?** window shows the refund you will get (100% for a pending booking at any time;
 for an approved booking, 100% more than 48 hours before check-in and 50% within 48 hours) and the
 cancellation policy. Choose **Confirm
 cancel** to cancel, or **Keep booking** to leave the booking as it is. The refund is credited to your
@@ -327,11 +327,10 @@ wallet straight away.
 
 If something went wrong with a stay, tell us what happened:
 
-1. Choose a **Category** (for example *Cleanliness*, *Property Mismatch*, *Damage Dispute*).
+1. Choose a **Category** (for example *Cleanliness*, *Property Mismatch*, *Damage Dispute*; *Other* is always last) and the **Requested Remedy**: **Full Refund**, **Partial Refund** or **Other**.
 2. Type a short **Title** and a **Description**.
-3. Choose the **Requested Remedy**: **Full Refund**, **Partial Refund** or **Other**.
-4. Optionally add **Supporting Information** such as evidence.
-5. Click **Submit**.
+3. Optionally add **Supporting Information** such as evidence.
+4. Click **Submit**.
 
 The money for that booking stays in escrow until a Support Agent resolves the ticket.
 
@@ -422,7 +421,7 @@ Open a listing, then **Open Booking Calendar**. The calendar colours each day as
 
 To block dates (maintenance, personal use):
 
-1. Pick **From** and **To** dates.
+1. Pick **From** and **To** dates. Past dates cannot be blocked, and the first blocked day can be today.
 2. Type a **Reason**.
 3. Click **Block these dates**.
 

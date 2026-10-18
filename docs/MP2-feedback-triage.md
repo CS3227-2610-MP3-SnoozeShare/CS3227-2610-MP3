@@ -28,6 +28,8 @@ Fixed on branch `mp2-docs-and-process-fixes` (2026-10-19): D6, P2, P3, P4, G1–
 
 Not doing: **G6** (reflections are rewritten in the MP3 iteration); the `reviewed-plan` skill (never used here).
 
+Fixed on branch `mp2-ux-date-fixes` (2026-10-19): follow-ups to B4/B5 (no past dates in the search filter, host calendar or any picker, including typed values), the refund-modal wording, and the file-a-dispute modal layout (C53).
+
 Still open: **P1** (no CI). Follow-up from this pass: the Jekyll site was not built locally. The manual GUI check of the B1/B3 fixes was not performed.
 
 ---
