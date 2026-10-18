@@ -24,7 +24,11 @@ Fixed on branch `mp2-bug-fixes` (MP3-0 correctness cluster; awaiting operator re
 
 Fixed on branch `mp2-smaller-bug-fixes` (2026-10-19): B2, B6, B7, D4 (B7 resolved by relabelling to net and correcting the User Guide; the approval dialog deliberately has no message field, C31).
 
-Still open: D6, P1–P4, G1–G6. The manual GUI check of the B1/B3 fixes was not performed.
+Fixed on branch `mp2-docs-and-process-fixes` (2026-10-19): D6, P2, P3, P4, G1–G5. Details in the Done ledger.
+
+Not doing: **G6** (reflections are rewritten in the MP3 iteration); the `reviewed-plan` skill (never used here).
+
+Still open: **P1** (no CI). Follow-ups from this pass: five User Guide screenshots were not captured (db folder, top-up dialog, host listing detail with Performance card, approve dialog, suspend dialog), and the Jekyll site was not built locally. The manual GUI check of the B1/B3 fixes was not performed.
 
 ---
 

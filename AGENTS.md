@@ -116,6 +116,11 @@ add `guide out of date: <what>` to the workstream's Progress instead.
 it with only what the spec settles — overview, scope, requirements, glossary. No architecture,
 no diagrams.
 
+**Compare the guide to the built app at every checkpoint.** Before proposing the update, check
+each claim you are about to keep or add against the code (defaults, filters, tab and screen names,
+limits), not against the spec or a past version of the guide. The MP2 guide drifted on exactly
+these points.
+
 **When a workstream reaches `Done`:** set its **Guide** column to `Awaiting confirmation` (or `N/A`,
 with the reason in Progress) and ask the operator whether it is confirmed; a yes makes it `Pending`.
 At each checkpoint, **propose** the update — the sections and diagrams to add or change — and
