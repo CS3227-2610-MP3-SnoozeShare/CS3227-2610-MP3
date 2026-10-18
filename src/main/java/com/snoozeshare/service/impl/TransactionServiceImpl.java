@@ -1,7 +1,6 @@
 package com.snoozeshare.service.impl;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.util.List;
@@ -14,6 +13,7 @@ import com.snoozeshare.domain.enums.WalletTransactionType;
 import com.snoozeshare.domain.model.Booking;
 import com.snoozeshare.domain.model.Wallet;
 import com.snoozeshare.domain.model.WalletTransaction;
+import com.snoozeshare.domain.settlement.SettlementCalculator;
 import com.snoozeshare.infra.db.TransactionManager;
 import com.snoozeshare.repository.BookingRepository;
 import com.snoozeshare.repository.LedgerRepository;
@@ -84,8 +84,8 @@ public final class TransactionServiceImpl implements TransactionService {
                 Wallet hostWallet = wallets.findByUserId(property.hostId())
                         .orElseThrow(() -> new IllegalArgumentException("Host wallet does not exist"));
                 BigDecimal gross = booking.totalAmount();
-                BigDecimal net = gross.multiply(new BigDecimal("0.97")).setScale(2, RoundingMode.HALF_UP);
-                BigDecimal fee = gross.subtract(net).setScale(2, RoundingMode.HALF_UP);
+                BigDecimal net = SettlementCalculator.hostNet(gross);
+                BigDecimal fee = SettlementCalculator.platformFee(gross);
                 Instant now = Instant.now();
                 WalletTransaction result = ledger.postPayout(hostWallet.walletId(), net, fee, property.hostId(),
                         bookingId, null, now);

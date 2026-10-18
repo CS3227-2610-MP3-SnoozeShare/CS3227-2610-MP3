@@ -64,6 +64,7 @@ public final class LedgerWriter {
      * Pays a host {@code net} and credits the platform {@code fee} to the System wallet (no fee row for a zero
      * fee). Returns the host's payout row.
      */
+    // The 3% rate itself lives in SettlementCalculator; the text below only describes it.
     public WalletTransaction postPayout(UUID hostWalletId, BigDecimal net, BigDecimal fee, UUID actorId,
                                         UUID bookingId, UUID ticketId, Instant at) {
         DomainValidation.requireNonNegative(fee, "fee");

@@ -21,6 +21,7 @@ import com.snoozeshare.domain.model.User;
 import com.snoozeshare.domain.model.Wallet;
 import com.snoozeshare.domain.policy.DisputeWindowPolicy;
 import com.snoozeshare.domain.policy.StayDatePolicy;
+import com.snoozeshare.domain.settlement.SettlementCalculator;
 import com.snoozeshare.domain.statemachine.BookingStateMachine;
 import com.snoozeshare.infra.db.TransactionManager;
 import com.snoozeshare.infra.events.EventBus;
@@ -169,8 +170,7 @@ public final class BookingServiceImpl implements BookingService {
                     : OptionalDouble.of(guestReviews.stream().mapToInt(
                             com.snoozeshare.domain.model.Review::rating).average().orElse(0));
             long nights = ChronoUnit.DAYS.between(booking.startDate(), booking.endDate());
-            BigDecimal net = booking.totalAmount().multiply(new BigDecimal("0.97"))
-                    .setScale(2, java.math.RoundingMode.HALF_UP);
+            BigDecimal net = SettlementCalculator.hostNet(booking.totalAmount());
             return new HostBookingRow(booking, guestName, property.title(), nights,
                     booking.totalAmount(), net, rating);
         }).toList();
@@ -347,7 +347,6 @@ public final class BookingServiceImpl implements BookingService {
     public Money previewHostEarnings(UUID bookingId) {
         Booking booking = bookings.findById(bookingId)
                 .orElseThrow(() -> new IllegalArgumentException("Booking does not exist"));
-        return new Money(booking.totalAmount().multiply(new BigDecimal("0.97"))
-                .setScale(2, java.math.RoundingMode.HALF_UP), "SGD");
+        return new Money(SettlementCalculator.hostNet(booking.totalAmount()), "SGD");
     }
 }

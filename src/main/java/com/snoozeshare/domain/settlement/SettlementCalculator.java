@@ -27,7 +27,17 @@ public final class SettlementCalculator {
         BigDecimal held = escrow.setScale(2, RoundingMode.HALF_UP);
         BigDecimal refund = guestRefund.setScale(2, RoundingMode.HALF_UP);
         BigDecimal hostGross = held.subtract(refund);
-        BigDecimal fee = hostGross.multiply(FEE_RATE).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal fee = platformFee(hostGross);
         return new SettlementBreakdown(held, refund, hostGross, fee, hostGross.subtract(fee));
+    }
+
+    /** The platform's 3% share of a host gross, rounded half-up to the cent. */
+    public static BigDecimal platformFee(BigDecimal hostGross) {
+        return hostGross.multiply(FEE_RATE).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    /** What the host receives: the gross minus the platform fee. */
+    public static BigDecimal hostNet(BigDecimal hostGross) {
+        return hostGross.setScale(2, RoundingMode.HALF_UP).subtract(platformFee(hostGross));
     }
 }
