@@ -45,6 +45,10 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.SVGPath;
 
+/**
+ * Trips tab for Guests: their bookings with status, cancel, review and dispute actions. Runs the
+ * booking-completion sweep on load and refreshes on booking events.
+ */
 public final class TripDashboardController {
 
     /** The three collapsible groups on the page, in display order. */

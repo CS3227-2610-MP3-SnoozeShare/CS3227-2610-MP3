@@ -11,6 +11,10 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 
+/**
+ * Base class for the three role shells: builds the tab bar and swaps page content.
+ * Subclasses declare their own tabs.
+ */
 public class NavShellController {
 
     @FXML protected Label roleLabel;

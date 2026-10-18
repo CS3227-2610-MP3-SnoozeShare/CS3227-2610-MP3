@@ -46,3 +46,8 @@ replay_pid*
 
 # Eclipse/VS Code Java language server build output
 bin/
+
+# Jekyll local preview
+docs/_site/
+docs/.jekyll-cache/
+docs/Gemfile.lock

@@ -31,6 +31,10 @@ import javafx.scene.control.ToggleGroup;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
+/**
+ * Disputes tab of the Agent portal: the queue of open and resolved tickets. Refreshes when
+ * ticket events arrive.
+ */
 public final class DisputeQueueController {
 
     private static final double ROW_HEIGHT = 47;

@@ -10,6 +10,10 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 
+/**
+ * Sign-in and registration screen shared by all roles. Signs in by email only, registers new
+ * accounts, and routes to the shell for the signed-in user's role.
+ */
 public final class AuthController {
 
     @FXML private TextField displayNameField;

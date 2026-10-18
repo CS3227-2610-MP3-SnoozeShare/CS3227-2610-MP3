@@ -31,6 +31,10 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
+/**
+ * Dispute detail page for an Agent: ticket and booking facts, the message thread with the guest,
+ * and the entry point to resolving the ticket. Refreshes when ticket or message events arrive.
+ */
 public final class DisputeDetailController {
 
     private static final DateTimeFormatter DAY = DateTimeFormatter.ofPattern("MMM d", Locale.ENGLISH);

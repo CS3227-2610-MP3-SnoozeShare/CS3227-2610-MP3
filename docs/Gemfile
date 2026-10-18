@@ -1,0 +1,6 @@
+source "https://rubygems.org"
+
+# Pins the same Jekyll and plugin versions GitHub Pages uses, for a local preview:
+#   cd docs && bundle install && bundle exec jekyll serve
+gem "github-pages", group: :jekyll_plugins
+gem "webrick"

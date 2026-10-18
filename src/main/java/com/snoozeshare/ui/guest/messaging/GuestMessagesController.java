@@ -37,6 +37,10 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
+/**
+ * Messages tab for Guests: one list merging dispute-ticket threads and booking chats. A closed
+ * chat or resolved ticket shows history with no composer.
+ */
 public final class GuestMessagesController {
 
     @FXML private StackPane rootStack;

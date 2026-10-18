@@ -19,6 +19,10 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 
+/**
+ * Shell for the Host portal: the Listings, Requests, Messages and Wallet tabs. Passes the shared
+ * application context to each page controller it loads.
+ */
 public final class HostShellController extends NavShellController {
 
     private static final String ACTIVE_TAB = "agent-tab-active";

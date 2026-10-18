@@ -4,7 +4,7 @@ title: SnoozeShare
 permalink: /
 ---
 
-# CS3227-2610-MP2 — SnoozeShare
+# CS3227-2610-MP3 — SnoozeShare
 
 - [User Guide](user-guide/) — how to run and use the app
 - [Developer Guide](developer-guide/) — architecture, package structure, and interface contracts

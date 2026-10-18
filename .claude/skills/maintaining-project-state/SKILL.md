@@ -51,8 +51,8 @@ ledger. Only pure no-ops (formatting, a typo in a comment) can pass unwritten.
 Ambiguous size? **Treat it as big.** A spec you did not need costs twenty minutes; a feature
 built without one costs a rewrite.
 
-Use `superpowers:brainstorming` for the spec and `superpowers:writing-plans` — or the
-`reviewed-plan` skill — for the plan.
+Use `superpowers:brainstorming` for the spec and `superpowers:writing-plans` for the plan (both are
+committed in `.claude/skills/`).
 
 **If the operator asks to skip the spec and plan on a big change:** say so once, then do as
 asked. It is their call. Record the skip as a decision, so the missing document is visible to

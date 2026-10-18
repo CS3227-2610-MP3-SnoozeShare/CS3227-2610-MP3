@@ -27,6 +27,10 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
+/**
+ * Listing detail page for Guests: the listing's details and reviews, a price estimate for the
+ * chosen dates, and the booking request action.
+ */
 public final class ListingDetailController {
 
     /** Reviews shown before "Show all" is pressed. */

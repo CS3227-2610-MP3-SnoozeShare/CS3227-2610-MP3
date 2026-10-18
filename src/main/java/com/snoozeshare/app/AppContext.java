@@ -56,6 +56,15 @@ import com.snoozeshare.service.impl.WalletServiceImpl;
 import com.snoozeshare.session.MockSessionContext;
 import com.snoozeshare.session.SessionContext;
 
+/**
+ * The composition root: opens the database, runs migrations, and wires every repository, service
+ * and shared object together once.
+ *
+ * Controllers receive one {@code AppContext} and ask it for services; nothing else constructs
+ * services. The transaction manager, event bus and post-commit event queue are shared by all
+ * services so that a business operation and its audit and events commit or roll back together.
+ * Closing the context closes the database connection.
+ */
 public final class AppContext implements AutoCloseable {
 
     private final Connection connection;
@@ -77,6 +86,10 @@ public final class AppContext implements AutoCloseable {
     private final ReviewService reviewService;
     private final SceneRouter sceneRouter;
 
+    /**
+     * Builds the whole object graph over an open connection, then runs the booking-completion sweep
+     * once so stays that ended while the app was closed are settled at start-up.
+     */
     private AppContext(Connection connection) throws SQLException {
         this.connection = connection;
         MigrationRunner.migrate(connection);
@@ -126,10 +139,17 @@ public final class AppContext implements AutoCloseable {
         bookingService.completeEligibleBookings();
     }
 
+    /**
+     * @return a context over a fresh in-memory database, used by tests
+     */
     public static AppContext create() throws SQLException {
         return new AppContext(ConnectionFactory.open("jdbc:sqlite::memory:"));
     }
 
+    /**
+     * @param jdbcUrl for example {@code jdbc:sqlite:db/snoozeshare-mock.db}
+     * @return a context over that database, migrated to the latest schema
+     */
     public static AppContext create(String jdbcUrl) throws SQLException {
         return new AppContext(ConnectionFactory.open(jdbcUrl));
     }
@@ -154,6 +174,9 @@ public final class AppContext implements AutoCloseable {
         return reviewService;
     }
 
+    /**
+     * @return the signed-in user holder shared by all screens
+     */
     public SessionContext session() {
         return session;
     }
@@ -186,6 +209,11 @@ public final class AppContext implements AutoCloseable {
         return bookingService;
     }
 
+    /**
+     * Completes every confirmed booking whose stay and dispute window have ended.
+     *
+     * @return how many bookings were completed
+     */
     public int runBookingCompletionSweep() {
         return bookingService.completeEligibleBookings();
     }
@@ -202,6 +230,9 @@ public final class AppContext implements AutoCloseable {
         return eventBus;
     }
 
+    /**
+     * @return the router that switches between the sign-in screen and the role shells
+     */
     public SceneRouter sceneRouter() {
         return sceneRouter;
     }

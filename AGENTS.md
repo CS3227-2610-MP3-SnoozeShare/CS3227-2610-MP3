@@ -116,12 +116,41 @@ add `guide out of date: <what>` to the workstream's Progress instead.
 it with only what the spec settles — overview, scope, requirements, glossary. No architecture,
 no diagrams.
 
+**Compare the guide to the built app at every checkpoint.** Before proposing the update, check
+each claim you are about to keep or add against the code (defaults, filters, tab and screen names,
+limits), not against the spec or a past version of the guide. The MP2 guide drifted on exactly
+these points.
+
 **When a workstream reaches `Done`:** set its **Guide** column to `Awaiting confirmation` (or `N/A`,
 with the reason in Progress) and ask the operator whether it is confirmed; a yes makes it `Pending`.
 At each checkpoint, **propose** the update — the sections and diagrams to add or change — and
 **write nothing until the operator approves**; then set Guide to `Documented YYYY-MM-DD`. If the
 operator holds it, it stays `Pending` with `guide held YYYY-MM-DD: <reason>` in Progress. Guide
 values: `—` · `Awaiting confirmation` · `Pending` · `Documented YYYY-MM-DD` · `N/A`.
+
+---
+
+## 6. Keep commits small and contained
+
+Reviewers cannot audit a 96-file commit, and a broken integration is hard to bisect. Past
+integration commits touched 55–96 files and needed a follow-up repair. So:
+
+- **One logical change per commit** — a fix, a refactor, a doc update, a test. Do not mix a
+  behaviour change with unrelated formatting or cleanup.
+- **Each commit builds and passes tests** (`.\gradlew build`). Never commit a known-red tree to
+  "fix it in the next commit".
+- **Aim for a handful of files per commit.** If a change touches more than about 15 files,
+  stop and split it (extract the refactor first, then the behaviour change), unless it is a
+  mechanical rename or a generated file.
+- **Commit as you go, per plan task** — not once at the end of a session or workstream.
+- **Integrate branches in small steps.** Merge or rebase a feature branch before it grows
+  large; resolve API drift at the merge, in the merge commit, with the build run first. Do not
+  land stale-API repairs as a separate "fix after integration" commit.
+- **Write descriptive messages:** `type: what changed and why` (`fix:`, `feat:`, `refactor:`,
+  `docs:`, `test:`), naming the area or item ID. Never `update`, `wip`, or "record origin/main
+  as merged".
+- **Keep the record in step:** update `PROJECT_STATE.md` and the Done ledger in the same commit
+  as the work they describe, or the very next one.
 
 ---
 

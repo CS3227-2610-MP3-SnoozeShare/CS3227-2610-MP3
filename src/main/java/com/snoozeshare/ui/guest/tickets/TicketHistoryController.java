@@ -26,6 +26,10 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
+/**
+ * Guest's list of their own dispute tickets and the outcome of each. Refreshes when ticket
+ * events arrive.
+ */
 public final class TicketHistoryController {
 
     private static final DateTimeFormatter DATE_FORMAT =

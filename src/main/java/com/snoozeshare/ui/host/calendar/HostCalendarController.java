@@ -26,6 +26,10 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
+/**
+ * Host availability calendar: shows booked and blocked days for a listing and lets the Host block
+ * or unblock their own dates.
+ */
 public final class HostCalendarController {
 
     private static final String[] WEEKDAY_LABELS = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"};

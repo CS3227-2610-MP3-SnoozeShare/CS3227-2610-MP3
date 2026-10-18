@@ -25,9 +25,6 @@ Text in the guide uses these markers:
 
 > :exclamation: **Caution:** something that can surprise you or cannot be undone.
 
-> :camera: **Screenshot placeholder:** a screenshot will be added here. The file name shown is
-> where the image will be saved (`docs/images/`).
-
 ---
 
 ## Table of contents
@@ -86,8 +83,8 @@ SnoozeShare decides which data to open when it starts, **by looking for a file n
 
 3. Start the app as described in step 3 below.
 
-> :camera: **Screenshot placeholder:** `docs/images/quickstart-db-folder.png` — file explorer
-> showing the `db` folder containing `snoozeshare-mock.db`.
+![The db folder holding snoozeshare-mock.db next to schema.sql and seed-mock-data.sql](images/quickstart-db-folder.png)
+*Figure: The db folder holding snoozeshare-mock.db next to schema.sql and seed-mock-data.sql.*
 
 #### To start blank
 
@@ -241,7 +238,7 @@ there is no password.
 |---|---|
 | **Currency** | Everything is in **SGD**. |
 | **Escrow** | When a Guest books, the full stay cost is **held in escrow** from their wallet straight away. It is released to the Host only after the stay is completed. |
-| **Cancellation refund** | A Guest who cancels **more than 48 hours before check-in** gets a **100%** refund. Cancelling **less than 48 hours before** check-in refunds **50%**. |
+| **Cancellation refund** | A Guest who cancels a request the Host has **not yet approved** (a *pending* request) always gets a **100%** refund, however close check-in is. After the Host approves, cancelling **more than 48 hours before check-in** gives a **100%** refund and cancelling **less than 48 hours before** check-in refunds **50%**. |
 | **Host rejection / cancellation** | A request that the Host rejects or cancels is refunded to the Guest in full. |
 | **Platform fee** | The Guest pays no fee. The platform keeps **3%** of what is paid out to the Host. |
 | **Completing a stay** | A confirmed booking completes automatically **7 days after check-out** (the dispute window) and the Host is paid. A booking with an **open dispute** is not completed until an agent resolves it. |
@@ -257,8 +254,8 @@ Log in with a Guest account. The top bar shows the SnoozeShare name, a **Guest P
 **wallet balance** (SGD) and **Log out**. Four tabs sit underneath: **Search**, **Trips**,
 **Messages** and **Wallet**. The app opens on **Search**.
 
-> :camera: **Screenshot placeholder:** `docs/images/guest-shell-overview.png` — Guest portal with
-> top bar and the four tabs.
+![Guest portal: top bar, wallet balance and the four tabs, opening on Search](images/guest-shell-overview.png)
+*Figure: Guest portal: top bar, wallet balance and the four tabs, opening on Search.*
 
 ### Search for a stay
 
@@ -311,8 +308,9 @@ The page updates by itself when a Host approves or rejects a request, so you do 
 | **File dispute** | Confirmed or completed trip card, once the trip has started and up to 7 days after check-out; hidden once a ticket exists for that booking | Opens the dispute form (see below). |
 | **Message host** | Confirmed trip card | Opens the Messages tab on your private chat with the Host about that booking. |
 
-When you press **Cancel**, a **Cancel this booking?** window shows the refund you will get (100% more
-than 48 hours before check-in, 50% within 48 hours) and the cancellation policy. Choose **Confirm
+When you press **Cancel**, a **Cancel this booking?** window shows the refund you will get (100% for a pending request;
+for an approved booking, 100% more than 48 hours before check-in and 50% within 48 hours) and the
+cancellation policy. Choose **Confirm
 cancel** to cancel, or **Keep booking** to leave the booking as it is. The refund is credited to your
 wallet straight away.
 
@@ -369,8 +367,8 @@ withdrawals are mocked.
 ![Wallet with balance and transaction statement](images/wallet-dashboard.png)
 *Figure: Wallet with balance and transaction statement.*
 
-> :camera: **Screenshot placeholder:** `docs/images/wallet-topup-dialog.png` — the top-up dialog
-> with preset amounts.
+![Top up wallet dialog with preset amounts](images/wallet-topup-dialog.png)
+*Figure: Top up wallet dialog with preset amounts.*
 
 ---
 
@@ -379,8 +377,8 @@ withdrawals are mocked.
 Log in with a Host account. The tabs are **Listings**, **Requests**, **Messages** and **Wallet**.
 The app opens on **Listings**. The top bar shows your wallet balance.
 
-> :camera: **Screenshot placeholder:** `docs/images/host-shell-overview.png` — Host portal with the
-> four tabs.
+![Host portal: the Listings, Requests, Messages and Wallet tabs](images/host-shell-overview.png)
+*Figure: Host portal: the Listings, Requests, Messages and Wallet tabs.*
 
 ### Your listings
 
@@ -394,8 +392,8 @@ listing or **Open Booking Calendar**.
 ![My listings cards](images/host1_1.png)
 *Figure: My listings cards.*
 
-> :camera: **Screenshot placeholder:** `docs/images/host-listing-detail.png` — listing detail with
-> Performance card.
+![Listing detail with the Performance card, amenities and reviews](images/host-listing-detail.png)
+*Figure: Listing detail with the Performance card, amenities and reviews.*
 
 ### Create or edit a listing
 
@@ -456,8 +454,8 @@ completes automatically and the **net earning** is paid into your wallet.
 ![Booking requests table](images/host3.png)
 *Figure: Booking requests table.*
 
-> :camera: **Screenshot placeholder:** `docs/images/host-approve-dialog.png` — "Approve booking
-> request?" dialog.
+![Approve booking request dialog showing the net earning](images/host-approve-dialog.png)
+*Figure: Approve booking request dialog showing the net earning.*
 
 ### Messages
 
@@ -473,7 +471,9 @@ agent.
 ### Wallet
 
 Works exactly like the [Guest wallet](#wallet). Your statement shows **payouts** for completed
-stays, the **platform fee** rows, ticket remedies, top-ups and withdrawals.
+stays, ticket remedies, top-ups and withdrawals. A payout is already **net of the 3% platform
+fee**. The fee itself is recorded on the *SnoozeShare System* account, so it does not appear as a
+separate row in your statement.
 
 ---
 
@@ -482,8 +482,8 @@ stays, the **platform fee** rows, ticket remedies, top-ups and withdrawals.
 Log in with an Agent account. The top bar reads **Support Agent workspace** and the tabs are
 **Disputes**, **Accounts**, **Audit Log** and **Categories**.
 
-> :camera: **Screenshot placeholder:** `docs/images/agent-shell-overview.png` — Agent workspace
-> with the four tabs.
+![Agent workspace: the Disputes, Accounts, Audit Log and Categories tabs](images/agent-shell-overview.png)
+*Figure: Agent workspace: the Disputes, Accounts, Audit Log and Categories tabs.*
 
 ### Disputes
 
@@ -534,7 +534,8 @@ Agent accounts cannot be suspended here.
 ![Accounts table](images/admin4.png)
 *Figure: Accounts table.*
 
-> :camera: **Screenshot placeholder:** `docs/images/agent-suspend-dialog.png` — Suspend dialog.
+![Suspend account dialog with the required reason](images/agent-suspend-dialog.png)
+*Figure: Suspend account dialog with the required reason.*
 
 ### Audit Log
 

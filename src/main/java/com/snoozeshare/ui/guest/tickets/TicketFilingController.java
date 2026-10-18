@@ -14,6 +14,10 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 
+/**
+ * Dialog in which a Guest files a dispute ticket against a booking, choosing a category and
+ * describing the problem.
+ */
 public final class TicketFilingController {
 
     @FXML private ComboBox<String> categoryCombo;
