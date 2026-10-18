@@ -2,10 +2,9 @@ package com.snoozeshare.ui;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-
 import org.junit.jupiter.api.Test;
+
+import com.snoozeshare.testsupport.SourceText;
 
 class HostPageLayoutTest {
 
@@ -21,8 +20,8 @@ class HostPageLayoutTest {
         String calendar = read("calendar/host-calendar.fxml");
         assertTrue(calendar.contains("styleClass=\"agent-content, host-calendar-page calendar-content\""));
         assertTrue(calendar.contains(STANDARD_PADDING));
-        String wallet = Files.readString(Path.of(
-                "src/main/resources/com/snoozeshare/ui/common/wallet/wallet-dashboard.fxml"));
+        String wallet = SourceText.read(
+                "src/main/resources/com/snoozeshare/ui/common/wallet/wallet-dashboard.fxml");
         assertTrue(wallet.contains(STANDARD_PADDING));
     }
 
@@ -36,8 +35,8 @@ class HostPageLayoutTest {
 
     @Test
     void hostMessagesUseTheSameContentEdgeRhythm() throws Exception {
-        String css = Files.readString(Path.of(
-                "src/main/resources/com/snoozeshare/ui/host/host-theme.css"));
+        String css = SourceText.read(
+                "src/main/resources/com/snoozeshare/ui/host/host-theme.css");
         assertTrue(css.contains(".host-root .host-message-header {\n    -fx-padding: 16px 32px;"));
         assertTrue(css.contains(".host-root .host-message-composer {\n    -fx-padding: 16px 32px 24px 32px;"));
         assertTrue(css.contains(".host-root .host-message-thread {\n    -fx-padding: 24px 32px 24px 32px;"));
@@ -51,6 +50,6 @@ class HostPageLayoutTest {
     }
 
     private static String read(String relativePath) throws Exception {
-        return Files.readString(Path.of("src/main/resources/com/snoozeshare/ui/host", relativePath));
+        return SourceText.read("src/main/resources/com/snoozeshare/ui/host", relativePath);
     }
 }

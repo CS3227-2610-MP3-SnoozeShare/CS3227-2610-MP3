@@ -3,6 +3,7 @@ package com.snoozeshare.ui.guest.trips;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -22,6 +23,7 @@ import com.snoozeshare.domain.enums.BookingStatus;
 import com.snoozeshare.domain.model.Booking;
 import com.snoozeshare.domain.model.Property;
 import com.snoozeshare.domain.model.Ticket;
+import com.snoozeshare.domain.policy.DisputeWindowPolicy;
 import com.snoozeshare.infra.events.Subscription;
 import com.snoozeshare.infra.events.events.BookingCancelledEvent;
 import com.snoozeshare.infra.events.events.BookingConfirmedEvent;
@@ -65,6 +67,8 @@ public final class TripDashboardController {
     private static final Set<BookingStatus> CANCELLED_STATUSES = Set.of(
             BookingStatus.CANCELLED_BY_GUEST, BookingStatus.CANCELLED_BY_HOST,
             BookingStatus.REJECTED, BookingStatus.FORCE_CANCELLED);
+
+    private final DisputeWindowPolicy disputeWindow = new DisputeWindowPolicy(Clock.systemDefaultZone());
 
     @FXML private StackPane tripRoot;
     @FXML private VBox tripsContainer;
@@ -333,12 +337,7 @@ public final class TripDashboardController {
         if (bookedTicketIds.contains(booking.bookingId())) {
             return false;
         }
-        LocalDate today = LocalDate.now();
-        boolean tripStarted = !today.isBefore(booking.startDate());
-        boolean inWindow = !today.isAfter(booking.endDate().plusDays(7));
-        boolean statusOk = booking.status() == BookingStatus.CONFIRMED
-                || booking.status() == BookingStatus.COMPLETED;
-        return statusOk && tripStarted && inWindow;
+        return disputeWindow.canFileTicket(booking);
     }
 
     private boolean canReview(Booking booking) {

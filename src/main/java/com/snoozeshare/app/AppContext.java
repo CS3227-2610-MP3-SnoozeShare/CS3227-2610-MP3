@@ -5,9 +5,11 @@ import java.sql.SQLException;
 import java.time.Clock;
 
 import com.snoozeshare.infra.db.ConnectionFactory;
+import com.snoozeshare.infra.db.TransactionManager;
 import com.snoozeshare.infra.db.migration.MigrationRunner;
 import com.snoozeshare.infra.events.EventBus;
 import com.snoozeshare.infra.events.InProcessEventBus;
+import com.snoozeshare.infra.events.PostCommitEvents;
 import com.snoozeshare.repository.jdbc.JdbcAuditLogRepository;
 import com.snoozeshare.repository.jdbc.JdbcAvailabilityBlockRepository;
 import com.snoozeshare.repository.jdbc.JdbcBookingMessageRepository;
@@ -81,33 +83,35 @@ public final class AppContext implements AutoCloseable {
         JdbcUserRepository users = new JdbcUserRepository(connection);
         JdbcWalletRepository wallets = new JdbcWalletRepository(connection);
         this.eventBus = new InProcessEventBus();
+        PostCommitEvents postCommitEvents = PostCommitEvents.strict(eventBus::publish);
+        TransactionManager tx = new TransactionManager(connection, postCommitEvents);
+        Clock clock = Clock.systemDefaultZone();
         this.session = new MockSessionContext();
         this.userService = new UserServiceImpl(connection, users, wallets);
         this.auditService = new AuditServiceImpl(new JdbcAuditLogRepository(connection), users,
                 Clock.systemDefaultZone());
         JdbcLedgerRepository ledgerRepository = new JdbcLedgerRepository(connection);
-        LedgerWriter ledgerWriter = new LedgerWriter(wallets, auditService);
-        this.walletService = new WalletServiceImpl(connection, wallets, ledgerWriter, ledgerRepository, eventBus);
+        LedgerWriter ledgerWriter = new LedgerWriter(wallets, auditService, postCommitEvents);
+        this.walletService = new WalletServiceImpl(tx, wallets, ledgerWriter, ledgerRepository);
         JdbcPropertyRepository propertyRepo = new JdbcPropertyRepository(connection);
         JdbcAvailabilityBlockRepository blockRepo = new JdbcAvailabilityBlockRepository(connection);
         JdbcBookingRepository bookingRepo = new JdbcBookingRepository(connection);
         JdbcReviewRepository reviewRepo = new JdbcReviewRepository(connection);
         this.availabilityService = new AvailabilityServiceImpl(propertyRepo, blockRepo, bookingRepo);
-        this.listingService = new ListingServiceImpl(propertyRepo, availabilityService,
+        this.listingService = new ListingServiceImpl(tx, propertyRepo, availabilityService,
                 userService, auditService);
         this.listingMetricsService = new ListingMetricsServiceImpl(connection);
-        this.transactionService = new TransactionServiceImpl(connection, bookingRepo,
-                propertyRepo, wallets, ledgerWriter, ledgerRepository, eventBus);
+        this.transactionService = new TransactionServiceImpl(tx, bookingRepo,
+                propertyRepo, wallets, ledgerWriter, ledgerRepository);
         JdbcTicketRepository ticketRepo = new JdbcTicketRepository(connection);
-        this.bookingService = new BookingServiceImpl(connection, bookingRepo, propertyRepo,
-                blockRepo, wallets, ledgerWriter, ledgerRepository, users, reviewRepo, eventBus,
-                transactionService, ticketRepo);
+        this.bookingService = new BookingServiceImpl(tx, bookingRepo, propertyRepo,
+                blockRepo, wallets, ledgerWriter, users, reviewRepo, eventBus,
+                transactionService, ticketRepo, clock);
         JdbcTicketCategoryRepository categoryRepo = new JdbcTicketCategoryRepository(connection);
-        Clock clock = Clock.systemUTC();
-        DisputeSettlementService settlementService = new DisputeSettlementServiceImpl(connection,
+        DisputeSettlementService settlementService = new DisputeSettlementServiceImpl(tx,
                 ticketRepo, bookingRepo, propertyRepo, users, wallets, ledgerWriter, ledgerRepository, auditService,
                 eventBus, clock);
-        this.ticketService = new TicketServiceImpl(ticketRepo, categoryRepo, bookingRepo, users,
+        this.ticketService = new TicketServiceImpl(tx, ticketRepo, categoryRepo, bookingRepo, users,
                 settlementService, auditService, clock, eventBus);
         this.disputeQueryService = new DisputeQueryServiceImpl(ticketRepo, bookingRepo, propertyRepo,
                 users, ledgerRepository, clock);
@@ -115,8 +119,8 @@ public final class AppContext implements AutoCloseable {
                 bookingRepo, propertyRepo, users, eventBus, clock);
         this.bookingConversationService = new BookingConversationServiceImpl(
                 new JdbcBookingMessageRepository(connection), bookingRepo, propertyRepo, users, eventBus, clock);
-        this.reviewService = new ReviewServiceImpl(bookingRepo, reviewRepo, auditService, clock);
-        this.accountGovernanceService = new AccountGovernanceServiceImpl(connection, users, bookingRepo,
+        this.reviewService = new ReviewServiceImpl(tx, bookingRepo, reviewRepo, auditService, clock);
+        this.accountGovernanceService = new AccountGovernanceServiceImpl(tx, users, bookingRepo,
                 propertyRepo, blockRepo, wallets, ledgerWriter, eventBus, auditService, Clock.systemDefaultZone());
         this.sceneRouter = new SceneRouter();
         bookingService.completeEligibleBookings();

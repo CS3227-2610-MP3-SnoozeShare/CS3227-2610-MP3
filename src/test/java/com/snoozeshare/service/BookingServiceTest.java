@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -41,9 +42,8 @@ import com.snoozeshare.repository.jdbc.JdbcTicketRepository;
 import com.snoozeshare.repository.jdbc.JdbcUserRepository;
 import com.snoozeshare.repository.jdbc.JdbcWalletRepository;
 import com.snoozeshare.service.impl.BookingServiceImpl;
-import com.snoozeshare.service.impl.LedgerWriter;
 import com.snoozeshare.service.impl.TransactionServiceImpl;
-import com.snoozeshare.testsupport.LedgerTestSupport;
+import com.snoozeshare.testsupport.Tx;
 
 class BookingServiceTest {
 
@@ -166,6 +166,22 @@ class BookingServiceTest {
 
             assertThrows(IllegalArgumentException.class, () -> service.submitRequest(
                     ctx.guestId, ctx.propertyId, start.plusDays(1), end.plusDays(1)));
+        }
+    }
+
+    @Test
+    void submitRequestRejectsAStartDateInThePast() throws Exception {
+        try (Connection connection = migratedConnection()) {
+            var ctx = seedContext(connection, new BigDecimal("500.00"));
+            BookingService service = createService(connection);
+
+            assertThrows(IllegalArgumentException.class, () -> service.submitRequest(ctx.guestId, ctx.propertyId,
+                    LocalDate.now().minusDays(1), LocalDate.now().plusDays(2)));
+            try (var statement = connection.createStatement();
+                 var rows = statement.executeQuery("SELECT COUNT(*) FROM bookings")) {
+                rows.next();
+                assertEquals(0, rows.getInt(1));
+            }
         }
     }
 
@@ -570,6 +586,18 @@ class BookingServiceTest {
         }
     }
 
+    /** Moves a stored booking into the past; submitRequest itself rejects past stays. */
+    static void backdateStay(Connection connection, Booking booking, LocalDate start, LocalDate end)
+            throws Exception {
+        try (var statement = connection.prepareStatement(
+                "UPDATE bookings SET startDate = ?, endDate = ? WHERE bookingId = ?")) {
+            statement.setString(1, start.toString());
+            statement.setString(2, end.toString());
+            statement.setString(3, booking.bookingId().toString());
+            statement.executeUpdate();
+        }
+    }
+
     @Test
     void completeSettlesNetHostPayoutAndIsIdempotent() throws Exception {
         try (Connection connection = migratedConnection()) {
@@ -579,9 +607,11 @@ class BookingServiceTest {
             events.subscribe(WalletTransactionRecordedEvent.class, payoutEvents::add);
             BookingService service = createService(connection, events);
             Booking booking = service.submitRequest(ctx.guestId, ctx.propertyId,
-                    LocalDate.now().minusDays(10), LocalDate.now().minusDays(7));
+                    LocalDate.now().plusDays(8), LocalDate.now().plusDays(11));
+            backdateStay(connection, booking, LocalDate.now().minusDays(11), LocalDate.now().minusDays(8));
             new JdbcBookingRepository(connection).save(new Booking(booking.bookingId(),
-                    booking.listingId(), booking.guestId(), booking.startDate(), booking.endDate(),
+                    booking.listingId(), booking.guestId(), LocalDate.now().minusDays(11),
+                    LocalDate.now().minusDays(8),
                     BookingStatus.CONFIRMED, booking.nightlyRateSnapshot(), booking.totalAmount(),
                     booking.createdAt(), Instant.now(), null));
 
@@ -611,9 +641,11 @@ class BookingServiceTest {
             var ctx = seedContext(connection, new BigDecimal("500.00"));
             BookingService service = createService(connection);
             Booking booking = service.submitRequest(ctx.guestId, ctx.propertyId,
-                    LocalDate.now().minusDays(10), LocalDate.now().minusDays(7));
+                    LocalDate.now().plusDays(8), LocalDate.now().plusDays(11));
+            backdateStay(connection, booking, LocalDate.now().minusDays(11), LocalDate.now().minusDays(8));
             new JdbcBookingRepository(connection).save(new Booking(booking.bookingId(),
-                    booking.listingId(), booking.guestId(), booking.startDate(), booking.endDate(),
+                    booking.listingId(), booking.guestId(), LocalDate.now().minusDays(11),
+                    LocalDate.now().minusDays(8),
                     BookingStatus.CONFIRMED, booking.nightlyRateSnapshot(), booking.totalAmount(),
                     booking.createdAt(), Instant.now(), null));
             new JdbcTicketRepository(connection).save(new com.snoozeshare.domain.model.Ticket(
@@ -668,7 +700,7 @@ class BookingServiceTest {
                 .walletId();
     }
 
-    private record TestContext(UUID guestId, UUID hostId, UUID propertyId) {
+    record TestContext(UUID guestId, UUID hostId, UUID propertyId) {
     }
 
     static TestContext seedContext(Connection connection, BigDecimal walletBalance) {
@@ -709,22 +741,23 @@ class BookingServiceTest {
     }
 
     static BookingService createService(Connection connection, InProcessEventBus eventBus) {
-        LedgerWriter ledger = LedgerTestSupport.writer(connection);
+        InProcessEventBus bus = eventBus == null ? new InProcessEventBus() : eventBus;
+        Tx tx = Tx.of(connection, bus);
         var ledgerEntries = new JdbcLedgerRepository(connection);
-        return new BookingServiceImpl(connection,
+        return new BookingServiceImpl(tx.manager(),
                 new JdbcBookingRepository(connection),
                 new JdbcPropertyRepository(connection),
                 new JdbcAvailabilityBlockRepository(connection),
                 new JdbcWalletRepository(connection),
-                ledger,
-                ledgerEntries,
+                tx.ledger(),
                 new JdbcUserRepository(connection),
                 new JdbcReviewRepository(connection),
                 eventBus,
-                new TransactionServiceImpl(connection, new JdbcBookingRepository(connection),
+                new TransactionServiceImpl(tx.manager(), new JdbcBookingRepository(connection),
                         new JdbcPropertyRepository(connection), new JdbcWalletRepository(connection),
-                        ledger, ledgerEntries, eventBus),
-                new JdbcTicketRepository(connection));
+                        tx.ledger(), ledgerEntries),
+                new JdbcTicketRepository(connection),
+                Clock.systemDefaultZone());
     }
 
     static Connection migratedConnection() throws Exception {

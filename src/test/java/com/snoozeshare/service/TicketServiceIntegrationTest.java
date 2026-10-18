@@ -13,6 +13,7 @@ import org.junit.jupiter.api.io.TempDir;
 import com.snoozeshare.domain.enums.ResolutionMode;
 import com.snoozeshare.domain.enums.TicketStatus;
 import com.snoozeshare.domain.model.Ticket;
+import com.snoozeshare.infra.db.TransactionManager;
 import com.snoozeshare.infra.events.InProcessEventBus;
 import com.snoozeshare.repository.jdbc.JdbcAuditLogRepository;
 import com.snoozeshare.repository.jdbc.JdbcBookingRepository;
@@ -22,7 +23,6 @@ import com.snoozeshare.repository.jdbc.JdbcUserRepository;
 import com.snoozeshare.service.impl.AuditServiceImpl;
 import com.snoozeshare.service.impl.TicketServiceImpl;
 import com.snoozeshare.service.requests.ResolutionRequest;
-import com.snoozeshare.testsupport.LedgerTestSupport;
 import com.snoozeshare.testsupport.MockDbFixture;
 import com.snoozeshare.testsupport.MockIds;
 
@@ -30,10 +30,9 @@ class TicketServiceIntegrationTest {
 
     private static TicketServiceImpl service(MockDbFixture db) {
         var connection = db.connection();
-        var settlement = SettlementFixtures.settlement(db, new InProcessEventBus(),
-                LedgerTestSupport.writer(connection));
+        var settlement = SettlementFixtures.settlement(db, new InProcessEventBus());
         var eventBus = new InProcessEventBus();
-        return new TicketServiceImpl(new JdbcTicketRepository(connection),
+        return new TicketServiceImpl(new TransactionManager(connection), new JdbcTicketRepository(connection),
                 new JdbcTicketCategoryRepository(connection), new JdbcBookingRepository(connection),
                 new JdbcUserRepository(connection), settlement,
                 new AuditServiceImpl(new JdbcAuditLogRepository(connection), new JdbcUserRepository(connection),

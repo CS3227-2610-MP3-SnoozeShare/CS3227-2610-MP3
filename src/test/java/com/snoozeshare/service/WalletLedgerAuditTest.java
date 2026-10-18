@@ -17,6 +17,7 @@ import com.snoozeshare.domain.model.AuditLogEntry;
 import com.snoozeshare.domain.model.User;
 import com.snoozeshare.infra.db.ConnectionFactory;
 import com.snoozeshare.infra.db.migration.MigrationRunner;
+import com.snoozeshare.infra.events.InProcessEventBus;
 import com.snoozeshare.repository.AuditCriteria;
 import com.snoozeshare.repository.jdbc.JdbcAuditLogRepository;
 import com.snoozeshare.repository.jdbc.JdbcLedgerRepository;
@@ -26,15 +27,20 @@ import com.snoozeshare.service.impl.AuditServiceImpl;
 import com.snoozeshare.service.impl.UserServiceImpl;
 import com.snoozeshare.service.impl.WalletServiceImpl;
 import com.snoozeshare.testsupport.FailingAuditService;
-import com.snoozeshare.testsupport.LedgerTestSupport;
+import com.snoozeshare.testsupport.Tx;
 
 class WalletLedgerAuditTest {
+
+    private static WalletService walletService(Connection connection, AuditService audit) {
+        Tx tx = Tx.of(connection, new InProcessEventBus(), audit);
+        return new WalletServiceImpl(tx.manager(), new JdbcWalletRepository(connection), tx.ledger(),
+                new JdbcLedgerRepository(connection));
+    }
 
     private static WalletService walletService(Connection connection) {
         var audit = new AuditServiceImpl(new JdbcAuditLogRepository(connection),
                 new JdbcUserRepository(connection), Clock.systemUTC());
-        return new WalletServiceImpl(connection, new JdbcWalletRepository(connection),
-                LedgerTestSupport.writer(connection, audit), new JdbcLedgerRepository(connection), null);
+        return walletService(connection, audit);
     }
 
     private static UUID guest(Connection connection) {
@@ -96,9 +102,7 @@ class WalletLedgerAuditTest {
             UUID user = guest(connection);
             var realAudit = new AuditServiceImpl(new JdbcAuditLogRepository(connection),
                     new JdbcUserRepository(connection), Clock.systemUTC());
-            WalletService service = new WalletServiceImpl(connection, new JdbcWalletRepository(connection),
-                    LedgerTestSupport.writer(connection, new FailingAuditService(realAudit, 1)),
-                    new JdbcLedgerRepository(connection), null);
+            WalletService service = walletService(connection, new FailingAuditService(realAudit, 1));
 
             assertThrows(RuntimeException.class, () -> service.topUp(user, new BigDecimal("50.00")));
 

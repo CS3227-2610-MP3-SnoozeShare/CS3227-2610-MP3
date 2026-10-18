@@ -29,6 +29,7 @@ import com.snoozeshare.domain.model.Booking;
 import com.snoozeshare.domain.model.Property;
 import com.snoozeshare.domain.model.User;
 import com.snoozeshare.infra.db.ConnectionFactory;
+import com.snoozeshare.infra.db.TransactionManager;
 import com.snoozeshare.infra.db.migration.MigrationRunner;
 import com.snoozeshare.repository.AuditCriteria;
 import com.snoozeshare.repository.jdbc.JdbcAuditLogRepository;
@@ -368,6 +369,18 @@ class ListingServiceTest {
     }
 
     @Test
+    void searchRejectsAnInvertedDateRange() throws Exception {
+        try (Connection connection = migratedConnection()) {
+            seedContext(connection);
+            ListingService service = createService(connection);
+            SearchCriteria inverted = new SearchCriteria(null, null,
+                    LocalDate.now().plusDays(9), LocalDate.now().plusDays(4));
+
+            assertThrows(IllegalArgumentException.class, () -> service.search(inverted));
+        }
+    }
+
+    @Test
     void getDetailReturnsProperty() throws Exception {
         try (Connection connection = migratedConnection()) {
             var ctx = seedContext(connection);
@@ -473,7 +486,8 @@ class ListingServiceTest {
                 new JdbcWalletRepository(connection));
         var auditService = new AuditServiceImpl(new JdbcAuditLogRepository(connection), users,
                 Clock.systemUTC());
-        return new ListingServiceImpl(properties, availability, userService, auditService);
+        return new ListingServiceImpl(new TransactionManager(connection), properties, availability, userService,
+                auditService);
     }
 
     private static Connection migratedConnection() throws Exception {

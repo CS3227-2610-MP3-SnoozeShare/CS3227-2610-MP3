@@ -10,6 +10,8 @@ import com.snoozeshare.domain.enums.WalletTransactionType;
 import com.snoozeshare.domain.model.Wallet;
 import com.snoozeshare.domain.model.WalletTransaction;
 import com.snoozeshare.domain.validation.DomainValidation;
+import com.snoozeshare.infra.events.PostCommitEvents;
+import com.snoozeshare.infra.events.events.WalletTransactionRecordedEvent;
 import com.snoozeshare.repository.WalletRepository;
 import com.snoozeshare.service.AuditRecord;
 import com.snoozeshare.service.AuditService;
@@ -17,16 +19,19 @@ import com.snoozeshare.service.AuditService;
 /**
  * The only code that changes a wallet balance. It runs on the caller's connection and never opens a
  * transaction: the caller wraps it (and any state change it belongs with) in one, so the balance, the money
- * row and the state change commit or roll back together. Callers publish events after their commit.
+ * row and the state change commit or roll back together. Wallet events are queued here and published by the
+ * TransactionManager after the caller's commit.
  */
 public final class LedgerWriter {
 
     private final WalletRepository wallets;
     private final AuditService audit;
+    private final PostCommitEvents events;
 
-    public LedgerWriter(WalletRepository wallets, AuditService audit) {
+    public LedgerWriter(WalletRepository wallets, AuditService audit, PostCommitEvents events) {
         this.wallets = wallets;
         this.audit = audit;
+        this.events = events;
     }
 
     /** Moves {@code amount} (signed) in one wallet and records the money row. */
@@ -50,6 +55,7 @@ public final class LedgerWriter {
         audit.record(AuditRecord.builder(actorId, AuditAction.forWallet(type), "WalletTransaction", transactionId)
                 .wallet(amount, balanceAfter).reason(reason).subject(wallet.userId())
                 .booking(bookingId).ticket(ticketId).at(at).build());
+        events.enqueue(new WalletTransactionRecordedEvent(transactionId, walletId, at));
         return new WalletTransaction(transactionId, walletId, type, amount, balanceAfter,
                 bookingId, ticketId, actorId, at);
     }
@@ -58,6 +64,7 @@ public final class LedgerWriter {
      * Pays a host {@code net} and credits the platform {@code fee} to the System wallet (no fee row for a zero
      * fee). Returns the host's payout row.
      */
+    // The 3% rate itself lives in SettlementCalculator; the text below only describes it.
     public WalletTransaction postPayout(UUID hostWalletId, BigDecimal net, BigDecimal fee, UUID actorId,
                                         UUID bookingId, UUID ticketId, Instant at) {
         DomainValidation.requireNonNegative(fee, "fee");

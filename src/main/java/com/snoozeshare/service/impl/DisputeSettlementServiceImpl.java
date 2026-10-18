@@ -1,7 +1,6 @@
 package com.snoozeshare.service.impl;
 
 import java.math.BigDecimal;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Clock;
 import java.time.Instant;
@@ -29,7 +28,6 @@ import com.snoozeshare.domain.validation.DomainValidation;
 import com.snoozeshare.infra.db.TransactionManager;
 import com.snoozeshare.infra.events.EventBus;
 import com.snoozeshare.infra.events.events.TicketResolvedEvent;
-import com.snoozeshare.infra.events.events.WalletTransactionRecordedEvent;
 import com.snoozeshare.repository.BookingRepository;
 import com.snoozeshare.repository.LedgerRepository;
 import com.snoozeshare.repository.PropertyRepository;
@@ -48,7 +46,7 @@ import com.snoozeshare.service.Settlement;
  */
 public final class DisputeSettlementServiceImpl implements DisputeSettlementService {
 
-    private final Connection connection;
+    private final TransactionManager tx;
     private final TicketRepository tickets;
     private final BookingRepository bookings;
     private final PropertyRepository properties;
@@ -60,12 +58,12 @@ public final class DisputeSettlementServiceImpl implements DisputeSettlementServ
     private final EventBus eventBus;
     private final Clock clock;
 
-    public DisputeSettlementServiceImpl(Connection connection, TicketRepository tickets,
+    public DisputeSettlementServiceImpl(TransactionManager tx, TicketRepository tickets,
                                         BookingRepository bookings, PropertyRepository properties,
                                         UserRepository users, WalletRepository wallets,
                                         LedgerWriter ledger, LedgerRepository ledgerEntries,
                                         AuditService audit, EventBus eventBus, Clock clock) {
-        this.connection = connection;
+        this.tx = tx;
         this.tickets = tickets;
         this.bookings = bookings;
         this.properties = properties;
@@ -87,14 +85,12 @@ public final class DisputeSettlementServiceImpl implements DisputeSettlementServ
         Instant now = clock.instant();
         Settlement settlement;
         try {
-            settlement = new TransactionManager(connection).inTransaction(
+            settlement = tx.inTransaction(
                     current -> apply(ticketId, mode, guestRefund, agentId, reason.trim(), now));
         } catch (SQLException exception) {
             throw new IllegalStateException("Unable to settle dispute", exception);
         }
         eventBus.publish(new TicketResolvedEvent(ticketId, agentId, now));
-        publish(settlement.guestTransaction());
-        publish(settlement.hostTransaction());
         return settlement;
     }
 
@@ -182,10 +178,4 @@ public final class DisputeSettlementServiceImpl implements DisputeSettlementServ
         };
     }
 
-    private void publish(WalletTransaction transaction) {
-        if (transaction != null) {
-            eventBus.publish(new WalletTransactionRecordedEvent(transaction.transactionId(),
-                    transaction.walletId(), transaction.createdAt()));
-        }
-    }
 }

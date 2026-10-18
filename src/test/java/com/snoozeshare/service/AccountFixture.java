@@ -35,6 +35,7 @@ import com.snoozeshare.service.impl.AccountGovernanceServiceImpl;
 import com.snoozeshare.service.impl.AuditServiceImpl;
 import com.snoozeshare.service.impl.LedgerWriter;
 import com.snoozeshare.testsupport.LedgerTestSupport;
+import com.snoozeshare.testsupport.Tx;
 
 /** An in-memory migrated database with one agent, guests, hosts, listings and bookings at a fixed "today". */
 final class AccountFixture implements AutoCloseable {
@@ -53,6 +54,8 @@ final class AccountFixture implements AutoCloseable {
     final JdbcLedgerRepository ledgerEntries;
     final InProcessEventBus bus = new InProcessEventBus();
     final AuditService audit;
+    final Tx tx;
+    /** Seeds money rows outside any transaction (auto-commit queue); services use {@link #tx}. */
     final LedgerWriter ledger;
     final User agent;
 
@@ -66,6 +69,7 @@ final class AccountFixture implements AutoCloseable {
         wallets = new JdbcWalletRepository(connection);
         ledgerEntries = new JdbcLedgerRepository(connection);
         audit = new AuditServiceImpl(new JdbcAuditLogRepository(connection), users, CLOCK);
+        tx = Tx.of(connection, bus, audit);
         ledger = LedgerTestSupport.writer(connection, audit);
         agent = user(Role.AGENT, "Amy Tanaka", "amy@test.com", "2026-01-10T09:00:00Z");
     }
@@ -76,9 +80,9 @@ final class AccountFixture implements AutoCloseable {
 
     /** The service's money rows go through {@code auditService} too, so an injected failure covers them. */
     AccountGovernanceServiceImpl service(AuditService auditService) {
-        LedgerWriter writer = auditService == audit ? ledger : LedgerTestSupport.writer(connection, auditService);
-        return new AccountGovernanceServiceImpl(connection, users, bookings, properties, blocks, wallets,
-                writer, bus, auditService, CLOCK);
+        Tx wiring = auditService == audit ? tx : Tx.of(connection, bus, auditService);
+        return new AccountGovernanceServiceImpl(wiring.manager(), users, bookings, properties, blocks, wallets,
+                wiring.ledger(), bus, auditService, CLOCK);
     }
 
     /** Creates a user; guests and hosts get a wallet funded with {@link #START_BALANCE} through the ledger. */

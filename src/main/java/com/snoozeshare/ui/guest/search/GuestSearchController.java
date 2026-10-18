@@ -101,7 +101,13 @@ public final class GuestSearchController {
 
         SearchCriteria criteria = new SearchCriteria(city, guestsCombo.getValue(),
                 checkInPicker.getValue(), checkOutPicker.getValue(), budget);
-        List<SearchResult> results = context.listingService().search(criteria);
+        List<SearchResult> results;
+        try {
+            results = context.listingService().search(criteria);
+        } catch (IllegalArgumentException invalid) {
+            statusLabel.setText(invalid.getMessage());
+            return;
+        }
 
         resultsPane.getChildren().clear();
         if (results.isEmpty()) {

@@ -62,4 +62,21 @@ class SettlementCalculatorTest {
 
         assertEquals(0, new BigDecimal("10.50").compareTo(split.guestRefund()));
     }
+
+    @Test
+    void hostNetAndPlatformFeeAlwaysSumToTheGross() {
+        for (String gross : new String[] {"0.50", "0.01", "99.99", "291.00", "300.00", "1234.57"}) {
+            BigDecimal amount = new BigDecimal(gross);
+            assertEquals(0, amount.compareTo(
+                    SettlementCalculator.hostNet(amount).add(SettlementCalculator.platformFee(amount))), gross);
+        }
+    }
+
+    @Test
+    void platformFeeMatchesTheDisputeSettlementSplit() {
+        BigDecimal gross = new BigDecimal("300.00");
+        assertEquals(0, SettlementCalculator.split(gross, BigDecimal.ZERO).fee()
+                .compareTo(SettlementCalculator.platformFee(gross)));
+        assertEquals(0, new BigDecimal("291.00").compareTo(SettlementCalculator.hostNet(gross)));
+    }
 }

@@ -1,0 +1,86 @@
+package com.snoozeshare.service;
+
+import static com.snoozeshare.service.BookingServiceTest.backdateStay;
+import static com.snoozeshare.service.BookingServiceTest.createService;
+import static com.snoozeshare.service.BookingServiceTest.migratedConnection;
+import static com.snoozeshare.service.BookingServiceTest.seedContext;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.time.Instant;
+import java.time.LocalDate;
+
+import org.junit.jupiter.api.Test;
+
+import com.snoozeshare.domain.enums.BookingStatus;
+import com.snoozeshare.domain.model.Booking;
+import com.snoozeshare.repository.jdbc.JdbcBookingRepository;
+
+/** Guards the joined boundary TA1 found: completion must never pay the host while filing is still open. */
+class DisputeWindowBoundaryTest {
+
+    private static Booking confirmedEndedDaysAgo(Connection connection, BookingTestIds ids, BookingService service,
+                                                 int daysAgo) throws Exception {
+        Booking booking = service.submitRequest(ids.guestId(), ids.propertyId(),
+                LocalDate.now().plusDays(10), LocalDate.now().plusDays(13));
+        LocalDate start = LocalDate.now().minusDays(daysAgo + 3L);
+        LocalDate end = LocalDate.now().minusDays(daysAgo);
+        backdateStay(connection, booking, start, end);
+        return new JdbcBookingRepository(connection).save(new Booking(booking.bookingId(), booking.listingId(),
+                booking.guestId(), start, end, BookingStatus.CONFIRMED,
+                booking.nightlyRateSnapshot(), booking.totalAmount(), booking.createdAt(), Instant.now(), null));
+    }
+
+    @Test
+    void sweepDoesNotCompleteABookingWhoseFilingWindowIsStillOpen() throws Exception {
+        try (Connection connection = migratedConnection()) {
+            var ctx = seedContext(connection, new BigDecimal("1000.00"));
+            BookingService service = createService(connection);
+            Booking onDaySeven = confirmedEndedDaysAgo(connection, new BookingTestIds(ctx.guestId(), ctx.propertyId()),
+                    service, 7);
+
+            assertEquals(0, service.completeEligibleBookings());
+            assertThrows(IllegalStateException.class, () -> service.complete(onDaySeven.bookingId()));
+            assertEquals(BookingStatus.CONFIRMED,
+                    new JdbcBookingRepository(connection).findById(onDaySeven.bookingId()).orElseThrow().status());
+        }
+    }
+
+    @Test
+    void sweepCompletesOnceTheWindowHasClosed() throws Exception {
+        try (Connection connection = migratedConnection()) {
+            var ctx = seedContext(connection, new BigDecimal("1000.00"));
+            BookingService service = createService(connection);
+            Booking onDayEight = confirmedEndedDaysAgo(connection, new BookingTestIds(ctx.guestId(), ctx.propertyId()),
+                    service, 8);
+
+            assertEquals(1, service.completeEligibleBookings());
+            assertEquals(BookingStatus.COMPLETED,
+                    new JdbcBookingRepository(connection).findById(onDayEight.bookingId()).orElseThrow().status());
+        }
+    }
+
+    @Test
+    void runningTheSweepTwiceSettlesOnce() throws Exception {
+        try (Connection connection = migratedConnection()) {
+            var ctx = seedContext(connection, new BigDecimal("1000.00"));
+            BookingService service = createService(connection);
+            Booking booking = confirmedEndedDaysAgo(connection, new BookingTestIds(ctx.guestId(), ctx.propertyId()),
+                    service, 9);
+
+            assertEquals(1, service.completeEligibleBookings());
+            assertEquals(0, service.completeEligibleBookings());
+
+            long payouts = new com.snoozeshare.repository.jdbc.JdbcLedgerRepository(connection)
+                    .entriesForBooking(booking.bookingId()).stream()
+                    .filter(entry -> entry.type() == com.snoozeshare.domain.enums.WalletTransactionType.BOOKING_PAYOUT)
+                    .count();
+            assertEquals(1, payouts);
+        }
+    }
+
+    private record BookingTestIds(java.util.UUID guestId, java.util.UUID propertyId) {
+    }
+}

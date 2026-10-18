@@ -34,6 +34,16 @@ public final class Fakes {
     private Fakes() {
     }
 
+    /** A transaction manager over an in-memory connection, for tests whose repositories are in-memory fakes. */
+    public static com.snoozeshare.infra.db.TransactionManager transactions() {
+        try {
+            return new com.snoozeshare.infra.db.TransactionManager(
+                    com.snoozeshare.infra.db.ConnectionFactory.open("jdbc:sqlite::memory:"));
+        } catch (java.sql.SQLException exception) {
+            throw new IllegalStateException(exception);
+        }
+    }
+
     public static final class InMemoryTickets implements TicketRepository {
         private final Map<UUID, Ticket> store = new HashMap<>();
 
