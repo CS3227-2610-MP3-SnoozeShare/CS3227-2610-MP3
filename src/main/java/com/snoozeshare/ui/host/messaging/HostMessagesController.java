@@ -30,6 +30,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
+/**
+ * Messages tab for Hosts: booking chats with guests and dispute-ticket threads in one list.
+ */
 public final class HostMessagesController {
 
     @FXML private ListView<HostConversationRow> conversationList;

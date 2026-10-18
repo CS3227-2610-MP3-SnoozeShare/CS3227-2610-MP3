@@ -33,6 +33,10 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 
+/**
+ * Audit Log tab of the Agent portal: lists audit rows and applies the name, id, action-type and
+ * date filters when the Agent presses Apply filters.
+ */
 public final class AuditLogController {
 
     static final int PAGE_SIZE = 200;

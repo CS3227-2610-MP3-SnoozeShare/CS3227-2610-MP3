@@ -26,6 +26,10 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 
+/**
+ * Search tab for Guests: filter form and result list. Listings not free for the chosen dates are
+ * shown after the available ones and marked unavailable.
+ */
 public final class GuestSearchController {
 
     private static final int COLUMNS = 3;

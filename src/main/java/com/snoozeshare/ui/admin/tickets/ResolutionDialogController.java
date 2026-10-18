@@ -25,6 +25,10 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+/**
+ * Modal dialog in which an Agent picks a resolution for a dispute and confirms it. The dialog only
+ * collects the choice; settlement is done by the caller through the ticket service.
+ */
 public final class ResolutionDialogController {
 
     private static final String FXML = "/com/snoozeshare/ui/admin/tickets/resolution-dialog.fxml";

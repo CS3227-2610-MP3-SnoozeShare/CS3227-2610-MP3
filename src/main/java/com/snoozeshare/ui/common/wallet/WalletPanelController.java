@@ -7,6 +7,9 @@ import com.snoozeshare.app.AppContext;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 
+/**
+ * Wallet panel shared by Guests and Hosts; shows the signed-in user's current balance.
+ */
 public final class WalletPanelController {
 
     @FXML private Label balanceLabel;

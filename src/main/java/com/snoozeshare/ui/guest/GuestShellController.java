@@ -23,6 +23,9 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 
+/**
+ * Shell for the Guest portal: the Search, Trips, Messages and Wallet tabs.
+ */
 public final class GuestShellController extends NavShellController {
 
     private static final String ACTIVE_TAB = "agent-tab-active";

@@ -15,6 +15,10 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 
+/**
+ * Detail page for one of a Host's listings: its metrics and reviews, with a shortcut that opens
+ * the listing's calendar.
+ */
 public final class HostListingDetailController {
 
     private static final DateTimeFormatter TIME_FORMAT =

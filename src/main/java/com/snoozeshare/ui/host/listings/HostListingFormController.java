@@ -25,6 +25,10 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.util.StringConverter;
 
+/**
+ * Create and edit form for a listing. Checks the check-in and check-out times before handing the
+ * draft to the listing service, which validates the rest.
+ */
 public final class HostListingFormController {
 
     @FXML private TextField titleField;

@@ -11,6 +11,9 @@ import javafx.scene.control.TextArea;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 
+/**
+ * Dialog in which a Guest rates a completed stay from 1 to 5 stars and may add a comment.
+ */
 public final class ReviewDialogController {
 
     /** What the dialog shows about the stay being reviewed. */

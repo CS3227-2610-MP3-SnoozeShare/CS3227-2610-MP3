@@ -15,6 +15,10 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
+/**
+ * Categories tab of the Agent portal: lists, adds and edits the ticket categories guests choose
+ * from when filing a dispute.
+ */
 public final class CategoryAdminController {
 
     @FXML private VBox rows;

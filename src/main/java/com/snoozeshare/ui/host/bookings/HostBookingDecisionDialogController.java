@@ -15,6 +15,10 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.VBox;
 
+/**
+ * Modal dialog for approving or rejecting a pending booking request. Approving shows the net
+ * earning; rejecting shows the refund and an optional message to the guest.
+ */
 public final class HostBookingDecisionDialogController {
 
     @FXML private Label titleLabel;

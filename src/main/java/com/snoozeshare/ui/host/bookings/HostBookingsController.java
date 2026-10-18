@@ -20,6 +20,9 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.HBox;
 
+/**
+ * Requests tab for Hosts: pending requests to approve or reject, and the past requests table.
+ */
 public final class HostBookingsController {
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("MMM d");

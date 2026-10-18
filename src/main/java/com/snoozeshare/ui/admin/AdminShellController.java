@@ -18,6 +18,10 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 
+/**
+ * Shell for the Support Agent portal: the tab bar (Disputes, Accounts, Audit Log, Categories) and the
+ * signed-in header. Page controllers are loaded into its content area.
+ */
 public final class AdminShellController extends NavShellController {
 
     private static final String WORKSPACE_LABEL = "Support Agent workspace";

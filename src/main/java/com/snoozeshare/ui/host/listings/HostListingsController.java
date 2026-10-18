@@ -19,6 +19,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
+/**
+ * Listings tab for Hosts: the Host's listings with their key metrics and the create action.
+ */
 public final class HostListingsController {
 
     @FXML
