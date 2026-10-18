@@ -334,8 +334,8 @@ If something went wrong with a stay, tell us what happened:
 
 The money for that booking stays in escrow until a Support Agent resolves the ticket.
 
-!["File a Dispute" form](images/guest4.png)
-*Figure: "File a Dispute" form.*
+!["File a Dispute" form filled in with a category, remedy, title and description](images/guest4.png)
+*Figure: "File a Dispute" form, filled in. Category and Requested Remedy sit side by side.*
 
 ### Messages
 
