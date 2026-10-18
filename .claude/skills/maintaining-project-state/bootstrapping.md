@@ -6,7 +6,9 @@ do not let it expand into a project audit.
 ## Steps
 
 1. **Copy the skeleton** from [project-state-template.md](project-state-template.md) to
-   `PROJECT_STATE.md` at the repo root.
+   `PROJECT_STATE.md` at the repo root, and create `docs/project-state/branch-states/archive/`
+   (add a `.gitkeep`). Branches will write their own state there, copied from
+   [branch-state-template.md](branch-state-template.md); the project's `AGENTS.md` should say so.
 2. **Harvest what already exists**, in this order — earlier sources beat later ones on intent:
    - `docs/superpowers/specs/*` — purpose, decisions with reasons, explicit non-goals. The
      non-goals are gold: they populate § Known Gaps directly, and the spec's architecture
@@ -16,7 +18,8 @@ do not let it expand into a project audit.
    - `git log --oneline` — the early Done entries, and the true current state.
    - README, package scripts, CI config — the How to Resume commands.
    - The source tree — only to confirm what the documents claim, never as the primary source.
-3. **Fill Orientation, How to Resume, Workstreams and Needs a Human properly.** They are what
+3. **Fill Orientation, How to Resume (commands and the first Upcoming rows), Workstreams and
+   Needs a Human properly.** They are what
    a cold agent reads first. The rest can start sparse and grow.
 4. **Sketch § Architecture from the spec, not the source tree.** One subsection per real part,
    each saying what exists today; mark anything settled but unbuilt *(planned)*. Move every

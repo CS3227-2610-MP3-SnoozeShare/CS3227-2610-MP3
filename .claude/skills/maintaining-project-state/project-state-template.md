@@ -1,12 +1,13 @@
 # Project State — <Project Name>
 
 **Living document — the source of truth for this project.** Read it in full before doing
-anything, then run `git log --oneline -20` to confirm it still matches reality. Update it at
-every boundary, not at the end of the session.
+anything, then run `git log --oneline -20` to confirm it still matches reality. On `main` it
+changes only through `sync-project-state` (or an owner hotfix); on a branch, read it and write
+the branch state instead.
 
 - **Phase:** <e.g. MVP build / hardening / shipped>
 - **Stack:** <e.g. Next.js, Prisma, Postgres (Neon), Auth.js, Vercel>
-- **Branch:** <branch> (from `main` at `<sha>`)
+- **Branch:** `main` — this file describes `main` only; branches record their changes in `docs/project-state/branch-states/` and `sync-project-state` folds them in
 - **Method:** <e.g. subagent-driven development; implementer then spec review then quality review>
 - **Last updated:** YYYY-MM-DD by <model / agent> — <what changed, five words>
 - **Last verified against repo:** YYYY-MM-DD
@@ -30,6 +31,7 @@ an agent who has never seen the repo knows what it is looking at.>
 | `docs/superpowers/specs/` | Design specs — one per feature-level workstream |
 | `docs/superpowers/plans/` | Implementation plans |
 | `docs/project-state/done-ledger.md` | The Done ledger — every change, newest first |
+| `docs/project-state/branch-states/` | One lean state file per in-flight branch; `archive/` holds folded ones |
 | `<dir>` | <purpose> |
 
 ---
@@ -40,19 +42,15 @@ an agent who has never seen the repo knows what it is looking at.>
 <checkout / install / test / typecheck commands that get you to a known-good state>
 ```
 
-**Sessions in flight** — one row per operator-initiated session, however many agents or
-subagents it runs. This is "who's doing what right now," not a history: prune a row the moment
-its work lands in § Workstreams or the Done ledger. If nothing else is running, the table still
-has your own row, `Active`, with `Doing` pointing at the next concrete step you are about to
-take.
+**Upcoming** — planned workstreams and the todos handed over at each sync, in priority order.
+**The first row is the next action.** Remove a row when it is dropped, or when it starts and
+becomes a Workstream row. Sessions and in-flight branches are not tracked here: each branch keeps
+its own resume point in `docs/project-state/branch-states/`.
 
-| Session | Started | Agent(s) | Branch | Workstream | Status | Doing | Last touched |
-|---|---|---|---|---|---|---|---|
-| S4 | YYYY-MM-DD HH:MM | <model/agent> (lead) + <subagent types, if any> | <branch> | W1 | Active | Task 6/9: conflict engine | YYYY-MM-DD HH:MM |
-| S3 | YYYY-MM-DD HH:MM | <model/agent> | <branch> | — | Blocked — needs human | Q2 | YYYY-MM-DD HH:MM |
-
-Status vocabulary, used verbatim: `Active` · `Paused` · `Blocked — needs human` (name the
-question ID, same as a workstream row).
+| Item | Kind | Context / done when | Source | Added |
+|---|---|---|---|---|
+| <next thing to pick up> | Workstream | <enough to start without asking; how you know it is done> | handed over from `<branch>` | YYYY-MM-DD |
+| <follow-up> | Todo | <context; done when> | handed over from `<branch>` | YYYY-MM-DD |
 
 ---
 
@@ -124,9 +122,9 @@ how the system is shaped; this says what the shape demands of you.
 
 - <e.g. every query in `lib/queries/` takes `workspaceId` as its first argument>
 - <e.g. timestamps are stored UTC; only `lib/time.ts` formats or parses them>
-- **ID namespaces:** `W` = workstream, `C` = decision, `D` = deviation, `Q` = needs a human,
-  `S` = session. Numbers are unique across the whole file and never reused, wherever the entry
-  sits.
+- **ID namespaces:** `W` = workstream, `C` = decision, `D` = deviation, `Q` = needs a human.
+  Numbers are unique across the whole file, never reused, wherever the entry sits, and allocated
+  only by `sync-project-state`. A branch state uses provisional `~` IDs (`C~1`).
 
 ---
 

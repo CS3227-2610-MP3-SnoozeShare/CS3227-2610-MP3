@@ -3,7 +3,7 @@
 The template gives you the shape. This gives you the bar. Every pair below is the same fact
 written badly and written well — the difference is whether a cold agent can act on it.
 
-## Next Action
+## Next Action (per session)
 
 > ❌ Continue work on the conflict engine.
 
@@ -15,6 +15,7 @@ Useless. Which part? Where? What counts as done?
 
 Names the file, the task, where the algorithm is defined, and how you know when it works.
 This is the single most damaging field to leave vague — it is what a cold session reads first.
+In a branch state it lives in each session row's **Next action** cell, one per session.
 
 ## Decision
 
@@ -96,22 +97,42 @@ Update it whenever a task starts, finishes, or blocks — not once per session.
 
 ## Session Row
 
-> ❌ | S2 | 09-19 | Claude | main | — | Active | Working on stuff | 09-19 |
+> ❌ | S2 | 09-19 | Claude | — | Active | Working on stuff | continue | 09-19 |
 
-Tells a resuming session nothing: which workstream, what "stuff," and a bare date can't be
-checked against a `git log` timestamp to tell whether the row is stale.
+Tells a resuming session nothing: which workstream, what "stuff", what "continue" means, and a
+bare date cannot be checked against `git log` to tell whether the row is stale.
 
-> ✅ | S2 | 2026-09-19 09:10 | Codex | main | — | Blocked — needs human | Q4 | 2026-09-19 11:00 |
+> ✅ | S2 | 2026-10-19 14:02 | Claude Sonnet 5 (lead) + Explore×2 | W~1 | Active | Task 3/6: gap review | Fix the conflict text in `EventDetails.tsx`; done when `npm test -- details` passes | 2026-10-19 15:40 |
 
-Names the workstream link (or `—` if it's not tied to one), a status a resuming session can act
-on, a `Doing` cell that points at a Needs-a-Human ID instead of re-explaining it, and a precise
-enough timestamp to judge staleness against `git log` during reconciliation.
+Names the workstream, a position in the plan, the agent mix (so a different session knows what
+was already delegated), a **Next action** a cold agent can start on, and a timestamp precise
+enough to judge staleness during reconciliation.
 
-> ✅ | S4 | 2026-09-20 14:02 | Claude Sonnet 5 (lead) + Explore×2 | w4-ui-redesign | W4 | Active | Task 3/6: D10 remediation | 2026-09-20 15:40 |
+> ✅ | S1 | 2026-10-19 09:10 | Codex | W~1 | Blocked — needs human | Q~1 | Re-run the deploy once Q~1 is answered | 2026-10-19 11:00 |
 
-Same discipline as the Progress cell — a position and an ID, not a diary — plus enough about
-the agent mix that a different session knows what kind of work was already delegated without
-opening the transcript.
+A blocked session points at its question instead of re-explaining it, and still says what to do
+when the answer arrives. Delete the row when the work is in § Workstreams and § Changes.
+
+## Remaining and Handover
+
+> ❌ - [ ] Clean up some stuff later
+
+> ✅ - [ ] **Handover:** Add the CSV export. Needs its own spec first (format and column order
+> undecided); done when a spec is approved. Context: the items table already exposes
+> `toRows()` in `lib/items.ts`.
+
+Marked **Handover**, so sync copies it into `PROJECT_STATE.md` § How to Resume → Upcoming, and
+written so someone who never saw this branch can act on it. An unmarked item that is still open
+at approval is a defect in the branch state: finish it or remove it.
+
+## Upcoming Row (in `PROJECT_STATE.md`)
+
+> ❌ | CSV | Todo | do it | w6 | 10-19 |
+
+> ✅ | Add the CSV export | Workstream | Spec the export format first; done when a spec is approved | handed over from `w6-item-packages` | 2026-10-19 |
+
+The first row is the next action, so it is ordered by priority and says how you will know it is
+done. It names where it came from but is intelligible without opening it.
 
 ## Architecture Area
 

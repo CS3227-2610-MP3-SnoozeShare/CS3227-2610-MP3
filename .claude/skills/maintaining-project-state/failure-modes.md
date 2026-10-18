@@ -20,14 +20,24 @@ a reason not to write something down.
 | "Nothing meaningful changed" | Decide that consciously rather than drifting past it. If you edited a file, something changed |
 | "I'm mid-task, I'll write it when this is done" | If the task derails — and derailed tasks are the ones most worth recording — it never gets written |
 | "Another session is probably handling that" | Check its row's `Last touched` against `git log` before assuming. A stale `Active` row means nobody is |
-| "I'll skip adding my session row, it's just a quick fix" | A quick fix is exactly what collides with another agent editing the same file at the same time. Claim the row first, delete it after if the fix really was that small |
+| "I'll skip adding my session row, it's just a quick fix" | A quick fix is exactly what another agent on the same branch duplicates or overwrites. Claim the row first, delete it after if the fix really was that small |
+| "I'll just edit PROJECT_STATE.md, it's quicker than the branch state" | On a branch it is read-only. The edit conflicts with every other branch's, and it records unmerged work as if it were on `main`. Write the branch state; sync does the rest |
+| "The branch is basically done, I'll merge and get it approved afterwards" | Approval is the owner's gate, not a formality. Ask first; sync will refuse an unapproved state anyway |
 
 ## Common Mistakes
 
 - **Narrating instead of stating.** "We explored several approaches and eventually decided…"
   Cut it. State the decision and the reason; the exploration is not load-bearing.
-- **A stale Next Action.** The most damaging single field in the file. Reconcile it before you
-  stop, every time.
+- **A stale Next action.** The most damaging single field in a branch state. Reconcile your
+  session row before you stop, every time.
+- **A vague Handover.** "Look into X later" is lost at fold. Write it so a stranger can act on it,
+  with how they will know it is done.
+- **Citing a provisional ID outside the branch state.** `C~1` in a commit message or a code
+  comment points at nothing once sync renumbers it. Cite a permanent ID, or describe the decision.
+- **A stale `Base`.** Merging `main` into the branch without re-checking the entries the branch
+  edits, so sync later stops on a conflict that was avoidable weeks earlier.
+- **A fold nobody runs.** A merged branch whose state is still sitting in `branch-states/` makes
+  `PROJECT_STATE.md` lie by omission. Reconciliation on `main` lists them; tell the owner.
 - **Orphan specs.** A spec sitting in `docs/` with no workstream row pointing at it is
   invisible, and will be rewritten from scratch by someone who never found it.
 - **Status drift.** `Building` on something untouched for weeks. See
@@ -52,8 +62,6 @@ a reason not to write something down.
   commit as a reference; the commit is not the entry.
 - **A session row nobody prunes.** A finished session left `Active` makes the table lie about
   what is actually in flight — same failure as a stale `Building` workstream, same fix.
-- **Resolving a merge conflict by picking a side.** Decisions, Deviations, Known Gaps, the Done
-  ledger and the session table are append-only lists — the answer is almost always to keep both
-  entries and renumber, not to choose one. Dropping an entry to make the merge look clean erases
-  a decision or trap that has nowhere else to live. See
-  [merging-across-branches.md](merging-across-branches.md).
+- **Resolving a collision by dropping a side.** If two people sharing a branch collide inside the
+  branch state, keep both session rows and both entries. Dropping one to make the file look clean
+  erases a decision or trap that has nowhere else to live.

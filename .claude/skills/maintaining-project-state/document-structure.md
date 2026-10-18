@@ -1,7 +1,9 @@
 # Document Structure — What Goes Where
 
-The section list and the rules for keeping `PROJECT_STATE.md` useful as it grows.
-Copy the skeleton from [project-state-template.md](project-state-template.md).
+The section list and the rules for keeping `PROJECT_STATE.md` useful as it grows, and for the
+branch state that feeds it. Copy the skeletons from
+[project-state-template.md](project-state-template.md) and
+[branch-state-template.md](branch-state-template.md).
 
 ## The Sections
 
@@ -11,7 +13,7 @@ bottom holds the record. **Cite sections by name** — `§ Known Gaps` — never
 | § | Section | Holds | Keeps you from |
 |---|---|---|---|
 | 1 | **Orientation** | What the project is, stack, phase, repo map, `Last updated` | Re-deriving the project from the source tree |
-| 2 | **How to Resume** | Exact commands to reach a working state, plus a table of every session currently in flight — who, on what branch, doing what | Guessing how to build and test, or duplicating work another session already has in hand |
+| 2 | **How to Resume** | Exact commands to reach a working state, plus **Upcoming**: planned workstreams and todos handed over at syncs, in priority order. (In a branch state: the session table and Remaining work instead) | Guessing how to build and test, or not knowing what to pick up next |
 | 3 | **Workstreams** | One row per feature-level unit: status, spec, plan, a one-line position, Guide | Losing track of what is in flight |
 | 4 | **Architecture** | How the system is put together, area by area: current shape, then the decisions that produced it | Reading the whole source tree to learn the design, or reversing a structural decision by accident |
 | 5 | **Conventions** | Rules every change must honour; the ID namespaces | Rediscovering the same trap every session |
@@ -86,53 +88,93 @@ The `update-documentation` skill also writes short markers here — `guide held 
 <reason>`, `guide out of date: <what>`. Keep them short and leave them until that skill clears
 them.
 
-## The Session Table
+## The Branch State
 
-`How to Resume` used to hold one Next Action for one linear thread of work. The operator can
-run several agents at once — on the same branch or different ones, each possibly spawning its
-own subagents — and none of that survives past the conversation unless it is written down here.
-The table is what lets a cold session pick up *any* of them, not just the one you happened to
-start.
+`PROJECT_STATE.md` describes `main`. Everything still in flight lives in a branch state,
+`docs/project-state/branch-states/<slug>.md`, copied from
+[branch-state-template.md](branch-state-template.md). It exists so that branches never edit
+`PROJECT_STATE.md` — no shared counters, no shared insertion points, no ID collisions — and so
+that an interrupted session on the branch can be resumed by anyone.
+
+**It mirrors the project-state sections but holds only what the branch adds or changes.** A
+section with nothing to say is omitted. It is not a second copy of the project; if a reader needs
+the whole picture they read `PROJECT_STATE.md` and then the branch state.
+
+| Branch-state section | Holds | At fold it becomes |
+|---|---|---|
+| Header | Branch, `Base`, owner, `Status`, `Approved`, `Last updated` | Archive only |
+| 1. Scope | What the branch is for | A Workstream row |
+| 2. How to Resume | Setup, the session table, Remaining work | Sessions discarded; **Handover** items go to § How to Resume → Upcoming |
+| 3. Workstreams | Rows created or changed | § Workstreams |
+| 4. Architecture | Per area: proposed **Now**, Paths, decisions | § Architecture |
+| 5–9. Conventions … Deviations | Entries added, changed or removed | The matching section |
+| 10. Changes | Ledger lines | `done-ledger.md` |
+
+### How to Resume — the part that matters most on a branch
+
+Sessions are interrupted by context limits, closed windows and switched models. The branch state's
+§ How to Resume is what lets a different agent pick up *any* of them, not only the one it started.
 
 **One row per operator-initiated session**, not per agent. A session that spawns subagents lists
 them briefly in one cell — `Claude Sonnet 5 (lead) + Explore, general-purpose` — rather than
-getting a row each; the point is "what is this session touching," not a transcript.
+getting a row each; the point is "what is this session touching", not a transcript.
 
-| Session | Started | Agent(s) | Branch | Workstream | Status | Doing | Last touched |
+| Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S4 | 2026-09-20 14:02 | Claude Sonnet 5 (lead) + Explore×2 | w4-ui-redesign | W4 | Active | Task 3/6: D10 remediation | 2026-09-20 15:40 |
-| S3 | 2026-09-19 09:10 | Codex | main | — | Blocked — needs human | Q4 | 2026-09-19 11:00 |
+| S2 | 2026-10-19 14:02 | Claude Sonnet 5 (lead) + Explore×2 | W~1 | Active | Task 3/6: gap review | Fix `EventDetails` conflict text in `app/EventDetails.tsx`; done when `npm test -- details` passes | 2026-10-19 15:40 |
+| S1 | 2026-10-19 09:10 | Codex | W~1 | Blocked — needs human | Q~1 | Re-run the deploy once Q~1 is answered | 2026-10-19 11:00 |
 
-Status vocabulary, used verbatim: `Active` · `Paused` · `Blocked — needs human`. `Blocked` must
-still name the question ID, exactly like a workstream row.
+- **Status:** `Active` · `Paused` · `Blocked — needs human`. `Blocked` names its question.
+- **Doing** follows the Progress Cell rule below: a position and an ID, not a diary.
+- **Next action** is concrete — the file, the task, and how the agent will know it is done.
+- **Prune aggressively.** When a session's work is recorded in § Workstreams and § Changes, delete
+  its row: the Changes lines are the record of what it did, and a finished session left in the table
+  makes it lie about what is in flight. A session that stops mid-task is not finished — mark it
+  `Paused` so the next one knows there is unlanded work. `Active` with no matching git activity on
+  the branch is a session that died without saying so.
+- **Only touch your own row** while working. If another session's row looks wrong, that is a
+  reconciliation finding, not something to silently correct.
+- **Several people on one branch** (discouraged) share the one file. Each adds their own session
+  rows; when two edits collide, keep both rows.
+- **The table must be empty before the branch can be approved.**
 
-**The Doing cell follows the Progress Cell rule below** — a position and an ID, not a diary.
-`Task 3/6: D10 remediation` is right; a paragraph about what led there is not.
+**Remaining** lists work no session has claimed, in order. A follow-up that should outlive the
+branch is marked **Handover** and written so a stranger can act on it. Anything else still open
+at approval has to be finished or removed.
 
-**Prune aggressively.** The moment a session's work is fully reflected in § Workstreams or the
-Done ledger, delete its row — the ledger is now the record of what happened, and a finished
-session left in the table makes it lie about what is actually in flight, the same way a stale
-`Building` status does. A session that stops mid-task (context ran out, the operator closed the
-window) is not finished — leave its row as `Paused` so the next session knows there is
-unlanded work, and check it against `Last touched` during reconciliation: `Active` with no
-matching git activity is a session that died without saying so, not one still running.
+### How to Resume in `PROJECT_STATE.md`
 
-**Only touch your own row while working.** Editing someone else's `Active` row from a different
-session invites exactly the collision this table exists to prevent; if another session's row
-looks wrong, that's a reconciliation finding, not something to silently correct.
+On `main` the section holds the commands that reach a working state, plus an **Upcoming** table:
+planned workstreams and the todos handed over at each sync, in priority order. **The first row is
+the next action.** It does not track sessions, branches or other people's work — a branch's own
+state does that.
 
-**ID namespace:** `S` = session, alongside `W`/`C`/`D`/`Q` — unique across the file, never
-reused.
+| Item | Kind | Context / done when | Source | Added |
+|---|---|---|---|---|
+| Add the CSV export | Workstream | Spec the export format first; done when a spec is approved | handed over from `w6-item-packages` | 2026-10-19 |
 
-When two sessions on different branches both add rows, or a merge brings two versions of this
-table together, see [merging-across-branches.md](merging-across-branches.md) — the table is
-append-only like the Done ledger, so the answer is almost always "keep both rows."
+Remove a row when it is dropped, or when it starts and becomes a Workstream row. An item stays
+intelligible without opening its source.
+
+### Provisional IDs
+
+IDs minted on a branch carry `~`: `W~1`, `C~2`, `D~1`, `Q~1`. They are unique only within the file
+and are replaced with the next free permanent numbers at fold, so two branches can never collide.
+Cite them only inside the branch state — commit messages and code comments cannot be rewritten.
+Citing an existing permanent ID is always fine. Session IDs (`S1`) are local and never folded.
+
+### Edits versus additions
+
+A **pure addition** (a new decision, deviation, workstream, ledger line) can never conflict with
+another branch. An **edit to something already in `PROJECT_STATE.md`** (an area's *Now*, a
+Workstream row, a Convention, a Known Gap) can: another branch may have changed the same entry.
+Name the entry you replace, keep `Base` current, and expect sync to stop and ask if `main` moved.
 
 ## Root Document vs Linked Document
 
 | Belongs in `PROJECT_STATE.md` | Belongs in the spec or plan |
 |---|---|
-| Status, Next Action, who is blocked on what | Requirements, schema, API shape, task breakdown |
+| Status, what to pick up next, who is blocked on what | Requirements, schema, API shape, task breakdown |
 | The shape of each area, and the decision behind it in a line or two | The full argument, alternatives, trade-off tables |
 | That a deviation exists, and its consequence | The original design the deviation departs from |
 | Links to specs, plans, key files | Implementation detail, code, test strategy |
@@ -149,10 +191,11 @@ design detail into the root file.
 
 - Every entry must be **intelligible without opening its link**. Links are redirection for
   detail, never a substitute for the summary.
-- Newest first in Done, Decisions, and Deviations. Within § Architecture, order areas by how
+- Newest first in the Done ledger, Decisions, and Deviations. Within § Architecture, order areas by how
   early a newcomer needs them — data and boundaries before interface.
-- Stable IDs — `W1`, `C3`, `D7`, `Q2`, `S4` — unique across the file, never reused, kept when an
-  entry moves between sections, so other documents and commits can cite them.
+- Stable IDs — `W1`, `C3`, `D7`, `Q2` — unique across the file, never reused, kept when an
+  entry moves between sections, so other documents and commits can cite them. They are
+  allocated only by `sync-project-state`; a branch uses provisional `~` IDs.
 - Target ~300 lines for Orientation, How to Resume, Workstreams and Needs a Human taken
   together — the part read every session. § Architecture grows with the system;
   §§ Decisions, Deviations and Done grow with its history. That is expected.
