@@ -25,10 +25,24 @@ public final class StayDatePolicy {
         }
     }
 
-    /** A search may leave either date open, but a given range must not be inverted. */
+    /** A search may leave either date open, but a given date must not be past and a range must not be inverted. */
     public void requireValidSearchRange(LocalDate from, LocalDate to) {
+        LocalDate today = LocalDate.now(clock);
+        if (from != null && from.isBefore(today)) {
+            throw new IllegalArgumentException("Check-in cannot be in the past");
+        }
+        if (to != null && to.isBefore(today)) {
+            throw new IllegalArgumentException("Check-out cannot be in the past");
+        }
         if (from != null && to != null && !to.isAfter(from)) {
             throw new IllegalArgumentException("Check-out must be after check-in");
+        }
+    }
+
+    /** A date a user picks for something that has not happened yet must be today or later. */
+    public void requireNotInPast(LocalDate date, String label) {
+        if (date != null && date.isBefore(LocalDate.now(clock))) {
+            throw new IllegalArgumentException(label + " cannot be in the past");
         }
     }
 }

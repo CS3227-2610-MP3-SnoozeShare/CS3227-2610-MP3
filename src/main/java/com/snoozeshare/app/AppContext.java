@@ -110,7 +110,7 @@ public final class AppContext implements AutoCloseable {
         JdbcAvailabilityBlockRepository blockRepo = new JdbcAvailabilityBlockRepository(connection);
         JdbcBookingRepository bookingRepo = new JdbcBookingRepository(connection);
         JdbcReviewRepository reviewRepo = new JdbcReviewRepository(connection);
-        this.availabilityService = new AvailabilityServiceImpl(propertyRepo, blockRepo, bookingRepo);
+        this.availabilityService = new AvailabilityServiceImpl(propertyRepo, blockRepo, bookingRepo, clock);
         this.listingService = new ListingServiceImpl(tx, propertyRepo, availabilityService,
                 userService, auditService);
         this.listingMetricsService = new ListingMetricsServiceImpl(connection);

@@ -95,8 +95,8 @@ public final class ListingDetailController {
     private void initialize() {
         checkInPicker.setConverter(GuestVisuals.dateConverter());
         checkOutPicker.setConverter(GuestVisuals.dateConverter());
-        GuestVisuals.blockPastDates(checkInPicker);
-        GuestVisuals.blockPastDates(checkOutPicker);
+        GuestVisuals.blockPastDates(checkInPicker, message -> showBookingStatus(message, true));
+        GuestVisuals.blockPastDates(checkOutPicker, message -> showBookingStatus(message, true));
         checkInPicker.valueProperty().addListener((obs, old, next) -> refreshPrice());
         checkOutPicker.valueProperty().addListener((obs, old, next) -> refreshPrice());
         reviewsToggle.setOnMouseClicked(event -> {

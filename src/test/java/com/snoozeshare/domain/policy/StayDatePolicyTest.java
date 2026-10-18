@@ -44,4 +44,23 @@ class StayDatePolicyTest {
         assertDoesNotThrow(() -> policy.requireValidSearchRange(TODAY.plusDays(1), null));
         assertDoesNotThrow(() -> policy.requireValidSearchRange(TODAY.plusDays(1), TODAY.plusDays(4)));
     }
+
+    @Test
+    void searchRangeRejectsPastDatesButAcceptsToday() {
+        assertThrows(IllegalArgumentException.class, () ->
+                policy.requireValidSearchRange(TODAY.minusDays(1), TODAY.plusDays(2)));
+        assertThrows(IllegalArgumentException.class, () ->
+                policy.requireValidSearchRange(null, TODAY.minusDays(1)));
+        assertThrows(IllegalArgumentException.class, () ->
+                policy.requireValidSearchRange(TODAY.minusDays(3), TODAY.minusDays(1)));
+        assertDoesNotThrow(() -> policy.requireValidSearchRange(TODAY, TODAY.plusDays(1)));
+    }
+
+    @Test
+    void requireNotInPastRejectsYesterdayAndAcceptsTodayAndNull() {
+        assertThrows(IllegalArgumentException.class, () ->
+                policy.requireNotInPast(TODAY.minusDays(1), "From date"));
+        assertDoesNotThrow(() -> policy.requireNotInPast(TODAY, "From date"));
+        assertDoesNotThrow(() -> policy.requireNotInPast(null, "From date"));
+    }
 }

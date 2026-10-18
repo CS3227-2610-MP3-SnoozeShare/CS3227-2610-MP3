@@ -1,5 +1,6 @@
 package com.snoozeshare.service.impl;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -13,6 +14,7 @@ import com.snoozeshare.domain.enums.BookingStatus;
 import com.snoozeshare.domain.model.AvailabilityBlock;
 import com.snoozeshare.domain.model.Booking;
 import com.snoozeshare.domain.model.Property;
+import com.snoozeshare.domain.policy.StayDatePolicy;
 import com.snoozeshare.repository.AvailabilityBlockRepository;
 import com.snoozeshare.repository.BookingRepository;
 import com.snoozeshare.repository.PropertyRepository;
@@ -26,13 +28,22 @@ public final class AvailabilityServiceImpl implements AvailabilityService {
     private final PropertyRepository properties;
     private final AvailabilityBlockRepository blocks;
     private final BookingRepository bookings;
+    private final StayDatePolicy dates;
 
     public AvailabilityServiceImpl(PropertyRepository properties,
                                    AvailabilityBlockRepository blocks,
                                    BookingRepository bookings) {
+        this(properties, blocks, bookings, Clock.systemDefaultZone());
+    }
+
+    public AvailabilityServiceImpl(PropertyRepository properties,
+                                   AvailabilityBlockRepository blocks,
+                                   BookingRepository bookings,
+                                   Clock clock) {
         this.properties = properties;
         this.blocks = blocks;
         this.bookings = bookings;
+        this.dates = new StayDatePolicy(clock);
     }
 
     @Override
@@ -47,6 +58,7 @@ public final class AvailabilityServiceImpl implements AvailabilityService {
         if (propertyId == null || start == null || end == null || start.isAfter(end)) {
             throw new IllegalArgumentException("Property and a valid date range are required");
         }
+        dates.requireNotInPast(start, "From date");
         LocalDate exclusiveEnd = end.plusDays(1);
         Property property = properties.findById(propertyId)
                 .orElseThrow(() -> new IllegalArgumentException("Property does not exist"));
