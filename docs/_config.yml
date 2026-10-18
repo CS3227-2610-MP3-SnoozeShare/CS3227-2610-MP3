@@ -1,10 +1,31 @@
 title: SnoozeShare
-description: CS3227 Mini Project 2
+description: CS3227 Mini Project 3
 
+# GitHub Pages renders docs/ with Jekyll. Set Settings > Pages > Source to "Deploy from a
+# branch", branch main, folder /docs.
 theme: jekyll-theme-cayman
+
+# kramdown with GitHub-flavoured Markdown, so pipe tables, fenced code and task lists render.
+markdown: kramdown
+kramdown:
+  input: GFM
+  hard_wrap: false
+  syntax_highlighter: rouge
+
+# Renders :bulb:, :camera: and :exclamation: shortcodes as emoji.
+plugins:
+  - jemoji
 
 defaults:
   - scope:
       path: ""
     values:
       layout: default
+
+# Working documents that belong in the repository but not on the published site.
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - MP2-feedback-triage.md
+  - project-state
+  - superpowers
