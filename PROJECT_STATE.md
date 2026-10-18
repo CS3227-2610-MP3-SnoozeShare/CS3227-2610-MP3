@@ -68,7 +68,7 @@ three iterations).
 | S7 | 2026-09-27 | Claude Sonnet 5 | messaging-service | W13 | Paused | Service slice built and verified; host Messages UI continued on `w9` | 2026-09-27 |
 | S8 | 2026-09-27 | Codex | host-ui-touchup | W6/W7/W13 + GitHub Pages docs | Paused | Session interaction log recorded for this chat; docs links target repository files on GitHub and docs-source Jekyll build passes | 2026-09-29 |
 | S14 | 2026-09-26 | Codex | w8 | W8 — Host Request Queue, Earnings & Disputes | Paused | W8 implementation, review fixes and Developer Guide handoff complete; workstream closed as Done | 2026-09-27 |
-| S15 | 2026-10-18 | Claude Sonnet 5.5 + subagents | mp2-bug-fixes | MP3-0 | Paused | Tasks 1-8 implemented, awaiting operator review (full build: 570 tests, 4 baseline host-UI failures; manual GUI check not performed) | 2026-10-19 |
+| S15 | 2026-10-18 | Claude Sonnet 5.5 + subagents | mp2-bug-fixes | MP3-0 | Paused | Tasks 1-8 implemented, awaiting operator review (full build: 570 tests, 0 failures; manual GUI check not performed) | 2026-10-19 |
 
 Status vocabulary, used verbatim: `Active` · `Paused` · `Blocked — needs human` (name the
 question ID, same as a workstream row).
@@ -98,7 +98,7 @@ its spec and plan before feature implementation, per AGENTS.md § 3.
 | W12 | F11 — Platform Audit Trail (Analytics half of the epic has no items, out of scope; W11 emits the account-governance rows, C32) | Done | [W12 design](docs/superpowers/specs/2026-09-26-w12-platform-audit-trail-design.md) | [W12 plan](docs/superpowers/plans/2026-09-26-w12-platform-audit-trail.md) | Done | Documented 2026-09-26 |
 | W13 | F12 — Messaging (persistent ticket chat; `MessageService` replaces the in-memory seam; Host UI slice, C37/C38) | Done | [W13 service design](docs/superpowers/specs/2026-09-27-w13-messaging-service-design.md); [Host Messages design](docs/superpowers/specs/2026-09-27-host-messages-ui-design.md) | [W13 service plan](docs/superpowers/plans/2026-09-27-w13-messaging-service.md); [Host Messages plan](docs/superpowers/plans/2026-09-27-host-messages-ui.md) | Host ticket creation removed per reversed C39/C40 (the messaging-branch ones, distinct from W14's C39/C40); confirmed 2026-09-29, documented same day | Documented 2026-09-29 |
 | W14 | Unified ledger — fold `wallet_transactions` into `audit_log`, System account (role SYSTEM) with a real wallet; `wallets` table kept (C30, C31, C39, C40) | Done | [W14 design](docs/superpowers/specs/2026-09-27-w14-unified-ledger-design.md) | [W14 plan](docs/superpowers/plans/2026-09-27-w14-unified-ledger.md) | All 12 tasks done & reviewed; C42 fixed a settlement crash; PR #16 merged to `main`; operator confirmed 2026-09-29 | Documented 2026-09-29 |
-| MP3-0 | MP2 feedback fixes before new MP3 features (bugs B1–B7, design D1–D6, CI/skills/docs) | In review | [correctness-cluster design](docs/superpowers/specs/2026-10-18-mp3-correctness-cluster-design.md) (B1, B3–B5, D1–D3, D5) | [correctness-cluster plan](docs/superpowers/plans/2026-10-18-mp3-correctness-cluster.md) | Tasks 1-8 done; awaiting operator review; 4 baseline host-UI test failures (§ Deviations) | — |
+| MP3-0 | MP2 feedback fixes before new MP3 features (bugs B1–B7, design D1–D6, CI/skills/docs) | In review | [correctness-cluster design](docs/superpowers/specs/2026-10-18-mp3-correctness-cluster-design.md) (B1, B3–B5, D1–D3, D5) | [correctness-cluster plan](docs/superpowers/plans/2026-10-18-mp3-correctness-cluster.md) | Tasks 1-8 done, build green (570 tests); awaiting operator review | — |
 
 **Historical W10→W3 handoffs (raised 2026-09-25; reconciled at workstream closure)** — W3 is
 marked `Done` and documented, but the following accepted residual boundaries remain visible for
@@ -611,7 +611,9 @@ architecture area remain recorded in that area's table.
 - **`AppContext` clock changed from UTC to the system default zone** so policies, the sweep and the UI agree.
 - **`SettlementFixtures.settlement` signature changed** (test fixture).
 - **Host payout rounding now follows `SettlementCalculator` everywhere:** fee rounded half-up, net = gross − fee.
-- **Accepted baseline: four pre-existing host-UI test failures** (not caused by MP3-0; they fail on the clean pre-change branch): `HostCalendarControllerTest.calendarPageOwnsArtifactAlignedSplitStyles`, `HostListingsControllerTest.listingCardsExposeMetricsPlaceholderAndRightToLeftActions`, `HostListingsControllerTest.hostListingDetailMatchesMockupActionsAndLayout`, `HostPageLayoutTest.hostMessagesUseTheSameContentEdgeRhythm`. Decide with the operator before fixing. Full build 2026-10-19: 570 tests, those 4 failed.
+- **Resolved 2026-10-19: four host-UI test failures were a Windows line-ending artifact, not a UI regression.** `HostCalendarControllerTest.calendarPageOwnsArtifactAlignedSplitStyles`, `HostListingsControllerTest.listingCardsExposeMetricsPlaceholderAndRightToLeftActions`, `HostListingsControllerTest.hostListingDetailMatchesMockupActionsAndLayout` and `HostPageLayoutTest.hostMessagesUseTheSameContentEdgeRhythm` match multi-line CSS snippets joined with `
+`; with git `core.autocrlf=true` the working copy is CRLF so they could never match on this machine (they pass where checkouts are LF). Fixed in the tests, not the CSS: they now read files through `testsupport/SourceText.read`, which normalises to `
+`. Any new test that matches multi-line source text must use it. Full build: 570 tests, 0 failures.
 - **Manual GUI check not performed** (header balance refresh after cancel; day-7 trip offers "File dispute").
 - **guide out of date:** `docs/DeveloperGuide.md` and `docs/UserGuide.md` do not yet describe `domain.policy`, post-commit wallet events, audit atomicity, or the day-7/day-8 boundary (guide checkpoint pending operator approval).
 

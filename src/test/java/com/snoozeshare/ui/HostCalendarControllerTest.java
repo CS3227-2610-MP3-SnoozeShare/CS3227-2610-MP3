@@ -3,17 +3,16 @@ package com.snoozeshare.ui;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-
 import org.junit.jupiter.api.Test;
+
+import com.snoozeshare.testsupport.SourceText;
 
 class HostCalendarControllerTest {
 
     @Test
     void calendarPageExposesNavigationLegendFormAndOverridePanel() throws Exception {
-        String fxml = Files.readString(Path.of(
-                "src/main/resources/com/snoozeshare/ui/host/calendar/host-calendar.fxml"));
+        String fxml = SourceText.read(
+                "src/main/resources/com/snoozeshare/ui/host/calendar/host-calendar.fxml");
 
         assertTrue(fxml.contains("onAction=\"#handlePreviousMonth\""));
         assertTrue(fxml.contains("onAction=\"#handleNextMonth\""));
@@ -45,10 +44,10 @@ class HostCalendarControllerTest {
 
     @Test
     void calendarPageOwnsArtifactAlignedSplitStyles() throws Exception {
-        String fxml = Files.readString(Path.of(
-                "src/main/resources/com/snoozeshare/ui/host/calendar/host-calendar.fxml"));
-        String css = Files.readString(Path.of(
-                "src/main/resources/com/snoozeshare/ui/host/host-theme.css"));
+        String fxml = SourceText.read(
+                "src/main/resources/com/snoozeshare/ui/host/calendar/host-calendar.fxml");
+        String css = SourceText.read(
+                "src/main/resources/com/snoozeshare/ui/host/host-theme.css");
 
         assertFalse(fxml.contains("host-calendar.css"));
         assertTrue(fxml.contains("host-calendar-page"));
@@ -93,8 +92,8 @@ class HostCalendarControllerTest {
 
     @Test
     void controllerRendersListingBlocksAcrossNavigableMonths() throws Exception {
-        String source = Files.readString(Path.of(
-                "src/main/java/com/snoozeshare/ui/host/calendar/HostCalendarController.java"));
+        String source = SourceText.read(
+                "src/main/java/com/snoozeshare/ui/host/calendar/HostCalendarController.java");
 
         assertTrue(source.contains("YearMonth"));
         assertTrue(source.contains("blocksFor"));
@@ -119,12 +118,12 @@ class HostCalendarControllerTest {
 
     @Test
     void calendarSupportsBlockingAndRemovingAllManualOverrides() throws Exception {
-        String source = Files.readString(Path.of(
-                "src/main/java/com/snoozeshare/ui/host/calendar/HostCalendarController.java"));
-        String fxml = Files.readString(Path.of(
-                "src/main/resources/com/snoozeshare/ui/host/calendar/host-calendar.fxml"));
-        String theme = Files.readString(Path.of(
-                "src/main/resources/com/snoozeshare/ui/common/theme.css"));
+        String source = SourceText.read(
+                "src/main/java/com/snoozeshare/ui/host/calendar/HostCalendarController.java");
+        String fxml = SourceText.read(
+                "src/main/resources/com/snoozeshare/ui/host/calendar/host-calendar.fxml");
+        String theme = SourceText.read(
+                "src/main/resources/com/snoozeshare/ui/common/theme.css");
 
         assertTrue(source.contains("createHostBlock"));
         assertTrue(source.contains("fromPicker"));

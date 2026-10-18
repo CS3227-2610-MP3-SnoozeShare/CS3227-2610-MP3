@@ -8,13 +8,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.LocalTime;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
+
+import com.snoozeshare.testsupport.SourceText;
 
 import javafx.application.Platform;
 
@@ -31,10 +31,10 @@ class HostListingsControllerTest {
 
     @Test
     void listingsPageExposesCreateStatusAndEditFlow() throws Exception {
-        String source = Files.readString(Path.of(
-                "src/main/java/com/snoozeshare/ui/host/listings/HostListingsController.java"));
-        String fxml = Files.readString(Path.of(
-                "src/main/resources/com/snoozeshare/ui/host/listings/host-listings.fxml"));
+        String source = SourceText.read(
+                "src/main/java/com/snoozeshare/ui/host/listings/HostListingsController.java");
+        String fxml = SourceText.read(
+                "src/main/resources/com/snoozeshare/ui/host/listings/host-listings.fxml");
 
         assertTrue(source.contains("listingService().updateStatus"));
         assertTrue(source.contains("ToggleButton"));
@@ -48,10 +48,10 @@ class HostListingsControllerTest {
 
     @Test
     void listingFormExposesCreateEditBackAndSaveFlow() throws Exception {
-        String source = Files.readString(Path.of(
-                "src/main/java/com/snoozeshare/ui/host/listings/HostListingFormController.java"));
-        String fxml = Files.readString(Path.of(
-                "src/main/resources/com/snoozeshare/ui/host/listings/host-listing-form.fxml"));
+        String source = SourceText.read(
+                "src/main/java/com/snoozeshare/ui/host/listings/HostListingFormController.java");
+        String fxml = SourceText.read(
+                "src/main/resources/com/snoozeshare/ui/host/listings/host-listing-form.fxml");
 
         assertTrue(source.contains("listingService().create"));
         assertTrue(source.contains("listingService().update"));
@@ -66,8 +66,8 @@ class HostListingsControllerTest {
 
     @Test
     void listingCardsOpenDetailsWithoutHijackingEdit() throws Exception {
-        String source = Files.readString(Path.of(
-                "src/main/java/com/snoozeshare/ui/host/listings/HostListingsController.java"));
+        String source = SourceText.read(
+                "src/main/java/com/snoozeshare/ui/host/listings/HostListingsController.java");
 
         assertTrue(source.contains("setOnMouseClicked"));
         assertTrue(source.contains("onEditListing.accept"));
@@ -77,8 +77,8 @@ class HostListingsControllerTest {
 
     @Test
     void listingCardsExposeCalendarEntryWithoutHijackingDetails() throws Exception {
-        String source = Files.readString(Path.of(
-                "src/main/java/com/snoozeshare/ui/host/listings/HostListingsController.java"));
+        String source = SourceText.read(
+                "src/main/java/com/snoozeshare/ui/host/listings/HostListingsController.java");
 
         assertTrue(source.contains("setOnOpenCalendar"));
         assertTrue(source.contains("new Button(\"Open Booking Calendar\")"));
@@ -89,8 +89,8 @@ class HostListingsControllerTest {
 
     @Test
     void listingsPageUsesMyListingsHeadingAndRightAlignedNewListingAction() throws Exception {
-        String fxml = Files.readString(Path.of(
-                "src/main/resources/com/snoozeshare/ui/host/listings/host-listings.fxml"));
+        String fxml = SourceText.read(
+                "src/main/resources/com/snoozeshare/ui/host/listings/host-listings.fxml");
 
         assertTrue(fxml.contains("text=\"My listings\""));
         assertTrue(fxml.contains("text=\"+ New listing\""));
@@ -101,10 +101,10 @@ class HostListingsControllerTest {
 
     @Test
     void listingsPageOwnsArtifactAlignedStyles() throws Exception {
-        String fxml = Files.readString(Path.of(
-                "src/main/resources/com/snoozeshare/ui/host/listings/host-listings.fxml"));
-        String css = Files.readString(Path.of(
-                "src/main/resources/com/snoozeshare/ui/host/host-theme.css"));
+        String fxml = SourceText.read(
+                "src/main/resources/com/snoozeshare/ui/host/listings/host-listings.fxml");
+        String css = SourceText.read(
+                "src/main/resources/com/snoozeshare/ui/host/host-theme.css");
 
         assertFalse(fxml.contains("host-listings.css"));
         assertTrue(fxml.contains("host-listings-page"));
@@ -120,8 +120,8 @@ class HostListingsControllerTest {
 
     @Test
     void listingRowsUseArtifactActionAndMetricClasses() throws Exception {
-        String source = Files.readString(Path.of(
-                "src/main/java/com/snoozeshare/ui/host/listings/HostListingsController.java"));
+        String source = SourceText.read(
+                "src/main/java/com/snoozeshare/ui/host/listings/HostListingsController.java");
 
         assertTrue(source.contains("listing-card"));
         assertTrue(source.contains("listing-image-placeholder"));
@@ -133,10 +133,10 @@ class HostListingsControllerTest {
 
     @Test
     void activeListingToggleUsesAgentStyleKnob() throws Exception {
-        String source = Files.readString(Path.of(
-                "src/main/java/com/snoozeshare/ui/host/listings/HostListingsController.java"));
-        String css = Files.readString(Path.of(
-                "src/main/resources/com/snoozeshare/ui/host/host-theme.css"));
+        String source = SourceText.read(
+                "src/main/java/com/snoozeshare/ui/host/listings/HostListingsController.java");
+        String css = SourceText.read(
+                "src/main/resources/com/snoozeshare/ui/host/host-theme.css");
 
         assertTrue(source.contains("new Region()"));
         assertTrue(source.contains("listing-status-toggle-knob"));
@@ -149,10 +149,10 @@ class HostListingsControllerTest {
 
     @Test
     void listingFormUsesHelpfulPlaceholdersAndOptionalAgentStyleAmenities() throws Exception {
-        String fxml = Files.readString(Path.of(
-                "src/main/resources/com/snoozeshare/ui/host/listings/host-listing-form.fxml"));
-        String css = Files.readString(Path.of(
-                "src/main/resources/com/snoozeshare/ui/host/host-theme.css"));
+        String fxml = SourceText.read(
+                "src/main/resources/com/snoozeshare/ui/host/listings/host-listing-form.fxml");
+        String css = SourceText.read(
+                "src/main/resources/com/snoozeshare/ui/host/host-theme.css");
 
         assertTrue(fxml.contains("text=\"Optional\""));
         assertTrue(fxml.contains("promptText=\"e.g. Sunset Loft\""));
@@ -172,10 +172,10 @@ class HostListingsControllerTest {
 
     @Test
     void listingCardsExposeMetricsPlaceholderAndRightToLeftActions() throws Exception {
-        String source = Files.readString(Path.of(
-                "src/main/java/com/snoozeshare/ui/host/listings/HostListingsController.java"));
-        String theme = Files.readString(Path.of(
-                "src/main/resources/com/snoozeshare/ui/host/host-theme.css"));
+        String source = SourceText.read(
+                "src/main/java/com/snoozeshare/ui/host/listings/HostListingsController.java");
+        String theme = SourceText.read(
+                "src/main/resources/com/snoozeshare/ui/host/host-theme.css");
 
         assertTrue(source.contains("listingMetricsService"));
         assertTrue(source.contains("listing-image-placeholder"));
@@ -195,10 +195,10 @@ class HostListingsControllerTest {
 
     @Test
     void listingStatusControlReservesSpaceForBothStates() throws Exception {
-        String source = Files.readString(Path.of(
-                "src/main/java/com/snoozeshare/ui/host/listings/HostListingsController.java"));
-        String theme = Files.readString(Path.of(
-                "src/main/resources/com/snoozeshare/ui/host/host-theme.css"));
+        String source = SourceText.read(
+                "src/main/java/com/snoozeshare/ui/host/listings/HostListingsController.java");
+        String theme = SourceText.read(
+                "src/main/resources/com/snoozeshare/ui/host/host-theme.css");
 
         assertTrue(source.contains("listing-status-control"));
         assertTrue(theme.contains(".host-root .listing-status-control"));
@@ -208,12 +208,12 @@ class HostListingsControllerTest {
 
     @Test
     void hostRequestsAndWalletUseApprovedCopyAndButtonSizing() throws Exception {
-        String shell = Files.readString(Path.of(
-                "src/main/resources/com/snoozeshare/ui/host/host-shell.fxml"));
-        String bookings = Files.readString(Path.of(
-                "src/main/resources/com/snoozeshare/ui/host/bookings/host-bookings.fxml"));
-        String wallet = Files.readString(Path.of(
-                "src/main/resources/com/snoozeshare/ui/common/wallet/wallet-dashboard.fxml"));
+        String shell = SourceText.read(
+                "src/main/resources/com/snoozeshare/ui/host/host-shell.fxml");
+        String bookings = SourceText.read(
+                "src/main/resources/com/snoozeshare/ui/host/bookings/host-bookings.fxml");
+        String wallet = SourceText.read(
+                "src/main/resources/com/snoozeshare/ui/common/wallet/wallet-dashboard.fxml");
 
         assertTrue(shell.contains("text=\"Requests\""));
         assertTrue(bookings.contains("text=\"Booking requests\""));
@@ -224,10 +224,10 @@ class HostListingsControllerTest {
 
     @Test
     void walletActionsShareDimensionsAcrossGuestAndHost() throws Exception {
-        String wallet = Files.readString(Path.of(
-                "src/main/resources/com/snoozeshare/ui/common/wallet/wallet-dashboard.fxml"));
-        String walletCss = Files.readString(Path.of(
-                "src/main/resources/com/snoozeshare/ui/common/wallet/wallet.css"));
+        String wallet = SourceText.read(
+                "src/main/resources/com/snoozeshare/ui/common/wallet/wallet-dashboard.fxml");
+        String walletCss = SourceText.read(
+                "src/main/resources/com/snoozeshare/ui/common/wallet/wallet.css");
 
         assertTrue(wallet.contains("text=\"Top up\""));
         assertTrue(wallet.contains("text=\"Withdraw\""));
@@ -237,10 +237,10 @@ class HostListingsControllerTest {
 
     @Test
     void listingFormActionsShareDimensions() throws Exception {
-        String fxml = Files.readString(Path.of(
-                "src/main/resources/com/snoozeshare/ui/host/listings/host-listing-form.fxml"));
-        String theme = Files.readString(Path.of(
-                "src/main/resources/com/snoozeshare/ui/host/host-theme.css"));
+        String fxml = SourceText.read(
+                "src/main/resources/com/snoozeshare/ui/host/listings/host-listing-form.fxml");
+        String theme = SourceText.read(
+                "src/main/resources/com/snoozeshare/ui/host/host-theme.css");
 
         assertTrue(fxml.contains("styleClass=\"listing-form-action\""));
         assertTrue(fxml.contains("styleClass=\"outline-button, listing-form-action\""));
@@ -256,10 +256,10 @@ class HostListingsControllerTest {
 
     @Test
     void hostListingDetailPageDisplaysFullListingAndBackNavigation() throws Exception {
-        String source = Files.readString(Path.of(
-                "src/main/java/com/snoozeshare/ui/host/listings/HostListingDetailController.java"));
-        String fxml = Files.readString(Path.of(
-                "src/main/resources/com/snoozeshare/ui/host/listings/host-listing-detail.fxml"));
+        String source = SourceText.read(
+                "src/main/java/com/snoozeshare/ui/host/listings/HostListingDetailController.java");
+        String fxml = SourceText.read(
+                "src/main/resources/com/snoozeshare/ui/host/listings/host-listing-detail.fxml");
 
         assertTrue(source.contains("setProperty"));
         assertTrue(source.contains("setOnBack"));
@@ -273,12 +273,12 @@ class HostListingsControllerTest {
 
     @Test
     void hostListingDetailMatchesMockupActionsAndLayout() throws Exception {
-        String source = Files.readString(Path.of(
-                "src/main/java/com/snoozeshare/ui/host/listings/HostListingDetailController.java"));
-        String fxml = Files.readString(Path.of(
-                "src/main/resources/com/snoozeshare/ui/host/listings/host-listing-detail.fxml"));
-        String css = Files.readString(Path.of(
-                "src/main/resources/com/snoozeshare/ui/host/host-theme.css"));
+        String source = SourceText.read(
+                "src/main/java/com/snoozeshare/ui/host/listings/HostListingDetailController.java");
+        String fxml = SourceText.read(
+                "src/main/resources/com/snoozeshare/ui/host/listings/host-listing-detail.fxml");
+        String css = SourceText.read(
+                "src/main/resources/com/snoozeshare/ui/host/host-theme.css");
 
         assertTrue(source.contains("setOnEdit"));
         assertTrue(source.contains("setOnOpenCalendar"));
@@ -322,10 +322,10 @@ class HostListingsControllerTest {
 
     @Test
     void hostListingDetailContentUsesArtifactAlignedVisualTreatment() throws Exception {
-        String fxml = Files.readString(Path.of(
-                "src/main/resources/com/snoozeshare/ui/host/listings/host-listing-detail.fxml"));
-        String css = Files.readString(Path.of(
-                "src/main/resources/com/snoozeshare/ui/host/host-theme.css"));
+        String fxml = SourceText.read(
+                "src/main/resources/com/snoozeshare/ui/host/listings/host-listing-detail.fxml");
+        String css = SourceText.read(
+                "src/main/resources/com/snoozeshare/ui/host/host-theme.css");
 
         assertTrue(fxml.contains("<VBox spacing=\"16\" styleClass=\"agent-content, host-listing-detail-page\">"));
         assertTrue(fxml.contains("prefHeight=\"200\""));
@@ -339,10 +339,10 @@ class HostListingsControllerTest {
 
     @Test
     void hostListingDetailUsesArtifactSectionsForReviewsPerformanceAndAmenities() throws Exception {
-        String fxml = Files.readString(Path.of(
-                "src/main/resources/com/snoozeshare/ui/host/listings/host-listing-detail.fxml"));
-        String css = Files.readString(Path.of(
-                "src/main/resources/com/snoozeshare/ui/host/host-theme.css"));
+        String fxml = SourceText.read(
+                "src/main/resources/com/snoozeshare/ui/host/listings/host-listing-detail.fxml");
+        String css = SourceText.read(
+                "src/main/resources/com/snoozeshare/ui/host/host-theme.css");
 
         assertTrue(fxml.contains("fx:id=\"reviewsTitleLabel\""));
         assertTrue(fxml.contains("styleClass=\"listing-detail-reviews\""));
@@ -369,8 +369,8 @@ class HostListingsControllerTest {
 
     @Test
     void listingsStylesDefineCardsStatusesErrorsAndEmptyState() throws Exception {
-        String theme = Files.readString(Path.of(
-                "src/main/resources/com/snoozeshare/ui/common/theme.css"));
+        String theme = SourceText.read(
+                "src/main/resources/com/snoozeshare/ui/common/theme.css");
 
         assertTrue(theme.contains(".listing-card"));
         assertTrue(theme.contains(".listing-status"));
@@ -381,10 +381,10 @@ class HostListingsControllerTest {
 
     @Test
     void listingFormUsesFourCardsWithRequestedFieldsAndActions() throws Exception {
-        String fxml = Files.readString(Path.of(
-                "src/main/resources/com/snoozeshare/ui/host/listings/host-listing-form.fxml"));
-        String source = Files.readString(Path.of(
-                "src/main/java/com/snoozeshare/ui/host/listings/HostListingFormController.java"));
+        String fxml = SourceText.read(
+                "src/main/resources/com/snoozeshare/ui/host/listings/host-listing-form.fxml");
+        String source = SourceText.read(
+                "src/main/java/com/snoozeshare/ui/host/listings/HostListingFormController.java");
 
         assertTrue(fxml.contains("styleClass=\"listing-form-card\""));
         assertTrue(fxml.contains("text=\"BASIC DETAILS\""));
@@ -407,10 +407,10 @@ class HostListingsControllerTest {
 
     @Test
     void listingFormUsesArtifactPageOwnedStructure() throws Exception {
-        String fxml = Files.readString(Path.of(
-                "src/main/resources/com/snoozeshare/ui/host/listings/host-listing-form.fxml"));
-        String css = Files.readString(Path.of(
-                "src/main/resources/com/snoozeshare/ui/host/host-theme.css"));
+        String fxml = SourceText.read(
+                "src/main/resources/com/snoozeshare/ui/host/listings/host-listing-form.fxml");
+        String css = SourceText.read(
+                "src/main/resources/com/snoozeshare/ui/host/host-theme.css");
 
         assertFalse(fxml.contains("host-listing-form.css"));
         assertTrue(fxml.contains("listing-form-page"));
@@ -464,8 +464,8 @@ class HostListingsControllerTest {
 
     @Test
     void listingFormReadsFieldsInSectionOrder() throws Exception {
-        String source = Files.readString(Path.of(
-                "src/main/java/com/snoozeshare/ui/host/listings/HostListingFormController.java"));
+        String source = SourceText.read(
+                "src/main/java/com/snoozeshare/ui/host/listings/HostListingFormController.java");
         assertTrue(source.indexOf("requireText(titleField") < source.indexOf("parseInteger(maxGuestsField"));
         assertTrue(source.indexOf("parseInteger(maxGuestsField") < source.indexOf("requireText(streetAddressField"));
         assertTrue(source.indexOf("requireText(streetAddressField") < source.indexOf("selectedAmenities()"));
