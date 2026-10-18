@@ -71,6 +71,8 @@ class HostBookingsControllerTest {
                         + "HostBookingDecisionDialogController.java"));
         assertTrue(controller.contains("Reject booking request?"));
         assertTrue(controller.contains("Confirm reject"));
+        assertTrue(controller.contains("approving ? row.projectedNetAmount() : row.grossAmount()"));
+        assertTrue(controller.contains("approving ? \"net earning\" : \"to be refunded\""));
     }
 
     @Test

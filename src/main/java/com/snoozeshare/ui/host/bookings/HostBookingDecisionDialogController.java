@@ -58,8 +58,10 @@ public final class HostBookingDecisionDialogController {
         listingLabel.setText(row.listingTitle());
         bookingLabel.setText(row.guestDisplayName() + " · " + row.booking().startDate()
                 + "–" + row.booking().endDate() + " (" + row.nights() + " nights)");
-        amountLabel.setText("$" + row.grossAmount().setScale(2).toPlainString());
-        amountCaptionLabel.setText(approving ? "earning" : "to be refunded");
+        // Approving shows what the host keeps (net, as in the Requests table); rejecting refunds the gross.
+        amountLabel.setText("$" + (approving ? row.projectedNetAmount() : row.grossAmount())
+                .setScale(2).toPlainString());
+        amountCaptionLabel.setText(approving ? "net earning" : "to be refunded");
         String notice = approving
                 ? "The booking moves to CONFIRMED and the guest is notified. Funds stay held in escrow until check-in."
                 : "The guest will be notified and the held funds fully refunded (ESCROW_REFUND) — "

@@ -202,6 +202,49 @@ class AvailabilityServiceTest {
         }
     }
 
+    @Test
+    void calendarShowsConfirmedBookingEvenWithoutStoredBlock() throws Exception {
+        try (Connection connection = migratedConnection()) {
+            var ctx = seedContext(connection);
+            var bookings = new JdbcBookingRepository(connection);
+            Booking confirmed = new Booking(UUID.randomUUID(), ctx.propertyId, ctx.guestId,
+                    LocalDate.of(2026, 12, 4), LocalDate.of(2026, 12, 7), BookingStatus.CONFIRMED,
+                    new BigDecimal("100.00"), new BigDecimal("300.00"), Instant.now(),
+                    Instant.now(), null);
+            bookings.save(confirmed);
+            Booking cancelled = new Booking(UUID.randomUUID(), ctx.propertyId, ctx.guestId,
+                    LocalDate.of(2026, 12, 10), LocalDate.of(2026, 12, 12),
+                    BookingStatus.CANCELLED_BY_GUEST, new BigDecimal("100.00"),
+                    new BigDecimal("200.00"), Instant.now(), Instant.now(), null);
+            bookings.save(cancelled);
+
+            var shown = createService(connection).blocksFor(ctx.propertyId);
+
+            assertEquals(1, shown.size());
+            assertEquals("BOOKING", shown.get(0).source());
+            assertEquals(confirmed.bookingId(), shown.get(0).bookingId());
+            assertEquals(LocalDate.of(2026, 12, 4), shown.get(0).startDate());
+            assertEquals(LocalDate.of(2026, 12, 7), shown.get(0).endDate());
+        }
+    }
+
+    @Test
+    void calendarDoesNotDuplicateBookingThatAlreadyHasABlock() throws Exception {
+        try (Connection connection = migratedConnection()) {
+            var ctx = seedContext(connection);
+            Booking confirmed = new Booking(UUID.randomUUID(), ctx.propertyId, ctx.guestId,
+                    LocalDate.of(2026, 12, 4), LocalDate.of(2026, 12, 7), BookingStatus.CONFIRMED,
+                    new BigDecimal("100.00"), new BigDecimal("300.00"), Instant.now(),
+                    Instant.now(), null);
+            new JdbcBookingRepository(connection).save(confirmed);
+            new JdbcAvailabilityBlockRepository(connection).save(new AvailabilityBlock(
+                    UUID.randomUUID(), ctx.propertyId, confirmed.startDate(), confirmed.endDate(),
+                    "BOOKING", confirmed.bookingId(), null));
+
+            assertEquals(1, createService(connection).blocksFor(ctx.propertyId).size());
+        }
+    }
+
     private record TestContext(UUID propertyId, UUID hostId, UUID guestId) {
     }
 

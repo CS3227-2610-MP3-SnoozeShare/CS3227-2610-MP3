@@ -1,10 +1,17 @@
 package com.snoozeshare.service.impl;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+import com.snoozeshare.domain.enums.BookingStatus;
 import com.snoozeshare.domain.model.AvailabilityBlock;
+import com.snoozeshare.domain.model.Booking;
 import com.snoozeshare.domain.model.Property;
 import com.snoozeshare.repository.AvailabilityBlockRepository;
 import com.snoozeshare.repository.BookingRepository;
@@ -12,6 +19,9 @@ import com.snoozeshare.repository.PropertyRepository;
 import com.snoozeshare.service.AvailabilityService;
 
 public final class AvailabilityServiceImpl implements AvailabilityService {
+
+    private static final Set<BookingStatus> CALENDAR_STATUSES = EnumSet.of(BookingStatus.PENDING,
+            BookingStatus.CONFIRMED, BookingStatus.COMPLETED, BookingStatus.FORCE_COMPLETED);
 
     private final PropertyRepository properties;
     private final AvailabilityBlockRepository blocks;
@@ -72,6 +82,17 @@ public final class AvailabilityServiceImpl implements AvailabilityService {
 
     @Override
     public List<AvailabilityBlock> blocksFor(UUID propertyId) {
-        return blocks.findByPropertyId(propertyId);
+        List<AvailabilityBlock> stored = blocks.findByPropertyId(propertyId);
+        Set<UUID> covered = stored.stream().map(AvailabilityBlock::bookingId)
+                .filter(Objects::nonNull).collect(Collectors.toSet());
+        List<AvailabilityBlock> shown = new ArrayList<>(stored);
+        // A booking that holds the dates is always shown as booked, even if its block row is missing.
+        for (Booking booking : bookings.findByListing(propertyId)) {
+            if (CALENDAR_STATUSES.contains(booking.status()) && !covered.contains(booking.bookingId())) {
+                shown.add(new AvailabilityBlock(UUID.randomUUID(), propertyId, booking.startDate(),
+                        booking.endDate(), "BOOKING", booking.bookingId(), null));
+            }
+        }
+        return shown;
     }
 }

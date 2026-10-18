@@ -8,7 +8,6 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 import com.snoozeshare.domain.enums.BookingStatus;
-import com.snoozeshare.domain.enums.RemedyType;
 import com.snoozeshare.domain.enums.WalletTransactionType;
 import com.snoozeshare.domain.model.Booking;
 import com.snoozeshare.domain.model.Wallet;
@@ -98,18 +97,6 @@ public final class TransactionServiceImpl implements TransactionService {
         } catch (SQLException exception) {
             throw new IllegalStateException("Unable to settle booking completion", exception);
         }
-    }
-
-    @Override
-    public WalletTransaction applyTicketRemedy(UUID ticketId, RemedyType remedy,
-                                                BigDecimal amount, UUID agentId) {
-        throw new UnsupportedOperationException("Owned by W10");
-    }
-
-    @Override
-    public WalletTransaction manualOverride(UUID bookingId, BigDecimal amount,
-                                             boolean creditGuest, UUID agentId, String reason) {
-        throw new UnsupportedOperationException("Owned by W10");
     }
 
     @Override

@@ -111,7 +111,7 @@ public final class ListingServiceImpl implements ListingService {
         }
         Property saved = new Property(
                 draft.propertyId() == null ? UUID.randomUUID() : draft.propertyId(),
-                host.userId(), ListingStatus.ACTIVE, draft.title(), draft.description(),
+                host.userId(), draft.status(), draft.title(), draft.description(),
                 draft.propertyType(), draft.streetAddress(), draft.city(), draft.region(),
                 draft.postalCode(), draft.maxGuests(), draft.bedrooms(), draft.bathrooms(),
                 draft.baseNightlyRate(), draft.checkInTime(), draft.checkOutTime(),

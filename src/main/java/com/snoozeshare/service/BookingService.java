@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
-import com.snoozeshare.domain.enums.BookingStatus;
 import com.snoozeshare.domain.model.Booking;
 
 public interface BookingService {
@@ -30,8 +29,6 @@ public interface BookingService {
     Booking complete(UUID bookingId);
 
     int completeEligibleBookings();
-
-    Booking forceTransition(UUID bookingId, BookingStatus target, UUID agentId, String reason);
 
     Money previewHostEarnings(UUID bookingId);
 }

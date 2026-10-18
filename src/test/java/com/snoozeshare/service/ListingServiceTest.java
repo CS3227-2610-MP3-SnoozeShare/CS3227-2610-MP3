@@ -46,12 +46,26 @@ import com.snoozeshare.service.impl.UserServiceImpl;
 class ListingServiceTest {
 
     @Test
+    void createHonoursInactiveDraftStatus() throws Exception {
+        try (Connection connection = migratedConnection()) {
+            TestContext ctx = seedContext(connection);
+            ListingService service = createService(connection);
+
+            Property created = service.create(validDraft(), ctx.hostId());
+
+            assertEquals(ListingStatus.INACTIVE, created.status());
+            assertEquals(ListingStatus.INACTIVE, new JdbcPropertyRepository(connection)
+                    .findById(created.propertyId()).orElseThrow().status());
+        }
+    }
+
+    @Test
     void validHostCanCreateActiveListing() throws Exception {
         try (Connection connection = migratedConnection()) {
             TestContext ctx = seedContext(connection);
             ListingService service = createService(connection);
 
-            Property draft = validDraft();
+            Property draft = withStatus(validDraft(), ListingStatus.ACTIVE);
             Property created = service.create(draft, ctx.hostId());
 
             assertTrue(created.propertyId() != null);
@@ -463,6 +477,14 @@ class ListingServiceTest {
                 PropertyType.CONDO, "1 Main Street", "Singapore", "Central", 123456, 3,
                 2, 1, new BigDecimal("175.00"), LocalTime.of(15, 0), LocalTime.of(11, 0),
                 Set.of(), Instant.now());
+    }
+
+    private static Property withStatus(Property source, ListingStatus status) {
+        return new Property(source.propertyId(), source.hostId(), status, source.title(),
+                source.description(), source.propertyType(), source.streetAddress(), source.city(),
+                source.region(), source.postalCode(), source.maxGuests(), source.bedrooms(),
+                source.bathrooms(), source.baseNightlyRate(), source.checkInTime(),
+                source.checkOutTime(), source.amenities(), source.createdAt());
     }
 
     private static Property with(Property source, String title, String description,

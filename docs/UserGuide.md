@@ -442,8 +442,9 @@ The **Requests** tab (**Booking requests**) lists guests' requests for your prop
 rating** (average of their reviews, or *No ratings yet*).
 
 1. Click **Approve** or **Decline** on a pending request.
-2. In the dialog, optionally add a **Message to guest**. Declining shows a notice that the guest
-   will be refunded.
+2. The dialog shows the amount: your **net earning** when approving, or the amount to be refunded
+   when declining. When declining you can optionally add a **Message to guest**; approving has no
+   message field.
 3. Click **Confirm**.
 
 Approving confirms the booking. Declining refunds the guest in full and frees the dates. The

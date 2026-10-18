@@ -22,7 +22,9 @@ Fixed on branch `mp2-bug-fixes` (MP3-0 correctness cluster; awaiting operator re
 | D2 (audit atomicity) | `91edc76`, `6806543` |
 | D5 (fee defined once) | `36f02e3` |
 
-Still open: B2, B6, B7, D4, D6, P1–P4, G1–G6. The manual GUI check of the B1/B3 fixes was not performed.
+Fixed on branch `mp2-smaller-bug-fixes` (2026-10-19): B2, B6, B7, D4 (B7 resolved by relabelling to net and correcting the User Guide; the approval dialog deliberately has no message field, C31).
+
+Still open: D6, P1–P4, G1–G6. The manual GUI check of the B1/B3 fixes was not performed.
 
 ---
 

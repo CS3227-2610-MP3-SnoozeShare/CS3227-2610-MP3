@@ -338,12 +338,6 @@ public final class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public Booking forceTransition(UUID bookingId, BookingStatus target,
-                                    UUID agentId, String reason) {
-        throw new UnsupportedOperationException("Owned by W10");
-    }
-
-    @Override
     public Money previewHostEarnings(UUID bookingId) {
         Booking booking = bookings.findById(bookingId)
                 .orElseThrow(() -> new IllegalArgumentException("Booking does not exist"));
