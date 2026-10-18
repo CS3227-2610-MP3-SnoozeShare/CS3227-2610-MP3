@@ -3,6 +3,7 @@ package com.snoozeshare.service.impl;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -19,6 +20,7 @@ import com.snoozeshare.domain.model.Booking;
 import com.snoozeshare.domain.model.Property;
 import com.snoozeshare.domain.model.User;
 import com.snoozeshare.domain.model.Wallet;
+import com.snoozeshare.domain.policy.DisputeWindowPolicy;
 import com.snoozeshare.domain.statemachine.BookingStateMachine;
 import com.snoozeshare.domain.validation.DomainValidation;
 import com.snoozeshare.infra.db.TransactionManager;
@@ -54,6 +56,7 @@ public final class BookingServiceImpl implements BookingService {
     private final com.snoozeshare.service.TransactionService transactionService;
     private final TicketRepository tickets;
     private final EventBus eventBus;
+    private final DisputeWindowPolicy disputeWindow;
 
     public BookingServiceImpl(Connection connection, BookingRepository bookings,
                                PropertyRepository properties,
@@ -65,8 +68,10 @@ public final class BookingServiceImpl implements BookingService {
                                ReviewRepository reviews,
                                EventBus eventBus,
                                com.snoozeshare.service.TransactionService transactionService,
-                               TicketRepository tickets) {
+                               TicketRepository tickets,
+                               Clock clock) {
         this.connection = connection;
+        this.disputeWindow = new DisputeWindowPolicy(clock);
         this.bookings = bookings;
         this.properties = properties;
         this.blocks = blocks;
@@ -323,7 +328,7 @@ public final class BookingServiceImpl implements BookingService {
         if (booking.status() != BookingStatus.CONFIRMED) {
             throw new IllegalStateException("Only confirmed bookings can be completed");
         }
-        if (booking.endDate().isAfter(LocalDate.now().minusDays(7))) {
+        if (!disputeWindow.canAutoComplete(booking)) {
             throw new IllegalStateException("Booking is not eligible for completion");
         }
         boolean blocked = tickets.findByBookingId(bookingId).stream()
@@ -339,8 +344,7 @@ public final class BookingServiceImpl implements BookingService {
     @Override
     public int completeEligibleBookings() {
         int completed = 0;
-        LocalDate cutoff = LocalDate.now().minusDays(7);
-        for (Booking booking : bookings.findConfirmedEndingOnOrBefore(cutoff)) {
+        for (Booking booking : bookings.findConfirmedEndingOnOrBefore(disputeWindow.completionCutoff())) {
             try {
                 complete(booking.bookingId());
                 completed++;

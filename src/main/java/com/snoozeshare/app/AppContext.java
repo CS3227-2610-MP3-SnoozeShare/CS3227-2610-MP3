@@ -81,6 +81,7 @@ public final class AppContext implements AutoCloseable {
         JdbcUserRepository users = new JdbcUserRepository(connection);
         JdbcWalletRepository wallets = new JdbcWalletRepository(connection);
         this.eventBus = new InProcessEventBus();
+        Clock clock = Clock.systemDefaultZone();
         this.session = new MockSessionContext();
         this.userService = new UserServiceImpl(connection, users, wallets);
         this.auditService = new AuditServiceImpl(new JdbcAuditLogRepository(connection), users,
@@ -101,9 +102,8 @@ public final class AppContext implements AutoCloseable {
         JdbcTicketRepository ticketRepo = new JdbcTicketRepository(connection);
         this.bookingService = new BookingServiceImpl(connection, bookingRepo, propertyRepo,
                 blockRepo, wallets, ledgerWriter, ledgerRepository, users, reviewRepo, eventBus,
-                transactionService, ticketRepo);
+                transactionService, ticketRepo, clock);
         JdbcTicketCategoryRepository categoryRepo = new JdbcTicketCategoryRepository(connection);
-        Clock clock = Clock.systemUTC();
         DisputeSettlementService settlementService = new DisputeSettlementServiceImpl(connection,
                 ticketRepo, bookingRepo, propertyRepo, users, wallets, ledgerWriter, ledgerRepository, auditService,
                 eventBus, clock);

@@ -3,19 +3,18 @@ package com.snoozeshare.service.impl;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
 import com.snoozeshare.domain.enums.AssigneeFilter;
 import com.snoozeshare.domain.enums.AuditAction;
-import com.snoozeshare.domain.enums.BookingStatus;
 import com.snoozeshare.domain.enums.Role;
 import com.snoozeshare.domain.enums.TicketStatus;
 import com.snoozeshare.domain.model.Booking;
 import com.snoozeshare.domain.model.Ticket;
 import com.snoozeshare.domain.model.TicketCategory;
 import com.snoozeshare.domain.model.User;
+import com.snoozeshare.domain.policy.DisputeWindowPolicy;
 import com.snoozeshare.domain.statemachine.TicketStateMachine;
 import com.snoozeshare.domain.validation.DomainValidation;
 import com.snoozeshare.infra.events.EventBus;
@@ -41,6 +40,7 @@ public final class TicketServiceImpl implements TicketService {
     private final AuditService audit;
     private final Clock clock;
     private final EventBus eventBus;
+    private final DisputeWindowPolicy disputeWindow;
 
     public TicketServiceImpl(TicketRepository tickets, TicketCategoryRepository categories,
                              BookingRepository bookings, UserRepository users,
@@ -54,6 +54,7 @@ public final class TicketServiceImpl implements TicketService {
         this.audit = audit;
         this.clock = clock;
         this.eventBus = eventBus;
+        this.disputeWindow = new DisputeWindowPolicy(clock);
     }
 
     public TicketServiceImpl(TicketRepository tickets, TicketCategoryRepository categories,
@@ -81,8 +82,7 @@ public final class TicketServiceImpl implements TicketService {
             throw new IllegalArgumentException("Only the booking guest may file a ticket");
         }
 
-        LocalDate today = LocalDate.now(clock);
-        if (!ticketWindowOpen(booking, today)) {
+        if (!disputeWindow.canFileTicket(booking)) {
             throw new IllegalStateException("Booking is not eligible for a dispute");
         }
 
@@ -113,14 +113,6 @@ public final class TicketServiceImpl implements TicketService {
                 .subject(raisedByUserId).booking(saved.bookingId()).ticket(saved.ticketId()).at(now).build());
         eventBus.publish(new TicketOpenedEvent(saved.ticketId(), raisedByUserId, now));
         return saved;
-    }
-
-    private static boolean ticketWindowOpen(Booking booking, LocalDate today) {
-        boolean tripStarted = !today.isBefore(booking.startDate());
-        boolean inWindow = !today.isAfter(booking.endDate().plusDays(7));
-        boolean statusEligible = booking.status() == BookingStatus.CONFIRMED
-                || booking.status() == BookingStatus.COMPLETED;
-        return statusEligible && tripStarted && inWindow;
     }
 
     @Override

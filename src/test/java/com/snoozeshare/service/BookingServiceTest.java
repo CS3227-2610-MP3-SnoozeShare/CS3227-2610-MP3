@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -579,7 +580,7 @@ class BookingServiceTest {
             events.subscribe(WalletTransactionRecordedEvent.class, payoutEvents::add);
             BookingService service = createService(connection, events);
             Booking booking = service.submitRequest(ctx.guestId, ctx.propertyId,
-                    LocalDate.now().minusDays(10), LocalDate.now().minusDays(7));
+                    LocalDate.now().minusDays(11), LocalDate.now().minusDays(8));
             new JdbcBookingRepository(connection).save(new Booking(booking.bookingId(),
                     booking.listingId(), booking.guestId(), booking.startDate(), booking.endDate(),
                     BookingStatus.CONFIRMED, booking.nightlyRateSnapshot(), booking.totalAmount(),
@@ -611,7 +612,7 @@ class BookingServiceTest {
             var ctx = seedContext(connection, new BigDecimal("500.00"));
             BookingService service = createService(connection);
             Booking booking = service.submitRequest(ctx.guestId, ctx.propertyId,
-                    LocalDate.now().minusDays(10), LocalDate.now().minusDays(7));
+                    LocalDate.now().minusDays(11), LocalDate.now().minusDays(8));
             new JdbcBookingRepository(connection).save(new Booking(booking.bookingId(),
                     booking.listingId(), booking.guestId(), booking.startDate(), booking.endDate(),
                     BookingStatus.CONFIRMED, booking.nightlyRateSnapshot(), booking.totalAmount(),
@@ -668,7 +669,7 @@ class BookingServiceTest {
                 .walletId();
     }
 
-    private record TestContext(UUID guestId, UUID hostId, UUID propertyId) {
+    record TestContext(UUID guestId, UUID hostId, UUID propertyId) {
     }
 
     static TestContext seedContext(Connection connection, BigDecimal walletBalance) {
@@ -724,7 +725,8 @@ class BookingServiceTest {
                 new TransactionServiceImpl(connection, new JdbcBookingRepository(connection),
                         new JdbcPropertyRepository(connection), new JdbcWalletRepository(connection),
                         ledger, ledgerEntries, eventBus),
-                new JdbcTicketRepository(connection));
+                new JdbcTicketRepository(connection),
+                Clock.systemDefaultZone());
     }
 
     static Connection migratedConnection() throws Exception {
