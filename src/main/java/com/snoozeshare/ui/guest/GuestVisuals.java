@@ -5,6 +5,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
@@ -45,11 +46,26 @@ public final class GuestVisuals {
 
     /** Greys out and disables every date before today, so a past date cannot be picked. */
     public static void blockPastDates(DatePicker picker) {
+        blockPastDates(picker, message -> { });
+    }
+
+    /**
+     * Greys out every date before today and also clears a past date that is typed into the field,
+     * which the greyed-out cells do not stop. {@code onRejected} receives the explanation.
+     */
+    public static void blockPastDates(DatePicker picker, Consumer<String> onRejected) {
         picker.setDayCellFactory(view -> new DateCell() {
             @Override
             public void updateItem(LocalDate date, boolean empty) {
                 super.updateItem(date, empty);
                 setDisable(!empty && date != null && date.isBefore(LocalDate.now()));
+            }
+        });
+        picker.valueProperty().addListener((observable, previous, value) -> {
+            if (value != null && value.isBefore(LocalDate.now())) {
+                picker.setValue(null);
+                picker.getEditor().clear();
+                onRejected.accept("Dates in the past cannot be selected.");
             }
         });
     }

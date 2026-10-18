@@ -7,9 +7,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneOffset;
 import java.util.Set;
 import java.util.UUID;
 
@@ -33,6 +35,10 @@ import com.snoozeshare.repository.jdbc.JdbcUserRepository;
 import com.snoozeshare.service.impl.AvailabilityServiceImpl;
 
 class AvailabilityServiceTest {
+
+    /** The sample dates in this class sit in October 2026, so the service runs on a clock before them. */
+    private static final LocalDate TODAY = LocalDate.of(2026, 9, 1);
+    private static final Clock CLOCK = Clock.fixed(TODAY.atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC);
 
     @Test
     void availableWhenNoBlocksOrBookings() throws Exception {
@@ -106,6 +112,22 @@ class AvailabilityServiceTest {
             assertThrows(IllegalStateException.class, () -> service.createHostBlock(
                     ctx.propertyId, LocalDate.of(2026, 10, 5), LocalDate.of(2026, 10, 7),
                     ctx.guestId, "maintenance"));
+        }
+    }
+
+    @Test
+    void createHostBlockRejectsAStartInThePastButAllowsToday() throws Exception {
+        try (Connection connection = migratedConnection()) {
+            var ctx = seedContext(connection);
+            AvailabilityService service = createService(connection);
+
+            assertThrows(IllegalArgumentException.class, () -> service.createHostBlock(
+                    ctx.propertyId, TODAY.minusDays(1), TODAY.plusDays(2), ctx.hostId, "maintenance"));
+            assertTrue(service.blocksFor(ctx.propertyId).isEmpty());
+
+            AvailabilityBlock today = service.createHostBlock(
+                    ctx.propertyId, TODAY, TODAY.plusDays(1), ctx.hostId, "maintenance");
+            assertEquals(TODAY, today.startDate());
         }
     }
 
@@ -271,7 +293,7 @@ class AvailabilityServiceTest {
     private static AvailabilityService createService(Connection connection) {
         return new AvailabilityServiceImpl(new JdbcPropertyRepository(connection),
                 new JdbcAvailabilityBlockRepository(connection),
-                new JdbcBookingRepository(connection));
+                new JdbcBookingRepository(connection), CLOCK);
     }
 
     private static Connection migratedConnection() throws Exception {

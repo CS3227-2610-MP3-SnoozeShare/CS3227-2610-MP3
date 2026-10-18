@@ -69,8 +69,8 @@ public final class GuestSearchController {
     private void initialize() {
         checkInPicker.setConverter(GuestVisuals.dateConverter());
         checkOutPicker.setConverter(GuestVisuals.dateConverter());
-        GuestVisuals.blockPastDates(checkInPicker);
-        GuestVisuals.blockPastDates(checkOutPicker);
+        GuestVisuals.blockPastDates(checkInPicker, statusLabel::setText);
+        GuestVisuals.blockPastDates(checkOutPicker, statusLabel::setText);
         guestsCombo.getItems().addAll(1, 2, 3, 4, 5, 6, 7, 8);
         guestsCombo.setConverter(new StringConverter<>() {
             @Override

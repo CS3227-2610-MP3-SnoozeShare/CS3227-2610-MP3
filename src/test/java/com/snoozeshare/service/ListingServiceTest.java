@@ -361,18 +361,33 @@ class ListingServiceTest {
     }
 
     @Test
+    void searchRejectsPastDates() throws Exception {
+        try (Connection connection = migratedConnection()) {
+            seedContext(connection);
+            ListingService service = createService(connection);
+
+            LocalDate yesterday = LocalDate.now().minusDays(1);
+            assertThrows(IllegalArgumentException.class, () -> service.search(
+                    new SearchCriteria(null, null, yesterday, LocalDate.now().plusDays(2))));
+            assertThrows(IllegalArgumentException.class, () -> service.search(
+                    new SearchCriteria(null, null, null, yesterday)));
+        }
+    }
+
+    @Test
     void searchWithDatesShowsAvailableBeforeUnavailable() throws Exception {
         try (Connection connection = migratedConnection()) {
             var ctx = seedContext(connection);
             var bookings = new JdbcBookingRepository(connection);
+            LocalDate start = LocalDate.now().plusDays(10);
+            LocalDate end = start.plusDays(4);
             bookings.save(new Booking(UUID.randomUUID(), ctx.singaporeId, ctx.guestId,
-                    LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 5),
+                    start, end,
                     BookingStatus.CONFIRMED, new BigDecimal("150.00"),
                     new BigDecimal("600.00"), Instant.now(), null, null));
             ListingService service = createService(connection);
 
-            var results = service.search(new SearchCriteria(null, null,
-                    LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 5)));
+            var results = service.search(new SearchCriteria(null, null, start, end));
 
             assertEquals(2, results.size());
             assertTrue(results.get(0).available());
