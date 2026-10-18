@@ -1,6 +1,7 @@
 package com.snoozeshare.service.impl;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -14,6 +15,7 @@ import com.snoozeshare.domain.enums.ListingStatus;
 import com.snoozeshare.domain.enums.Role;
 import com.snoozeshare.domain.model.Property;
 import com.snoozeshare.domain.model.User;
+import com.snoozeshare.domain.policy.StayDatePolicy;
 import com.snoozeshare.domain.validation.DomainValidation;
 import com.snoozeshare.repository.PropertyRepository;
 import com.snoozeshare.service.AuditRecord;
@@ -26,6 +28,9 @@ import com.snoozeshare.service.SearchResult;
 import com.snoozeshare.service.UserService;
 
 public final class ListingServiceImpl implements ListingService {
+
+    // requireValidSearchRange does not read the clock, so a shared static instance is safe.
+    private static final StayDatePolicy SEARCH_DATES = new StayDatePolicy(Clock.systemDefaultZone());
 
     private final PropertyRepository properties;
     private final AvailabilityService availability;
@@ -44,6 +49,7 @@ public final class ListingServiceImpl implements ListingService {
 
     @Override
     public List<SearchResult> search(SearchCriteria criteria) {
+        SEARCH_DATES.requireValidSearchRange(criteria.startDate(), criteria.endDate());
         List<Property> candidates = properties.findBySearchCriteria(criteria);
         boolean hasDateRange = criteria.startDate() != null && criteria.endDate() != null;
         if (!hasDateRange) {

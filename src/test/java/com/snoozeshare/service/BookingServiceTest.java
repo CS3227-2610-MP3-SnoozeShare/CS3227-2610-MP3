@@ -171,6 +171,22 @@ class BookingServiceTest {
     }
 
     @Test
+    void submitRequestRejectsAStartDateInThePast() throws Exception {
+        try (Connection connection = migratedConnection()) {
+            var ctx = seedContext(connection, new BigDecimal("500.00"));
+            BookingService service = createService(connection);
+
+            assertThrows(IllegalArgumentException.class, () -> service.submitRequest(ctx.guestId, ctx.propertyId,
+                    LocalDate.now().minusDays(1), LocalDate.now().plusDays(2)));
+            try (var statement = connection.createStatement();
+                 var rows = statement.executeQuery("SELECT COUNT(*) FROM bookings")) {
+                rows.next();
+                assertEquals(0, rows.getInt(1));
+            }
+        }
+    }
+
+    @Test
     void submitRequestFailsOnInvalidDates() throws Exception {
         try (Connection connection = migratedConnection()) {
             var ctx = seedContext(connection, new BigDecimal("500.00"));
@@ -571,6 +587,18 @@ class BookingServiceTest {
         }
     }
 
+    /** Moves a stored booking into the past; submitRequest itself rejects past stays. */
+    static void backdateStay(Connection connection, Booking booking, LocalDate start, LocalDate end)
+            throws Exception {
+        try (var statement = connection.prepareStatement(
+                "UPDATE bookings SET startDate = ?, endDate = ? WHERE bookingId = ?")) {
+            statement.setString(1, start.toString());
+            statement.setString(2, end.toString());
+            statement.setString(3, booking.bookingId().toString());
+            statement.executeUpdate();
+        }
+    }
+
     @Test
     void completeSettlesNetHostPayoutAndIsIdempotent() throws Exception {
         try (Connection connection = migratedConnection()) {
@@ -580,9 +608,11 @@ class BookingServiceTest {
             events.subscribe(WalletTransactionRecordedEvent.class, payoutEvents::add);
             BookingService service = createService(connection, events);
             Booking booking = service.submitRequest(ctx.guestId, ctx.propertyId,
-                    LocalDate.now().minusDays(11), LocalDate.now().minusDays(8));
+                    LocalDate.now().plusDays(8), LocalDate.now().plusDays(11));
+            backdateStay(connection, booking, LocalDate.now().minusDays(11), LocalDate.now().minusDays(8));
             new JdbcBookingRepository(connection).save(new Booking(booking.bookingId(),
-                    booking.listingId(), booking.guestId(), booking.startDate(), booking.endDate(),
+                    booking.listingId(), booking.guestId(), LocalDate.now().minusDays(11),
+                    LocalDate.now().minusDays(8),
                     BookingStatus.CONFIRMED, booking.nightlyRateSnapshot(), booking.totalAmount(),
                     booking.createdAt(), Instant.now(), null));
 
@@ -612,9 +642,11 @@ class BookingServiceTest {
             var ctx = seedContext(connection, new BigDecimal("500.00"));
             BookingService service = createService(connection);
             Booking booking = service.submitRequest(ctx.guestId, ctx.propertyId,
-                    LocalDate.now().minusDays(11), LocalDate.now().minusDays(8));
+                    LocalDate.now().plusDays(8), LocalDate.now().plusDays(11));
+            backdateStay(connection, booking, LocalDate.now().minusDays(11), LocalDate.now().minusDays(8));
             new JdbcBookingRepository(connection).save(new Booking(booking.bookingId(),
-                    booking.listingId(), booking.guestId(), booking.startDate(), booking.endDate(),
+                    booking.listingId(), booking.guestId(), LocalDate.now().minusDays(11),
+                    LocalDate.now().minusDays(8),
                     BookingStatus.CONFIRMED, booking.nightlyRateSnapshot(), booking.totalAmount(),
                     booking.createdAt(), Instant.now(), null));
             new JdbcTicketRepository(connection).save(new com.snoozeshare.domain.model.Ticket(

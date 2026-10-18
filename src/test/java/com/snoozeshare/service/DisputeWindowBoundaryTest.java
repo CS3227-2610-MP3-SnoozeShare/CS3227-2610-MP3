@@ -1,5 +1,6 @@
 package com.snoozeshare.service;
 
+import static com.snoozeshare.service.BookingServiceTest.backdateStay;
 import static com.snoozeshare.service.BookingServiceTest.createService;
 import static com.snoozeshare.service.BookingServiceTest.migratedConnection;
 import static com.snoozeshare.service.BookingServiceTest.seedContext;
@@ -21,11 +22,14 @@ import com.snoozeshare.repository.jdbc.JdbcBookingRepository;
 class DisputeWindowBoundaryTest {
 
     private static Booking confirmedEndedDaysAgo(Connection connection, BookingTestIds ids, BookingService service,
-                                                 int daysAgo) {
+                                                 int daysAgo) throws Exception {
         Booking booking = service.submitRequest(ids.guestId(), ids.propertyId(),
-                LocalDate.now().minusDays(daysAgo + 3L), LocalDate.now().minusDays(daysAgo));
+                LocalDate.now().plusDays(10), LocalDate.now().plusDays(13));
+        LocalDate start = LocalDate.now().minusDays(daysAgo + 3L);
+        LocalDate end = LocalDate.now().minusDays(daysAgo);
+        backdateStay(connection, booking, start, end);
         return new JdbcBookingRepository(connection).save(new Booking(booking.bookingId(), booking.listingId(),
-                booking.guestId(), booking.startDate(), booking.endDate(), BookingStatus.CONFIRMED,
+                booking.guestId(), start, end, BookingStatus.CONFIRMED,
                 booking.nightlyRateSnapshot(), booking.totalAmount(), booking.createdAt(), Instant.now(), null));
     }
 

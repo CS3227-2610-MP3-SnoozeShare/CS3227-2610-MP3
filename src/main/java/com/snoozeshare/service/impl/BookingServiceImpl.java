@@ -21,8 +21,8 @@ import com.snoozeshare.domain.model.Property;
 import com.snoozeshare.domain.model.User;
 import com.snoozeshare.domain.model.Wallet;
 import com.snoozeshare.domain.policy.DisputeWindowPolicy;
+import com.snoozeshare.domain.policy.StayDatePolicy;
 import com.snoozeshare.domain.statemachine.BookingStateMachine;
-import com.snoozeshare.domain.validation.DomainValidation;
 import com.snoozeshare.infra.db.TransactionManager;
 import com.snoozeshare.infra.events.EventBus;
 import com.snoozeshare.infra.events.events.BookingCancelledEvent;
@@ -57,6 +57,7 @@ public final class BookingServiceImpl implements BookingService {
     private final TicketRepository tickets;
     private final EventBus eventBus;
     private final DisputeWindowPolicy disputeWindow;
+    private final StayDatePolicy stayDates;
 
     public BookingServiceImpl(Connection connection, BookingRepository bookings,
                                PropertyRepository properties,
@@ -72,6 +73,7 @@ public final class BookingServiceImpl implements BookingService {
                                Clock clock) {
         this.connection = connection;
         this.disputeWindow = new DisputeWindowPolicy(clock);
+        this.stayDates = new StayDatePolicy(clock);
         this.bookings = bookings;
         this.properties = properties;
         this.blocks = blocks;
@@ -88,7 +90,7 @@ public final class BookingServiceImpl implements BookingService {
     @Override
     public Booking submitRequest(UUID guestId, UUID propertyId,
                                   LocalDate start, LocalDate end) {
-        DomainValidation.requireDateRange(start, end);
+        stayDates.requireValidStay(start, end);
         User guest = users.findById(guestId)
                 .orElseThrow(() -> new IllegalArgumentException("Guest does not exist"));
         if (guest.accountStatus() != AccountStatus.ACTIVE) {
