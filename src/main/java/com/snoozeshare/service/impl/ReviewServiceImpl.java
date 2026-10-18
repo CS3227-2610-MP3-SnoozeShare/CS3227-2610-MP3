@@ -7,6 +7,7 @@ import com.snoozeshare.domain.enums.AuditAction;
 import com.snoozeshare.domain.enums.BookingStatus;
 import com.snoozeshare.domain.model.Booking;
 import com.snoozeshare.domain.model.Review;
+import com.snoozeshare.infra.db.TransactionManager;
 import com.snoozeshare.repository.BookingRepository;
 import com.snoozeshare.repository.ReviewRepository;
 import com.snoozeshare.service.AuditRecord;
@@ -15,13 +16,15 @@ import com.snoozeshare.service.ReviewService;
 
 public final class ReviewServiceImpl implements ReviewService {
 
+    private final TransactionManager tx;
     private final BookingRepository bookings;
     private final ReviewRepository reviews;
     private final AuditService audit;
     private final Clock clock;
 
-    public ReviewServiceImpl(BookingRepository bookings, ReviewRepository reviews,
+    public ReviewServiceImpl(TransactionManager tx, BookingRepository bookings, ReviewRepository reviews,
                              AuditService audit, Clock clock) {
+        this.tx = tx;
         this.bookings = bookings;
         this.reviews = reviews;
         this.audit = audit;
@@ -51,10 +54,12 @@ public final class ReviewServiceImpl implements ReviewService {
 
         Review review = new Review(UUID.randomUUID(), bookingId, guestId, rating, comment,
                 clock.instant());
-        Review saved = reviews.save(review);
-        audit.record(AuditRecord.builder(guestId, AuditAction.REVIEW_SUBMITTED, "Review", saved.reviewId())
-                .subject(guestId).booking(bookingId).at(saved.createdAt()).build());
-        return saved;
+        return tx.inTransactionUnchecked(() -> {
+            Review saved = reviews.save(review);
+            audit.record(AuditRecord.builder(guestId, AuditAction.REVIEW_SUBMITTED, "Review", saved.reviewId())
+                    .subject(guestId).booking(bookingId).at(saved.createdAt()).build());
+            return saved;
+        });
     }
 
     @Override

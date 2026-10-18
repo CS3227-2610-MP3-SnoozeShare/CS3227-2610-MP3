@@ -27,8 +27,8 @@ public final class TransactionManager {
         if (!originalAutoCommit) {
             throw new IllegalStateException("Nested transactions are not supported");
         }
-        connection.setAutoCommit(false);
         listener.onBegin();
+        connection.setAutoCommit(false);
         T result;
         try {
             result = work.apply(connection);

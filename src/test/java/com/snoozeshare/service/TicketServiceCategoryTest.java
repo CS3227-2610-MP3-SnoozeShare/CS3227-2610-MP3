@@ -40,7 +40,7 @@ class TicketServiceCategoryTest {
     private final UUID guest = UUID.randomUUID();
     private final Fakes.RecordingAudit audit = new Fakes.RecordingAudit();
     private final Fakes.InMemoryTickets tickets = new Fakes.InMemoryTickets();
-    private final TicketService service = new TicketServiceImpl(tickets,
+    private final TicketService service = new TicketServiceImpl(Fakes.transactions(), tickets,
             new Fakes.InMemoryCategories(), null,
             new Fakes.StubUsers()
                     .with(new User(agent, Role.AGENT, "Amy", "amy@x.test", AccountStatus.ACTIVE, null,

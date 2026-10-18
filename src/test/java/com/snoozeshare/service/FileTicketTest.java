@@ -85,7 +85,7 @@ class FileTicketTest {
             }
         };
 
-        service = new TicketServiceImpl(tickets, categories, bookings, users,
+        service = new TicketServiceImpl(Fakes.transactions(), tickets, categories, bookings, users,
                 settlement, audit, clock, eventBus);
     }
 
@@ -253,7 +253,7 @@ class FileTicketTest {
                 publishedEvents.add(event);
             }
         };
-        return new TicketServiceImpl(tickets, categories, stubBookings(booking), users,
+        return new TicketServiceImpl(Fakes.transactions(), tickets, categories, stubBookings(booking), users,
                 settlement, audit, clock, eventBus);
     }
 

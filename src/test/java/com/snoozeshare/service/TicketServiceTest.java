@@ -106,7 +106,7 @@ class TicketServiceTest {
             @Override
             public void publish(com.snoozeshare.infra.events.DomainEvent event) {}
         };
-        service = new TicketServiceImpl(tickets, categories, bookings, users, settlement, audit,
+        service = new TicketServiceImpl(Fakes.transactions(), tickets, categories, bookings, users, settlement, audit,
                 Clock.fixed(Instant.parse("2026-09-25T04:00:00Z"), ZoneOffset.UTC), noopBus);
     }
 

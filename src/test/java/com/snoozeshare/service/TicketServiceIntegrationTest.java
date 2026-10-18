@@ -13,6 +13,7 @@ import org.junit.jupiter.api.io.TempDir;
 import com.snoozeshare.domain.enums.ResolutionMode;
 import com.snoozeshare.domain.enums.TicketStatus;
 import com.snoozeshare.domain.model.Ticket;
+import com.snoozeshare.infra.db.TransactionManager;
 import com.snoozeshare.infra.events.InProcessEventBus;
 import com.snoozeshare.repository.jdbc.JdbcAuditLogRepository;
 import com.snoozeshare.repository.jdbc.JdbcBookingRepository;
@@ -31,7 +32,7 @@ class TicketServiceIntegrationTest {
         var connection = db.connection();
         var settlement = SettlementFixtures.settlement(db, new InProcessEventBus());
         var eventBus = new InProcessEventBus();
-        return new TicketServiceImpl(new JdbcTicketRepository(connection),
+        return new TicketServiceImpl(new TransactionManager(connection), new JdbcTicketRepository(connection),
                 new JdbcTicketCategoryRepository(connection), new JdbcBookingRepository(connection),
                 new JdbcUserRepository(connection), settlement,
                 new AuditServiceImpl(new JdbcAuditLogRepository(connection), new JdbcUserRepository(connection),

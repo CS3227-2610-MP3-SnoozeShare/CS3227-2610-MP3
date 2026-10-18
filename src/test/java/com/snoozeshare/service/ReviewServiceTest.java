@@ -50,7 +50,7 @@ class ReviewServiceTest {
 
         reviews = new InMemoryReviews();
         BookingRepository bookings = stubBookings(completedBooking);
-        service = new ReviewServiceImpl(bookings, reviews, audit, clock);
+        service = new ReviewServiceImpl(Fakes.transactions(), bookings, reviews, audit, clock);
     }
 
     @Test
@@ -91,7 +91,7 @@ class ReviewServiceTest {
                 BookingStatus.CONFIRMED, new BigDecimal("100.00"),
                 new BigDecimal("400.00"), Instant.parse("2026-08-20T00:00:00Z"),
                 Instant.parse("2026-08-21T00:00:00Z"), null);
-        service = new ReviewServiceImpl(stubBookings(confirmed), reviews, audit, clock);
+        service = new ReviewServiceImpl(Fakes.transactions(), stubBookings(confirmed), reviews, audit, clock);
         assertThrows(IllegalStateException.class, () ->
                 service.submit(confirmed.bookingId(), guestId, 4, "Nice"));
     }
@@ -104,7 +104,7 @@ class ReviewServiceTest {
                 new BigDecimal("400.00"), Instant.parse("2026-08-20T00:00:00Z"),
                 Instant.parse("2026-08-21T00:00:00Z"),
                 Instant.parse("2026-09-12T00:00:00Z"));
-        service = new ReviewServiceImpl(stubBookings(forceCompleted), reviews, audit, clock);
+        service = new ReviewServiceImpl(Fakes.transactions(), stubBookings(forceCompleted), reviews, audit, clock);
         assertThrows(IllegalStateException.class, () ->
                 service.submit(forceCompleted.bookingId(), guestId, 4, "Nice"));
     }

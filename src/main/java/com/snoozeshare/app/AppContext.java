@@ -98,7 +98,7 @@ public final class AppContext implements AutoCloseable {
         JdbcBookingRepository bookingRepo = new JdbcBookingRepository(connection);
         JdbcReviewRepository reviewRepo = new JdbcReviewRepository(connection);
         this.availabilityService = new AvailabilityServiceImpl(propertyRepo, blockRepo, bookingRepo);
-        this.listingService = new ListingServiceImpl(propertyRepo, availabilityService,
+        this.listingService = new ListingServiceImpl(tx, propertyRepo, availabilityService,
                 userService, auditService);
         this.listingMetricsService = new ListingMetricsServiceImpl(connection);
         this.transactionService = new TransactionServiceImpl(tx, bookingRepo,
@@ -111,7 +111,7 @@ public final class AppContext implements AutoCloseable {
         DisputeSettlementService settlementService = new DisputeSettlementServiceImpl(tx,
                 ticketRepo, bookingRepo, propertyRepo, users, wallets, ledgerWriter, ledgerRepository, auditService,
                 eventBus, clock);
-        this.ticketService = new TicketServiceImpl(ticketRepo, categoryRepo, bookingRepo, users,
+        this.ticketService = new TicketServiceImpl(tx, ticketRepo, categoryRepo, bookingRepo, users,
                 settlementService, auditService, clock, eventBus);
         this.disputeQueryService = new DisputeQueryServiceImpl(ticketRepo, bookingRepo, propertyRepo,
                 users, ledgerRepository, clock);
@@ -119,7 +119,7 @@ public final class AppContext implements AutoCloseable {
                 bookingRepo, propertyRepo, users, eventBus, clock);
         this.bookingConversationService = new BookingConversationServiceImpl(
                 new JdbcBookingMessageRepository(connection), bookingRepo, propertyRepo, users, eventBus, clock);
-        this.reviewService = new ReviewServiceImpl(bookingRepo, reviewRepo, auditService, clock);
+        this.reviewService = new ReviewServiceImpl(tx, bookingRepo, reviewRepo, auditService, clock);
         this.accountGovernanceService = new AccountGovernanceServiceImpl(tx, users, bookingRepo,
                 propertyRepo, blockRepo, wallets, ledgerWriter, eventBus, auditService, Clock.systemDefaultZone());
         this.sceneRouter = new SceneRouter();

@@ -17,6 +17,7 @@ import com.snoozeshare.domain.model.Property;
 import com.snoozeshare.domain.model.User;
 import com.snoozeshare.domain.policy.StayDatePolicy;
 import com.snoozeshare.domain.validation.DomainValidation;
+import com.snoozeshare.infra.db.TransactionManager;
 import com.snoozeshare.repository.PropertyRepository;
 import com.snoozeshare.service.AuditRecord;
 import com.snoozeshare.service.AuditService;
@@ -32,15 +33,18 @@ public final class ListingServiceImpl implements ListingService {
     // requireValidSearchRange does not read the clock, so a shared static instance is safe.
     private static final StayDatePolicy SEARCH_DATES = new StayDatePolicy(Clock.systemDefaultZone());
 
+    private final TransactionManager tx;
     private final PropertyRepository properties;
     private final AvailabilityService availability;
     private final UserService users;
     private final AuditService audit;
 
-    public ListingServiceImpl(PropertyRepository properties,
+    public ListingServiceImpl(TransactionManager tx,
+                               PropertyRepository properties,
                                AvailabilityService availability,
                                UserService users,
                                AuditService audit) {
+        this.tx = tx;
         this.properties = properties;
         this.availability = availability;
         this.users = users;
@@ -112,12 +116,14 @@ public final class ListingServiceImpl implements ListingService {
                 draft.postalCode(), draft.maxGuests(), draft.bedrooms(), draft.bathrooms(),
                 draft.baseNightlyRate(), draft.checkInTime(), draft.checkOutTime(),
                 draft.amenities(), draft.createdAt() == null ? Instant.now() : draft.createdAt());
-        Property persisted = properties.save(saved);
-        audit.record(AuditRecord.builder(host.userId(), AuditAction.LISTING_CREATED, "Property",
-                        persisted.propertyId())
-                .status(null, persisted.status()).subject(host.userId())
-                .reason("Listing created: " + persisted.title()).build());
-        return persisted;
+        return tx.inTransactionUnchecked(() -> {
+            Property persisted = properties.save(saved);
+            audit.record(AuditRecord.builder(host.userId(), AuditAction.LISTING_CREATED, "Property",
+                            persisted.propertyId())
+                    .status(null, persisted.status()).subject(host.userId())
+                    .reason("Listing created: " + persisted.title()).build());
+            return persisted;
+        });
     }
 
     @Override
@@ -137,11 +143,13 @@ public final class ListingServiceImpl implements ListingService {
                 draft.city(), draft.region(), draft.postalCode(), draft.maxGuests(),
                 draft.bedrooms(), draft.bathrooms(), draft.baseNightlyRate(), draft.checkInTime(),
                 draft.checkOutTime(), draft.amenities(), existing.createdAt());
-        Property persisted = properties.save(edited);
-        audit.record(AuditRecord.builder(host.userId(), AuditAction.LISTING_UPDATED, "Property",
-                        edited.propertyId())
-                .subject(host.userId()).reason("Listing details updated").build());
-        return persisted;
+        return tx.inTransactionUnchecked(() -> {
+            Property persisted = properties.save(edited);
+            audit.record(AuditRecord.builder(host.userId(), AuditAction.LISTING_UPDATED, "Property",
+                            edited.propertyId())
+                    .subject(host.userId()).reason("Listing details updated").build());
+            return persisted;
+        });
     }
 
     @Override
@@ -164,11 +172,13 @@ public final class ListingServiceImpl implements ListingService {
                 existing.postalCode(), existing.maxGuests(), existing.bedrooms(),
                 existing.bathrooms(), existing.baseNightlyRate(), existing.checkInTime(),
                 existing.checkOutTime(), existing.amenities(), existing.createdAt());
-        Property persisted = properties.save(updated);
-        audit.record(AuditRecord.builder(host.userId(), AuditAction.LISTING_STATUS_CHANGED, "Property",
-                        propertyId)
-                .status(existing.status(), persisted.status()).subject(host.userId()).build());
-        return persisted;
+        return tx.inTransactionUnchecked(() -> {
+            Property persisted = properties.save(updated);
+            audit.record(AuditRecord.builder(host.userId(), AuditAction.LISTING_STATUS_CHANGED, "Property",
+                            propertyId)
+                    .status(existing.status(), persisted.status()).subject(host.userId()).build());
+            return persisted;
+        });
     }
 
     private User requireActiveHost(UUID hostId) {
