@@ -24,7 +24,7 @@
         <Label text="Credited back to your wallet immediately" styleClass="guest-refund-note"/>
     </VBox>
 
-    <Label text="Cancellation policy: 100% refund more than 48 hours before check-in, 50% refund within 48 hours."
+    <Label text="Cancellation policy: 100% refund for a pending booking at any time, or more than 48 hours before check-in. An approved booking cancelled within 48 hours of check-in is refunded 50%."
            wrapText="true" styleClass="guest-policy-note"/>
 
     <Label fx:id="statusLabel" styleClass="error-message" wrapText="true" visible="false" managed="false"/>
