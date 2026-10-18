@@ -54,6 +54,28 @@ class TransactionManagerTest {
     }
 
     @Test
+    void failureToEnterManualModeStillNotifiesRollback() throws Exception {
+        try (Connection real = ConnectionFactory.open("jdbc:sqlite::memory:")) {
+            Connection broken = (Connection) java.lang.reflect.Proxy.newProxyInstance(
+                    Connection.class.getClassLoader(), new Class<?>[] {Connection.class}, (proxy, method, args) -> {
+                        if (method.getName().equals("setAutoCommit") && Boolean.FALSE.equals(args[0])) {
+                            throw new java.sql.SQLException("cannot enter manual mode");
+                        }
+                        try {
+                            return method.invoke(real, args);
+                        } catch (java.lang.reflect.InvocationTargetException exception) {
+                            throw exception.getCause();
+                        }
+                    });
+            Recorder recorder = new Recorder();
+            assertThrows(java.sql.SQLException.class, () ->
+                    new TransactionManager(broken, recorder).inTransaction(conn -> "never"));
+            assertEquals(List.of("begin", "rollback"), recorder.calls);
+            assertEquals(true, real.getAutoCommit());
+        }
+    }
+
+    @Test
     void commitCallbackMayStartAnotherTransaction() throws Exception {
         try (Connection connection = ConnectionFactory.open("jdbc:sqlite::memory:")) {
             TransactionManager[] holder = new TransactionManager[1];
