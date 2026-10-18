@@ -1,5 +1,7 @@
 package com.snoozeshare.ui.guest.tickets;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import com.snoozeshare.app.AppContext;
@@ -36,13 +38,27 @@ public final class TicketFilingController {
         this.bookingId = bookingId;
         this.onClose = onClose;
 
-        categoryCombo.getItems().clear();
-        for (TicketCategory cat : context.ticketService().listCategories()) {
-            categoryCombo.getItems().add(cat.label());
-        }
+        categoryCombo.getItems().setAll(categoryLabels(context.ticketService().listCategories()));
 
         remedyCombo.getItems().clear();
         remedyCombo.getItems().addAll("Full Refund", "Partial Refund", "Other");
+    }
+
+    /** Category labels in service order, except that "Other" always comes last. */
+    static List<String> categoryLabels(List<TicketCategory> categories) {
+        List<String> labels = new ArrayList<>();
+        String other = null;
+        for (TicketCategory category : categories) {
+            if ("Other".equalsIgnoreCase(category.label().trim())) {
+                other = category.label();
+            } else {
+                labels.add(category.label());
+            }
+        }
+        if (other != null) {
+            labels.add(other);
+        }
+        return labels;
     }
 
     @FXML
