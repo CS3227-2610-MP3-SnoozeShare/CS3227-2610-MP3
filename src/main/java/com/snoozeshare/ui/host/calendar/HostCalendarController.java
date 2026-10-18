@@ -68,8 +68,8 @@ public final class HostCalendarController {
 
     @FXML
     private void initialize() {
-        GuestVisuals.blockPastDates(fromPicker);
-        GuestVisuals.blockPastDates(toPicker);
+        GuestVisuals.blockPastDates(fromPicker, statusLabel::setText);
+        GuestVisuals.blockPastDates(toPicker, statusLabel::setText);
     }
 
     public void setContext(AppContext appContext) {

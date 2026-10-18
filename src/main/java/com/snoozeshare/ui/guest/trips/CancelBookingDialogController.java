@@ -38,8 +38,8 @@ public final class CancelBookingDialogController {
                 + summary.reference());
         CancellationRefund refund = context.bookingService().previewCancellationRefund(bookingId);
         refundCaption.setText(refund.percent() == 100
-                ? "REFUND DUE — 100% (more than 48h before check-in)"
-                : "REFUND DUE — 50% (within 48h of check-in)");
+                ? "REFUND DUE — 100% (pending booking, or more than 48h before check-in)"
+                : "REFUND DUE — 50% (approved booking within 48h of check-in)");
         refundAmount.setText("SGD " + refund.amount().setScale(2, RoundingMode.HALF_UP));
     }
 

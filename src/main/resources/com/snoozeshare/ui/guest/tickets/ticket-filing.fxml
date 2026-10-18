@@ -9,30 +9,43 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox spacing="16" maxWidth="480" styleClass="detail-modal"
+<VBox spacing="12" minWidth="520" prefWidth="520" maxWidth="520" maxHeight="-Infinity" styleClass="detail-modal"
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.snoozeshare.ui.guest.tickets.TicketFilingController">
-    <padding><Insets top="24" right="24" bottom="24" left="24"/></padding>
+    <padding><Insets top="22" right="24" bottom="22" left="24"/></padding>
 
-    <Label text="File a Dispute" styleClass="page-title"/>
-    <Label text="Tell us what went wrong with your stay." styleClass="small"/>
+    <VBox spacing="2">
+        <Label text="File a Dispute" styleClass="page-title"/>
+        <Label text="Tell us what went wrong with your stay." styleClass="small"/>
+    </VBox>
 
-    <Label text="Category" styleClass="card-title"/>
-    <ComboBox fx:id="categoryCombo" maxWidth="Infinity" promptText="Select a category"/>
+    <HBox spacing="12">
+        <VBox spacing="4" HBox.hgrow="ALWAYS">
+            <Label text="Category" styleClass="card-title"/>
+            <ComboBox fx:id="categoryCombo" maxWidth="Infinity" promptText="Select a category"/>
+        </VBox>
+        <VBox spacing="4" HBox.hgrow="ALWAYS">
+            <Label text="Requested Remedy" styleClass="card-title"/>
+            <ComboBox fx:id="remedyCombo" maxWidth="Infinity" promptText="What resolution do you seek?"/>
+        </VBox>
+    </HBox>
 
-    <Label text="Title" styleClass="card-title"/>
-    <TextField fx:id="titleField" promptText="Brief summary of the issue"/>
+    <VBox spacing="4">
+        <Label text="Title" styleClass="card-title"/>
+        <TextField fx:id="titleField" promptText="Brief summary of the issue"/>
+    </VBox>
 
-    <Label text="Description" styleClass="card-title"/>
-    <TextArea fx:id="descriptionArea" promptText="Describe the issue in detail"
-              prefRowCount="3" wrapText="true"/>
+    <VBox spacing="4">
+        <Label text="Description" styleClass="card-title"/>
+        <TextArea fx:id="descriptionArea" promptText="Describe the issue in detail"
+                  prefRowCount="3" wrapText="true"/>
+    </VBox>
 
-    <Label text="Requested Remedy" styleClass="card-title"/>
-    <ComboBox fx:id="remedyCombo" maxWidth="Infinity" promptText="What resolution do you seek?"/>
-
-    <Label text="Supporting Information (optional)" styleClass="card-title"/>
-    <TextArea fx:id="supportingArea" promptText="Any additional details or evidence"
-              prefRowCount="2" wrapText="true"/>
+    <VBox spacing="4">
+        <Label text="Supporting Information (optional)" styleClass="card-title"/>
+        <TextArea fx:id="supportingArea" promptText="Any additional details or evidence"
+                  prefRowCount="2" wrapText="true"/>
+    </VBox>
 
     <Label fx:id="statusLabel" styleClass="error-message" visible="false" managed="false"/>
 

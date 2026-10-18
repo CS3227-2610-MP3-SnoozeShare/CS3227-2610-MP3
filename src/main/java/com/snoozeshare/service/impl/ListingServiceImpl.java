@@ -30,7 +30,7 @@ import com.snoozeshare.service.UserService;
 
 public final class ListingServiceImpl implements ListingService {
 
-    // requireValidSearchRange does not read the clock, so a shared static instance is safe.
+    // The policy only reads the system clock, so one shared instance is safe.
     private static final StayDatePolicy SEARCH_DATES = new StayDatePolicy(Clock.systemDefaultZone());
 
     private final TransactionManager tx;
