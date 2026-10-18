@@ -1,6 +1,5 @@
 package com.snoozeshare.service.impl;
 
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Clock;
 import java.time.Instant;
@@ -19,14 +18,12 @@ import com.snoozeshare.domain.model.Booking;
 import com.snoozeshare.domain.model.Property;
 import com.snoozeshare.domain.model.User;
 import com.snoozeshare.domain.model.Wallet;
-import com.snoozeshare.domain.model.WalletTransaction;
 import com.snoozeshare.domain.statemachine.BookingStateMachine;
 import com.snoozeshare.infra.db.TransactionManager;
 import com.snoozeshare.infra.events.DomainEvent;
 import com.snoozeshare.infra.events.EventBus;
 import com.snoozeshare.infra.events.events.AccountStatusChangedEvent;
 import com.snoozeshare.infra.events.events.BookingCancelledEvent;
-import com.snoozeshare.infra.events.events.WalletTransactionRecordedEvent;
 import com.snoozeshare.repository.AvailabilityBlockRepository;
 import com.snoozeshare.repository.BookingRepository;
 import com.snoozeshare.repository.PropertyRepository;
@@ -42,7 +39,7 @@ public final class AccountGovernanceServiceImpl implements AccountGovernanceServ
     static final String CASCADE_BOOKING_REASON = "Account suspended — cascading cancellation";
     static final String CASCADE_LISTING_REASON = "Host suspended";
 
-    private final Connection connection;
+    private final TransactionManager tx;
     private final UserRepository users;
     private final BookingRepository bookings;
     private final PropertyRepository properties;
@@ -53,11 +50,11 @@ public final class AccountGovernanceServiceImpl implements AccountGovernanceServ
     private final AuditService audit;
     private final Clock clock;
 
-    public AccountGovernanceServiceImpl(Connection connection, UserRepository users, BookingRepository bookings,
+    public AccountGovernanceServiceImpl(TransactionManager tx, UserRepository users, BookingRepository bookings,
                                         PropertyRepository properties, AvailabilityBlockRepository blocks,
                                         WalletRepository wallets, LedgerWriter ledger,
                                         EventBus eventBus, AuditService audit, Clock clock) {
-        this.connection = connection;
+        this.tx = tx;
         this.users = users;
         this.bookings = bookings;
         this.properties = properties;
@@ -173,15 +170,14 @@ public final class AccountGovernanceServiceImpl implements AccountGovernanceServ
                 .subject(suspended.userId()).booking(booking.bookingId()).at(now).build());
         Wallet wallet = wallets.findByUserId(booking.guestId())
                 .orElseThrow(() -> new IllegalArgumentException("Guest wallet does not exist"));
-        WalletTransaction refund = ledger.post(wallet.walletId(), WalletTransactionType.ESCROW_REFUND,
+        ledger.post(wallet.walletId(), WalletTransactionType.ESCROW_REFUND,
                 booking.totalAmount(), agentId, booking.bookingId(), null, null, now);
-        events.add(new WalletTransactionRecordedEvent(refund.transactionId(), refund.walletId(), now));
         events.add(new BookingCancelledEvent(booking.bookingId(), agentId, now));
     }
 
     private <T> T inTransaction(String what, java.util.concurrent.Callable<T> work) {
         try {
-            return new TransactionManager(connection).inTransaction(conn -> {
+            return tx.inTransaction(conn -> {
                 try {
                     return work.call();
                 } catch (SQLException | RuntimeException exception) {

@@ -42,9 +42,8 @@ import com.snoozeshare.repository.jdbc.JdbcTicketRepository;
 import com.snoozeshare.repository.jdbc.JdbcUserRepository;
 import com.snoozeshare.repository.jdbc.JdbcWalletRepository;
 import com.snoozeshare.service.impl.BookingServiceImpl;
-import com.snoozeshare.service.impl.LedgerWriter;
 import com.snoozeshare.service.impl.TransactionServiceImpl;
-import com.snoozeshare.testsupport.LedgerTestSupport;
+import com.snoozeshare.testsupport.Tx;
 
 class BookingServiceTest {
 
@@ -742,21 +741,21 @@ class BookingServiceTest {
     }
 
     static BookingService createService(Connection connection, InProcessEventBus eventBus) {
-        LedgerWriter ledger = LedgerTestSupport.writer(connection);
+        InProcessEventBus bus = eventBus == null ? new InProcessEventBus() : eventBus;
+        Tx tx = Tx.of(connection, bus);
         var ledgerEntries = new JdbcLedgerRepository(connection);
-        return new BookingServiceImpl(connection,
+        return new BookingServiceImpl(tx.manager(),
                 new JdbcBookingRepository(connection),
                 new JdbcPropertyRepository(connection),
                 new JdbcAvailabilityBlockRepository(connection),
                 new JdbcWalletRepository(connection),
-                ledger,
-                ledgerEntries,
+                tx.ledger(),
                 new JdbcUserRepository(connection),
                 new JdbcReviewRepository(connection),
                 eventBus,
-                new TransactionServiceImpl(connection, new JdbcBookingRepository(connection),
+                new TransactionServiceImpl(tx.manager(), new JdbcBookingRepository(connection),
                         new JdbcPropertyRepository(connection), new JdbcWalletRepository(connection),
-                        ledger, ledgerEntries, eventBus),
+                        tx.ledger(), ledgerEntries),
                 new JdbcTicketRepository(connection),
                 Clock.systemDefaultZone());
     }

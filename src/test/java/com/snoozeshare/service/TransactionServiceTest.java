@@ -28,15 +28,16 @@ import com.snoozeshare.domain.model.Wallet;
 import com.snoozeshare.domain.model.WalletTransaction;
 import com.snoozeshare.infra.db.ConnectionFactory;
 import com.snoozeshare.infra.db.migration.MigrationRunner;
+import com.snoozeshare.infra.events.InProcessEventBus;
 import com.snoozeshare.repository.jdbc.JdbcBookingRepository;
 import com.snoozeshare.repository.jdbc.JdbcLedgerRepository;
 import com.snoozeshare.repository.jdbc.JdbcPropertyRepository;
 import com.snoozeshare.repository.jdbc.JdbcUserRepository;
 import com.snoozeshare.repository.jdbc.JdbcWalletRepository;
-import com.snoozeshare.service.impl.LedgerWriter;
 import com.snoozeshare.service.impl.TransactionServiceImpl;
 import com.snoozeshare.testsupport.FailingAuditService;
 import com.snoozeshare.testsupport.LedgerTestSupport;
+import com.snoozeshare.testsupport.Tx;
 
 class TransactionServiceTest {
 
@@ -156,9 +157,9 @@ class TransactionServiceTest {
         try (Connection connection = migratedConnection()) {
             var context = seedBookingContext(connection, new BigDecimal("500.00"));
             confirm(connection, context.bookingId);
-            LedgerWriter failing = LedgerTestSupport.writer(connection,
+            Tx tx = Tx.of(connection, new InProcessEventBus(),
                     new FailingAuditService(LedgerTestSupport.audit(connection), 2));
-            TransactionService service = createService(connection, failing);
+            TransactionService service = createService(connection, tx);
 
             assertThrows(RuntimeException.class, () -> service.settleBookingCompletion(context.bookingId));
 
@@ -225,15 +226,15 @@ class TransactionServiceTest {
     }
 
     private TransactionService createService(Connection connection) {
-        return createService(connection, LedgerTestSupport.writer(connection));
+        return createService(connection, Tx.of(connection));
     }
 
-    private TransactionService createService(Connection connection, LedgerWriter ledger) {
-        return new TransactionServiceImpl(connection,
+    private TransactionService createService(Connection connection, Tx tx) {
+        return new TransactionServiceImpl(tx.manager(),
                 new JdbcBookingRepository(connection),
                 new JdbcPropertyRepository(connection),
                 new JdbcWalletRepository(connection),
-                ledger, new JdbcLedgerRepository(connection), null);
+                tx.ledger(), new JdbcLedgerRepository(connection));
     }
 
     private static Connection migratedConnection() throws Exception {

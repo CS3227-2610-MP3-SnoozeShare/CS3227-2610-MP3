@@ -22,7 +22,6 @@ import com.snoozeshare.repository.jdbc.JdbcUserRepository;
 import com.snoozeshare.service.impl.AuditServiceImpl;
 import com.snoozeshare.service.impl.TicketServiceImpl;
 import com.snoozeshare.service.requests.ResolutionRequest;
-import com.snoozeshare.testsupport.LedgerTestSupport;
 import com.snoozeshare.testsupport.MockDbFixture;
 import com.snoozeshare.testsupport.MockIds;
 
@@ -30,8 +29,7 @@ class TicketServiceIntegrationTest {
 
     private static TicketServiceImpl service(MockDbFixture db) {
         var connection = db.connection();
-        var settlement = SettlementFixtures.settlement(db, new InProcessEventBus(),
-                LedgerTestSupport.writer(connection));
+        var settlement = SettlementFixtures.settlement(db, new InProcessEventBus());
         var eventBus = new InProcessEventBus();
         return new TicketServiceImpl(new JdbcTicketRepository(connection),
                 new JdbcTicketCategoryRepository(connection), new JdbcBookingRepository(connection),

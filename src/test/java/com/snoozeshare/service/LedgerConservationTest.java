@@ -12,7 +12,6 @@ import org.junit.jupiter.api.io.TempDir;
 import com.snoozeshare.domain.enums.ResolutionMode;
 import com.snoozeshare.infra.events.InProcessEventBus;
 import com.snoozeshare.repository.jdbc.JdbcWalletRepository;
-import com.snoozeshare.testsupport.LedgerTestSupport;
 import com.snoozeshare.testsupport.MockDbFixture;
 import com.snoozeshare.testsupport.MockIds;
 
@@ -58,8 +57,7 @@ class LedgerConservationTest {
                     .findByUserId(AuditService.SYSTEM_ACTOR_ID).orElseThrow().balance();
             assertEquals(0, SEEDED_FEES.compareTo(systemWalletBefore));
 
-            var service = SettlementFixtures.settlement(db, new InProcessEventBus(),
-                    LedgerTestSupport.writer(db.connection()));
+            var service = SettlementFixtures.settlement(db, new InProcessEventBus());
             Settlement result = service.settle(MockIds.TICKET_3, ResolutionMode.MANUAL,
                     new BigDecimal("60.00"), MockIds.AGENT_BEN, "Partial credit agreed");
 

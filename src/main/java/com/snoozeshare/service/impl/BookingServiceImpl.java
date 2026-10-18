@@ -1,7 +1,6 @@
 package com.snoozeshare.service.impl;
 
 import java.math.BigDecimal;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Clock;
 import java.time.Instant;
@@ -27,10 +26,8 @@ import com.snoozeshare.infra.db.TransactionManager;
 import com.snoozeshare.infra.events.EventBus;
 import com.snoozeshare.infra.events.events.BookingCancelledEvent;
 import com.snoozeshare.infra.events.events.BookingConfirmedEvent;
-import com.snoozeshare.infra.events.events.WalletTransactionRecordedEvent;
 import com.snoozeshare.repository.AvailabilityBlockRepository;
 import com.snoozeshare.repository.BookingRepository;
-import com.snoozeshare.repository.LedgerRepository;
 import com.snoozeshare.repository.PropertyRepository;
 import com.snoozeshare.repository.ReviewRepository;
 import com.snoozeshare.repository.TicketRepository;
@@ -44,13 +41,12 @@ import com.snoozeshare.service.TripFilter;
 
 public final class BookingServiceImpl implements BookingService {
 
-    private final Connection connection;
+    private final TransactionManager tx;
     private final BookingRepository bookings;
     private final PropertyRepository properties;
     private final AvailabilityBlockRepository blocks;
     private final WalletRepository wallets;
     private final LedgerWriter ledger;
-    private final LedgerRepository ledgerEntries;
     private final UserRepository users;
     private final ReviewRepository reviews;
     private final com.snoozeshare.service.TransactionService transactionService;
@@ -59,19 +55,18 @@ public final class BookingServiceImpl implements BookingService {
     private final DisputeWindowPolicy disputeWindow;
     private final StayDatePolicy stayDates;
 
-    public BookingServiceImpl(Connection connection, BookingRepository bookings,
+    public BookingServiceImpl(TransactionManager tx, BookingRepository bookings,
                                PropertyRepository properties,
                                AvailabilityBlockRepository blocks,
                                WalletRepository wallets,
                                LedgerWriter ledger,
-                               LedgerRepository ledgerEntries,
                                UserRepository users,
                                ReviewRepository reviews,
                                EventBus eventBus,
                                com.snoozeshare.service.TransactionService transactionService,
                                TicketRepository tickets,
                                Clock clock) {
-        this.connection = connection;
+        this.tx = tx;
         this.disputeWindow = new DisputeWindowPolicy(clock);
         this.stayDates = new StayDatePolicy(clock);
         this.bookings = bookings;
@@ -79,7 +74,6 @@ public final class BookingServiceImpl implements BookingService {
         this.blocks = blocks;
         this.wallets = wallets;
         this.ledger = ledger;
-        this.ledgerEntries = ledgerEntries;
         this.users = users;
         this.reviews = reviews;
         this.eventBus = eventBus;
@@ -97,7 +91,7 @@ public final class BookingServiceImpl implements BookingService {
             throw new IllegalStateException("Account is not active");
         }
         try {
-            Booking booking = new TransactionManager(connection).inTransaction(conn -> {
+            return tx.inTransaction(conn -> {
                 Property property = properties.findById(propertyId)
                         .orElseThrow(() -> new IllegalArgumentException(
                                 "Property does not exist"));
@@ -131,23 +125,9 @@ public final class BookingServiceImpl implements BookingService {
 
                 return newBooking;
             });
-            publishWalletTransactionEvent(booking);
-            return booking;
         } catch (SQLException exception) {
             throw new IllegalStateException("Unable to submit booking request", exception);
         }
-    }
-
-    private void publishWalletTransactionEvent(Booking booking) {
-        if (eventBus == null) {
-            return;
-        }
-        var transaction = ledgerEntries.entriesForBooking(booking.bookingId()).stream()
-                .filter(entry -> entry.type() == WalletTransactionType.ESCROW_HOLD)
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Escrow hold row is missing"));
-        eventBus.publish(new WalletTransactionRecordedEvent(
-                transaction.transactionId(), transaction.walletId(), transaction.createdAt()));
     }
 
     @Override
@@ -205,7 +185,7 @@ public final class BookingServiceImpl implements BookingService {
     public Booking decide(UUID bookingId, boolean approve, UUID hostId,
                           String hostDecisionMessage) {
         try {
-            Booking decided = new TransactionManager(connection).inTransaction(conn -> {
+            Booking decided = tx.inTransaction(conn -> {
                 Booking booking = bookings.findById(bookingId)
                         .orElseThrow(() -> new IllegalArgumentException("Booking does not exist"));
                 Property property = properties.findById(booking.listingId())
@@ -270,7 +250,7 @@ public final class BookingServiceImpl implements BookingService {
         }
         BigDecimal refundAmount = calculateRefundAmount(booking);
         try {
-            Booking cancelled = new TransactionManager(connection).inTransaction(conn -> {
+            Booking cancelled = tx.inTransaction(conn -> {
                 Instant now = Instant.now();
                 Booking updated = new Booking(booking.bookingId(), booking.listingId(),
                         booking.guestId(), booking.startDate(), booking.endDate(),

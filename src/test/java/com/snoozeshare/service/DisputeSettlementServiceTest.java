@@ -1,6 +1,7 @@
 package com.snoozeshare.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -39,7 +40,7 @@ class DisputeSettlementServiceTest {
     private static final String MONEY_ROWS = "SELECT COUNT(*) FROM audit_log WHERE walletAdjustment IS NOT NULL";
 
     private static DisputeSettlementServiceImpl service(MockDbFixture db, InProcessEventBus bus) {
-        return SettlementFixtures.settlement(db, bus, LedgerTestSupport.writer(db.connection()));
+        return SettlementFixtures.settlement(db, bus);
     }
 
     private static BigDecimal systemBalance(MockDbFixture db) {
@@ -80,7 +81,8 @@ class DisputeSettlementServiceTest {
                     "SELECT status FROM bookings WHERE bookingId = ?", MockIds.BOOKING_11));
             assertEquals(1L, db.scalarLong("SELECT COUNT(*) FROM audit_log "
                     + "WHERE actionType = 'TICKET_RESOLVED' AND entityId = ?", MockIds.TICKET_3));
-            assertEquals(2, events.size(), "the System wallet's fee row publishes nothing");
+            assertEquals(3, events.size(), "payout row, System fee row, then the ticket event");
+            assertInstanceOf(TicketResolvedEvent.class, events.get(2), "wallet events fire at commit, first");
             var system = new JdbcWalletRepository(db.connection()).findByUserId(AuditService.SYSTEM_ACTOR_ID)
                     .orElseThrow();
             var fees = new JdbcLedgerRepository(db.connection()).entriesForWallet(system.walletId());
@@ -138,7 +140,8 @@ class DisputeSettlementServiceTest {
             assertMoney("850", db.walletBalance(MockIds.WALLET_SOPHIA));
             assertMoney("295.50", db.walletBalance(MockIds.WALLET_DIEGO));
             assertEquals(TicketStatus.RESOLVED_APPROVED, result.ticket().status());
-            assertEquals(3, events.size());
+            assertEquals(4, events.size(), "guest row, payout row, System fee row, then the ticket event");
+            assertInstanceOf(TicketResolvedEvent.class, events.get(3), "wallet events fire at commit, first");
             assertEquals(0, SEEDED_FEES.add(new BigDecimal("4.50")).compareTo(systemBalance(db)));
             db.assertLedgerInvariant();
         }

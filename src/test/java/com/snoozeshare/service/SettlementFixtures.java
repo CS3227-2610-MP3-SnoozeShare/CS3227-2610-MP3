@@ -4,7 +4,9 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 
+import com.snoozeshare.infra.db.TransactionManager;
 import com.snoozeshare.infra.events.EventBus;
+import com.snoozeshare.infra.events.PostCommitEvents;
 import com.snoozeshare.repository.jdbc.JdbcAuditLogRepository;
 import com.snoozeshare.repository.jdbc.JdbcBookingRepository;
 import com.snoozeshare.repository.jdbc.JdbcLedgerRepository;
@@ -25,20 +27,22 @@ final class SettlementFixtures {
     private SettlementFixtures() {
     }
 
-    static DisputeSettlementServiceImpl settlement(MockDbFixture db, EventBus bus, LedgerWriter ledger) {
+    static DisputeSettlementServiceImpl settlement(MockDbFixture db, EventBus bus) {
         var connection = db.connection();
-        return settlement(db, bus, ledger, new AuditServiceImpl(new JdbcAuditLogRepository(connection),
+        return settlement(db, bus, new AuditServiceImpl(new JdbcAuditLogRepository(connection),
                 new JdbcUserRepository(connection), CLOCK));
     }
 
     /**
-     * {@code ledger} writes the money rows and {@code audit} the status rows; to fail a money row, build the
-     * ledger on the same failing audit service.
+     * One {@code audit} service writes the status rows and, through the ledger, the money rows; to fail a money
+     * row, pass a failing audit service. Wallet events reach {@code bus} after the commit, as in AppContext.
      */
-    static DisputeSettlementServiceImpl settlement(MockDbFixture db, EventBus bus, LedgerWriter ledger,
-                                                    AuditService audit) {
+    static DisputeSettlementServiceImpl settlement(MockDbFixture db, EventBus bus, AuditService audit) {
         var connection = db.connection();
-        return new DisputeSettlementServiceImpl(connection, new JdbcTicketRepository(connection),
+        PostCommitEvents events = PostCommitEvents.strict(bus::publish);
+        LedgerWriter ledger = new LedgerWriter(new JdbcWalletRepository(connection), audit, events);
+        return new DisputeSettlementServiceImpl(new TransactionManager(connection, events),
+                new JdbcTicketRepository(connection),
                 new JdbcBookingRepository(connection), new JdbcPropertyRepository(connection),
                 new JdbcUserRepository(connection), new JdbcWalletRepository(connection),
                 ledger, new JdbcLedgerRepository(connection), audit, bus, CLOCK);

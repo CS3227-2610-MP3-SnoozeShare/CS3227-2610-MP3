@@ -21,16 +21,21 @@ import com.snoozeshare.repository.jdbc.JdbcUserRepository;
 import com.snoozeshare.repository.jdbc.JdbcWalletRepository;
 import com.snoozeshare.service.impl.WalletServiceImpl;
 import com.snoozeshare.testsupport.LedgerTestSupport;
+import com.snoozeshare.testsupport.Tx;
 
 class WalletLedgerTest {
+
+    private static WalletService walletService(Connection connection) {
+        Tx tx = Tx.of(connection);
+        return new WalletServiceImpl(tx.manager(), new JdbcWalletRepository(connection), tx.ledger(),
+                new JdbcLedgerRepository(connection));
+    }
 
     @Test
     void creditsAndDebitsProduceSignedAppendOnlyRows() throws Exception {
         try (Connection connection = migratedConnection()) {
             UUID userId = seedUser(connection);
-            WalletService service = new WalletServiceImpl(connection,
-                    new JdbcWalletRepository(connection),
-                    LedgerTestSupport.writer(connection), new JdbcLedgerRepository(connection), null);
+            WalletService service = walletService(connection);
 
             service.topUp(userId, new BigDecimal("50.00"));
             service.withdraw(userId, new BigDecimal("12.50"));
@@ -49,9 +54,7 @@ class WalletLedgerTest {
     void invalidAmountsAndInsufficientFundsAreRejected() throws Exception {
         try (Connection connection = migratedConnection()) {
             UUID userId = seedUser(connection);
-            WalletService service = new WalletServiceImpl(connection,
-                    new JdbcWalletRepository(connection),
-                    LedgerTestSupport.writer(connection), new JdbcLedgerRepository(connection), null);
+            WalletService service = walletService(connection);
 
             assertThrows(IllegalArgumentException.class, () ->
                     service.topUp(userId, BigDecimal.ZERO));
@@ -66,9 +69,7 @@ class WalletLedgerTest {
     void hostWalletSupportsTopUpWithdrawalAndChronologicalStatement() throws Exception {
         try (Connection connection = migratedConnection()) {
             UUID userId = seedUser(connection, Role.HOST);
-            WalletService service = new WalletServiceImpl(connection,
-                    new JdbcWalletRepository(connection),
-                    LedgerTestSupport.writer(connection), new JdbcLedgerRepository(connection), null);
+            WalletService service = walletService(connection);
 
             service.topUp(userId, new BigDecimal("500.00"));
             service.withdraw(userId, new BigDecimal("125.00"));

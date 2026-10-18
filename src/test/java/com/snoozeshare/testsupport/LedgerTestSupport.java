@@ -3,6 +3,7 @@ package com.snoozeshare.testsupport;
 import java.sql.Connection;
 import java.time.Clock;
 
+import com.snoozeshare.infra.events.PostCommitEvents;
 import com.snoozeshare.repository.jdbc.JdbcAuditLogRepository;
 import com.snoozeshare.repository.jdbc.JdbcUserRepository;
 import com.snoozeshare.repository.jdbc.JdbcWalletRepository;
@@ -22,10 +23,12 @@ public final class LedgerTestSupport {
     }
 
     public static LedgerWriter writer(Connection connection) {
-        return new LedgerWriter(new JdbcWalletRepository(connection), audit(connection));
+        return new LedgerWriter(new JdbcWalletRepository(connection), audit(connection),
+                PostCommitEvents.autocommit(event -> { }));
     }
 
     public static LedgerWriter writer(Connection connection, AuditService audit) {
-        return new LedgerWriter(new JdbcWalletRepository(connection), audit);
+        return new LedgerWriter(new JdbcWalletRepository(connection), audit,
+                PostCommitEvents.autocommit(event -> { }));
     }
 }

@@ -23,7 +23,6 @@ import com.snoozeshare.repository.jdbc.JdbcUserRepository;
 import com.snoozeshare.service.impl.AuditServiceImpl;
 import com.snoozeshare.service.impl.DisputeSettlementServiceImpl;
 import com.snoozeshare.testsupport.FailingAuditService;
-import com.snoozeshare.testsupport.LedgerTestSupport;
 import com.snoozeshare.testsupport.MockDbFixture;
 import com.snoozeshare.testsupport.MockIds;
 
@@ -40,7 +39,7 @@ class DisputeSettlementAtomicityTest {
         var realAudit = new AuditServiceImpl(new JdbcAuditLogRepository(connection),
                 new JdbcUserRepository(connection), SettlementFixtures.CLOCK);
         var failing = new FailingAuditService(realAudit, failingCall);
-        return SettlementFixtures.settlement(db, bus, LedgerTestSupport.writer(connection, failing), failing);
+        return SettlementFixtures.settlement(db, bus, failing);
     }
 
     private static BigDecimal systemBalance(MockDbFixture db) throws Exception {
@@ -122,8 +121,7 @@ class DisputeSettlementAtomicityTest {
                     failing.settle(MockIds.TICKET_3, ResolutionMode.REJECT, BigDecimal.ZERO,
                             MockIds.AGENT_BEN, "boom"));
 
-            var healthy = SettlementFixtures.settlement(db, new InProcessEventBus(),
-                    LedgerTestSupport.writer(db.connection()));
+            var healthy = SettlementFixtures.settlement(db, new InProcessEventBus());
             healthy.settle(MockIds.TICKET_3, ResolutionMode.REJECT, BigDecimal.ZERO,
                     MockIds.AGENT_BEN, "retry succeeds");
 

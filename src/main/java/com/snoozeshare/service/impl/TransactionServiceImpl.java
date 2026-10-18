@@ -2,7 +2,6 @@ package com.snoozeshare.service.impl;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.util.List;
@@ -16,8 +15,6 @@ import com.snoozeshare.domain.model.Booking;
 import com.snoozeshare.domain.model.Wallet;
 import com.snoozeshare.domain.model.WalletTransaction;
 import com.snoozeshare.infra.db.TransactionManager;
-import com.snoozeshare.infra.events.EventBus;
-import com.snoozeshare.infra.events.events.WalletTransactionRecordedEvent;
 import com.snoozeshare.repository.BookingRepository;
 import com.snoozeshare.repository.LedgerRepository;
 import com.snoozeshare.repository.PropertyRepository;
@@ -26,24 +23,22 @@ import com.snoozeshare.service.TransactionService;
 
 public final class TransactionServiceImpl implements TransactionService {
 
-    private final Connection connection;
+    private final TransactionManager tx;
     private final BookingRepository bookings;
     private final PropertyRepository properties;
     private final WalletRepository wallets;
     private final LedgerWriter ledger;
     private final LedgerRepository ledgerEntries;
-    private final EventBus eventBus;
 
-    public TransactionServiceImpl(Connection connection, BookingRepository bookings,
+    public TransactionServiceImpl(TransactionManager tx, BookingRepository bookings,
                                   PropertyRepository properties, WalletRepository wallets,
-                                  LedgerWriter ledger, LedgerRepository ledgerEntries, EventBus eventBus) {
-        this.connection = connection;
+                                  LedgerWriter ledger, LedgerRepository ledgerEntries) {
+        this.tx = tx;
         this.bookings = bookings;
         this.properties = properties;
         this.wallets = wallets;
         this.ledger = ledger;
         this.ledgerEntries = ledgerEntries;
-        this.eventBus = eventBus;
     }
 
     @Override
@@ -67,7 +62,7 @@ public final class TransactionServiceImpl implements TransactionService {
     @Override
     public WalletTransaction settleBookingCompletion(UUID bookingId) {
         try {
-            WalletTransaction payout = new TransactionManager(connection).inTransaction(current -> {
+            return tx.inTransaction(current -> {
                 Booking booking = bookings.findById(bookingId)
                         .orElseThrow(() -> new IllegalArgumentException("Booking does not exist"));
                 var existing = ledgerEntries.entriesForBooking(bookingId).stream()
@@ -100,8 +95,6 @@ public final class TransactionServiceImpl implements TransactionService {
                         booking.decidedAt(), now, booking.hostDecisionMessage()));
                 return result;
             });
-            publish(payout);
-            return payout;
         } catch (SQLException exception) {
             throw new IllegalStateException("Unable to settle booking completion", exception);
         }
@@ -130,19 +123,6 @@ public final class TransactionServiceImpl implements TransactionService {
     }
 
     private WalletTransaction inOwnTransaction(Supplier<WalletTransaction> work) {
-        try {
-            WalletTransaction transaction = new TransactionManager(connection).inTransaction(current -> work.get());
-            publish(transaction);
-            return transaction;
-        } catch (SQLException exception) {
-            throw new IllegalStateException("Unable to write wallet ledger", exception);
-        }
-    }
-
-    private void publish(WalletTransaction transaction) {
-        if (eventBus != null) {
-            eventBus.publish(new WalletTransactionRecordedEvent(transaction.transactionId(),
-                    transaction.walletId(), transaction.createdAt()));
-        }
+        return tx.inTransactionUnchecked(work);
     }
 }
