@@ -50,8 +50,10 @@ public final class GuestVisuals {
     }
 
     /**
-     * Greys out every date before today and also clears a past date that is typed into the field,
-     * which the greyed-out cells do not stop. {@code onRejected} receives the explanation.
+     * Greys out every date before today and also reports a past date that is typed into the field,
+     * which the greyed-out cells do not stop. The typed date stays in the field, so the action it
+     * feeds (search, booking, blocking) is refused by the date rules with the same message it would
+     * give for an inverted range. {@code onRejected} receives the explanation.
      */
     public static void blockPastDates(DatePicker picker, Consumer<String> onRejected) {
         picker.setDayCellFactory(view -> new DateCell() {
@@ -63,8 +65,6 @@ public final class GuestVisuals {
         });
         picker.valueProperty().addListener((observable, previous, value) -> {
             if (value != null && value.isBefore(LocalDate.now())) {
-                picker.setValue(null);
-                picker.getEditor().clear();
                 onRejected.accept("Dates in the past cannot be selected.");
             }
         });

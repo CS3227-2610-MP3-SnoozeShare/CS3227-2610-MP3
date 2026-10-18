@@ -1,7 +1,6 @@
 package com.snoozeshare.ui.guest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.time.LocalDate;
@@ -48,17 +47,18 @@ class GuestVisualsDatePickerTest {
     }
 
     @Test
-    void aPastDateIsClearedAndReported() throws Exception {
+    void aPastDateIsReportedAndKeptSoTheActionIsRefused() throws Exception {
         assumeTrue(toolkitAvailable, "JavaFX toolkit unavailable");
         List<String> messages = new ArrayList<>();
+        LocalDate yesterday = LocalDate.now().minusDays(1);
         DatePicker picker = onFxThread(() -> {
             DatePicker created = new DatePicker();
             GuestVisuals.blockPastDates(created, messages::add);
-            created.setValue(LocalDate.now().minusDays(1));
+            created.setValue(yesterday);
             return created;
         });
 
-        assertNull(onFxThread(picker::getValue));
+        assertEquals(yesterday, onFxThread(picker::getValue));
         assertEquals(List.of("Dates in the past cannot be selected."), messages);
     }
 

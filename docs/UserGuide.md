@@ -264,7 +264,7 @@ The **Search** tab lists available properties and lets you narrow them down.
 | Filter | What to enter |
 |---|---|
 | **Location** | Part of a city name, e.g. `Lisbon`. |
-| **Check-in** / **Check-out** | Pick both dates. Past dates are greyed out, and a past date typed into the field is cleared with a message. Properties already booked or blocked for those dates are shown last and marked unavailable. |
+| **Check-in** / **Check-out** | Pick both dates. Past dates are greyed out, and a past date typed into the field shows a message and the search does not run. Properties already booked or blocked for those dates are shown last and marked unavailable. |
 | **Guests** | The number of guests. Only properties that fit them are shown. |
 | **Max nightly budget** | The most you want to pay per night. |
 
