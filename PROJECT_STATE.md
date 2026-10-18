@@ -8,8 +8,8 @@ every boundary, not at the end of the session.
 - **Stack:** Java 25, JavaFX 25 (javafx.controls, javafx.fxml), Gradle (application + shadow + checkstyle plugins), SQLite (embedded, file-based, `org.xerial:sqlite-jdbc`) via plain JDBC, JUnit 5 + TestFX for tests
 - **Branch:** `main`
 - **Method:** Native inline execution with TDD-first vertical slices, fresh-context whole-branch review at end
-- **Last updated:** 2026-10-18 by Claude — Repo renamed MP2→MP3; added MP3-0 row (MP2 grade-report triage). Drift noted: git history shows W16 (guest UI alignment) merged, but no W15/W16 row exists here
-- **Last verified against repo:** 2026-09-29
+- **Last updated:** 2026-10-19 by Claude Sonnet 5.5 — MP3-0 Tasks 1–8 implemented on `mp2-bug-fixes`, now In review. Drift noted earlier and still open: git history shows W16 (guest UI alignment) merged, but no W15/W16 row exists here
+- **Last verified against repo:** 2026-10-19
 - **Developer guide:** `docs/DeveloperGuide.md` documents all confirmed workstreams W1–W14. W1–W14 are now marked `Done` with guide coverage recorded as `Documented 2026-09-29`; residual limitations and deferred sub-features remain explicitly recorded in the guide's Known Limitations and the state file's § Known Gaps / § Deviations.
 - **User guide:** `docs/UserGuide.md` provides role-based Guest, Host and Support Agent walkthroughs, with screenshots linked from `docs/images`; the Support Agent walkthrough includes the Categories page.
 
@@ -68,6 +68,7 @@ three iterations).
 | S7 | 2026-09-27 | Claude Sonnet 5 | messaging-service | W13 | Paused | Service slice built and verified; host Messages UI continued on `w9` | 2026-09-27 |
 | S8 | 2026-09-27 | Codex | host-ui-touchup | W6/W7/W13 + GitHub Pages docs | Paused | Session interaction log recorded for this chat; docs links target repository files on GitHub and docs-source Jekyll build passes | 2026-09-29 |
 | S14 | 2026-09-26 | Codex | w8 | W8 — Host Request Queue, Earnings & Disputes | Paused | W8 implementation, review fixes and Developer Guide handoff complete; workstream closed as Done | 2026-09-27 |
+| S15 | 2026-10-18 | Claude Sonnet 5.5 + subagents | mp2-bug-fixes | MP3-0 | Paused | Tasks 1-8 implemented, awaiting operator review (full build: 570 tests, 4 baseline host-UI failures; manual GUI check not performed) | 2026-10-19 |
 
 Status vocabulary, used verbatim: `Active` · `Paused` · `Blocked — needs human` (name the
 question ID, same as a workstream row).
@@ -97,7 +98,7 @@ its spec and plan before feature implementation, per AGENTS.md § 3.
 | W12 | F11 — Platform Audit Trail (Analytics half of the epic has no items, out of scope; W11 emits the account-governance rows, C32) | Done | [W12 design](docs/superpowers/specs/2026-09-26-w12-platform-audit-trail-design.md) | [W12 plan](docs/superpowers/plans/2026-09-26-w12-platform-audit-trail.md) | Done | Documented 2026-09-26 |
 | W13 | F12 — Messaging (persistent ticket chat; `MessageService` replaces the in-memory seam; Host UI slice, C37/C38) | Done | [W13 service design](docs/superpowers/specs/2026-09-27-w13-messaging-service-design.md); [Host Messages design](docs/superpowers/specs/2026-09-27-host-messages-ui-design.md) | [W13 service plan](docs/superpowers/plans/2026-09-27-w13-messaging-service.md); [Host Messages plan](docs/superpowers/plans/2026-09-27-host-messages-ui.md) | Host ticket creation removed per reversed C39/C40 (the messaging-branch ones, distinct from W14's C39/C40); confirmed 2026-09-29, documented same day | Documented 2026-09-29 |
 | W14 | Unified ledger — fold `wallet_transactions` into `audit_log`, System account (role SYSTEM) with a real wallet; `wallets` table kept (C30, C31, C39, C40) | Done | [W14 design](docs/superpowers/specs/2026-09-27-w14-unified-ledger-design.md) | [W14 plan](docs/superpowers/plans/2026-09-27-w14-unified-ledger.md) | All 12 tasks done & reviewed; C42 fixed a settlement crash; PR #16 merged to `main`; operator confirmed 2026-09-29 | Documented 2026-09-29 |
-| MP3-0 | MP2 feedback fixes before new MP3 features (bugs B1–B7, design D1–D6, CI/skills/docs) | Planned | [correctness-cluster design](docs/superpowers/specs/2026-10-18-mp3-correctness-cluster-design.md) (B1, B3–B5, D1–D3, D5) | [correctness-cluster plan](docs/superpowers/plans/2026-10-18-mp3-correctness-cluster.md) | Triage: [`docs/MP2-feedback-triage.md`](docs/MP2-feedback-triage.md); spec approved 2026-10-18; plan written (8 tasks), not started | — |
+| MP3-0 | MP2 feedback fixes before new MP3 features (bugs B1–B7, design D1–D6, CI/skills/docs) | In review | [correctness-cluster design](docs/superpowers/specs/2026-10-18-mp3-correctness-cluster-design.md) (B1, B3–B5, D1–D3, D5) | [correctness-cluster plan](docs/superpowers/plans/2026-10-18-mp3-correctness-cluster.md) | Tasks 1-8 done; awaiting operator review; 4 baseline host-UI test failures (§ Deviations) | — |
 
 **Historical W10→W3 handoffs (raised 2026-09-25; reconciled at workstream closure)** — W3 is
 marked `Done` and documented, but the following accepted residual boundaries remain visible for
@@ -170,7 +171,7 @@ convention-level until feature adapters are added.
 audit service, and role-aware `SceneRouter`. W2 added wiring for `ListingService`,
 `AvailabilityService`, and their backing JDBC repositories. W3 added `BookingService` and
 `TransactionService` wiring. `Main` loads the combined auth screen or role shell with shared CSS
-and a 1280×800 minimum window. `Launcher` remains the shaded-jar entry point.
+and a 1280×800 minimum window. `Launcher` remains the shaded-jar entry point. MP3-0: `AppContext` builds one shared `TransactionManager` (with a strict `PostCommitEvents` listener publishing to the event bus) handed to every ledger-writing service, and its `Clock` now uses the system default zone (was UTC) so policies, the completion sweep and the UI agree.
 
 | Path | Role |
 |---|---|
@@ -270,6 +271,8 @@ status changes, with validation and audit records.
 `ListingMetricsService` supplies host dashboard booking counts and average review ratings with
 zero-value fallbacks for listings without activity.
 
+**MP3-0 adds (In review, branch `mp2-bug-fixes`):** `LedgerWriter` now queues a `WalletTransactionRecordedEvent` for every money row it writes (into `PostCommitEvents`); the shared `TransactionManager` publishes the queue after commit and discards it on rollback, so no service publishes wallet events by hand (`WalletServiceImpl`/`TransactionServiceImpl` lost their `EventBus` parameter). A host payout now emits two wallet events (payout and the System `PLATFORM_FEE` row). Listing, review and ticket mutations run in a `TransactionManager` transaction together with their audit rows (D2); `TransactionManager.inTransactionUnchecked` avoids repeated `SQLException` wrapping. `BookingServiceImpl` validates stay dates (`StayDatePolicy`) and completes/auto-completes only after the dispute window closes (`DisputeWindowPolicy`, C48). Triage: [`docs/MP2-feedback-triage.md`](docs/MP2-feedback-triage.md).
+
 **W4 adds:** `TicketServiceImpl.fileTicket()` (8 validation rules, event publishing, 7-day window),
 `TicketServiceImpl.myTickets()`, `ReviewServiceImpl` (submit + hasReview), `JdbcReviewRepository`.
 
@@ -326,6 +329,8 @@ JavaFX/JDBC dependencies. `BookingStateMachine.canTransition(from, to, actingRol
 `TicketStateMachine` are meant to be the single legality check every role's service call goes
 through (guest cancel, host approve/reject, agent force-override all call the same function).
 
+**MP3-0 adds:** `domain.policy` holds `DisputeWindowPolicy` (`canFileTicket`/`canAutoComplete`/`completionCutoff`: filing open through `endDate+7`, completion from `endDate+8`) and `StayDatePolicy` (`requireValidStay`/`requireValidSearchRange`), each constructed from a `Clock` only. `SettlementCalculator.platformFee`/`hostNet` define the 3% fee once (fee rounded half-up, net = gross − fee) for every payout path.
+
 **W10 adds:** `domain.settlement` (`SettlementCalculator` for refund/host-share/fee math,
 `EscrowPolicy` for the escrow-held check) and the `Role.AGENT` permission on
 `BookingStateMachine` `CONFIRMED -> COMPLETED` (C23, D9).
@@ -367,6 +372,8 @@ into a **shared, committed reference DB** — `db/schema.sql` / `db/seed-mock-da
 `db/snoozeshare-mock.db` — for the team to query together; it is a dev/reference artifact only,
 not loaded by the application at startup. See § Record.
 
+**MP3-0 adds (infra.db / infra.events):** `TransactionListener` (`onBegin`/`afterCommit`/`afterRollback`) is an optional callback on `TransactionManager`; `PostCommitEvents` (in `infra.events`) is the listener that queues events and flushes them to an `EventSink` (the one-method publish seam, the cloud swap point) after commit. `onBegin` runs before autocommit is disabled; if entering manual mode fails, `afterRollback` is still notified.
+
 **W11 adds:** nullable `users.suspensionReason` (migration `V003__suspension_reason.sql`, applied or adopted by `MigrationRunner`; mock DB rebuilt with v3 history and seeded reasons), `UserRepository.findAll()`, `BookingRepository.findByListing(UUID)`, and a `suspensionReason` component on `User` (7-arg constructor kept).
 
 **W14 adds:** three migrations. `V006__system_role.sql` rebuilds `users` (SQLite cannot alter a
@@ -404,7 +411,7 @@ and `MigrationRunner` adopts a pre-provisioned database (D10).
 subscriber-failure isolation. Concrete shared event records include booking, ticket, wallet, and
 availability event types. Booking, ticket, wallet and messaging mutations publish relevant events
 after commit; Host calendar mutations currently refresh the controller directly and do not publish
-`ListingAvailabilityChangedEvent`. The bus is used by the wallet ledger to publish only after commit.
+`ListingAvailabilityChangedEvent`. Wallet events are queued by `LedgerWriter` into `PostCommitEvents` and published by the shared `TransactionManager` only after commit (MP3-0; `PostCommitEvents` is the `EventSink` seam over the bus); services no longer publish them by hand.
 Specified as a simple `Consumer<Event>` pub/sub
 (`EventBus.publish` / `subscribe`) over a sealed `DomainEvent` hierarchy
 (`BookingConfirmedEvent`, `BookingCancelledEvent`, `TicketOpenedEvent`, `TicketResolvedEvent`,
@@ -486,6 +493,9 @@ Durable rules, harvested from the architecture proposal. Enforcement is partial:
 - Only `LedgerWriter` changes a wallet balance; it never opens a transaction — every caller wraps
   the call in `TransactionManager` so the balance, the money row, and any related state change
   commit or roll back together.
+- Wallet events are queued by `LedgerWriter`; never publish `WalletTransactionRecordedEvent` by hand.
+- Dispute-window and stay-date rules live only in `domain.policy`; never re-implement them in a service or controller.
+- Integration merges stay small and run `./gradlew build` each time (MP2 feedback P3).
 - **ID namespaces:** `W` = workstream, `C` = decision, `D` = deviation, `Q` = needs a human,
   `S` = session. Numbers are unique across the whole file and never reused, wherever the entry
   sits.
@@ -504,7 +514,7 @@ and the stated assumptions/constraints. **These are decisions, not a TODO list �
 
 - **No multi-instance / distributed deployment support** — single-process desktop app by design;
   the `service` layer interfaces are deliberately shaped so they *could* become a REST/gRPC
-  boundary later, but nothing does that now.
+  boundary later, but nothing does that now. Consequently `PostCommitEvents` is one shared queue (not per-transaction) by that single-process assumption (C50).
 - **Ticket categories/remedy types are a status enum + a simple `ticket_categories` lookup
   table, not a rules engine** — revisit only if workflow branching is actually needed.
 - **Booking overlap-check + escrow hold use a `SERIALIZABLE` DB transaction, not
@@ -589,6 +599,21 @@ architecture area remain recorded in that area's table.
 ---
 
 ## 9. Deviations & Discoveries
+
+### MP3-0 deviations (2026-10-18) — see the [MP3-0 plan](docs/superpowers/plans/2026-10-18-mp3-correctness-cluster.md) and [spec](docs/superpowers/specs/2026-10-18-mp3-correctness-cluster-design.md)
+
+- **Policies take `Clock` only** — the zone comes from the clock (spec said `Clock` + `ZoneId`; same effect).
+- **`PostCommitEvents` has two modes:** strict (production: `enqueue` outside a transaction throws) and autocommit (publishes immediately; used only by `LedgerTestSupport` and seeding).
+- **`UserServiceImpl` keeps its own listener-less `TransactionManager`** — it never posts to the ledger.
+- **`TransactionManager.inTransactionUnchecked` added**, and the listener's `onBegin` runs before autocommit is disabled (with `afterRollback` if entering manual mode fails; commit `6806543`).
+- **`WalletServiceImpl` and `TransactionServiceImpl` lost their `EventBus` constructor parameter** (it only carried wallet events).
+- **Dispute-settlement event order changed:** wallet events (including the new System fee event) now fire at commit, before `TicketResolvedEvent`; `postPayout` emits two wallet events. The two UI subscribers (`NavShellController`, `WalletDashboardController`) refresh by wallet and ignore others.
+- **`AppContext` clock changed from UTC to the system default zone** so policies, the sweep and the UI agree.
+- **`SettlementFixtures.settlement` signature changed** (test fixture).
+- **Host payout rounding now follows `SettlementCalculator` everywhere:** fee rounded half-up, net = gross − fee.
+- **Accepted baseline: four pre-existing host-UI test failures** (not caused by MP3-0; they fail on the clean pre-change branch): `HostCalendarControllerTest.calendarPageOwnsArtifactAlignedSplitStyles`, `HostListingsControllerTest.listingCardsExposeMetricsPlaceholderAndRightToLeftActions`, `HostListingsControllerTest.hostListingDetailMatchesMockupActionsAndLayout`, `HostPageLayoutTest.hostMessagesUseTheSameContentEdgeRhythm`. Decide with the operator before fixing. Full build 2026-10-19: 570 tests, those 4 failed.
+- **Manual GUI check not performed** (header balance refresh after cancel; day-7 trip offers "File dispute").
+- **guide out of date:** `docs/DeveloperGuide.md` and `docs/UserGuide.md` do not yet describe `domain.policy`, post-commit wallet events, audit atomicity, or the day-7/day-8 boundary (guide checkpoint pending operator approval).
 
 ### W14 deviations (2026-09-27) — full detail in the [W14 plan](docs/superpowers/plans/2026-09-27-w14-unified-ledger.md) and the [W14 spec § 3](docs/superpowers/specs/2026-09-27-w14-unified-ledger-design.md)
 
@@ -853,7 +878,7 @@ unchanged.
 The Done ledger lives in **[`docs/project-state/done-ledger.md`](docs/project-state/done-ledger.md)**
 — every change, big or small, newest first.
 
-- **Latest entry:** 2026-09-29
-- **Entries:** 159 (4 backfilled coarsely from git history)
+- **Latest entry:** 2026-10-19
+- **Entries:** 168 (4 backfilled coarsely from git history)
 
 Deviations stay in § Deviations above: those are read every session.

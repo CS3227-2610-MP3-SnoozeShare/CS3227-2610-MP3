@@ -62,6 +62,25 @@ class DisputeWindowBoundaryTest {
         }
     }
 
+    @Test
+    void runningTheSweepTwiceSettlesOnce() throws Exception {
+        try (Connection connection = migratedConnection()) {
+            var ctx = seedContext(connection, new BigDecimal("1000.00"));
+            BookingService service = createService(connection);
+            Booking booking = confirmedEndedDaysAgo(connection, new BookingTestIds(ctx.guestId(), ctx.propertyId()),
+                    service, 9);
+
+            assertEquals(1, service.completeEligibleBookings());
+            assertEquals(0, service.completeEligibleBookings());
+
+            long payouts = new com.snoozeshare.repository.jdbc.JdbcLedgerRepository(connection)
+                    .entriesForBooking(booking.bookingId()).stream()
+                    .filter(entry -> entry.type() == com.snoozeshare.domain.enums.WalletTransactionType.BOOKING_PAYOUT)
+                    .count();
+            assertEquals(1, payouts);
+        }
+    }
+
     private record BookingTestIds(java.util.UUID guestId, java.util.UUID propertyId) {
     }
 }

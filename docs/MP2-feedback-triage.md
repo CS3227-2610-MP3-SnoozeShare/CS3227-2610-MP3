@@ -9,6 +9,23 @@ losses · **P2** quality & maintainability · **P3** process.
 
 ---
 
+## Status (updated 2026-10-19)
+
+Fixed on branch `mp2-bug-fixes` (MP3-0 correctness cluster; awaiting operator review/merge):
+
+| Item | Commit(s) |
+|---|---|
+| D3 (policies) | `282f1b4` |
+| B1, P5 (day-7 boundary + joined test) | `7501a72` |
+| B4, B5 (date validation in services) | `a6123c3` |
+| B3, D1 (wallet events queued, published after commit) | `7267911`, `efea1dd` |
+| D2 (audit atomicity) | `91edc76`, `6806543` |
+| D5 (fee defined once) | `36f02e3` |
+
+Still open: B2, B6, B7, D4, D6, P1–P4, G1–G6. The manual GUI check of the B1/B3 fixes was not performed.
+
+---
+
 ## 1. Bugs to fix (functional)
 
 | # | Pri | Bug | Raised by | Notes / likely cause |
