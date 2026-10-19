@@ -60,7 +60,7 @@ its own resume point in `docs/project-state/branch-states/`.
 
 | Item | Kind | Context / done when | Source | Added |
 |---|---|---|---|---|
-| Get CI green, then require it on `main` (P1) | Todo | `ci.yml` ran on GitHub and failed on one Linux-only layout assertion (fixed: the New Ticket button now has a fixed 36px height, D38). Done when a run on `main` is green, then the `checkstyle` and `build` checks are required by branch protection (a repository setting); then MP3-0 can be marked `Done` | handed over from MP3-0 | 2026-10-19 |
+| Require the CI checks on `main` (P1) | Todo | `ci.yml` is green on `main` (run on f06e998: `checkstyle` and `build` both passed). Done when the `checkstyle` and `build` checks are required by branch protection (a repository setting); then MP3-0 can be marked `Done` | handed over from MP3-0 | 2026-10-19 |
 | New MP3 feature workstream(s) | Workstream | None scoped yet. Done when the operator names one and it has an approved spec and plan (`brainstorming`, `writing-plans`) | iteration 1 close | 2026-10-19 |
 
 ---
@@ -72,7 +72,7 @@ rows are in the [iteration 1 archive](docs/project-history/iteration-1/PROJECT_S
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| MP3-0 | MP2 feedback fixes before new MP3 features (bugs B1–B7, design D1–D6, CI/skills/docs) | Building | [correctness-cluster design](docs/superpowers/specs/2026-10-18-mp3-correctness-cluster-design.md) | [correctness-cluster plan](docs/superpowers/plans/2026-10-18-mp3-correctness-cluster.md) | Merged (PRs #1–#3); Pages verified; CI fixed, awaiting a green run and required checks (P1, Upcoming) | Documented 2026-10-19 |
+| MP3-0 | MP2 feedback fixes before new MP3 features (bugs B1–B7, design D1–D6, CI/skills/docs) | Building | [correctness-cluster design](docs/superpowers/specs/2026-10-18-mp3-correctness-cluster-design.md) | [correctness-cluster plan](docs/superpowers/plans/2026-10-18-mp3-correctness-cluster.md) | Merged (PRs #1–#3); Pages and CI verified green; open: required checks (P1, Upcoming) | Documented 2026-10-19 |
 
 Status vocabulary, used verbatim: `Not started` · `Spec'd` · `Planned` · `Building` ·
 `Blocked — needs human` · `In review` · `Done` · `Abandoned`. Guide vocabulary (owned by
