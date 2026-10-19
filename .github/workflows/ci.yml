@@ -1,8 +1,9 @@
 name: CI
 
 # Checkstyle runs on every push to any branch (fast, no display needed). The full build, with the
-# JUnit and TestFX suites, runs on every pull request and again on pushes to main, so the merged
-# result is checked as well as the branch.
+# JUnit and TestFX suites, runs on every pull request and on every push to development or main, so
+# each merged result is checked as well as the branch that produced it. `checkstyle` and `build` are
+# the required status checks on both branches.
 on:
   push:
   pull_request:
@@ -33,9 +34,9 @@ jobs:
           path: build/reports/checkstyle
 
   build:
-    # Pull requests, and pushes to main only; a plain feature-branch push is covered by checkstyle
-    # until its pull request opens.
-    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    # Pull requests, and pushes to development or main; a plain feature-branch push is covered by
+    # checkstyle until its pull request opens.
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/development'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
