@@ -27,7 +27,7 @@ A spec says **what the system must be and how it must behave**, never **how to b
 4. **Settle the risk tier** (see Risk tiers) with the operator in one sentence.
 5. **Choose the approach.** If more than one design is viable (different data shape, layer placement, or build-vs-reuse), give 2-3 options with trade-offs and a recommendation; the operator picks. Record the pick and the rejected options in the index's § Decisions made in this spec. If only one is viable, say so and move on.
 6. **Write the files** (see Layout and Components). Present the index and each component to the operator in turn; fix as they react.
-7. **Review pass** (see Perspectives). Fix findings in the files, not in chat.
+7. **Review pass** by dedicated read-only `lite-reviewer` subagents (see Perspectives). Fix findings in the files, not in chat.
 8. **Self-check** against the checklist at the bottom.
 9. **Operator approves** the spec. Then record it (Recording) and hand off to `writing-plans-lite`.
 
@@ -124,7 +124,7 @@ SnoozeShare specifics to check: auth is mocked, so role separation lives in serv
 
 ## Perspectives (review pass)
 
-A spec written from one point of view hides that point of view's blind spots. Before asking for approval, review the drafted files from each lens below. Prefer dispatching one fresh subagent per lens with the spec folder and `PROJECT_STATE.md` constraints (they review, they do not edit); if subagents are unavailable, do each lens as a separate, explicitly labelled pass. Skip Security-as-attacker only for Low tier.
+A spec written from one point of view hides that point of view's blind spots. Before asking for approval, review the drafted files from each lens below. Dispatch one fresh `lite-reviewer` subagent per lens (`.claude/agents/lite-reviewer.md`; tools are Read, Grep, Glob only, so it cannot edit). Give each the index path, the lens and the risk tier; run them in parallel. Each reviews **logic first, then seams and integration with the wider system**, then its lens. Do not review your own spec inline instead; if the agent cannot be dispatched, tell the operator and stop rather than self-reviewing. Skip the Attacker lens only for Low tier.
 
 | Lens | Asks |
 |---|---|
@@ -136,9 +136,9 @@ A spec written from one point of view hides that point of view's blind spots. Be
 
 **Scale by tier.** Low: Implementer + Tester. Medium: add Maintainer + User. High: all five, and the Attacker lens must produce a written threat list (kept in `api.md` security rows or `edge-cases.md`).
 
-**Reviewer brief** (use as the subagent prompt, or as your own checklist): "Review the spec at `<index path>` and its folder as the <lens>. Read `PROJECT_STATE.md` § Known Gaps, § Conventions and the relevant § Architecture area first. Return only: (1) blocking problems, each with file + section + why it blocks; (2) questions the spec leaves unanswered; (3) contradictions between files. Do not rewrite the spec and do not praise it. If none, say 'none' per list."
+**Reviewer prompt:** "Review the spec at `<index path>` and its folder. Lens: <lens>. Risk tier: <tier>." The output format and review order live in the agent definition; merge the reports and deduplicate before triage.
 
-**Change control after approval.** Do not edit an Approved spec silently. Amend it, add a dated line under an `## Amendments` heading in the index (what changed, why, who asked), re-run the lenses that the change touches, and tell the operator; if a plan exists, update the plan before coding continues.
+**Change control after approval.** Do not edit an Approved spec silently. Amend it, record it in the branch state as a Decision (`C~n`: what changed, why, who asked, what was rejected) and put a one-line pointer to it at the top of the index (`Amended YYYY-MM-DD: see branch state C~n`), re-run the lenses that the change touches, and tell the operator; if a plan exists, update the plan before coding continues.
 
 Triage findings: fix blocking ones in the files; turn judgement calls into `Q`s for the operator; record rejected findings with a reason under § Decisions made in this spec. Note in the index which lenses ran.
 

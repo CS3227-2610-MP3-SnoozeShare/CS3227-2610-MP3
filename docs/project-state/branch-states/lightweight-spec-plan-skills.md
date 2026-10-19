@@ -28,7 +28,7 @@ Add two project-level, lightweight skills, `writing-specs-lite` and `writing-pla
 **Remaining**
 
 - [ ] **Handover:** on `development`, update `PROJECT_STATE.md` § How to Resume → Upcoming row 1, which still names `brainstorming`/`writing-plans`, and add the lite skills to § Conventions (C~3).
-- [ ] Operator review of the gap fixes in both skills.
+- [ ] Operator review of the gap fixes and `lite-reviewer` in both skills.
 - [ ] Trial the skills on the next real feature and revise.
 
 ---
@@ -41,6 +41,10 @@ Add two project-level, lightweight skills, `writing-specs-lite` and `writing-pla
 | C~2 | 2026-10-19 | A spec is an index file at the AGENTS.md § 3 path plus a sibling folder of component files (requirements, data model, API, conventions, edge cases, implementation order) | Operator: no single mega-document; keeps the AGENTS.md path valid | Operator spec |
 | C~3 | 2026-10-19 | The lite skills are the repo defaults for spec and plan; `brainstorming`, `writing-plans`, `reviewed-plan` only when the operator names them. Amends C~1 (alongside, not replacing) | Operator: set as defaults moving forward | `AGENTS.md` § 3 |
 
+| C~4 | 2026-10-19 | Spec and plan reviews run in dedicated read-only `lite-reviewer` subagents (`.claude/agents/lite-reviewer.md`, tools Read/Grep/Glob), one per lens, reviewing logic first, then seams and integration. A separate agent configuration, not inline prompts. Rejected: self-review by the author agent | Operator | `.claude/agents/lite-reviewer.md` |
+| C~5 | 2026-10-19 | Plans carry code snippets for tricky logic, schemas and any context-heavy component, not only contracts | Operator | `writing-plans-lite` rule 3 |
+| C~6 | 2026-10-19 | Spec/plan amendments are recorded in the branch state as Decisions (no `## Amendments` heading in the spec or plan; the index keeps a one-line pointer) | Operator: amendments come from decision changes | `writing-specs-lite` change control |
+
 ---
 
 ## 10. Changes
@@ -49,3 +53,4 @@ Add two project-level, lightweight skills, `writing-specs-lite` and `writing-pla
 |---|---|---|---|
 | 2026-10-19 | Added `writing-specs-lite` and `writing-plans-lite` project skills | — | pending commit |
 | 2026-10-19 | Made the lite skills the defaults (`AGENTS.md` § 3, `maintaining-project-state`; old skills marked non-default); added gap fixes: size gate, approaches, `ui.md`, migration/rollback, reviewer brief, change control, traceability, close-out, parallel/resume rules | — | pending commit |
+| 2026-10-19 | Added the `lite-reviewer` read-only subagent; specs and plans are reviewed by it (logic, then integration); plans may carry snippets; amendments live in the branch state | — | pending commit |

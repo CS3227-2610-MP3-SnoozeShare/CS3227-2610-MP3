@@ -19,7 +19,7 @@ A plan turns an **approved spec** into **tasks an agent can execute and tick off
 
 1. **Mirror the spec.** Sections are the tasks `T1..Tn` from `implementation-order.md`, same IDs, same order, same dependency table. Do not invent, merge or drop tasks; if the order is wrong, fix the spec first and note it.
 2. **Exact files.** Every path is real: verify each "Modify" file exists (and the line range or symbol you refer to), each "Create" path does not and its directory is the right layer. Include test files.
-3. **Say what changes, not the code.** Describe each modification precisely (method added, column added, branch changed, rule enforced) citing the spec section that defines it. Include code only for a contract that cannot be said in words (a signature, a SQL column list, a message string).
+3. **Say what changes, not the code.** Describe each modification precisely (method added, column added, branch changed, rule enforced) citing the spec section that defines it. **Include code snippets** wherever the planning session produced context the implementer would otherwise lose: tricky logic (algorithms, rounding, state transitions, concurrency/transaction handling), schemas and migrations (full SQL), signatures and interfaces, message strings, and any component whose correctness depends on a subtle choice. Snippets are the intended shape, marked as such; the implementer keeps them test-driven and adapts to the real code. Do not paste boilerplate the implementer can derive from the surrounding code.
 4. **Checklist is the work.** Steps are small, ordered, verifiable, and each ends in an observable result. They default to TDD: failing test -> implement -> green -> commit. Name the tests and what each asserts.
 5. **No placeholders.** No "TBD", "add error handling", "handle edge cases", "similar to Task N". Edge cases come from `edge-cases.md`: list the rows each task must cover by scenario name.
 6. **Small, green commits** (`AGENTS.md` § 6): one commit per task (or per logical slice), builds with `.\gradlew build`, handful of files. If a task touches more than ~15 files, split it and tell the operator the spec's order needs the same split.
@@ -77,7 +77,7 @@ Every F/N from the spec appears; a row with no task or no verifier is a plan gap
 
 ### Tn+1: Close-out (always last)
 - [ ] Every Traceability row verified; `.\gradlew build` green.
-- [ ] Spec index status and plan Task order all reflect reality; Amendments recorded.
+- [ ] Spec index status and plan Task order all reflect reality; amendments recorded in the branch state.
 - [ ] Branch state: workstream `In review`, Progress cleared of session rows, Changes lines complete, new Known Gaps / Conventions / Deviations written, `guide out of date: <what>` noted if the guide is affected (the guide is not edited on a branch, `AGENTS.md` § 5).
 - [ ] Tell the project owner the branch is ready for review. Never set `Approved`.
 ```
@@ -87,7 +87,7 @@ Every F/N from the spec appears; a row with no task or no verifier is a plan gap
 1. Check preconditions.
 2. **Verify against the repo**: open each file you will list; confirm names, signatures, package layering, and whether a file already exists. Fix the plan, not the guess.
 3. Write the plan file task by task. Add steps for anything the spec's *Conventions* require (audit rows, `LedgerWriter`, `SourceText.read` in tests, no hard-coded future dates, rebuilding `db/snoozeshare-mock.db` after seed edits).
-4. **Self-review** (below), fix inline.
+4. **Self-review** (below), fix inline, then dispatch one read-only `lite-reviewer` subagent on the plan (Medium and High tier; optional for Low). It checks logic, then file/seam correctness against the repo. Fix blocking findings.
 5. **Operator reviews the plan** before any code is written; fold in their changes.
 6. Record in the branch state (workstream -> `Planned`, plan link, Changes line) and commit the plan alone (`docs: plan for <topic>`).
 7. Hand off: offer execution (inline task-by-task, or one subagent per task within a wave - only for tasks the dependency table marks concurrent and that share no files). The executor ticks the checklist and updates Status.
@@ -102,7 +102,7 @@ The resume point is the first unticked box in the first task whose Status is not
 
 ## Changing the plan or spec mid-flight
 
-Plan-only change (extra step, reordered steps within a task): edit the plan and note it under a `## Amendments` heading at the bottom (date, what, why). Anything that changes behaviour, a task boundary, the dependency table or a requirement: amend the spec first (`writing-specs-lite` change control), then the plan. Record a Deviation in the branch state when the build diverged from either.
+Plan-only change (extra step, reordered steps within a task): edit the plan and record the change in the branch state (a Decision `C~n` if it came from a decision change, otherwise a Changes line, with what and why). Anything that changes behaviour, a task boundary, the dependency table or a requirement: amend the spec first (`writing-specs-lite` change control), then the plan. Record a Deviation in the branch state when the build diverged from either.
 
 ## During execution (for whoever implements)
 
