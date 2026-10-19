@@ -20,14 +20,16 @@ A spec says **what the system must be and how it must behave**, never **how to b
 
 ## Process
 
+0. **Size and scope gate.** Confirm this is Big per `AGENTS.md` § 3 (ambiguous = big). If it is Small, stop: no spec, just a Changes line. If the request spans more than one independent subsystem (separable data, API and UI that could ship alone), propose splitting into separate specs, one per workstream, and write them one at a time.
 1. **Read the constraints.** Read `PROJECT_STATE.md` in full (and the branch state): § Known Gaps, "Explicitly out of scope", § Conventions, § Architecture (area *Now* + decision rows) and § Decisions. Anything the request collides with is handled by `AGENTS.md` § 4: stop, name the entry, ask **keep** or **reverse**. Seed the spec's non-goals from those entries and cite them by ID.
 2. **Ground it in the code.** Read the code the change touches (service, repository, schema, UI entry points). Specify against what exists; name real classes, tables and migrations. Never reconstruct project history from source (`AGENTS.md` § 1).
 3. **Clarify, one question at a time**, only about things the code and state files cannot answer: purpose, who is affected, acceptance, risk. Prefer multiple choice. Stop asking once every `Q` is closed.
 4. **Settle the risk tier** (see Risk tiers) with the operator in one sentence.
-5. **Write the files** (see Layout and Components). Present the index and each component to the operator in turn; fix as they react.
-6. **Review pass** (see Perspectives). Fix findings in the files, not in chat.
-7. **Self-check** against the checklist at the bottom.
-8. **Operator approves** the spec. Then record it (Recording) and hand off to `writing-plans-lite`.
+5. **Choose the approach.** If more than one design is viable (different data shape, layer placement, or build-vs-reuse), give 2-3 options with trade-offs and a recommendation; the operator picks. Record the pick and the rejected options in the index's § Decisions made in this spec. If only one is viable, say so and move on.
+6. **Write the files** (see Layout and Components). Present the index and each component to the operator in turn; fix as they react.
+7. **Review pass** (see Perspectives). Fix findings in the files, not in chat.
+8. **Self-check** against the checklist at the bottom.
+9. **Operator approves** the spec. Then record it (Recording) and hand off to `writing-plans-lite`.
 
 ## Layout
 
@@ -39,6 +41,7 @@ docs/superpowers/specs/YYYY-MM-DD-<topic>-design/
     requirements.md      <- only when functional + non-functional requirements exceed 6
     data-model.md        <- when data or state changes
     api.md               <- when any interface (service method, endpoint, event, CLI) is added or changed
+    ui.md                <- when screens or flows change: each screen/state (empty, loading, error, populated), controls, copy, navigation, role visibility
     conventions.md       <- when the change sets or applies naming/layout/error/format rules
     edge-cases.md        <- always
     implementation-order.md  <- always
@@ -59,7 +62,7 @@ Short. It must stand alone as the summary a reviewer reads first.
 - **Constraints consulted:** <PROJECT_STATE entries cited by ID: Known Gaps, Conventions, decisions>
 
 ## 1. Problem
-<What is wrong or missing, who is affected, evidence. 1-2 paragraphs.>
+<What is wrong or missing, who is affected, evidence. 1-2 paragraphs. For a change to existing behaviour, state the **current behaviour** (verified in code, with the class/table) and the **desired behaviour** side by side.>
 
 ## 2. Goals
 Ordered logically (a requirement that others depend on comes first). Each is testable.
@@ -67,7 +70,7 @@ Ordered logically (a requirement that others depend on comes first). Each is tes
 - F1 ...
 **Non-functional** (performance, security, reliability, usability, maintainability; with numbers)
 - N1 ...
-(If there are more than 6 combined, move this section to `requirements.md` and keep only a one-line summary and link here.)
+(Count functional and non-functional together; if there are more than 6 in total, move this section to `requirements.md` and keep only a one-line summary and link here.)
 
 ## 3. Non-goals
 - <thing deliberately not done> - <why; cite PROJECT_STATE ID if recorded>
@@ -89,7 +92,7 @@ Spec-local IDs use provisional form (`F1`, `N1`, `Q1`, `SD1`); they are not perm
 
 **requirements.md** - the F/N lists from the index, each with an acceptance criterion ("Given/When/Then" or a measurable threshold). Order so dependencies come first.
 
-**data-model.md** - *logical* model, not DDL: entities, attributes with type/nullability/default/range, keys, relationships and cardinality, ownership, lifecycle/state machine (states, legal transitions, who may trigger each), invariants ("sum of X equals Y"), retention, migration/backfill impact on existing rows, and which `PROJECT_STATE` § Architecture areas change. A small ER or state diagram (Mermaid) is welcome when it removes prose.
+**data-model.md** - *logical* model, not DDL: entities, attributes with type/nullability/default/range, keys, relationships and cardinality, ownership, lifecycle/state machine (states, legal transitions, who may trigger each), invariants ("sum of X equals Y"), retention, migration/backfill impact on existing rows, and which `PROJECT_STATE` § Architecture areas change. For persisted data also give **migration and rollback**: the migration version it needs, how existing rows are transformed, whether `db/schema.sql`, `db/seed-mock-data.sql` and `db/snoozeshare-mock.db` must be rebuilt, and what happens if the migration fails halfway. A small ER or state diagram (Mermaid) is welcome when it removes prose.
 
 **api.md** - for each operation: name/signature, caller and required role, inputs with validation rules and limits, outputs, errors (condition -> error type/message), idempotency, transaction boundary, events emitted, and compatibility with existing callers. Include **security** per operation: authorization rule, what must never be logged or returned, input trust. Table form preferred.
 
@@ -131,6 +134,12 @@ A spec written from one point of view hides that point of view's blind spots. Be
 | **Maintainer / future reader** | Does it respect Architecture and Conventions? Does it quietly reverse a Known Gap or decision? What will surprise someone in six months? |
 | **User / operator** | Does it solve the stated problem? Is anything in scope the operator did not ask for? |
 
+**Scale by tier.** Low: Implementer + Tester. Medium: add Maintainer + User. High: all five, and the Attacker lens must produce a written threat list (kept in `api.md` security rows or `edge-cases.md`).
+
+**Reviewer brief** (use as the subagent prompt, or as your own checklist): "Review the spec at `<index path>` and its folder as the <lens>. Read `PROJECT_STATE.md` § Known Gaps, § Conventions and the relevant § Architecture area first. Return only: (1) blocking problems, each with file + section + why it blocks; (2) questions the spec leaves unanswered; (3) contradictions between files. Do not rewrite the spec and do not praise it. If none, say 'none' per list."
+
+**Change control after approval.** Do not edit an Approved spec silently. Amend it, add a dated line under an `## Amendments` heading in the index (what changed, why, who asked), re-run the lenses that the change touches, and tell the operator; if a plan exists, update the plan before coding continues.
+
 Triage findings: fix blocking ones in the files; turn judgement calls into `Q`s for the operator; record rejected findings with a reason under § Decisions made in this spec. Note in the index which lenses ran.
 
 ## Recording (AGENTS.md § 2-3)
@@ -138,6 +147,7 @@ Triage findings: fix blocking ones in the files; turn judgement calls into `Q`s 
 On the feature branch, in the same commit as the spec or the next:
 - Add/update the workstream row in the **branch state** (`Spec'd`, spec link, Guide `-`), and a Changes line.
 - Record the operator's scoping decisions and rejected options as provisional decisions (`C~n`) with who asked and why.
+- A new accepted limitation goes in the branch state's § Known Gaps; a new durable rule goes in § Conventions (provisional IDs, folded later). Never edit `PROJECT_STATE.md` on a branch.
 - Commit the spec folder on its own (`docs: spec for <topic>`), separate from code.
 
 ## Self-check before handoff
@@ -152,3 +162,5 @@ On the feature branch, in the same commit as the spec or the next:
 - [ ] Dependency table present; waves have no shared files.
 - [ ] Review pass ran; lenses noted; findings resolved or recorded.
 - [ ] Files are separate and each is short.
+- [ ] Current vs desired behaviour stated for any change to existing behaviour; chosen approach and rejected options recorded.
+- [ ] Persisted-data changes include migration, rollback and mock-DB rebuild notes.

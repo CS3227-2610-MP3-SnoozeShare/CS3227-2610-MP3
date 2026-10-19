@@ -42,6 +42,12 @@ A plan turns an **approved spec** into **tasks an agent can execute and tick off
 ## Task order
 <copy the spec's dependency table; add a "Status" column: Not started / In progress / Done / Blocked>
 
+## Traceability
+| Requirement | Task(s) | Verified by (test class or manual check) |
+|---|---|---|
+| F1 | T1, T2 | `FooTest` |
+Every F/N from the spec appears; a row with no task or no verifier is a plan gap.
+
 ## Verification gates
 - Per task: `.\gradlew test` for the touched area, plus `.\gradlew checkstyleMain checkstyleTest` if Java changed.
 - Before finishing: `.\gradlew build` green; each spec F/N acceptance criterion has a passing test or a recorded manual check.
@@ -68,6 +74,12 @@ A plan turns an **approved spec** into **tasks an agent can execute and tick off
 - [ ] 7. Commit: `feat: <what and why> (<workstream>)`.
 
 ### T2: ...
+
+### Tn+1: Close-out (always last)
+- [ ] Every Traceability row verified; `.\gradlew build` green.
+- [ ] Spec index status and plan Task order all reflect reality; Amendments recorded.
+- [ ] Branch state: workstream `In review`, Progress cleared of session rows, Changes lines complete, new Known Gaps / Conventions / Deviations written, `guide out of date: <what>` noted if the guide is affected (the guide is not edited on a branch, `AGENTS.md` § 5).
+- [ ] Tell the project owner the branch is ready for review. Never set `Approved`.
 ```
 
 ## Process
@@ -76,8 +88,21 @@ A plan turns an **approved spec** into **tasks an agent can execute and tick off
 2. **Verify against the repo**: open each file you will list; confirm names, signatures, package layering, and whether a file already exists. Fix the plan, not the guess.
 3. Write the plan file task by task. Add steps for anything the spec's *Conventions* require (audit rows, `LedgerWriter`, `SourceText.read` in tests, no hard-coded future dates, rebuilding `db/snoozeshare-mock.db` after seed edits).
 4. **Self-review** (below), fix inline.
-5. Record in the branch state (workstream -> `Planned`, plan link, Changes line) and commit the plan alone (`docs: plan for <topic>`).
-6. Hand off: offer execution (inline task-by-task, or one subagent per task within a wave - only for tasks the dependency table marks concurrent and that share no files). The executor ticks the checklist and updates Status.
+5. **Operator reviews the plan** before any code is written; fold in their changes.
+6. Record in the branch state (workstream -> `Planned`, plan link, Changes line) and commit the plan alone (`docs: plan for <topic>`).
+7. Hand off: offer execution (inline task-by-task, or one subagent per task within a wave - only for tasks the dependency table marks concurrent and that share no files). The executor ticks the checklist and updates Status.
+
+## Parallel execution
+
+Only tasks in the same wave with no shared files run concurrently. Each agent owns its task's files and its own commits, never `git add -A`, and adds its own row to the branch state's Sessions table (Next action = task + first unticked step). The lead merges nothing out of order and re-runs `.\gradlew build` after each wave. Two agents editing the plan file: each ticks only its own task's boxes.
+
+## Resuming
+
+The resume point is the first unticked box in the first task whose Status is not Done. Mirror it in the session row's Next action (task ID + step number) so a cold agent can continue. Tick boxes and update Status before ending any session.
+
+## Changing the plan or spec mid-flight
+
+Plan-only change (extra step, reordered steps within a task): edit the plan and note it under a `## Amendments` heading at the bottom (date, what, why). Anything that changes behaviour, a task boundary, the dependency table or a requirement: amend the spec first (`writing-specs-lite` change control), then the plan. Record a Deviation in the branch state when the build diverged from either.
 
 ## During execution (for whoever implements)
 
@@ -92,6 +117,7 @@ A plan turns an **approved spec** into **tasks an agent can execute and tick off
 - [ ] Task IDs, order and dependencies identical to the spec.
 - [ ] Every path verified; every Modify names the symbol or lines.
 - [ ] Every edge-case row from the spec is assigned to a task's tests.
-- [ ] Each checklist ends in a commit and a green build; no step is vague.
+- [ ] Each checklist ends in a commit and a green build; no step is vague; no checklist exceeds ~10 steps (split the task otherwise).
+- [ ] Traceability table complete; Close-out task present.
 - [ ] Names used in later tasks match names defined in earlier ones.
 - [ ] No task implements a Known Gap or violates a Convention.

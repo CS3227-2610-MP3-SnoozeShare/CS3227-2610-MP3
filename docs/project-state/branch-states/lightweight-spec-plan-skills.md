@@ -27,7 +27,8 @@ Add two project-level, lightweight skills, `writing-specs-lite` and `writing-pla
 
 **Remaining**
 
-- [ ] Operator review of both skills; decide whether `AGENTS.md` / `PROJECT_STATE.md` § Conventions should name them as the default over `brainstorming` / `writing-plans`.
+- [ ] **Handover:** on `development`, update `PROJECT_STATE.md` § How to Resume → Upcoming row 1, which still names `brainstorming`/`writing-plans`, and add the lite skills to § Conventions (C~3).
+- [ ] Operator review of the gap fixes in both skills.
 - [ ] Trial the skills on the next real feature and revise.
 
 ---
@@ -38,6 +39,7 @@ Add two project-level, lightweight skills, `writing-specs-lite` and `writing-pla
 |---|---|---|---|---|
 | C~1 | 2026-10-19 | Lite skills are separate files (`writing-specs-lite`, `writing-plans-lite`) alongside, not replacing, the superpowers-derived `brainstorming` / `writing-plans` | Operator wants a lightweight alternative; replacing would break the existing workflow in AGENTS.md | Operator request |
 | C~2 | 2026-10-19 | A spec is an index file at the AGENTS.md § 3 path plus a sibling folder of component files (requirements, data model, API, conventions, edge cases, implementation order) | Operator: no single mega-document; keeps the AGENTS.md path valid | Operator spec |
+| C~3 | 2026-10-19 | The lite skills are the repo defaults for spec and plan; `brainstorming`, `writing-plans`, `reviewed-plan` only when the operator names them. Amends C~1 (alongside, not replacing) | Operator: set as defaults moving forward | `AGENTS.md` § 3 |
 
 ---
 
@@ -46,3 +48,4 @@ Add two project-level, lightweight skills, `writing-specs-lite` and `writing-pla
 | Date | What changed | Workstream | Ref |
 |---|---|---|---|
 | 2026-10-19 | Added `writing-specs-lite` and `writing-plans-lite` project skills | — | pending commit |
+| 2026-10-19 | Made the lite skills the defaults (`AGENTS.md` § 3, `maintaining-project-state`; old skills marked non-default); added gap fixes: size gate, approaches, `ui.md`, migration/rollback, reviewer brief, change control, traceability, close-out, parallel/resume rules | — | pending commit |

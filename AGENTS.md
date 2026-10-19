@@ -104,6 +104,11 @@ leaves a trap for the next agent, it also gets a Deviations entry. Only true no-
 
 Ambiguous size? Treat it as big.
 
+**Default skills.** Write the spec with `writing-specs-lite` and the plan with
+`writing-plans-lite` (`.claude/skills/`). Do not use `brainstorming`, `writing-plans`, or
+`reviewed-plan` unless the operator names them. The spec is an index file at the path above plus a
+sibling folder of component files; the plan mirrors the spec's implementation order task for task.
+
 If the operator asks to skip the spec and plan on a big change, say so once, then do as asked —
 it is their call — and record the skip as a decision in the branch state, so the missing document is visible to
 whoever inherits the work.
