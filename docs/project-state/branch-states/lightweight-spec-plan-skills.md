@@ -7,9 +7,9 @@ after the branch merges.
 - **Branch:** lightweight-spec-plan-skills (from `development` at `33ee5b1`)
 - **Base:** `33ee5b1`
 - **Owner:** Xiao-Congchen
-- **Status:** In review
-- **Approved:** —
-- **Last updated:** 2026-10-19 by Claude Sonnet 5.5 — ready for owner review
+- **Status:** Approved
+- **Approved:** Xiao-Congchen
+- **Last updated:** 2026-10-19 by Claude Sonnet 5.5 — reviewed
 
 ---
 
