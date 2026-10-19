@@ -40,6 +40,7 @@ three iterations).
 | `docs/superpowers/plans/` | Implementation plans, including the W1 support-tooling plan |
 | `docs/project-state/done-ledger.md` | The Done ledger — every change, newest first |
 | `docs/project-state/branch-states/` | One lean state file per in-flight branch; `archive/` holds folded ones |
+| `docs/project-history/` | Closed iterations of this file, ledger and folded branch states, written by `refresh-project-state`. Not the source of truth; open only to answer "why was X decided?". Does not exist until the first refresh |
 | `docs/SnoozeShare-Architecture-Proposal.md` | The pre-existing architecture proposal — module boundaries, package layout, interface contracts, DB schema. Treated as the seed for § Architecture below, not a per-feature spec. |
 | `docs/ProductBacklog.md` | The formal product backlog / engineering spec — epics F0–F12, prioritized and sprint-mapped |
 | `docs/DeveloperGuide.md` | Handover brief for developers — covers the confirmed workstreams listed in the Guide column in § Workstreams |
@@ -499,6 +500,11 @@ Durable rules, harvested from the architecture proposal. Enforcement is partial:
   Numbers are unique across the whole file, never reused, wherever the entry sits, and allocated
   only by `sync-project-state`. A branch state uses provisional `~` IDs (`C~1`); never cite one in
   a commit message or code comment, because only the branch state is renumbered at fold.
+- **Iterations.** When the owner declares an iteration finished and the Developer Guide holds its
+  context, `refresh-project-state` archives this file and the Done ledger to
+  `docs/project-history/iteration-<n>/` and writes a short new `PROJECT_STATE.md`. The new file
+  records the highest IDs used so far in this section; numbering continues, never reuse. Agents
+  do not start a refresh themselves, and do not read `docs/project-history/` at session start.
 - **Branches never edit this file.** Each branch writes `docs/project-state/branch-states/<slug>.md`
   (copied from `.claude/skills/maintaining-project-state/branch-state-template.md`); the owner
   approves it and runs `sync-project-state` after the merge. Do not merge a branch that is not
@@ -603,6 +609,7 @@ architecture area remain recorded in that area's table.
 | C52 | 2026-10-19 | MP3-0 docs and process pass. **G6 not done**: reflections are rewritten in the MP3 iteration. **P2**: only `brainstorming` and `writing-plans` are copied in; `reviewed-plan` was never used here, so its mention in `maintaining-project-state` was removed. **P3** is handled by AGENTS.md § 6, not § Conventions. **G1**: placeholders replaced with real screenshots captured from the running app (operator asked for this after a first pass that only removed them). **G2**: Jekyll is the renderer (kramdown GFM, `jemoji`), config in `docs/_config.yml`; Pages must be set to branch `main`, folder `/docs`; unverified locally. Internal working docs (`superpowers/`, `project-state/`, the triage) are excluded from the site. | Operator asked for these fixes and the choices above | Operator conversation, 2026-10-19; [triage](docs/MP2-feedback-triage.md) |
 | C53 | 2026-10-19 | MP3-0 date rule widened beyond B4/B5: **no date picker accepts a past date**, in the UI (greyed cells plus a message for typed values, which stay in the field so the action is refused) and in the services (search range, host block, existing booking check). Exception: the Audit Log filter, which must reach history. The refund modal and dispute modal wording/layout changed as listed in the Done ledger. | Operator reported that the search filter still took past dates and the host calendar did not block them, and asked for the modal fixes | Operator conversation, 2026-10-19 |
 | C54 | 2026-10-19 | Adopt the branch-state workflow. `PROJECT_STATE.md` describes `main` only and changes through `sync-project-state` (or an owner hotfix); each branch records its own changes, session table and remaining work in `docs/project-state/branch-states/<slug>.md`. § How to Resume now holds an Upcoming table instead of a session table, and the `merging-across-branches` procedure is retired. The universal skills `maintaining-project-state`, `update-documentation` and `sync-project-state` were copied into `.claude/skills/` (commit `e9f0421`). | Operator updated the universal skills and asked for this project to follow them. The old workflow had every branch edit this file, which collided on IDs (C28–C33 and D13 were renumbered by hand) and forced a manual merge | Operator conversation, 2026-10-19; `AGENTS.md` § 2 |
+| C55 | 2026-10-19 | Adopt `refresh-project-state` as the way to close an iteration: guide first, archive second, nothing deleted, IDs continue. Run by the owner by hand on `main`; it needs no unfolded branch states and a passing guide gate, so the Developer Guide checkpoint for MP3-0 (see Upcoming) must come first. `AGENTS.md` § 7 tells agents to ignore `docs/project-history/`. | Operator added the skill and asked for it to be part of the workflow | Operator conversation, 2026-10-19; `.claude/skills/refresh-project-state/SKILL.md` |
 
 ---
 
@@ -889,6 +896,6 @@ The Done ledger lives in **[`docs/project-state/done-ledger.md`](docs/project-st
 — every change, big or small, newest first.
 
 - **Latest entry:** 2026-10-19
-- **Entries:** 169 (4 backfilled coarsely from git history)
+- **Entries:** 170 (4 backfilled coarsely from git history)
 
 Deviations stay in § Deviations above: those are read every session.

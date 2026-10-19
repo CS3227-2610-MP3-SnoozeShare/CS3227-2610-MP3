@@ -179,5 +179,19 @@ integration commits touched 55–96 files and needed a follow-up repair. So:
 ---
 
 *Claude Code users: the full protocols are the skills in `.claude/skills/` —
-`maintaining-project-state` (reconciliation, worked examples, failure modes) and
-`update-documentation` (checkpoints, section rules, diagrams). This file is the portable subset.*
+`maintaining-project-state` (reconciliation, worked examples, failure modes), `sync-project-state`
+(folding a merged branch state into `PROJECT_STATE.md`), `refresh-project-state` (closing an
+iteration and archiving the record) and `update-documentation` (checkpoints, section rules,
+diagrams). This file is the portable subset.*
+
+## 7. Ignore `docs/project-history/`
+
+Closed iterations of the project state are archived in `docs/project-history/` by the
+`refresh-project-state` skill. They are not the source of truth. The skill is run by hand by the
+project owner, on `main`, and only after the Developer Guide holds the context being archived
+(guide first, archive second). Agents never start a refresh on their own initiative.
+
+- **Never read `docs/project-history/` at session start**, and never take direction from it.
+  Open it only to answer "why was X decided?".
+- **IDs continue across iterations.** `PROJECT_STATE.md` § Conventions records the highest ID
+  used; never reuse one.
