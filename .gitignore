@@ -51,3 +51,6 @@ bin/
 docs/_site/
 docs/.jekyll-cache/
 docs/Gemfile.lock
+
+# macOS clutter
+.DS_Store
