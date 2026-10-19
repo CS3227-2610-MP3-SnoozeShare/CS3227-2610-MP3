@@ -1,14 +1,15 @@
 # Project State — SnoozeShare
 
 **Living document — the source of truth for this project.** Read it in full before doing
-anything, then run `git log --oneline -20` to confirm it still matches reality. Update it at
-every boundary, not at the end of the session.
+anything, then run `git log --oneline -20` to confirm it still matches reality. On `main` it
+changes only through `sync-project-state` (or an owner hotfix); on a branch, read it and write
+the branch state instead.
 
 - **Phase:** All feature workstreams W1–W14 — Done and documented, operator-confirmed 2026-09-29; residual implementation limitations remain recorded in § Known Gaps and § Deviations
 - **Stack:** Java 25, JavaFX 25 (javafx.controls, javafx.fxml), Gradle (application + shadow + checkstyle plugins), SQLite (embedded, file-based, `org.xerial:sqlite-jdbc`) via plain JDBC, JUnit 5 + TestFX for tests
-- **Branch:** `main`
+- **Branch:** `main` — this file describes `main` only; branches record their changes in `docs/project-state/branch-states/` and `sync-project-state` folds them in
 - **Method:** Native inline execution with TDD-first vertical slices, fresh-context whole-branch review at end
-- **Last updated:** 2026-10-19 by Claude Sonnet 5.5 — MP3-0 correctness cluster merged to main (PR #1); small fixes B2, B6, B7, D4 on `mp2-smaller-bug-fixes` docs/process fixes D6, P2–P4, G1–G5 on `mp2-docs-and-process-fixes`, and UX/date fixes (C53) on `mp2-ux-date-fixes`, all In review. Drift noted earlier and still open: git history shows W16 (guest UI alignment) merged, but no W15/W16 row exists here
+- **Last updated:** 2026-10-19 by Claude Sonnet 5.5 — moved to the branch-state workflow (C54); MP3-0 PRs #1–#3 merged. Drift still open: git history shows W16 (guest UI alignment) merged, but no W15/W16 row exists here (see § How to Resume → Upcoming)
 - **Last verified against repo:** 2026-10-19
 - **Developer guide:** `docs/DeveloperGuide.md` documents all confirmed workstreams W1–W14. W1–W14 are now marked `Done` with guide coverage recorded as `Documented 2026-09-29`; residual limitations and deferred sub-features remain explicitly recorded in the guide's Known Limitations and the state file's § Known Gaps / § Deviations.
 - **User guide:** `docs/UserGuide.md` provides role-based Guest, Host and Support Agent walkthroughs, with screenshots linked from `docs/images`; the Support Agent walkthrough includes the Categories page.
@@ -38,6 +39,7 @@ three iterations).
 | `docs/superpowers/specs/` | Design specs — one per feature-level workstream, including W1 support tooling |
 | `docs/superpowers/plans/` | Implementation plans, including the W1 support-tooling plan |
 | `docs/project-state/done-ledger.md` | The Done ledger — every change, newest first |
+| `docs/project-state/branch-states/` | One lean state file per in-flight branch; `archive/` holds folded ones |
 | `docs/SnoozeShare-Architecture-Proposal.md` | The pre-existing architecture proposal — module boundaries, package layout, interface contracts, DB schema. Treated as the seed for § Architecture below, not a per-feature spec. |
 | `docs/ProductBacklog.md` | The formal product backlog / engineering spec — epics F0–F12, prioritized and sprint-mapped |
 | `docs/DeveloperGuide.md` | Handover brief for developers — covers the confirmed workstreams listed in the Guide column in § Workstreams |
@@ -57,14 +59,18 @@ three iterations).
 .\gradlew run
 ```
 
-**Sessions in flight**
+**Upcoming** — planned workstreams and the todos handed over at each sync, in priority order.
+**The first row is the next action.** Remove a row when it is dropped, or when it starts and
+becomes a Workstream row. Sessions and in-flight branches are not tracked here: each branch keeps
+its own resume point in `docs/project-state/branch-states/`.
 
-| Session | Started | Agent(s) | Branch | Workstream | Status | Doing | Last touched |
-|---|---|---|---|---|---|---|---|
-| S15 | 2026-10-18 | Claude Sonnet 5.5 + subagents | mp2-smaller-bug-fixes, mp2-docs-and-process-fixes, mp2-ux-date-fixes | MP3-0 | Paused | B2, B6, B7, D4 done; D6, P2–P4, G1–G5 done on the second branch and C53 UX fixes on a third (each stacked on the previous); all await operator review and PRs (build green; manual GUI check not performed) | 2026-10-19 |
-
-Status vocabulary, used verbatim: `Active` · `Paused` · `Blocked — needs human` (name the
-question ID, same as a workstream row).
+| Item | Kind | Context / done when | Source | Added |
+|---|---|---|---|---|
+| CI that runs `.\gradlew build` on pull requests (P1) | Todo | MP2 triage P1: nothing runs the build or tests on a PR, so a red integration is found by hand. Done when a workflow runs build and tests on every PR to `main` and the result shows on the PR | handed over from MP3-0 ([triage](docs/MP2-feedback-triage.md)) | 2026-10-19 |
+| Manual GUI checks that the MP3-0 branches did not cover | Todo | (a) wallet header balance refreshes after a cancel; (b) a day-7 trip offers File dispute; (c) the Host calendar refuses a typed past date and a typed past date in the search box refuses the search. Done when the operator has run each on a copy of the mock DB (`SNOOZESHARE_DB_URL`) and recorded the result | handed over from MP3-0 (§ Deviations, MP3-0 deviations) | 2026-10-19 |
+| Developer-guide checkpoint for MP3-0 | Todo | `docs/DeveloperGuide.md` does not describe `domain.policy`, post-commit wallet events, audit atomicity, the day-7/day-8 boundary or the no-past-dates rule (C53). Done when the operator approves a proposal and the guide is updated (`update-documentation`) | handed over from MP3-0 | 2026-10-19 |
+| Confirm the GitHub Pages site renders (G2) | Todo | Pages must be set to branch `main`, folder `/docs`; the Jekyll config (`docs/_config.yml`) was never built locally. Done when the live site shows both guides with images and `:emoji:` shortcodes | handed over from MP3-0 (C52) | 2026-10-19 |
+| Add the missing W15/W16 rows | Todo | Git history shows the guest UI alignment (W16) merged, with no W15/W16 row here; its specs and plans are under `docs/superpowers/` (or the `mp2 archive` copies). Done when the Workstreams table has the rows with spec and plan links | drift noted before MP3-0 | 2026-10-19 |
 
 ---
 
@@ -91,7 +97,7 @@ its spec and plan before feature implementation, per AGENTS.md § 3.
 | W12 | F11 — Platform Audit Trail (Analytics half of the epic has no items, out of scope; W11 emits the account-governance rows, C32) | Done | [W12 design](docs/superpowers/specs/2026-09-26-w12-platform-audit-trail-design.md) | [W12 plan](docs/superpowers/plans/2026-09-26-w12-platform-audit-trail.md) | Done | Documented 2026-09-26 |
 | W13 | F12 — Messaging (persistent ticket chat; `MessageService` replaces the in-memory seam; Host UI slice, C37/C38) | Done | [W13 service design](docs/superpowers/specs/2026-09-27-w13-messaging-service-design.md); [Host Messages design](docs/superpowers/specs/2026-09-27-host-messages-ui-design.md) | [W13 service plan](docs/superpowers/plans/2026-09-27-w13-messaging-service.md); [Host Messages plan](docs/superpowers/plans/2026-09-27-host-messages-ui.md) | Host ticket creation removed per reversed C39/C40 (the messaging-branch ones, distinct from W14's C39/C40); confirmed 2026-09-29, documented same day | Documented 2026-09-29 |
 | W14 | Unified ledger — fold `wallet_transactions` into `audit_log`, System account (role SYSTEM) with a real wallet; `wallets` table kept (C30, C31, C39, C40) | Done | [W14 design](docs/superpowers/specs/2026-09-27-w14-unified-ledger-design.md) | [W14 plan](docs/superpowers/plans/2026-09-27-w14-unified-ledger.md) | All 12 tasks done & reviewed; C42 fixed a settlement crash; PR #16 merged to `main`; operator confirmed 2026-09-29 | Documented 2026-09-29 |
-| MP3-0 | MP2 feedback fixes before new MP3 features (bugs B1–B7, design D1–D6, CI/skills/docs) | In review | [correctness-cluster design](docs/superpowers/specs/2026-10-18-mp3-correctness-cluster-design.md) (B1, B3–B5, D1–D3, D5) | [correctness-cluster plan](docs/superpowers/plans/2026-10-18-mp3-correctness-cluster.md) | Correctness cluster merged; B2/B6/B7/D4 and D6, P2–P4, G1–G5 done in review; open: P1 (CI); G6 dropped (C52) | — |
+| MP3-0 | MP2 feedback fixes before new MP3 features (bugs B1–B7, design D1–D6, CI/skills/docs) | Building | [correctness-cluster design](docs/superpowers/specs/2026-10-18-mp3-correctness-cluster-design.md) (B1, B3–B5, D1–D3, D5) | [correctness-cluster plan](docs/superpowers/plans/2026-10-18-mp3-correctness-cluster.md) | Merged to main (PRs #1–#3); open: P1 CI, manual GUI checks, guide checkpoint (see Upcoming); G6 dropped (C52) | — |
 
 **Historical W10→W3 handoffs (raised 2026-09-25; reconciled at workstream closure)** — W3 is
 marked `Done` and documented, but the following accepted residual boundaries remain visible for
@@ -489,13 +495,18 @@ Durable rules, harvested from the architecture proposal. Enforcement is partial:
 - Wallet events are queued by `LedgerWriter`; never publish `WalletTransactionRecordedEvent` by hand.
 - Dispute-window and stay-date rules live only in `domain.policy`; never re-implement them in a service or controller.
 - Integration merges stay small and run `./gradlew build` each time (MP2 feedback P3).
-- **ID namespaces:** `W` = workstream, `C` = decision, `D` = deviation, `Q` = needs a human,
-  `S` = session. Numbers are unique across the whole file and never reused, wherever the entry
-  sits.
+- **ID namespaces:** `W` = workstream, `C` = decision, `D` = deviation, `Q` = needs a human.
+  Numbers are unique across the whole file, never reused, wherever the entry sits, and allocated
+  only by `sync-project-state`. A branch state uses provisional `~` IDs (`C~1`); never cite one in
+  a commit message or code comment, because only the branch state is renumbered at fold.
+- **Branches never edit this file.** Each branch writes `docs/project-state/branch-states/<slug>.md`
+  (copied from `.claude/skills/maintaining-project-state/branch-state-template.md`); the owner
+  approves it and runs `sync-project-state` after the merge. Do not merge a branch that is not
+  `Approved` or whose session table is not empty.
 - Agent interaction logs are append-only, one file per session under `logs/`, named with the SGT
   session-start timestamp and branch slug; that filename stem is the canonical session key. The
-  logging skill is manually invoked at session end. Numeric `S` labels in the session table are not
-  log identities; there is no consolidated log currently.
+  logging skill is manually invoked at session end. Numeric `S` labels in a branch state's session
+  table are not log identities; there is no consolidated log currently.
 
 ---
 
@@ -591,6 +602,7 @@ architecture area remain recorded in that area's table.
 | C51 | 2026-10-19 | B7 resolved by **keeping C31**: the host message exists only when declining (guest sees it); the approval dialog has no message field and the User Guide was corrected, not the dialog. The approval dialog shows net earning to match Requests. D4: the never-built `BookingService.forceTransition`, `TransactionService.applyTicketRemedy` and `manualOverride` were deleted (force actions dropped by C22; settlement lives in `DisputeSettlementService`). | Operator asked to tackle B2, B6, B7, D4 from the MP2 triage | [MP2 triage](docs/MP2-feedback-triage.md) |
 | C52 | 2026-10-19 | MP3-0 docs and process pass. **G6 not done**: reflections are rewritten in the MP3 iteration. **P2**: only `brainstorming` and `writing-plans` are copied in; `reviewed-plan` was never used here, so its mention in `maintaining-project-state` was removed. **P3** is handled by AGENTS.md § 6, not § Conventions. **G1**: placeholders replaced with real screenshots captured from the running app (operator asked for this after a first pass that only removed them). **G2**: Jekyll is the renderer (kramdown GFM, `jemoji`), config in `docs/_config.yml`; Pages must be set to branch `main`, folder `/docs`; unverified locally. Internal working docs (`superpowers/`, `project-state/`, the triage) are excluded from the site. | Operator asked for these fixes and the choices above | Operator conversation, 2026-10-19; [triage](docs/MP2-feedback-triage.md) |
 | C53 | 2026-10-19 | MP3-0 date rule widened beyond B4/B5: **no date picker accepts a past date**, in the UI (greyed cells plus a message for typed values, which stay in the field so the action is refused) and in the services (search range, host block, existing booking check). Exception: the Audit Log filter, which must reach history. The refund modal and dispute modal wording/layout changed as listed in the Done ledger. | Operator reported that the search filter still took past dates and the host calendar did not block them, and asked for the modal fixes | Operator conversation, 2026-10-19 |
+| C54 | 2026-10-19 | Adopt the branch-state workflow. `PROJECT_STATE.md` describes `main` only and changes through `sync-project-state` (or an owner hotfix); each branch records its own changes, session table and remaining work in `docs/project-state/branch-states/<slug>.md`. § How to Resume now holds an Upcoming table instead of a session table, and the `merging-across-branches` procedure is retired. The universal skills `maintaining-project-state`, `update-documentation` and `sync-project-state` were copied into `.claude/skills/` (commit `e9f0421`). | Operator updated the universal skills and asked for this project to follow them. The old workflow had every branch edit this file, which collided on IDs (C28–C33 and D13 were renumbered by hand) and forced a manual merge | Operator conversation, 2026-10-19; `AGENTS.md` § 2 |
 
 ---
 
@@ -877,6 +889,6 @@ The Done ledger lives in **[`docs/project-state/done-ledger.md`](docs/project-st
 — every change, big or small, newest first.
 
 - **Latest entry:** 2026-10-19
-- **Entries:** 168 (4 backfilled coarsely from git history)
+- **Entries:** 169 (4 backfilled coarsely from git history)
 
 Deviations stay in § Deviations above: those are read every session.

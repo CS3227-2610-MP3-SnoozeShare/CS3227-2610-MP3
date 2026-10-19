@@ -4,12 +4,20 @@ Instructions for any AI agent working in this repository. Read this before touch
 
 ## 1. `PROJECT_STATE.md` is the source of truth
 
-The operator may switch between models, agents, and context windows. None of that history survives; `PROJECT_STATE.md` at the repo root does.
+The operator may switch between models, agents, and context windows. None of that history survives; the state files do.
 
-**Anything not written there did not happen.**
+| | `PROJECT_STATE.md` | Branch state |
+|---|---|---|
+| **Path** | repo root | `docs/project-state/branch-states/<slug>.md` (`<slug>` = branch name, `/` becomes `-`) |
+| **Describes** | `main`: what is merged, decided and handed over | what one branch has added or changed |
+| **Written by** | the `sync-project-state` skill (the owner may hotfix it by hand) | every agent working on that branch |
+
+**Anything not written in them did not happen.** On a branch, `PROJECT_STATE.md` is read-only.
 
 - **Before any work** — including answering questions or reading code — read
-  `PROJECT_STATE.md` in full, then run `git log --oneline -20` and `git status` to confirm it still matches reality. Correct any drift you find before acting on the file.
+  `PROJECT_STATE.md` in full, and on a branch read its branch state in full (create it from
+  `.claude/skills/maintaining-project-state/branch-state-template.md` if it is missing). Then run
+  `git log --oneline -20` and `git status` to confirm they still match reality. Correct any drift you find before acting on the files.
 - **Never reconstruct project state from source.** Code shows what is; it never shows what was decided, what was rejected, or what is half-built.
 - **When the document and the repo disagree:** the repo wins on what the code does; the document wins on what was decided and why. Never silently edit a decision to match a stray commit — that erases the only record the decision existed.
 - **If the file does not exist**, create it from
@@ -18,33 +26,47 @@ The operator may switch between models, agents, and context windows. None of tha
 
 ## 2. Update it as you go, not at the end
 
-Write to `PROJECT_STATE.md` immediately when any of these happen:
+On a branch, write to **the branch state** immediately when any of these happen. On `main`, the
+owner's hotfixes aside, `PROJECT_STATE.md` changes only when `sync-project-state` folds a branch
+in.
 
 1. A workstream starts, blocks, passes review, finishes, or is abandoned — and whenever a task
    starts, finishes, or blocks, so the Progress cell stays current.
 2. A session starts, changes what it's doing, spawns or retires an agent, or ends — update its
-   row in the § How to Resume session table immediately; delete the row once its work is
-   reflected in § Workstreams or the Done ledger. This is how multiple sessions or agents, on
-   the same branch or different ones, hand off to each other without duplicating work.
+   row in the branch state's § How to Resume immediately, including its **Next action**; delete
+   the row once its work is reflected in § Workstreams and § Changes. This is how multiple
+   sessions or agents on the same branch hand off without duplicating work.
 3. The shape of the system changes — a new part, a moved responsibility, a changed boundary or
-   data model — update that area in § Architecture in the same write.
+   data model — write the area's proposed **Now** in the branch state's § Architecture in the
+   same write.
 4. The operator makes or changes a decision affecting design, scope, or priorities — record
-   *who asked and why*, and what was rejected, not just the outcome.
+   *who asked and why*, and what was rejected, not just the outcome. Use a provisional ID (`C~1`).
 5. A spec or plan is created or materially revised — link it from its workstream.
-6. Work completes, or reality diverges from a plan — the Done ledger
-   (`docs/project-state/done-ledger.md`), status, and Deviations.
-7. The session is ending or context is running low — reconcile your session row (status, Doing,
-   Last touched) so a different session can take over cold.
-8. You merge a branch whose `PROJECT_STATE.md` diverged from yours — reconcile per
-   `.claude/skills/maintaining-project-state/merging-across-branches.md` before trusting the
-   file: append-only sections (Decisions, Deviations, Done ledger, sessions) keep both sides and
-   renumber; prose describing what the system *is* needs real judgment, not both sides kept.
+6. Work completes, or reality diverges from a plan — a Changes line (copied to the Done ledger
+   at fold), status, and Deviations.
+7. The session is ending or context is running low — reconcile your session row and § Remaining
+   so a different session can take over cold. Mark anything that should outlive the branch
+   **Handover**.
+8. You merge `main` into the branch — diff `PROJECT_STATE.md` since the branch state's `Base`,
+   re-check every area and entry the branch edits, then move `Base` to the new `main` sha.
+9. The branch is finished — empty the session table, set `Status: In review`, and tell the
+   project owner.
 
 Batching these until the end of a session loses them, because sessions end unpredictably. **A
-task is not complete until `PROJECT_STATE.md` reflects it.**
+task is not complete until the branch state reflects it.**
 
-**The acid test, before you stop:** could a fresh agent, given only this file, take over any
-session's row in § How to Resume correctly without asking a question? If not, fix the file.
+**Approval gate.** Branch state `Status` runs `Draft` → `In review` → `Approved` → `Folded`. Only
+the project owner sets `Approved`, with their name and the date; an agent never does. Do not merge
+a branch until it is `Approved` and its session table is empty. After the merge the owner runs
+`sync-project-state` by hand; a file still in `branch-states/` on `main` means a fold is pending.
+
+**IDs.** Permanent IDs (`C14`) are allocated only by `sync-project-state`. A branch mints
+provisional `~` IDs and never cites one outside its own branch state — not in a commit message or a
+code comment.
+
+**The acid test, before you stop:** could a fresh agent, given only `PROJECT_STATE.md` and this
+branch's state, take over any session in § How to Resume and take its Next action correctly,
+without asking a question? If not, fix the file.
 
 Status vocabulary, used verbatim so it stays greppable:
 `Not started` · `Spec'd` · `Planned` · `Building` · `Blocked — needs human` · `In review` ·
@@ -66,18 +88,18 @@ Cite sections by name — `§ Known Gaps` — not by number, so the file can be 
 
 | Size | Examples | Before coding | After |
 |---|---|---|---|
-| **Big** — feature level and above | New user-facing capability; new module, service, or page; schema or data-model change; new dependency or architectural shift; cross-cutting refactor; anything spanning more than one session | A design spec at `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`, an implementation plan at `docs/superpowers/plans/YYYY-MM-DD-<topic>.md`, and a Workstream row linking both | Workstream status + Done ledger entry |
-| **Small** | Bugfix within an existing design; copy or style tweak; single-function refactor; added tests; config change | Nothing — just do it | Done ledger entry |
+| **Big** — feature level and above | New user-facing capability; new module, service, or page; schema or data-model change; new dependency or architectural shift; cross-cutting refactor; anything spanning more than one session | A design spec at `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`, an implementation plan at `docs/superpowers/plans/YYYY-MM-DD-<topic>.md`, and a Workstream row in the branch state linking both | Workstream status + a Changes line, both in the branch state |
+| **Small** | Bugfix within an existing design; copy or style tweak; single-function refactor; added tests; config change | Nothing — just do it | A Changes line in the branch state |
 
 **Ceremony scales with size; the written record does not.** A one-line fix needs no spec and no
-plan, but it still gets a Done line — and if it diverges from a plan, contradicts a spec, or
+plan, but it still gets a Changes line — and if it diverges from a plan, contradicts a spec, or
 leaves a trap for the next agent, it also gets a Deviations entry. Only true no-ops
 (formatting, a typo in a comment) pass unwritten.
 
 Ambiguous size? Treat it as big.
 
 If the operator asks to skip the spec and plan on a big change, say so once, then do as asked —
-it is their call — and record the skip as a decision, so the missing document is visible to
+it is their call — and record the skip as a decision in the branch state, so the missing document is visible to
 whoever inherits the work.
 
 ## 4. Do not "fix" deliberate omissions
@@ -104,7 +126,9 @@ something the next agent would otherwise learn the hard way.
 goals, requirements, architecture, key decisions, diagrams, how to test. It holds only confirmed
 work and changes only at checkpoints, so it may lag. **It never directs coding:** if it disagrees
 with `PROJECT_STATE.md`, the state file wins. Do not edit the guide to fix it outside a checkpoint;
-add `guide out of date: <what>` to the workstream's Progress instead.
+add `guide out of date: <what>` to the workstream's Progress instead. **The guide is written only on
+`main`**, never on a branch: a branch leaves a workstream's Guide at `—` and notes `guide out of date`
+in its branch state.
 
 - **Developer guide checkpoint:** `feature`
   (`feature` = each workstream once it is `Done` and the operator confirms it ·
@@ -121,7 +145,7 @@ each claim you are about to keep or add against the code (defaults, filters, tab
 limits), not against the spec or a past version of the guide. The MP2 guide drifted on exactly
 these points.
 
-**When a workstream reaches `Done`:** set its **Guide** column to `Awaiting confirmation` (or `N/A`,
+**When a workstream reaches `Done`** (at fold, or directly on `main`): set its **Guide** column to `Awaiting confirmation` (or `N/A`,
 with the reason in Progress) and ask the operator whether it is confirmed; a yes makes it `Pending`.
 At each checkpoint, **propose** the update — the sections and diagrams to add or change — and
 **write nothing until the operator approves**; then set Guide to `Documented YYYY-MM-DD`. If the
@@ -149,7 +173,7 @@ integration commits touched 55–96 files and needed a follow-up repair. So:
 - **Write descriptive messages:** `type: what changed and why` (`fix:`, `feat:`, `refactor:`,
   `docs:`, `test:`), naming the area or item ID. Never `update`, `wip`, or "record origin/main
   as merged".
-- **Keep the record in step:** update `PROJECT_STATE.md` and the Done ledger in the same commit
+- **Keep the record in step:** update the branch state (and, on `main`, `PROJECT_STATE.md` and the Done ledger) in the same commit
   as the work they describe, or the very next one.
 
 ---
