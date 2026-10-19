@@ -7,6 +7,7 @@ Iteration 2 started; earlier entries: [docs/project-history/iteration-1/done-led
 
 | Date | What changed | Workstream | Ref |
 |---|---|---|---|
+| 2026-10-20 | Closed Q4 (which Known Gaps and out-of-scope entries the web pivot reverses): decisions C69–C75. Retired the mocked-auth, audit-timestamp and Audit Log polish gaps; DTO layer adopted; JPA deferred to the W-DOMAIN spec; the rest kept. Owner-directed edit of this file on `development`. Q4 is resolved and its number is not reused | — | this commit |
 | 2026-10-19 | Folded the `lightweight-spec-plan-skills` branch state into `PROJECT_STATE.md`: decisions C61–C68, Q4, a Convention and an Orientation row, two Upcoming handovers; the old Upcoming row now names the lite skills | — | this sync commit |
 | 2026-10-19 | Added `.claude/skills/writing-specs-lite/scripts/lint.mjs`, spec and plan templates, edge-case IDs, review round cap and `executing-plans-lite`; made the skills stack-agnostic for the web pivot; wired `executing-plans-lite` into `AGENTS.md` § 3 | — | PR #8 (`ba554e5`) |
 | 2026-10-19 | Smoke-tested `lite-reviewer` on the MP3-0 spec and plan: it returned substantive logic and integration findings; revised the agent (stack-agnostic, `retrospective` mode, `UNVERIFIED` and `AGENT-NOTES` slots, chunked reads) | — | PR #8 (`ba554e5`) |

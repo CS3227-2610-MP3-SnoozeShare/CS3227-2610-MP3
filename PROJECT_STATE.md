@@ -11,8 +11,8 @@ the branch state instead.
 - **Stack:** Java 25, JavaFX 25 (javafx.controls, javafx.fxml), Gradle (application + shadow + checkstyle plugins), SQLite (embedded, `org.xerial:sqlite-jdbc`) via plain JDBC, JUnit 5 + TestFX
 - **Branch:** `development` — this file describes `development` (the integration and default branch); `main` is the release branch and receives it by pull request. Branches record their changes in `docs/project-state/branch-states/` and `sync-project-state` folds them in after the merge into `development`
 - **Method:** TDD-first vertical slices; spec then plan for big changes (`AGENTS.md` § 3); small commits (`AGENTS.md` § 6)
-- **Last updated:** 2026-10-19 by Claude Sonnet 5.5 — folded lightweight-spec-plan-skills
-- **Last verified against repo:** 2026-10-19
+- **Last updated:** 2026-10-20 by Claude Sonnet 5.5 — recorded the Q4 pivot decisions (C69–C75)
+- **Last verified against repo:** 2026-10-20
 - **Developer guide:** `docs/DeveloperGuide.md` documents W1–W16 and the MP3-0 fixes (last full update 2026-10-19). Residual limitations stay in the guide's Known Limitations and § Known Gaps.
 
 Sections are ordered by how often they are needed: **1–3 say where we are, 4–5 say what the
@@ -62,7 +62,7 @@ its own resume point in `docs/project-state/branch-states/`.
 | Item | Kind | Context / done when | Source | Added |
 |---|---|---|---|---|
 | New MP3 feature workstream(s) | Workstream | None scoped yet. Done when the operator names one and it has an approved spec and plan (`writing-specs-lite`, `writing-plans-lite`) | iteration 1 close | 2026-10-19 |
-| Record the web pivot in this file | Decision | Stack, Orientation, Phase, How to Resume commands and the Known Gaps / out-of-scope entries the pivot reverses (C67); the owner decides per entry (Q4). Done when this file describes the web app and Q4 is closed. Blocks the first web-app spec | handed over from lightweight-spec-plan-skills | 2026-10-19 |
+| Record the web pivot in this file | Decision | Stack, Orientation, Phase and How to Resume commands (C67). The Known Gaps and out-of-scope entries are settled (C69–C75). Done when this file describes the web app | handed over from lightweight-spec-plan-skills | 2026-10-19 |
 | Trial the lite skills on the first web-app spec and plan | Todo | Revise `lint.mjs`, the templates and `lite-reviewer` from what the trial shows. Done when the first web-app spec, plan and execution have used them | handed over from lightweight-spec-plan-skills | 2026-10-19 |
 
 ---
@@ -214,15 +214,12 @@ Highest IDs used before this iteration: **W16, C59, D38, Q3**. Numbering continu
 
 **These are decisions, not a TODO list — do not "helpfully" implement them.**
 
-- **No multi-instance / distributed deployment** — single-process desktop app; `PostCommitEvents` is one shared queue by that assumption (C50).
+- **No multi-instance / distributed deployment** — one backend instance serving many users; `PostCommitEvents` is one shared queue by that assumption (C50, C69).
 - **Ticket categories are a lookup table, not a rules engine** — revisit only if workflow branching is needed.
 - **Booking overlap-check + escrow hold use a `SERIALIZABLE` transaction**, not optimistic locking or a queue.
 - **Top-up/withdraw are mocked** — no payment gateway; one would slot in behind `WalletService`.
-- **Auth is fully mocked** — no credential validation; role separation is in service code. A stated project constraint.
-- **Audit timestamps are `Instant.toString()` text**, so rows in the same second can misorder under `ORDER BY timestamp DESC`. Do not "fix" without a decision.
-- **Audit Log UI polish left open** — the `REF`/`TARGET` column can truncate when a row has both a booking and a ticket.
 
-**Explicitly out of scope:** microservices, message brokers, horizontal scaling, JPMS module boundaries, JPA/Hibernate, a separate DTO layer, agent Force Cancel/Complete (C22).
+**Explicitly out of scope:** microservices, message brokers, horizontal scaling, JPMS module boundaries, JPA/Hibernate (until the W-DOMAIN spec decides, C74), agent Force Cancel/Complete (C22).
 
 ---
 
@@ -230,7 +227,7 @@ Highest IDs used before this iteration: **W16, C59, D38, Q3**. Numbering continu
 
 | ID | What is needed | What it blocks | Raised |
 |---|---|---|---|
-| Q4 | Owner decides, per entry, which `PROJECT_STATE.md` § Known Gaps and "Explicitly out of scope" items the web pivot reverses (no multi-instance deployment, fully mocked auth, microservices/brokers/horizontal scaling, JPA, DTO layer, single-process events) and records them on `development` (`AGENTS.md` § 4) | The first web-app spec | 2026-10-19 |
+| — | No outstanding questions | — | — |
 
 ---
 
@@ -253,6 +250,13 @@ Standing process decisions. Architecture-shaping ones sit with their area in § 
 | C66 | 2026-10-19 | Spec/plan amendments are recorded in the branch state as Decisions (no `## Amendments` heading in the spec or plan; the index keeps a one-line pointer) | Operator: amendments come from decision changes | `writing-specs-lite` change control |
 | C67 | 2026-10-19 | This iteration pivots SnoozeShare from a single-user Java desktop app to a multi-user web app (design: `docs/Webapp-architecture-design.md`). Skills and the reviewer agent are therefore stack-agnostic: they read invariants and commands from `PROJECT_STATE.md`; multi-user networked work has a Medium floor and High for authN/authZ, tenancy, money or personal data | Operator, 2026-10-19 | operator conversation |
 | C68 | 2026-10-19 | Added: stable edge-case IDs (`E`), spec/plan templates, `lint.mjs` (deterministic spec and plan checks), a two-round review cap, and `executing-plans-lite` (default for implementing plans) | Operator approved "proceed with all 7" | `.claude/skills/` |
+| C69 | 2026-10-20 | The web app is a single backend instance serving many users; multi-instance deployment stays a Known Gap. Amends the wording of C50's gap (no longer "single-process desktop") | Operator: stick to single-instance multi-user (Q4.1) | Operator conversation |
+| C70 | 2026-10-20 | Authentication is real, via Firebase Auth (MP3-D12); the "auth is fully mocked" Known Gap is retired. Role authorization is still enforced in the service layer | Operator: reverse, Firebase auth (Q4.5) | [Webapp-architecture-design § 4](docs/Webapp-architecture-design.md) |
+| C71 | 2026-10-20 | Audit timestamps are stored in a dedicated timestamp column, not `Instant.toString()` text; the misordering Known Gap is retired | Operator: use a dedicated column (Q4.6) | Operator conversation |
+| C72 | 2026-10-20 | Each audit row displays one primary ref: the immediate cause of the change (a reversal caused by a ticket resolution shows the ticket). The other ids stay in the typed columns and remain searchable; whether a detail view shows them is left to the audit-log spec. Retires the `REF`/`TARGET` truncation Known Gap | Operator (Q4.7); the rule was not previously written down | Operator conversation |
+| C73 | 2026-10-20 | A separate DTO layer is adopted at the API boundary (MP3-D4): request and response classes, with domain records kept internal. Amends C4 and removes "a separate DTO layer" from out of scope | Operator: reverse (Q4.13); needed from the first endpoint for validation and to control what each role can see | [Webapp-architecture-design § 8](docs/Webapp-architecture-design.md) |
+| C74 | 2026-10-20 | JPA/Hibernate stays out of scope for now. The persistence approach (Spring Data JPA with separate entities, ported JDBC, or a hybrid) is decided in the W-DOMAIN spec, where MP3-D2 is recorded as accepted or replaced; C5 stands until then | Operator: do not reverse (Q4.12); the pivot needs Postgres and Spring transactions, not an ORM, and the first workstreams do not touch it | Operator conversation |
+| C75 | 2026-10-20 | Q4 resolved. Kept unchanged: ticket categories as a lookup table, the `SERIALIZABLE` booking and escrow transaction, mocked top-up/withdraw, and out of scope: microservices, message brokers (polling instead), horizontal scaling, JPMS, agent Force Cancel/Complete (C22; completion and payout stay automated by the sweep, settlement stays an agent ticket resolution) | Operator, 2026-10-20 | Operator conversation |
 
 ---
 
@@ -277,5 +281,5 @@ Live traps only; resolved ones are in the archive. Each is what, the consequence
 
 The Done ledger lives in **[`docs/project-state/done-ledger.md`](docs/project-state/done-ledger.md)** — every change, big or small, newest first.
 
-- **Latest entry:** 2026-10-19
-- **Entries:** 10 (iteration 2 started; earlier entries in the archive)
+- **Latest entry:** 2026-10-20
+- **Entries:** 11 (iteration 2 started; earlier entries in the archive)
