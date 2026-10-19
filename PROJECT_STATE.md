@@ -11,7 +11,7 @@ the branch state instead.
 - **Method:** Native inline execution with TDD-first vertical slices, fresh-context whole-branch review at end
 - **Last updated:** 2026-10-19 by Claude Sonnet 5.5 — moved to the branch-state workflow (C54); MP3-0 PRs #1–#3 merged. Drift still open: git history shows W16 (guest UI alignment) merged, but no W15/W16 row exists here (see § How to Resume → Upcoming)
 - **Last verified against repo:** 2026-10-19
-- **Developer guide:** `docs/DeveloperGuide.md` documents W1–W16 and the MP3-0 fixes (last full update 2026-10-19). W16's operator acceptance is still open (see § How to Resume → Upcoming); residual limitations stay in the guide's Known Limitations and § Known Gaps / § Deviations.
+- **Developer guide:** `docs/DeveloperGuide.md` documents W1–W16 and the MP3-0 fixes (last full update 2026-10-19). Residual limitations stay in the guide's Known Limitations and § Known Gaps / § Deviations.
 - **User guide:** `docs/UserGuide.md` provides role-based Guest, Host and Support Agent walkthroughs, with screenshots linked from `docs/images`; the Support Agent walkthrough includes the Categories page.
 
 Sections are ordered by how often they are needed: **1–3 say where we are, 4–5 say what the
@@ -67,9 +67,7 @@ its own resume point in `docs/project-state/branch-states/`.
 
 | Item | Kind | Context / done when | Source | Added |
 |---|---|---|---|---|
-| Get CI green and make it required (P1) | Todo | `.github/workflows/ci.yml` is written (C59) but has never run. Done when it has run green on a pull request, and the `checkstyle` and `build` checks are required by branch protection on `main` (a repository setting). If UI tests fail on Linux only, switch the runner to `windows-latest` | handed over from MP3-0 ([triage](docs/MP2-feedback-triage.md)) | 2026-10-19 |
-| Confirm the GitHub Pages site renders (G2) | Todo | Pages now deploys from the Actions workflow (C56). Done when the first run on `main` is green and the live site shows both guides with images and `:emoji:` shortcodes | handed over from MP3-0 (C52, C56) | 2026-10-19 |
-| Record the operator's visual acceptance of W16 | Todo | W16 (Guest Search, Trips, listing detail, review modal, wallet card) was built and tested but its acceptance in the running app was never written down. Done when the operator confirms it, W16 becomes `Done`, and this row is removed | restored from the pre-MP3 history | 2026-10-19 |
+| Require the CI checks on `main` (P1) | Todo | `ci.yml` ran green on GitHub (Checkstyle and the full build, 2026-10-19). Done when the `checkstyle` and `build` checks are required by branch protection on `main` (a repository setting), then MP3-0 can be marked `Done` | handed over from MP3-0 ([triage](docs/MP2-feedback-triage.md)) | 2026-10-19 |
 
 ---
 
@@ -97,8 +95,8 @@ its spec and plan before feature implementation, per AGENTS.md § 3.
 | W13 | F12 — Messaging (persistent ticket chat; `MessageService` replaces the in-memory seam; Host UI slice, C37/C38) | Done | [W13 service design](docs/superpowers/specs/2026-09-27-w13-messaging-service-design.md); [Host Messages design](docs/superpowers/specs/2026-09-27-host-messages-ui-design.md) | [W13 service plan](docs/superpowers/plans/2026-09-27-w13-messaging-service.md); [Host Messages plan](docs/superpowers/plans/2026-09-27-host-messages-ui.md) | Host ticket creation removed per reversed C39/C40 (the messaging-branch ones, distinct from W14's C39/C40); confirmed 2026-09-29, documented same day | Documented 2026-09-29 |
 | W14 | Unified ledger — fold `wallet_transactions` into `audit_log`, System account (role SYSTEM) with a real wallet; `wallets` table kept (C30, C31, C39, C40) | Done | [W14 design](docs/superpowers/specs/2026-09-27-w14-unified-ledger-design.md) | [W14 plan](docs/superpowers/plans/2026-09-27-w14-unified-ledger.md) | All 12 tasks done & reviewed; C42 fixed a settlement crash; PR #16 merged to `main`; operator confirmed 2026-09-29 | Documented 2026-09-29 |
 | W15 | Host Listings Dashboard & Copy Refinement | Done | — | — | Live listing metrics, listing-card redesign, Requests/wallet copy and layout updates complete; operator waived a spec and plan (recorded as C28, the one dated 2026-09-26) | Documented 2026-10-19 |
-| W16 | Guest UI mockup alignment (Messages sizing + ticket status pill, Search, Trips, listing detail, review modal, wallet balance card) | In review | [W16 design](docs/superpowers/specs/2026-09-29-guest-ui-mockup-alignment-design.md) | [W16 plan](docs/superpowers/plans/2026-09-29-guest-ui-mockup-alignment.md) | 7/7 tasks built and tested; operator visual acceptance not recorded (D38) | Documented 2026-10-19 |
-| MP3-0 | MP2 feedback fixes before new MP3 features (bugs B1–B7, design D1–D6, CI/skills/docs) | Building | [correctness-cluster design](docs/superpowers/specs/2026-10-18-mp3-correctness-cluster-design.md) (B1, B3–B5, D1–D3, D5) | [correctness-cluster plan](docs/superpowers/plans/2026-10-18-mp3-correctness-cluster.md) | Merged to main (PRs #1–#3); open: P1 CI, Pages check (see Upcoming); G6 dropped (C52) | Documented 2026-10-19 |
+| W16 | Guest UI mockup alignment (Messages sizing + ticket status pill, Search, Trips, listing detail, review modal, wallet balance card) | Done | [W16 design](docs/superpowers/specs/2026-09-29-guest-ui-mockup-alignment-design.md) | [W16 plan](docs/superpowers/plans/2026-09-29-guest-ui-mockup-alignment.md) | 7/7 tasks built and tested; operator reviewed and accepted 2026-10-19 (D38) | Documented 2026-10-19 |
+| MP3-0 | MP2 feedback fixes before new MP3 features (bugs B1–B7, design D1–D6, CI/skills/docs) | Building | [correctness-cluster design](docs/superpowers/specs/2026-10-18-mp3-correctness-cluster-design.md) (B1, B3–B5, D1–D3, D5) | [correctness-cluster plan](docs/superpowers/plans/2026-10-18-mp3-correctness-cluster.md) | Merged to main (PRs #1–#3); CI and Pages verified; open: required checks (P1, Upcoming); G6 dropped (C52) | Documented 2026-10-19 |
 
 **Historical W10→W3 handoffs (raised 2026-09-25; reconciled at workstream closure)** — W3 is
 marked `Done` and documented, but the following accepted residual boundaries remain visible for
@@ -914,6 +912,6 @@ The Done ledger lives in **[`docs/project-state/done-ledger.md`](docs/project-st
 — every change, big or small, newest first.
 
 - **Latest entry:** 2026-10-19
-- **Entries:** 173 (4 backfilled coarsely from git history)
+- **Entries:** 174 (4 backfilled coarsely from git history)
 
 Deviations stay in § Deviations above: those are read every session.
