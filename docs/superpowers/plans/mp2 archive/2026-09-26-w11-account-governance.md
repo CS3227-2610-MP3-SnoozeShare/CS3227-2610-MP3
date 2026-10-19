@@ -8,7 +8,7 @@
 
 **Tech Stack:** Java 25, JavaFX 25 (FXML), SQLite via plain JDBC, JUnit 5, Gradle + Checkstyle (line length 120; import order: static, `java.*`, `org.*`, `com.*`, then `javafx.*`, each block alphabetical).
 
-**Spec:** [`docs/superpowers/specs/2026-09-26-w11-account-governance-design.md`](../specs/2026-09-26-w11-account-governance-design.md). Decisions C34, C35, C36 in `PROJECT_STATE.md`.
+**Spec:** [`docs/superpowers/specs/mp2 archive/2026-09-26-w11-account-governance-design.md`](../../specs/mp2%20archive/2026-09-26-w11-account-governance-design.md). Decisions C34, C35, C36 in `PROJECT_STATE.md`.
 
 **Conventions for every task**
 - Working directory `S:\CS3227\CS3227-2610-MP2`, branch `agent-account-governance`. Commands are POSIX shell (Git Bash). Gradle: `./gradlew`.
@@ -53,7 +53,7 @@
 
 - [ ] **Step 1: Record the plan in PROJECT_STATE.md**
 
-In the `W11` row of § Workstreams set the Plan cell to `[W11 plan](docs/superpowers/plans/2026-09-26-w11-account-governance.md)`, Status to `Planned`, Progress to `Plan written; Task 0/14`. Update session row S9 Doing to `Plan written; executing Task 1`.
+In the `W11` row of § Workstreams set the Plan cell to `[W11 plan](docs/superpowers/plans/mp2%20archive/2026-09-26-w11-account-governance.md)`, Status to `Planned`, Progress to `Plan written; Task 0/14`. Update session row S9 Doing to `Plan written; executing Task 1`.
 
 - [ ] **Step 2: Write the failing migration test**
 
@@ -2898,7 +2898,7 @@ Log in as `amy.tanaka@snoozeshare.test`, open Accounts, search `mar`, suspend a 
 
 - [ ] **Step 4: Add the ledger entry** at the top of the table in `docs/project-state/done-ledger.md`:
 
-`| 2026-09-26 | Implemented W11 Agent Account Governance (F10.1.1, F10.1.2; Reactivate added): `users.suspensionReason` (V003), `AccountGovernanceService` (atomic suspend + cascade of pending and upcoming bookings with refund, listings deactivated, W12 audit rows), suspended-guest booking guard, Accounts tab with live search, fixed header and Suspend/Reactivate modal; `gradlew clean build` green with N tests | W11 | plan `docs/superpowers/plans/2026-09-26-w11-account-governance.md`, spec `docs/superpowers/specs/2026-09-26-w11-account-governance-design.md` |` (replace N with the real count) and bump the § Record entry count and latest date.
+`| 2026-09-26 | Implemented W11 Agent Account Governance (F10.1.1, F10.1.2; Reactivate added): `users.suspensionReason` (V003), `AccountGovernanceService` (atomic suspend + cascade of pending and upcoming bookings with refund, listings deactivated, W12 audit rows), suspended-guest booking guard, Accounts tab with live search, fixed header and Suspend/Reactivate modal; `gradlew clean build` green with N tests | W11 | plan `docs/superpowers/plans/mp2 archive/2026-09-26-w11-account-governance.md`, spec `docs/superpowers/specs/mp2 archive/2026-09-26-w11-account-governance-design.md` |` (replace N with the real count) and bump the § Record entry count and latest date.
 
 - [ ] **Step 4b: Log the session** if the operator ends here: invoke the `logging-agent-interactions` skill (manual, at session end).
 

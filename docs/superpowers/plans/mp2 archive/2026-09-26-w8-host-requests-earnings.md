@@ -8,7 +8,7 @@
 
 **Tech Stack:** Java 25, JavaFX 25/FXML, SQLite/JDBC, Gradle, JUnit 5, existing EventBus and Fall Light `agent-theme.css`.
 
-**Spec:** `docs/superpowers/specs/2026-09-26-w8-host-requests-earnings-design.md`
+**Spec:** `docs/superpowers/specs/mp2 archive/2026-09-26-w8-host-requests-earnings-design.md`
 
 ## Global Constraints
 

@@ -31,7 +31,7 @@ no server.
 
 | Path | What lives there |
 |---|---|
-| `docs/superpowers/specs/`, `docs/superpowers/plans/` | Design specs and plans, one pair per feature-level workstream |
+| `docs/superpowers/specs/`, `docs/superpowers/plans/` | Design specs and plans, one pair per feature-level workstream. MP2-era (W1–W16) specs and plans are in the `mp2 archive/` subfolder of each (link it as `mp2%20archive/`); MP3 ones sit at the top level |
 | `docs/project-state/done-ledger.md` | The Done ledger for this iteration — every change, newest first |
 | `docs/project-state/branch-states/` | One lean state file per in-flight branch; `archive/` holds folded ones |
 | `docs/project-history/` | Closed iterations (state, ledger, branch states, `REFRESH.md`). Not the source of truth |
@@ -266,4 +266,4 @@ Live traps only; resolved ones are in the archive. Each is what, the consequence
 The Done ledger lives in **[`docs/project-state/done-ledger.md`](docs/project-state/done-ledger.md)** — every change, big or small, newest first.
 
 - **Latest entry:** 2026-10-19
-- **Entries:** 1 (iteration 2 started; earlier entries in the archive)
+- **Entries:** 2 (iteration 2 started; earlier entries in the archive)

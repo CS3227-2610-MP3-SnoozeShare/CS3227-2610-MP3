@@ -8,7 +8,7 @@
 
 **Tech Stack:** Java 25, JavaFX 25/FXML, Gradle, SQLite via `org.xerial:sqlite-jdbc`, plain JDBC, JUnit 5, TestFX, Checkstyle.
 
-**Spec:** `docs/superpowers/specs/2026-09-23-w1-shared-foundation-design.md`
+**Spec:** `docs/superpowers/specs/mp2 archive/2026-09-23-w1-shared-foundation-design.md`
 
 ## Global Constraints
 

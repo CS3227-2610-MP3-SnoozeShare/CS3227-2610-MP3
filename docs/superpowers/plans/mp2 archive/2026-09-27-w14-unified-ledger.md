@@ -8,7 +8,7 @@
 
 **Tech Stack:** Java 25, SQLite via plain JDBC (`sqlite-jdbc` 3.46, window functions available), Gradle, JUnit 5.
 
-**Spec:** `docs/superpowers/specs/2026-09-27-w14-unified-ledger-design.md` (decisions C39, C40 in `PROJECT_STATE.md`; the spec's § 10 defaults are accepted by the operator, 2026-09-27).
+**Spec:** `docs/superpowers/specs/mp2 archive/2026-09-27-w14-unified-ledger-design.md` (decisions C39, C40 in `PROJECT_STATE.md`; the spec's § 10 defaults are accepted by the operator, 2026-09-27).
 
 ## Global Constraints
 
@@ -1869,7 +1869,7 @@ git commit -m "test(w14): money conservation invariants"
 ### Task 12: Full build, documentation and hand-off
 
 **Files:**
-- Modify: `PROJECT_STATE.md`, `docs/project-state/done-ledger.md`, `docs/superpowers/specs/2026-09-27-w14-unified-ledger-design.md`
+- Modify: `PROJECT_STATE.md`, `docs/project-state/done-ledger.md`, `docs/superpowers/specs/mp2 archive/2026-09-27-w14-unified-ledger-design.md`
 
 - [ ] **Step 1: Full verification**
 

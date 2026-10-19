@@ -198,6 +198,6 @@ Follows the validated [UI design system spec](2026-09-23-ui-design-system-design
 
 ## 7. Follow-Up Artifacts
 
-- **Implementation plan** — `docs/superpowers/plans/2026-09-24-w2-listing-search.md` (next step via `writing-plans` skill)
+- **Implementation plan** — `docs/superpowers/plans/mp2 archive/2026-09-24-w2-listing-search.md` (next step via `writing-plans` skill)
 - **W3 (F2)** depends on this workstream's `ListingService` and detail modal being complete
 - **W4 (F3.1.3)** extends the detail modal with a reviews section

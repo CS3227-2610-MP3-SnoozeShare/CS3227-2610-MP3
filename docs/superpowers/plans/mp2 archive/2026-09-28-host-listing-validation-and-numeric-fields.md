@@ -8,7 +8,7 @@
 
 **Tech Stack:** Java 25, JavaFX 25, JDBC/SQLite, FXML/CSS, JUnit 5, Gradle Checkstyle.
 
-**Spec:** `docs/superpowers/specs/2026-09-28-host-listing-validation-and-numeric-fields-design.md`
+**Spec:** `docs/superpowers/specs/mp2 archive/2026-09-28-host-listing-validation-and-numeric-fields-design.md`
 
 ## Global Constraints
 

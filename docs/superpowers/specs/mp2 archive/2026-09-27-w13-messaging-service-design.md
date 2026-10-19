@@ -1,7 +1,7 @@
 # W13 — Messaging Service (persistent ticket chat) — Design
 
 **Status:** Spec'd 2026-09-27 · **Branch:** `messaging-service` · **Backlog:** F12.1.1, F12.1.2 ·
-**Raised by:** W10 (C21, C29) · **Plan:** [W13 plan](../plans/2026-09-27-w13-messaging-service.md)
+**Raised by:** W10 (C21, C29) · **Plan:** [W13 plan](../../plans/mp2%20archive/2026-09-27-w13-messaging-service.md)
 
 ## 1. Goal
 

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Java 25, JavaFX 25/FXML, Gradle, JUnit 5/TestFX, existing in-process event bus, existing Fall Light `agent-theme.css`.
 
-**Spec:** [Host Messages UI design](../specs/2026-09-27-host-messages-ui-design.md)
+**Spec:** [Host Messages UI design](../../specs/mp2%20archive/2026-09-27-host-messages-ui-design.md)
 
 ## Global Constraints
 

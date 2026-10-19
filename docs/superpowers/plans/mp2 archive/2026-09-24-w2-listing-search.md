@@ -8,7 +8,7 @@
 
 **Tech Stack:** Java 25, SQLite via `org.xerial:sqlite-jdbc`, JavaFX 25, JUnit 5
 
-**Spec:** `docs/superpowers/specs/2026-09-24-w2-listing-search-design.md`
+**Spec:** `docs/superpowers/specs/mp2 archive/2026-09-24-w2-listing-search-design.md`
 
 ## Global Constraints
 
@@ -2274,7 +2274,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 Change W2 row to:
 
 ```
-| W2 | F1 — Listing Search & Property Discovery | Done | [listing-search design](docs/superpowers/specs/2026-09-24-w2-listing-search-design.md) | [listing-search plan](docs/superpowers/plans/2026-09-24-w2-listing-search.md) | Implementation complete: search/filter, detail modal, price breakdown | Awaiting confirmation |
+| W2 | F1 — Listing Search & Property Discovery | Done | [listing-search design](docs/superpowers/specs/mp2%20archive/2026-09-24-w2-listing-search-design.md) | [listing-search plan](docs/superpowers/plans/mp2%20archive/2026-09-24-w2-listing-search.md) | Implementation complete: search/filter, detail modal, price breakdown | Awaiting confirmation |
 ```
 
 - [ ] **Step 2: Add done ledger entry**

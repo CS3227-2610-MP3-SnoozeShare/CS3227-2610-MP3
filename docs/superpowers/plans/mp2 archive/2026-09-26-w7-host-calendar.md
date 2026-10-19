@@ -8,7 +8,7 @@
 
 **Tech Stack:** Java 25, JavaFX 25/FXML, SQLite via plain JDBC, Gradle, JUnit 5, source/FXML UI tests, existing CSS.
 
-**Spec:** docs/superpowers/specs/2026-09-26-w7-host-calendar-design.md
+**Spec:** docs/superpowers/specs/mp2 archive/2026-09-26-w7-host-calendar-design.md
 
 ## Global Constraints
 
@@ -249,7 +249,7 @@ Expected: PASS.
 **Files:**
 - Modify: PROJECT_STATE.md
 - Modify: docs/project-state/done-ledger.md
-- Modify: docs/superpowers/specs/2026-09-26-w7-host-calendar-design.md only if implementation makes a documented deviation
+- Modify: docs/superpowers/specs/mp2 archive/2026-09-26-w7-host-calendar-design.md only if implementation makes a documented deviation
 
 - [ ] Step 1: Run the complete test suite
 

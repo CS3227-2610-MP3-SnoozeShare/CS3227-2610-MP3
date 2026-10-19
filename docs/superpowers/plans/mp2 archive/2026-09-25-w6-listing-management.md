@@ -8,7 +8,7 @@
 
 **Tech Stack:** Java 25, JavaFX 25/FXML, Gradle, SQLite via plain JDBC, JUnit 5, TestFX-style headless UI tests, existing Checkstyle rules.
 
-**Spec:** `docs/superpowers/specs/2026-09-25-w6-listing-management-design.md`
+**Spec:** `docs/superpowers/specs/mp2 archive/2026-09-25-w6-listing-management-design.md`
 
 ## Global Constraints
 

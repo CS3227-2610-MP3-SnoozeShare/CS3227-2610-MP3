@@ -7,6 +7,7 @@ Iteration 2 started; earlier entries: [docs/project-history/iteration-1/done-led
 
 | Date | What changed | Workstream | Ref |
 |---|---|---|---|
+| 2026-10-19 | Moved the MP2-era specs and plans (W1–W16, 41 files) into `mp2 archive/` subfolders of `docs/superpowers/specs/` and `plans/`; the MP3 correctness-cluster spec and plan stay at the top level. Every reference was updated (`%20` in link targets): the iteration 1 state and ledger, `docs/Reflections.md`, and the cross-links inside the moved files. Logs under `logs/` and the `.superpowers/` work log keep the old paths as history | MP3-0 | owner move + this commit |
 | 2026-10-19 | Refreshed `PROJECT_STATE.md` into iteration 2: iteration 1 (state, 174-entry ledger, disposition table `REFRESH.md`) archived under `docs/project-history/iteration-1/`; the new file keeps the architecture, conventions, Known Gaps, standing decisions, live deviations and the open MP3-0 row (269 lines in place of 917) | MP3-0 | owner-approved refresh |
 
 **Archive:** [iteration 1](../project-history/iteration-1/done-ledger.md)

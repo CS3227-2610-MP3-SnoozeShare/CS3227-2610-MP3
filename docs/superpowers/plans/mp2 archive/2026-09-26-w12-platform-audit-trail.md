@@ -8,7 +8,7 @@
 
 **Tech Stack:** Java 25, JavaFX 25 + FXML, SQLite via plain JDBC, Gradle, JUnit 5 (FX toolkit tests use the existing `Platform.startup` pattern).
 
-**Spec:** `docs/superpowers/specs/2026-09-26-w12-platform-audit-trail-design.md` (approved; decisions C28–C32 in `PROJECT_STATE.md`).
+**Spec:** `docs/superpowers/specs/mp2 archive/2026-09-26-w12-platform-audit-trail-design.md` (approved; decisions C28–C32 in `PROJECT_STATE.md`).
 
 ## Global Constraints
 
@@ -2814,7 +2814,7 @@ git commit -m "test(audit): Audit Log screen layout, filter and snapshot tests"
 ### Task 11: Documentation, project state, and full verification
 
 **Files:**
-- Modify: `PROJECT_STATE.md`, `docs/project-state/done-ledger.md`, `docs/ProductBacklog.md`, `docs/superpowers/specs/2026-09-26-w12-platform-audit-trail-design.md` (three small corrections)
+- Modify: `PROJECT_STATE.md`, `docs/project-state/done-ledger.md`, `docs/ProductBacklog.md`, `docs/superpowers/specs/mp2 archive/2026-09-26-w12-platform-audit-trail-design.md` (three small corrections)
 
 - [ ] **Step 1: Spec corrections** (the implementation refined three details)
 

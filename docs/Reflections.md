@@ -191,11 +191,11 @@ The other insight is that agents excel at structured, logic-heavy tasks but stru
 The following project files illustrate the points made above.
 
 **Brainstorming and planning before code:**
-- `docs/superpowers/specs/2026-09-24-w2-listing-search-design.md` — the W2 spec header reads "Approved via brainstorming session, 2026-09-24", showing design was validated before implementation began. Decision W2-D2 in the same file records a requirement I revised during spec review ("guests should still see unavailable listings for awareness, but available ones take priority"), demonstrating how brainstorming caught design issues before any code was written.
+- `docs/superpowers/specs/mp2 archive/2026-09-24-w2-listing-search-design.md` — the W2 spec header reads "Approved via brainstorming session, 2026-09-24", showing design was validated before implementation began. Decision W2-D2 in the same file records a requirement I revised during spec review ("guests should still see unavailable listings for awareness, but available ones take priority"), demonstrating how brainstorming caught design issues before any code was written.
 
 **TDD-first workflow:**
-- `docs/superpowers/plans/2026-09-24-w2-listing-search.md` — Task 1 explicitly follows a red-green-refactor cycle: "Step 1: Write tests for SearchCriteria", then "Step 2: Run test to verify it fails" with the expected compilation failure documented upfront.
-- `docs/superpowers/plans/2026-09-26-w4-guest-feedback-disputes-reviews.md` — Task 1, Step 4 reads "Write the failing tests for `fileTicket()`" before any implementation code, with 8 validation rules specified in the design spec (`docs/superpowers/specs/2026-09-26-w4-guest-feedback-disputes-reviews-design.md`, § 3.1) and all 8 implemented exactly as spec'd.
+- `docs/superpowers/plans/mp2 archive/2026-09-24-w2-listing-search.md` — Task 1 explicitly follows a red-green-refactor cycle: "Step 1: Write tests for SearchCriteria", then "Step 2: Run test to verify it fails" with the expected compilation failure documented upfront.
+- `docs/superpowers/plans/mp2 archive/2026-09-26-w4-guest-feedback-disputes-reviews.md` — Task 1, Step 4 reads "Write the failing tests for `fileTicket()`" before any implementation code, with 8 validation rules specified in the design spec (`docs/superpowers/specs/mp2 archive/2026-09-26-w4-guest-feedback-disputes-reviews-design.md`, § 3.1) and all 8 implemented exactly as spec'd.
 
 **UI/UX struggles and screenshot-driven corrections:**
 - `logs/2026-09-26_22-10-00_w8.md` — I had to attach screenshots of the wallet page and booking modals to get padding and layout consistent, because the agent could not see the rendered output itself.

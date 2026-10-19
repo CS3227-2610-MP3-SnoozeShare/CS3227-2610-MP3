@@ -3,7 +3,7 @@
 **Goal:** Enable guests to top up, view transaction history, and withdraw funds via a Wallet
 dashboard screen in the Guest shell.
 
-**Spec:** `docs/superpowers/specs/2026-09-25-w5-wallet-management-design.md`
+**Spec:** `docs/superpowers/specs/mp2 archive/2026-09-25-w5-wallet-management-design.md`
 
 ## Global Constraints
 

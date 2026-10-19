@@ -8,7 +8,7 @@
 
 **Tech Stack:** Java 25, JavaFX 25, FXML, CSS, JUnit 5, Gradle Checkstyle, SQLite mock DB.
 
-**Spec:** `docs/superpowers/specs/2026-09-28-host-listing-pages-artifact-design.md`
+**Spec:** `docs/superpowers/specs/mp2 archive/2026-09-28-host-listing-pages-artifact-design.md`
 
 ## Global Constraints
 

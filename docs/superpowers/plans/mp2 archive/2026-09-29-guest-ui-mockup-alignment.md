@@ -1,6 +1,6 @@
 # W16 — Guest UI mockup alignment (plan)
 
-Spec: [2026-09-29-guest-ui-mockup-alignment-design.md](../specs/2026-09-29-guest-ui-mockup-alignment-design.md)
+Spec: [2026-09-29-guest-ui-mockup-alignment-design.md](../../specs/mp2%20archive/2026-09-29-guest-ui-mockup-alignment-design.md)
 
 Native inline execution, one task at a time; build + focused tests after each task.
 

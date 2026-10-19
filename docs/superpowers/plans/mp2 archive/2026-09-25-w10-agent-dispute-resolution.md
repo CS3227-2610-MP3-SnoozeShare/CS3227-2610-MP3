@@ -8,7 +8,7 @@
 
 **Tech Stack:** Java 25, JavaFX 25 (FXML), SQLite via plain JDBC, JUnit 5 (incl. `@ParameterizedTest`), Gradle + checkstyle.
 
-**Spec:** [`docs/superpowers/specs/2026-09-25-w10-agent-dispute-resolution-design.md`](../specs/2026-09-25-w10-agent-dispute-resolution-design.md) — read it first. Decisions C16–C23 and deviations D5–D9 are in `PROJECT_STATE.md`.
+**Spec:** [`docs/superpowers/specs/mp2 archive/2026-09-25-w10-agent-dispute-resolution-design.md`](../../specs/mp2%20archive/2026-09-25-w10-agent-dispute-resolution-design.md) — read it first. Decisions C16–C23 and deviations D5–D9 are in `PROJECT_STATE.md`.
 
 ---
 
@@ -104,12 +104,12 @@ Expected: `BUILD SUCCESSFUL` (all existing tests pass; checkstyle passes). If it
 
 - [x] **Step 3: Mark the plan in `PROJECT_STATE.md`**
 
-In § Workstreams change W10 `Status` to `Planned`, `Plan` to `[W10 plan](docs/superpowers/plans/2026-09-25-w10-agent-dispute-resolution.md)`, `Progress` to `Task 0/18 baseline green`. Update session row S4 `Doing` to "Executing W10 plan".
+In § Workstreams change W10 `Status` to `Planned`, `Plan` to `[W10 plan](docs/superpowers/plans/mp2%20archive/2026-09-25-w10-agent-dispute-resolution.md)`, `Progress` to `Task 0/18 baseline green`. Update session row S4 `Doing` to "Executing W10 plan".
 
 - [x] **Step 4: Commit**
 
 ```powershell
-git add PROJECT_STATE.md docs/superpowers/plans/2026-09-25-w10-agent-dispute-resolution.md
+git add PROJECT_STATE.md docs/superpowers/plans/mp2 archive/2026-09-25-w10-agent-dispute-resolution.md
 git commit -m "docs: add W10 implementation plan" -m "Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 ```
 
@@ -5106,7 +5106,7 @@ git commit -m "test: FX toolkit smoke test for agent dispute screens" -m "Co-Aut
 
 ### Task 18: Full verification, visual acceptance, and record-keeping
 
-**Files:** `PROJECT_STATE.md`, `docs/project-state/done-ledger.md`, `docs/superpowers/specs/2026-09-25-w10-agent-dispute-resolution-design.md`, `docs/superpowers/plans/…` (checkboxes)
+**Files:** `PROJECT_STATE.md`, `docs/project-state/done-ledger.md`, `docs/superpowers/specs/mp2 archive/2026-09-25-w10-agent-dispute-resolution-design.md`, `docs/superpowers/plans/…` (checkboxes)
 
 - [ ] **Step 1: Full build**
 
@@ -5138,7 +5138,7 @@ Clear the env var afterwards: `Remove-Item Env:SNOOZESHARE_DB_URL`.
 
 - [ ] **Step 3: Apply the spec amendments** (edit the spec so it matches what was built)
 
-In `docs/superpowers/specs/2026-09-25-w10-agent-dispute-resolution-design.md`:
+In `docs/superpowers/specs/mp2 archive/2026-09-25-w10-agent-dispute-resolution-design.md`:
 - § 4.2: replace the `DisputeSettlementService` snippet with `Settlement settle(UUID ticketId, ResolutionMode mode, BigDecimal guestRefund, UUID agentId, String reason)`, remove `SettlementKind`, and add a `DisputeQueryService` paragraph (`queue`, `detail`).
 - § 4.4: note `MigrationRunner` adopts a pre-provisioned DB, and that the mock seed timestamps now end in `Z` like the app's own writes.
 - § 4.5: state the shell is sidebar-based and the palette is the current `theme.css`.

@@ -1,6 +1,6 @@
 # W13 Messaging Service Implementation Plan
 
-Spec: [W13 design](../specs/2026-09-27-w13-messaging-service-design.md). TDD per task; commit per task.
+Spec: [W13 design](../../specs/mp2%20archive/2026-09-27-w13-messaging-service-design.md). TDD per task; commit per task.
 Run tests with `.\gradlew test --tests <Class>`; finish with `.\gradlew build`.
 
 ### Task 1: Contract and event
