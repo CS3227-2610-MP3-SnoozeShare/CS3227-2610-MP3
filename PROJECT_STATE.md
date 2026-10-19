@@ -11,7 +11,7 @@ the branch state instead.
 - **Stack:** Java 25, JavaFX 25 (javafx.controls, javafx.fxml), Gradle (application + shadow + checkstyle plugins), SQLite (embedded, `org.xerial:sqlite-jdbc`) via plain JDBC, JUnit 5 + TestFX
 - **Branch:** `development` — this file describes `development` (the integration and default branch); `main` is the release branch and receives it by pull request. Branches record their changes in `docs/project-state/branch-states/` and `sync-project-state` folds them in after the merge into `development`
 - **Method:** TDD-first vertical slices; spec then plan for big changes (`AGENTS.md` § 3); small commits (`AGENTS.md` § 6)
-- **Last updated:** 2026-10-19 by Claude Sonnet 5.5 — refreshed into iteration 2 (archive: iteration 1)
+- **Last updated:** 2026-10-19 by Claude Sonnet 5.5 — folded lightweight-spec-plan-skills
 - **Last verified against repo:** 2026-10-19
 - **Developer guide:** `docs/DeveloperGuide.md` documents W1–W16 and the MP3-0 fixes (last full update 2026-10-19). Residual limitations stay in the guide's Known Limitations and § Known Gaps.
 
@@ -41,6 +41,7 @@ no server.
 | `src/main/java/com/snoozeshare/` | Source: `domain`, `repository`, `service`, `infra`, `session`, `ui.{common,guest,host,admin}`, `app`, `config` |
 | `config/checkstyle/`, `.github/workflows/` | Checkstyle rules; `ci.yml` (Checkstyle on every push; build + tests on PRs and on pushes to `development` and `main`) and the Pages workflow (publishes `docs/` on push to `main`) |
 | `db/schema.sql`, `db/seed-mock-data.sql`, `db/snoozeshare-mock.db` | Shared reference DB, committed. **Rebuild the `.db` from the two SQL files after any seed edit.** Seed timestamps are UTC ISO-8601 ending in `Z`; seed ids are hex UUIDs (prefixes: users `a`/`b`/`c`, tickets `d`, listings `1`, bookings `2`, wallets `3`, transactions `4`, availability `5`, audit `6`, categories `7`, reviews `8`). The `.db` ships migrated (schema_history through v8); `CommittedMockDbTest` guards that. Running the app with no `SNOOZESHARE_DB_URL` opens and **writes** it, so run against a copy |
+| `.claude/skills/`, `.claude/agents/` | Project skills (state, docs, lite spec/plan/execute workflow) and the read-only `lite-reviewer` agent |
 | `logs/` | Agent session logs `YYYY-MM-DD_HH-mm-ss_<branch>.md` (SGT) |
 
 ---
@@ -60,7 +61,9 @@ its own resume point in `docs/project-state/branch-states/`.
 
 | Item | Kind | Context / done when | Source | Added |
 |---|---|---|---|---|
-| New MP3 feature workstream(s) | Workstream | None scoped yet. Done when the operator names one and it has an approved spec and plan (`brainstorming`, `writing-plans`) | iteration 1 close | 2026-10-19 |
+| New MP3 feature workstream(s) | Workstream | None scoped yet. Done when the operator names one and it has an approved spec and plan (`writing-specs-lite`, `writing-plans-lite`) | iteration 1 close | 2026-10-19 |
+| Record the web pivot in this file | Decision | Stack, Orientation, Phase, How to Resume commands and the Known Gaps / out-of-scope entries the pivot reverses (C67); the owner decides per entry (Q4). Done when this file describes the web app and Q4 is closed. Blocks the first web-app spec | handed over from lightweight-spec-plan-skills | 2026-10-19 |
+| Trial the lite skills on the first web-app spec and plan | Todo | Revise `lint.mjs`, the templates and `lite-reviewer` from what the trial shows. Done when the first web-app spec, plan and execution have used them | handed over from lightweight-spec-plan-skills | 2026-10-19 |
 
 ---
 
@@ -199,6 +202,7 @@ Highest IDs used before this iteration: **W16, C59, D38, Q3**. Numbering continu
 - Dispute-window and stay-date rules live only in `domain.policy`.
 - Tests that match multi-line source text read it with `testsupport/SourceText.read` (CRLF working copies); tests never hard-code future dates (past dates are rejected).
 - Keep commits small and each one green (`AGENTS.md` § 6).
+- Specs, plans and their execution use `writing-specs-lite`, `writing-plans-lite` and `executing-plans-lite`; specs and plans are reviewed by the read-only `lite-reviewer` agent after `.claude/skills/writing-specs-lite/scripts/lint.mjs` passes. `brainstorming`, `writing-plans` and `reviewed-plan` only when the operator names them (C63, C64, C68).
 - **IDs:** `W` workstream, `C` decision, `D` deviation, `Q` question. Allocated only by `sync-project-state`; a branch state uses provisional `~` IDs and never cites one outside itself.
 - **Branches never edit this file.** Each writes `docs/project-state/branch-states/<slug>.md`; the owner approves it, merges the branch into `development`, then runs `sync-project-state` there. Do not merge a branch that is not `Approved` or has live session rows. Where a skill says `main`, read `development` (C60).
 - **Iterations:** the owner runs `refresh-project-state` by hand, guide first. Agents never start one and never read `docs/project-history/` at session start.
@@ -226,7 +230,7 @@ Highest IDs used before this iteration: **W16, C59, D38, Q3**. Numbering continu
 
 | ID | What is needed | What it blocks | Raised |
 |---|---|---|---|
-| — | No outstanding questions | — | — |
+| Q4 | Owner decides, per entry, which `PROJECT_STATE.md` § Known Gaps and "Explicitly out of scope" items the web pivot reverses (no multi-instance deployment, fully mocked auth, microservices/brokers/horizontal scaling, JPA, DTO layer, single-process events) and records them on `development` (`AGENTS.md` § 4) | The first web-app spec | 2026-10-19 |
 
 ---
 
@@ -241,6 +245,14 @@ Standing process decisions. Architecture-shaping ones sit with their area in § 
 | C56 | 2026-10-19 | The docs site is published by `.github/workflows/jekyll-gh-pages.yml` with `source: ./docs` (Pages source = GitHub Actions); supersedes the branch/folder deploy of C52 | Operator followed GitHub's recommendation; the template's `./` would have published `AGENTS.md` and this file | Operator conversation |
 | C59 | 2026-10-19 | CI: Checkstyle on every push; full build + tests on every PR and on `main`; merging requires both once branch protection is set. Rejected: full build on every branch push; building only on `main` | Operator: Checkstyle for all pushes, build and test for all PRs at least | `.github/workflows/ci.yml` |
 | C60 | 2026-10-19 | Branching and CI model: feature branch → `development` (integration, default; direct pushes and PRs allowed) → `main` (release; PR only). `checkstyle` and `build` are required status checks on both. CI runs Checkstyle on every push and the full build on PRs and on pushes to `development` and `main`. This file and the guide are written on `development`, and a branch state is folded after its merge into `development`. Amends C59 (which named `main` only) and C54 (fold after the merge into `development`, not `main`). | Operator: development comes before main; push/merge into either must run checkstyle and build; fold after merger into development | Operator conversation, 2026-10-19; repository rulesets; `.github/workflows/ci.yml` |
+| C61 | 2026-10-19 | Lite skills are separate files (`writing-specs-lite`, `writing-plans-lite`) alongside, not replacing, the superpowers-derived `brainstorming` / `writing-plans` | Operator wants a lightweight alternative; replacing would break the existing workflow in AGENTS.md | Operator request |
+| C62 | 2026-10-19 | A spec is an index file at the AGENTS.md § 3 path plus a sibling folder of component files (requirements, data model, API, conventions, edge cases, implementation order) | Operator: no single mega-document; keeps the AGENTS.md path valid | Operator spec |
+| C63 | 2026-10-19 | The lite skills are the repo defaults for spec and plan; `brainstorming`, `writing-plans`, `reviewed-plan` only when the operator names them. Amends C61 (alongside, not replacing) | Operator: set as defaults moving forward | `AGENTS.md` § 3 |
+| C64 | 2026-10-19 | Spec and plan reviews run in dedicated read-only `lite-reviewer` subagents (`.claude/agents/lite-reviewer.md`, tools Read/Grep/Glob), one per lens, reviewing logic first, then seams and integration. A separate agent configuration, not inline prompts. Rejected: self-review by the author agent | Operator | `.claude/agents/lite-reviewer.md` |
+| C65 | 2026-10-19 | Plans carry code snippets for tricky logic, schemas and any context-heavy component, not only contracts | Operator | `writing-plans-lite` rule 3 |
+| C66 | 2026-10-19 | Spec/plan amendments are recorded in the branch state as Decisions (no `## Amendments` heading in the spec or plan; the index keeps a one-line pointer) | Operator: amendments come from decision changes | `writing-specs-lite` change control |
+| C67 | 2026-10-19 | This iteration pivots SnoozeShare from a single-user Java desktop app to a multi-user web app (design: `docs/Webapp-architecture-design.md`). Skills and the reviewer agent are therefore stack-agnostic: they read invariants and commands from `PROJECT_STATE.md`; multi-user networked work has a Medium floor and High for authN/authZ, tenancy, money or personal data | Operator, 2026-10-19 | operator conversation |
+| C68 | 2026-10-19 | Added: stable edge-case IDs (`E`), spec/plan templates, `lint.mjs` (deterministic spec and plan checks), a two-round review cap, and `executing-plans-lite` (default for implementing plans) | Operator approved "proceed with all 7" | `.claude/skills/` |
 
 ---
 
@@ -266,4 +278,4 @@ Live traps only; resolved ones are in the archive. Each is what, the consequence
 The Done ledger lives in **[`docs/project-state/done-ledger.md`](docs/project-state/done-ledger.md)** — every change, big or small, newest first.
 
 - **Latest entry:** 2026-10-19
-- **Entries:** 4 (iteration 2 started; earlier entries in the archive)
+- **Entries:** 10 (iteration 2 started; earlier entries in the archive)
