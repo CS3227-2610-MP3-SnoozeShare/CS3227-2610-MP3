@@ -60,7 +60,7 @@ its own resume point in `docs/project-state/branch-states/`.
 
 | Item | Kind | Context / done when | Source | Added |
 |---|---|---|---|---|
-| Require the CI checks on `main` (P1) | Todo | `ci.yml` ran green on GitHub (2026-10-19). Done when the `checkstyle` and `build` checks are required by branch protection on `main` (a repository setting); then MP3-0 can be marked `Done` | handed over from MP3-0 | 2026-10-19 |
+| Get CI green, then require it on `main` (P1) | Todo | `ci.yml` ran on GitHub and failed on one Linux-only layout assertion (fixed: the New Ticket button now has a fixed 36px height, D38). Done when a run on `main` is green, then the `checkstyle` and `build` checks are required by branch protection (a repository setting); then MP3-0 can be marked `Done` | handed over from MP3-0 | 2026-10-19 |
 | New MP3 feature workstream(s) | Workstream | None scoped yet. Done when the operator names one and it has an approved spec and plan (`brainstorming`, `writing-plans`) | iteration 1 close | 2026-10-19 |
 
 ---
@@ -72,7 +72,7 @@ rows are in the [iteration 1 archive](docs/project-history/iteration-1/PROJECT_S
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| MP3-0 | MP2 feedback fixes before new MP3 features (bugs B1–B7, design D1–D6, CI/skills/docs) | Building | [correctness-cluster design](docs/superpowers/specs/2026-10-18-mp3-correctness-cluster-design.md) | [correctness-cluster plan](docs/superpowers/plans/2026-10-18-mp3-correctness-cluster.md) | Merged (PRs #1–#3); CI and Pages verified; open: required checks (P1, Upcoming) | Documented 2026-10-19 |
+| MP3-0 | MP2 feedback fixes before new MP3 features (bugs B1–B7, design D1–D6, CI/skills/docs) | Building | [correctness-cluster design](docs/superpowers/specs/2026-10-18-mp3-correctness-cluster-design.md) | [correctness-cluster plan](docs/superpowers/plans/2026-10-18-mp3-correctness-cluster.md) | Merged (PRs #1–#3); Pages verified; CI fixed, awaiting a green run and required checks (P1, Upcoming) | Documented 2026-10-19 |
 
 Status vocabulary, used verbatim: `Not started` · `Spec'd` · `Planned` · `Building` ·
 `Blocked — needs human` · `In review` · `Done` · `Abandoned`. Guide vocabulary (owned by
@@ -257,7 +257,7 @@ Live traps only; resolved ones are in the archive. Each is what, the consequence
 - **D12** — accepted: queue orders by `createdAt` text; adoption only checks for `users`; a self-booking (guest == host) loses an update; escrow comes from `booking.totalAmount()`; `DisputeDetailController.load()` calls `render()` outside its error handler.
 - **D18** — the JavaFX date-picker popup cannot be restyled to the board (two month/year spinners, mixed-case weekdays); revisit only with a custom `DatePickerSkin`.
 - **D20** — the suspension cascade refunds `totalAmount` without checking an `ESCROW_HOLD` row; a stay checking in today counts as started.
-- **D38** — W16 traps: `.agent-root`/`.host-root` overrides outrank `wallet.css` (the shared card also changes Host Wallet); pending trips sit under Upcoming; empty tables use `EmptyTableRow`; the ticket status pill is a fixed 116×36; Messages keep the 32px inset pinned by `HostPageLayoutTest`.
+- **D38** — W16 traps: `.agent-root`/`.host-root` overrides outrank `wallet.css` (the shared card also changes Host Wallet); pending trips sit under Upcoming; empty tables use `EmptyTableRow`; the ticket status pill is a fixed 116×36 and the New Ticket button a fixed 36px height (platform font metrics made it 34 on Linux); Messages keep the 32px inset pinned by `HostPageLayoutTest`.
 
 ---
 
@@ -266,4 +266,4 @@ Live traps only; resolved ones are in the archive. Each is what, the consequence
 The Done ledger lives in **[`docs/project-state/done-ledger.md`](docs/project-state/done-ledger.md)** — every change, big or small, newest first.
 
 - **Latest entry:** 2026-10-19
-- **Entries:** 2 (iteration 2 started; earlier entries in the archive)
+- **Entries:** 3 (iteration 2 started; earlier entries in the archive)
