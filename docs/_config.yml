@@ -1,8 +1,8 @@
 title: SnoozeShare
 description: CS3227 Mini Project 3
 
-# GitHub Pages renders docs/ with Jekyll. Set Settings > Pages > Source to "Deploy from a
-# branch", branch main, folder /docs.
+# Published by .github/workflows/jekyll-gh-pages.yml (Settings > Pages > Source = GitHub
+# Actions), which builds this docs/ folder with Jekyll on every push to main.
 theme: jekyll-theme-cayman
 
 # kramdown with GitHub-flavoured Markdown, so pipe tables, fenced code and task lists render.
@@ -27,5 +27,6 @@ exclude:
   - Gemfile
   - Gemfile.lock
   - MP2-feedback-triage.md
+  - project-history
   - project-state
   - superpowers
