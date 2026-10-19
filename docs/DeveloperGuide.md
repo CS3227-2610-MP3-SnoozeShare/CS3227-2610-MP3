@@ -10,7 +10,7 @@ Handover brief for developers taking over this project. It describes **confirmed
 is updated at checkpoints, so it can lag behind the code. For current status, work in flight, and
 what to build next, read [`PROJECT_STATE.md`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/PROJECT_STATE.md) — that is the source of truth.
 
-**Last updated:** 2026-10-19 — covers W1 to W14; corrected against the built app (database selection, search budget filter, Trips groups)
+**Last updated:** 2026-10-19 — covers W1 to W16 and the MP3-0 fixes; checked against the built app (database selection, search budget filter, Trips groups, date rules, post-commit events)
 
 ## Contents
 
@@ -110,6 +110,13 @@ Every payout follows one uniform fee rule, so the ledger always adds up.
 .\gradlew run     # start the app (main class com.snoozeshare.app.Launcher)
 ```
 
+**Continuous integration.** Two workflows live in `.github/workflows/`. `ci.yml` runs Checkstyle
+(`checkstyleMain checkstyleTest`) on every push to any branch, and the full `build` (compile,
+Checkstyle, all tests, under `xvfb-run` so the JavaFX suites have a display) on every pull request and
+on every push to `main`. `jekyll-gh-pages.yml` builds `docs/` with Jekyll and publishes it to GitHub
+Pages on every push to `main` (Settings > Pages > Source is GitHub Actions). Making the `build` check
+required before merge is a repository branch-protection setting, not something the workflows enforce.
+
 **Environment variable**
 
 | Name | Purpose | Where to obtain the value |
@@ -167,12 +174,28 @@ W1 establishes the application boundaries used by every later workstream:
   and do not access JDBC directly.
 - `ConnectionFactory`, `MigrationRunner` and `TransactionManager` define the embedded SQLite
   persistence boundary. Repository interfaces isolate domain/service code from `repository.jdbc`.
+  `TransactionManager` takes an optional `TransactionListener` (`onBegin`, `afterCommit`,
+  `afterRollback`); `inTransactionUnchecked` wraps work that cannot throw `SQLException`.
+- `domain.policy` is the single home of two date rules, each built from a `Clock` only:
+  [`DisputeWindowPolicy`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/domain/policy/DisputeWindowPolicy.java)
+  (a ticket can be filed from check-in through check-out + 7 days; a `CONFIRMED` booking auto-completes
+  only from check-out + 8 days, so an accepted dispute always reaches a booking that can still be
+  settled; C48) and
+  [`StayDatePolicy`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/domain/policy/StayDatePolicy.java)
+  (a stay or a search range may not start or end in the past, and check-out must follow check-in;
+  `requireNotInPast` backs Host calendar blocks). Services call these; controllers and services never
+  re-implement the rules. `AppContext` builds one `Clock.systemDefaultZone()` and passes it to the
+  policies, the completion sweep and the services, so the UI and the rules agree on what "today" is.
 - `WalletService` provides atomic top-up, withdrawal, balance and statement operations.
   Every wallet-moving service writes through `LedgerWriter` ([4.16](#416-unified-ledger-ledgerwriter)),
   which updates a wallet's `balance` and writes its `audit_log` money row (with the new
   `balanceAfter`) in the same transaction; there is a single ledger, not a separate one.
 - `EventBus`/`InProcessEventBus` publish committed domain events after successful transactions, and
-  the shared audit contracts provide typed audit records for mutating services.
+  the shared audit contracts provide typed audit records for mutating services. Services do not publish
+  wallet events themselves: [`PostCommitEvents`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/infra/events/PostCommitEvents.java)
+  is the `TransactionListener` that queues events during a transaction, publishes them in order through an
+  `EventSink` (the one-method seam over the bus) after commit, and discards them on rollback. It is one
+  shared queue, which relies on the single-process assumption (C50); nested transactions are rejected.
 
 The foundation is a single-process desktop boundary: there is no server, external authentication,
 message broker or distributed transaction coordinator. Package dependency tests protect the key
@@ -615,8 +638,8 @@ access repositories directly.
 selecting a card opens the listing detail modal. The detail view shows the complete property and host
 summary, calculates the selected stay total, and disables booking until both dates are selected.
 
-**Trips screen.** Booking state is grouped into Pending, Upcoming, Active, Completed and Cancelled.
-Eligible cards expose Cancel Booking, File Dispute and Leave Review actions; booking, cancellation and
+**Trips screen.** Bookings are grouped into three collapsible sections, Upcoming (including pending
+requests), Active and Past (including cancelled and rejected requests). Eligible cards expose Cancel Booking, File Dispute and Leave Review actions; booking, cancellation and
 ticket events refresh the current tab without a manual navigation cycle.
 
 **Messages screen.** One inbox merges ticket and booking conversations, preserves selection on refresh,
@@ -632,7 +655,15 @@ the listing, dates, guest ownership, account status and wallet balance in the se
 successful request creates a PENDING booking, places the total in an atomic ESCROW_HOLD, and
 creates the booking availability block. Guests may cancel pending or pre-check-in confirmed bookings;
 pending bookings receive a full refund, while confirmed bookings receive 100% when more than 48 hours
-remain and 50% otherwise. Trip and message views refresh from booking, ticket and message events.
+remain and 50% otherwise; the cancel dialog states both cases (a pending booking is refunded in full at
+any time). Trip and message views refresh from booking, ticket and message events.
+
+**Dates.** No date picker accepts a past date. In the UI, `GuestVisuals.blockPastDates` greys out
+and disables every day before today and, because greyed cells do not stop typing, also reports a past date
+typed into the field with a message while leaving it there; the service then refuses the search, booking
+or block with the same reason, so the action never runs with a silently dropped date. The services
+repeat the rule through `StayDatePolicy` (booking stay, search range, Host block). The Audit Log date
+filters are deliberately excluded because they must reach history.
 
 ```mermaid
 sequenceDiagram
@@ -690,6 +721,20 @@ wiring. Guest-specific controller snapshot coverage is not currently present.
 snapshot coverage has not been added. These are presentation/coverage limitations, not service-layer
 ownership or booking-safety gaps.
 
+**Traps from the W16 alignment (D38):**
+
+- The shared wallet page means a change to the Guest wallet card also changes the Host Wallet. Theme
+  overrides such as `.agent-root .wallet-balance-section` outrank `wallet.css`, so `wallet.css` owns the card
+  and its label rules are written as `.wallet-page .label.wallet-balance-*`.
+- Pending requests have no group of their own: they sit under Upcoming. A `CONFIRMED` stay whose end date
+  has passed, inside the 7-day window, appears under Past so its File dispute button stays reachable.
+- Every table's empty message is one row inside the table (`EmptyTableRow.install`); do not add a label
+  beneath a table.
+- The ticket status pill is a fixed 116x36 in CSS to match the `+ New Ticket` button; change both together.
+  Messages keep the 32px content inset pinned by `HostPageLayoutTest`.
+- Listing detail omits house rules and host response time, and the review modal has no pre-selected star,
+  because there is no data for the first and the rating is required for the second.
+
 ### 4.9 Host portal (`ui.host`)
 
 **Purpose:** the Host shell supports listing management, availability overrides, booking requests,
@@ -706,7 +751,7 @@ breadcrumbs; create/edit retain their form titles while detail and calendar incl
 
 #### 4.9.2 Host listing management (`ui.host.listings`)
 
-**Purpose:** hosts create, edit, publish, deactivate and inspect their own properties.
+**Purpose:** hosts create, edit, publish, deactivate and inspect their own properties. A new listing is saved with the status the form sends (active or inactive), not always active.
 
 **API**
 
@@ -780,7 +825,12 @@ validation/ownership, metrics, navigation, layout and Host stylesheet ownership.
 uses `AvailabilityService` to load the selected month, navigate months, add inclusive single-date or
 range blocks, and remove existing manual blocks. Booking blocks and manual blocks are shown with separate
 visual treatments. Validation rejects an end date before the start date and overlapping unavailable dates.
-The calendar is listing-scoped and does not bypass booking availability checks.
+The calendar is listing-scoped and does not bypass booking availability checks. It shows a booking
+range for every pending, confirmed or completed booking, including bookings with no stored block row
+(`AvailabilityService.blocksFor` adds a synthetic `BOOKING` block). A block cannot start in the past:
+the From and To pickers disable past days, and `createHostBlock` rejects a past start through
+`StayDatePolicy.requireNotInPast`, so a typed past date is refused with "From date cannot be in the
+past". Today is allowed.
 
 **Behavior and invariants:** the UI accepts inclusive dates while persistence stores the half-open end
 date. The UI requires a non-blank reason for every manual block; `AvailabilityService` trims a supplied
@@ -1252,6 +1302,14 @@ shape of row and a balance can never drift from the rows that explain it.
 - [`WalletTransactionType`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/domain/enums/WalletTransactionType.java) gained `PLATFORM_FEE` alongside `TOP_UP`, `WITHDRAWAL`, `ESCROW_HOLD`, `ESCROW_REFUND`, `BOOKING_PAYOUT`, `TICKET_REMEDY` and `AGENT_OVERRIDE`.
 - Callers: `WalletServiceImpl`, `TransactionServiceImpl`, `BookingServiceImpl`, `DisputeSettlementServiceImpl` ([4.5](#45-disputesettlementservice)) and `AccountGovernanceServiceImpl` ([4.15](#415-account-governance)). `WalletService` and `TransactionService` stay separate interfaces (C3, narrowed rather than removed by C39) — both now write through `LedgerWriter` instead of each hand-rolling "read wallet, add, save, insert ledger row".
 
+**Events and the fee rule.** `LedgerWriter` queues a `WalletTransactionRecordedEvent` for every money row
+it writes into `PostCommitEvents` ([3.1](#31-shared-foundation)); the shared `TransactionManager` publishes
+the queue after commit and discards it on rollback, so no service publishes wallet events by hand and a
+cancellation refreshes the header balance without a navigation cycle. A host payout therefore emits two
+events (the payout and the System `PLATFORM_FEE` row). The fee is defined once:
+`SettlementCalculator.platformFee(gross)` rounds 3% half-up and `hostNet(gross)` is gross minus that fee,
+for normal completion and dispute settlement alike; a guest refund never carries a fee.
+
 **Migrations:** three, run in order by `MigrationRunner`.
 
 | Migration | Does |
@@ -1370,7 +1428,8 @@ they exist. It describes current behavior, including deliberate deferrals and co
 - **Audit rows within one second can misorder** — timestamps are `Instant.toString()` text with a variable fractional part, so rows in the same second can sort out of order under `ORDER BY timestamp DESC, rowid DESC` (`PROJECT_STATE.md` § Known Gaps).
 - **Some audit rows are not emitted yet** — no service writes `BOOKING_CANCELLED_BY_HOST`, and W7 host calendar blocks are not audited. Booking request/decision state changes also do not yet have complete audit coverage, although their escrow money rows are recorded by `LedgerWriter`.
 - **Audit Log calendar differs from the board** — the date-picker popup keeps two month/year spinners and mixed-case weekday names, and the categories header sits about 5px left of its rows while the scroll bar shows (D18).
-- **The Audit Log screen has not been run in the real app** — plan Task 10 Step 3 was not performed; FX smoke and snapshot tests cover the flows, and the manual check below remains (D14).
+- **Audit Log date filters accept past dates** — by design: they filter history, unlike every other date picker.
+- **Wallet events share one queue** — `PostCommitEvents` is a single queue, safe only while the app is single-process and single-connection (C50).
 - **Auto-complete is not a background scheduler** — the current startup and Host Requests sweeps
   call `BookingService.completeEligibleBookings()`; any future trigger must still leave a booking
   alone while its ticket is `OPEN` or `IN_REVIEW` (C17).
@@ -1387,7 +1446,7 @@ they exist. It describes current behavior, including deliberate deferrals and co
 - **BOOKING_PAYOUT:** wallet transaction type for money released to the host. Its `amount` is already net of the 3% fee; when the fee is positive, `LedgerWriter.postPayout` also writes a `PLATFORM_FEE` row crediting the System wallet (W14).
 - **Cascade (suspension):** the bookings and listings changed in the same transaction as a suspension: force-cancelled bookings with refunds and a Host's deactivated listings.
 - **Conversation row:** one entry in a Messages inbox (`ConversationSummary` or `BookingConversationSummary`): counterpart, last message, unread count, and whether it is still writable.
-- **Dispute window:** the 7 days after checkout during which escrow stays held and a ticket can be opened (C17).
+- **Dispute window:** the 7 days after checkout during which escrow stays held and a ticket can be opened (C17). Filing is open through check-out + 7 days; auto-completion starts at check-out + 8 days (C48, `DisputeWindowPolicy`).
 - **Dual-write (historical):** until W14, a wallet movement wrote both a `wallet_transactions` row and an `audit_log` money row in one transaction (D13). W14 folded them into the one `audit_log` row and dropped `wallet_transactions` ([4.16](#416-unified-ledger-ledgerwriter)).
 - **Escrow:** the booking's `totalAmount`, held out of the guest's wallet from booking until it is refunded or paid out. It is "held" while a booking has an `ESCROW_HOLD` row and no releasing row.
 - **ESCROW_HOLD:** wallet transaction type that records the escrow being taken from the guest.
@@ -1401,6 +1460,7 @@ they exist. It describes current behavior, including deliberate deferrals and co
 - **Manual adjustment:** an agent-chosen split of the held escrow (Full refund, Full payout or Custom), independent of the remedy the ticket asked for.
 - **Mock DB:** the committed reference database `db/snoozeshare-mock.db`, built from `db/schema.sql` and `db/seed-mock-data.sql`.
 - **PLATFORM_FEE:** wallet transaction type crediting the System wallet with the platform's 3% cut of a host payout; written by `LedgerWriter.postPayout` only when the fee is positive (W14).
+- **Post-commit events:** domain events queued by `PostCommitEvents` during a transaction and published only after it commits (discarded on rollback), so a listener never sees a change that was rolled back ([3.1](#31-shared-foundation)).
 - **Reactivation:** returning a SUSPENDED Guest or Host to ACTIVE and clearing the reason. It restores no bookings or listings.
 - **Remedy:** what the ticket raiser asks for: `FULL_REFUND`, `PARTIAL_REFUND`, `HOST_PAYOUT` or `OTHER`.
 - **Scrim:** the light-grey 50% overlay laid over the agent window while a modal dialog is open (C26).
@@ -1428,7 +1488,7 @@ they exist. It describes current behavior, including deliberate deferrals and co
 | `.\gradlew build` | Compiles, runs checkstyle (`config/checkstyle/checkstyle.xml`), then all tests. |
 | `.\gradlew test --tests "com.snoozeshare.service.DisputeFlowEndToEndTest"` | Runs one class. A pattern such as `--tests "*DisputeSettlement*"` also works. |
 
-No credentials or external services are needed. Database-backed suites copy `db/snoozeshare-mock.db`
+The same commands run in CI (`.github/workflows/ci.yml`, see [Setting Up](#2-setting-up)). No credentials or external services are needed. Database-backed suites copy `db/snoozeshare-mock.db`
 to a temporary directory, so the committed file is never modified. Test run times were not
 measured for this guide.
 
@@ -1441,6 +1501,7 @@ measured for this guide.
 | Mock-DB integration: `DisputeSettlementServiceTest`, `TicketServiceIntegrationTest`, `DisputeQueryServiceTest`, `JdbcTicketRepositoryTest`, `JdbcTicketCategoryRepositoryTest` | Exact ledger rows, wallet balances, ticket and booking end states, audit content, precondition rejections that leave the database unchanged, repository round trips, read models. Built on [`MockDbFixture`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/test/java/com/snoozeshare/testsupport/MockDbFixture.java) with `MockIds` and `SettlementFixtures`. |
 | Audit trail, unit and service: `AuditActionTest`, `AuditRecordTest`, `AuditServiceTest`, `WalletLedgerAuditTest`, `AuditLogFormattingTest` | The enum and wallet-type mapping, the one-row-one-change rule and builder, status-only rows with name snapshots, search by name (surviving a rename), id fragment, action set, inclusive dates and ordering, top-up and withdrawal money rows and rollback when the audit write fails, and the screen's status, amount and TARGET text. |
 | Audit trail, database: `JdbcAuditLogRepositoryTest`, `AuditTrailMigrationTest`, `MockAuditSeedTest`, `CommittedMockDbTest` | Repository round trips and search clauses; V002 adds the columns and the System user and is idempotent; the seeded audit rows (one money row per ledger row, the four rows of ticket `#0004`, governance rows in the shape W11 will write). `CommittedMockDbTest` opens the committed `db/snoozeshare-mock.db` **directly and read-only** (not a copy, and without `MigrationRunner`) and checks it already has the audit columns, the System user and a migration version of at least 2 (now v8 after W14 — see the next row), so a stale committed file cannot hide behind a migrated copy (D15). |
+| Date rules and post-commit events (MP3-0): `DisputeWindowPolicyTest`, `StayDatePolicyTest`, `DisputeWindowBoundaryTest`, `PostCommitEventsTest`, `GuestVisualsDatePickerTest`, `TicketFilingControllerTest` | The day-7 filing and day-8 completion boundary, joined across the policy, the booking service and the sweep (including a second sweep settling nothing more); past and inverted ranges refused, today allowed; events published only after commit, in order, and discarded on rollback; a typed past date reported and kept while today and future dates pass; "Other" always last in the dispute categories. |
 | Unified ledger (W14): `LedgerWriterTest`, `JdbcLedgerRepositoryTest`, `LedgerConservationTest`, `MigrationForeignKeyTest`, `SystemRoleMigrationTest`, `SystemUserGuardTest`, `UnifiedLedgerMigrationTest`, `DropWalletTransactionsMigrationTest` | `LedgerWriter.post`/`postPayout` money rows, balances and the System `PLATFORM_FEE` credit; `LedgerRepository` queries; the conservation invariant (a wallet's `balance` equals its newest row, and a refund + host net + fee nets to the original escrow) against the mock DB and a real settlement; V006 rebuilding `users` with foreign keys off and restoring them; the System role and wallet; the System user guard (cannot authenticate, be suspended, or appear governable); V007's `balanceAfter` backfill and legacy `PLATFORM_FEE` rows; V008 dropping `wallet_transactions` ([4.16](#416-unified-ledger-ledgerwriter)). |
 | Audit screen layout (FX toolkit): `MultiSelectMenuTest`, `AdminTableLayoutTest` | The multi-select control's behaviour; fixed table headers, shared control heights, hover without a hand cursor and the date-picker styling on the agent tables. They skip when the toolkit cannot start. |
 | Account governance: `AccountGovernanceServiceTest`, `AccountGovernanceCascadeTest`, `AccountGovernanceAtomicityTest`, `SuspensionReasonMigrationTest`, `BookingServiceTest` | Validation, audit rows and events; the cascade scope (PENDING and not-yet-started CONFIRMED), refunds and listing deactivation; rollback on failure; V003; the suspended-guest booking guard |
@@ -1460,6 +1521,8 @@ measured for this guide.
 - Ids are hex UUIDs (prefixes: users `a`/`b`/`c`, tickets `d`, listings `1`, bookings `2`, wallets `3`, transactions `4`, availability `5`, audit `6`, categories `7`, reviews `8`). A non-hex prefix makes `UUID.fromString` throw.
 - Timestamps are UTC ISO-8601 ending in `Z`. `JdbcCodecs.instant` rejects zone-less values.
 - SQLite returns money columns as `REAL`, so a `BigDecimal` can come back at scale 1 (`150.0`). Assert money with `compareTo`, never `equals`.
+- Tests that match multi-line source text (CSS or FXML snippets) must read it with `testsupport/SourceText.read`, which normalises line endings; on Windows with `core.autocrlf=true` the working copy is CRLF and a raw `\n` match never succeeds.
+- Do not hard-code future calendar dates in booking or search tests: past dates are now rejected, so use dates relative to today (or a fixed `Clock`, as `AvailabilityServiceTest` does).
 - Rebuild `db/snoozeshare-mock.db` from `db/schema.sql` and `db/seed-mock-data.sql` after any seed edit, and keep the ledger invariant (NFR6) true.
 
 ### Manual
@@ -1505,7 +1568,7 @@ measured for this guide.
   4. Open a booking row inside its chat window (bookings 4 or 14) and send a reply; open one past its window (booking 11) and confirm the composer is disabled.
 - **Expected:** rows merge from both services into one list; sending updates unread state and persists across a restart; a closed booking chat and a resolved ticket both show history with no way to send; there is no control to create a new ticket.
 
-**Audit Log real-app check (D14).** Not yet performed; the FX smoke and snapshot tests cover the flows but nobody has driven the real app.
+**Audit Log real-app check (D14).** The operator drove this in the real app on 2026-09-26; repeat it after any change to the Audit Log screen.
 
 - **Prerequisites:** as above (a copy of the mock DB, `SNOOZESHARE_DB_URL` set, a display).
 - **Steps:**
