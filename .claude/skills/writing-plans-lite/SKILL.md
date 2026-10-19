@@ -15,6 +15,10 @@ A plan turns an **approved spec** into **tasks an agent can execute and tick off
 - Read `PROJECT_STATE.md` (§ Conventions, § Known Gaps) and the branch state. A task must not implement a Known Gap or contradict a decision; if one would, raise it (`AGENTS.md` § 4) before writing the plan.
 - Read the spec index and every component file, especially `implementation-order.md`.
 
+## Commands
+
+`<BUILD>` and `<TEST>` below mean the project's build and test commands from `PROJECT_STATE.md` § How to Resume (today: `.\gradlew build` and `.\gradlew test`); write the real commands into the plan, and re-read that section because the web pivot changes it.
+
 ## Rules
 
 1. **Mirror the spec.** Sections are the tasks `T1..Tn` from `implementation-order.md`, same IDs, same order, same dependency table. Do not invent, merge or drop tasks; if the order is wrong, fix the spec first and note it.
@@ -22,9 +26,11 @@ A plan turns an **approved spec** into **tasks an agent can execute and tick off
 3. **Say what changes, not the code.** Describe each modification precisely (method added, column added, branch changed, rule enforced) citing the spec section that defines it. **Include code snippets** wherever the planning session produced context the implementer would otherwise lose: tricky logic (algorithms, rounding, state transitions, concurrency/transaction handling), schemas and migrations (full SQL), signatures and interfaces, message strings, and any component whose correctness depends on a subtle choice. Snippets are the intended shape, marked as such; the implementer keeps them test-driven and adapts to the real code. Do not paste boilerplate the implementer can derive from the surrounding code.
 4. **Checklist is the work.** Steps are small, ordered, verifiable, and each ends in an observable result. They default to TDD: failing test -> implement -> green -> commit. Name the tests and what each asserts.
 5. **No placeholders.** No "TBD", "add error handling", "handle edge cases", "similar to Task N". Edge cases come from `edge-cases.md`: list the rows each task must cover by scenario name.
-6. **Small, green commits** (`AGENTS.md` § 6): one commit per task (or per logical slice), builds with `.\gradlew build`, handful of files. If a task touches more than ~15 files, split it and tell the operator the spec's order needs the same split.
+6. **Small, green commits** (`AGENTS.md` § 6): one commit per task (or per logical slice), builds with `<BUILD>`, handful of files. If a task touches more than ~15 files, split it and tell the operator the spec's order needs the same split.
 
 ## Layout
+
+Start from `templates/plan.md` in this skill folder.
 
 `docs/superpowers/plans/YYYY-MM-DD-<topic>.md`, one file. If it passes ~600 lines, the spec's feature is probably two workstreams.
 
@@ -46,11 +52,12 @@ A plan turns an **approved spec** into **tasks an agent can execute and tick off
 | Requirement | Task(s) | Verified by (test class or manual check) |
 |---|---|---|
 | F1 | T1, T2 | `FooTest` |
-Every F/N from the spec appears; a row with no task or no verifier is a plan gap.
+| E3 | T2 | `FooTest.rejectsEmptyName` |
+Every F, N and E ID from the spec appears (the lint script checks this); a row with no task or no verifier is a plan gap.
 
 ## Verification gates
-- Per task: `.\gradlew test` for the touched area, plus `.\gradlew checkstyleMain checkstyleTest` if Java changed.
-- Before finishing: `.\gradlew build` green; each spec F/N acceptance criterion has a passing test or a recorded manual check.
+- Per task: `<TEST>` for the touched area, plus the project's lint/style check if source changed.
+- Before finishing: `<BUILD>` green; each spec F/N acceptance criterion has a passing test or a recorded manual check.
 
 ---
 
@@ -65,18 +72,18 @@ Every F/N from the spec appears; a row with no task or no verifier is a plan gap
 | Test | `src/test/java/.../FooTest.java` | <cases: scenario names from edge-cases.md> |
 
 **Checklist**
-- [ ] 1. Write failing `FooTest`: <asserts>. Run `.\gradlew test --tests <class>`; expect FAIL because <reason>.
+- [ ] 1. Write failing `FooTest`: <asserts>. Run `<TEST> <target>`; expect FAIL because <reason>.
 - [ ] 2. Implement <change> in `Foo`/`Bar`.
 - [ ] 3. Run the same test; expect PASS.
 - [ ] 4. Cover edge cases: <scenario A>, <scenario B> (each a test).
-- [ ] 5. `.\gradlew build` green.
+- [ ] 5. `<BUILD>` green.
 - [ ] 6. Update branch state: Progress, Changes line.
 - [ ] 7. Commit: `feat: <what and why> (<workstream>)`.
 
 ### T2: ...
 
 ### Tn+1: Close-out (always last)
-- [ ] Every Traceability row verified; `.\gradlew build` green.
+- [ ] Every Traceability row verified; `<BUILD>` green.
 - [ ] Spec index status and plan Task order all reflect reality; amendments recorded in the branch state.
 - [ ] Branch state: workstream `In review`, Progress cleared of session rows, Changes lines complete, new Known Gaps / Conventions / Deviations written, `guide out of date: <what>` noted if the guide is affected (the guide is not edited on a branch, `AGENTS.md` § 5).
 - [ ] Tell the project owner the branch is ready for review. Never set `Approved`.
@@ -86,15 +93,15 @@ Every F/N from the spec appears; a row with no task or no verifier is a plan gap
 
 1. Check preconditions.
 2. **Verify against the repo**: open each file you will list; confirm names, signatures, package layering, and whether a file already exists. Fix the plan, not the guess.
-3. Write the plan file task by task. Add steps for anything the spec's *Conventions* require (audit rows, `LedgerWriter`, `SourceText.read` in tests, no hard-coded future dates, rebuilding `db/snoozeshare-mock.db` after seed edits).
-4. **Self-review** (below), fix inline, then dispatch one read-only `lite-reviewer` subagent on the plan (Medium and High tier; optional for Low). It checks logic, then file/seam correctness against the repo. Fix blocking findings.
+3. Write the plan file task by task. Add steps for anything the spec's *Conventions* require (each rule listed in the spec's `conventions.md` and in `PROJECT_STATE.md` § Conventions, such as audit rows, money-writing paths, test-support helpers, date handling, regenerating committed seed data).
+4. **Lint, then self-review** (below). Run `node .claude/skills/writing-specs-lite/scripts/lint.mjs plan <plan.md>` and fix every error (it checks task parity with the spec, traceability, file paths against the repo, checklist length). Then dispatch one read-only `lite-reviewer` subagent on the plan (Medium and High tier; optional for Low). It checks logic, then file/seam correctness against the repo. Fix blocking findings. At most two review rounds; after that unresolved blocking findings become open questions for the operator.
 5. **Operator reviews the plan** before any code is written; fold in their changes.
 6. Record in the branch state (workstream -> `Planned`, plan link, Changes line) and commit the plan alone (`docs: plan for <topic>`).
-7. Hand off: offer execution (inline task-by-task, or one subagent per task within a wave - only for tasks the dependency table marks concurrent and that share no files). The executor ticks the checklist and updates Status.
+7. Hand off to `executing-plans-lite`: offer execution (inline task-by-task, or one subagent per task within a wave - only for tasks the dependency table marks concurrent and that share no files). The executor ticks the checklist and updates Status.
 
 ## Parallel execution
 
-Only tasks in the same wave with no shared files run concurrently. Each agent owns its task's files and its own commits, never `git add -A`, and adds its own row to the branch state's Sessions table (Next action = task + first unticked step). The lead merges nothing out of order and re-runs `.\gradlew build` after each wave. Two agents editing the plan file: each ticks only its own task's boxes.
+Only tasks in the same wave with no shared files run concurrently. Each agent owns its task's files and its own commits, never `git add -A`, and adds its own row to the branch state's Sessions table (Next action = task + first unticked step). The lead merges nothing out of order and re-runs `<BUILD>` after each wave. Two agents editing the plan file: each ticks only its own task's boxes.
 
 ## Resuming
 
@@ -118,6 +125,7 @@ Plan-only change (extra step, reordered steps within a task): edit the plan and 
 - [ ] Every path verified; every Modify names the symbol or lines.
 - [ ] Every edge-case row from the spec is assigned to a task's tests.
 - [ ] Each checklist ends in a commit and a green build; no step is vague; no checklist exceeds ~10 steps (split the task otherwise).
-- [ ] Traceability table complete; Close-out task present.
+- [ ] Traceability table complete (F, N and E IDs); Close-out task present.
+- [ ] `lint.mjs plan` passes with no errors.
 - [ ] Names used in later tasks match names defined in earlier ones.
 - [ ] No task implements a Known Gap or violates a Convention.

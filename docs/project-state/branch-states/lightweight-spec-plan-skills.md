@@ -28,7 +28,8 @@ Add two project-level, lightweight skills, `writing-specs-lite` and `writing-pla
 **Remaining**
 
 - [ ] **Handover:** on `development`, update `PROJECT_STATE.md` § How to Resume → Upcoming row 1, which still names `brainstorming`/`writing-plans`, and add the lite skills to § Conventions (C~3).
-- [ ] Operator review of the gap fixes and `lite-reviewer` in both skills.
+- [ ] **Handover:** on `development`, `PROJECT_STATE.md` must record the web pivot (C~7): Stack, Orientation, Phase, How to Resume commands, and the Known Gaps / out-of-scope entries it reverses (Q~1). Until then the lite skills tell agents to read those sections fresh, so the first web-app spec will hit the `AGENTS.md` § 4 keep-or-reverse stop for each entry.
+- [ ] Operator review of the gap fixes, `lite-reviewer`, `lint.mjs`, templates and `executing-plans-lite`.
 - [ ] Trial the skills on the next real feature and revise.
 
 ---
@@ -43,6 +44,14 @@ Add two project-level, lightweight skills, `writing-specs-lite` and `writing-pla
 | C~4 | 2026-10-19 | Spec and plan reviews run in dedicated read-only `lite-reviewer` subagents (`.claude/agents/lite-reviewer.md`, tools Read/Grep/Glob), one per lens, reviewing logic first, then seams and integration. A separate agent configuration, not inline prompts. Rejected: self-review by the author agent | Operator | `.claude/agents/lite-reviewer.md` |
 | C~5 | 2026-10-19 | Plans carry code snippets for tricky logic, schemas and any context-heavy component, not only contracts | Operator | `writing-plans-lite` rule 3 |
 | C~6 | 2026-10-19 | Spec/plan amendments are recorded in the branch state as Decisions (no `## Amendments` heading in the spec or plan; the index keeps a one-line pointer) | Operator: amendments come from decision changes | `writing-specs-lite` change control |
+| C~7 | 2026-10-19 | This iteration pivots SnoozeShare from a single-user Java desktop app to a multi-user web app (design: `docs/Webapp-architecture-design.md`). Skills and the reviewer agent are therefore stack-agnostic: they read invariants and commands from `PROJECT_STATE.md`; multi-user networked work has a Medium floor and High for authN/authZ, tenancy, money or personal data | Operator, 2026-10-19 | operator conversation |
+| C~8 | 2026-10-19 | Added: stable edge-case IDs (`E`), spec/plan templates, `lint.mjs` (deterministic spec and plan checks), a two-round review cap, and `executing-plans-lite` (default for implementing plans) | Operator approved "proceed with all 7" | `.claude/skills/` |
+
+## 7. Needs a Human
+
+| ID | What is needed | What it blocks | Raised |
+|---|---|---|---|
+| Q~1 | Owner decides, per entry, which `PROJECT_STATE.md` § Known Gaps and "Explicitly out of scope" items the web pivot reverses (no multi-instance deployment, fully mocked auth, microservices/brokers/horizontal scaling, JPA, DTO layer, single-process events) and records them on `development` (`AGENTS.md` § 4) | The first web-app spec | 2026-10-19 |
 
 ---
 
@@ -53,3 +62,5 @@ Add two project-level, lightweight skills, `writing-specs-lite` and `writing-pla
 | 2026-10-19 | Added `writing-specs-lite` and `writing-plans-lite` project skills | — | pending commit |
 | 2026-10-19 | Made the lite skills the defaults (`AGENTS.md` § 3, `maintaining-project-state`; old skills marked non-default); added gap fixes: size gate, approaches, `ui.md`, migration/rollback, reviewer brief, change control, traceability, close-out, parallel/resume rules | — | pending commit |
 | 2026-10-19 | Added the `lite-reviewer` read-only subagent; specs and plans are reviewed by it (logic, then integration); plans may carry snippets; amendments live in the branch state | — | pending commit |
+| 2026-10-19 | Smoke-tested `lite-reviewer` on the MP3-0 spec and plan: it returned substantive logic and integration findings; revised the agent (stack-agnostic, `retrospective` mode, `UNVERIFIED` and `AGENT-NOTES` slots, chunked reads) | — | pending commit |
+| 2026-10-19 | Added `.claude/skills/writing-specs-lite/scripts/lint.mjs`, spec and plan templates, edge-case IDs, review round cap and `executing-plans-lite`; made the skills stack-agnostic for the web pivot; wired `executing-plans-lite` into `AGENTS.md` § 3 | — | pending commit |

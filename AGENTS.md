@@ -104,9 +104,11 @@ leaves a trap for the next agent, it also gets a Deviations entry. Only true no-
 
 Ambiguous size? Treat it as big.
 
-**Default skills.** Write the spec with `writing-specs-lite` and the plan with
-`writing-plans-lite` (`.claude/skills/`). Do not use `brainstorming`, `writing-plans`, or
-`reviewed-plan` unless the operator names them. The spec is an index file at the path above plus a
+**Default skills.** Write the spec with `writing-specs-lite`, the plan with `writing-plans-lite` and implement it
+with `executing-plans-lite` (`.claude/skills/`). Do not use `brainstorming`, `writing-plans`,
+`reviewed-plan`, `executing-plans` or `subagent-driven-development` unless the operator names them.
+Specs and plans are reviewed by the read-only `lite-reviewer` agent and checked with
+`.claude/skills/writing-specs-lite/scripts/lint.mjs`. The spec is an index file at the path above plus a
 sibling folder of component files; the plan mirrors the spec's implementation order task for task.
 
 If the operator asks to skip the spec and plan on a big change, say so once, then do as asked —

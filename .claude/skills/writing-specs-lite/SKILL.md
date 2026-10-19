@@ -27,8 +27,14 @@ A spec says **what the system must be and how it must behave**, never **how to b
 4. **Settle the risk tier** (see Risk tiers) with the operator in one sentence.
 5. **Choose the approach.** If more than one design is viable (different data shape, layer placement, or build-vs-reuse), give 2-3 options with trade-offs and a recommendation; the operator picks. Record the pick and the rejected options in the index's § Decisions made in this spec. If only one is viable, say so and move on.
 6. **Write the files** (see Layout and Components). Present the index and each component to the operator in turn; fix as they react.
-7. **Review pass** by dedicated read-only `lite-reviewer` subagents (see Perspectives). Fix findings in the files, not in chat.
-8. **Self-check** against the checklist at the bottom.
+7. **Review pass** (run the lint script first, below) by dedicated read-only `lite-reviewer` subagents (see Perspectives). Fix findings in the files, not in chat.
+8. **Run the lint script**, then self-check against the checklist at the bottom:
+
+```bash
+node .claude/skills/writing-specs-lite/scripts/lint.mjs spec docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md
+```
+
+Fix every error it prints before asking for approval (add `--approved` once the operator approves, to enforce 'no open Q'). Do this before the review pass so reviewers spend effort on judgement.
 9. **Operator approves** the spec. Then record it (Recording) and hand off to `writing-plans-lite`.
 
 ## Layout
@@ -90,23 +96,27 @@ Spec-local IDs use provisional form (`F1`, `N1`, `Q1`, `SD1`); they are not perm
 
 ## Components
 
+Start each file from `templates/` in this skill folder (`index.md`, `requirements.md`, `data-model.md`, `api.md`, `ui.md`, `conventions.md`, `edge-cases.md`, `implementation-order.md`) so the columns and headings stay uniform across specs.
+
 **requirements.md** - the F/N lists from the index, each with an acceptance criterion ("Given/When/Then" or a measurable threshold). Order so dependencies come first.
 
-**data-model.md** - *logical* model, not DDL: entities, attributes with type/nullability/default/range, keys, relationships and cardinality, ownership, lifecycle/state machine (states, legal transitions, who may trigger each), invariants ("sum of X equals Y"), retention, migration/backfill impact on existing rows, and which `PROJECT_STATE` § Architecture areas change. For persisted data also give **migration and rollback**: the migration version it needs, how existing rows are transformed, whether `db/schema.sql`, `db/seed-mock-data.sql` and `db/snoozeshare-mock.db` must be rebuilt, and what happens if the migration fails halfway. A small ER or state diagram (Mermaid) is welcome when it removes prose.
+**data-model.md** - *logical* model, not DDL: entities, attributes with type/nullability/default/range, keys, relationships and cardinality, ownership, lifecycle/state machine (states, legal transitions, who may trigger each), invariants ("sum of X equals Y"), retention, migration/backfill impact on existing rows, and which `PROJECT_STATE` § Architecture areas change. For persisted data also give **migration and rollback**: the migration version it needs, how existing rows are transformed, whether committed schema, seed or reference data must be regenerated (see `PROJECT_STATE.md` § Orientation), and what happens if the migration fails halfway. A small ER or state diagram (Mermaid) is welcome when it removes prose.
 
 **api.md** - for each operation: name/signature, caller and required role, inputs with validation rules and limits, outputs, errors (condition -> error type/message), idempotency, transaction boundary, events emitted, and compatibility with existing callers. Include **security** per operation: authorization rule, what must never be logged or returned, input trust. Table form preferred.
 
-**conventions.md** - the rules this change follows or introduces: naming, package/layer placement (check against `LayerDependencyTest`/`UiDependencyTest`), error handling and message style, money/date/time formats, audit-row requirements, test conventions. Cite existing § Conventions entries rather than restating; list only new or applied-here rules.
+**conventions.md** - the rules this change follows or introduces: naming, package/layer placement (check against the architecture tests named in `PROJECT_STATE.md` § Conventions), error handling and message style, money/date/time formats, audit-row requirements, test conventions. Cite existing § Conventions entries rather than restating; list only new or applied-here rules.
 
-**edge-cases.md** - table, grouped by theme (input, state, concurrency, failure, permission, time/clock, data volume, migration). Columns: *Scenario*, *Expected behaviour (exact)*, *Why it matters*, *Test layer* (unit / service / UI). Must cover the non-happy path of every F requirement and every API error. Scale to risk tier.
+**edge-cases.md** - table, grouped by theme (input, state, concurrency, failure, permission, time/clock, data volume, migration). Columns: *ID* (`E1`, `E2`, ... unique, never reused or renumbered; the plan and tests cite them), *Requirement* (F/N IDs it covers), *Scenario*, *Expected behaviour (exact)*, *Why it matters*, *Test layer* (unit / service / integration / UI). Every F requirement and every API error appears in at least one row's *Requirement* column (the lint script checks F/N coverage). Scale to risk tier.
 
 **implementation-order.md** - the logical sequence of tasks that the plan will mirror. Each task: ID (`T1`...), one-line outcome, what it delivers that others rely on, requirements it satisfies. Then the dependency table:
 
 | Task | Depends on | Can run concurrently with | Wave |
 |---|---|---|---|
-| T1 Schema + migration | - | - | 1 |
-| T2 Repository | T1 | T3 | 2 |
-| T3 Domain policy | - | T1, T2 | 1 |
+| T1 Schema + migration | - | T3 | 1 |
+| T2 Repository | T1 | - | 2 |
+| T3 Domain policy | - | T1 | 1 |
+
+The first column starts with the task ID (`T1`). Dependencies and concurrency use IDs only. A task's wave is one more than its latest dependency's wave; concurrency is symmetric (the lint script checks all three).
 
 Rules: a task depends on another only if it needs its *output or interface*; tasks in the same wave share no files; mark the wave a task can start in, and note shared-file hazards ("T4 and T5 both edit `AppContext`: serialize"). No step-level instructions here.
 
@@ -120,7 +130,7 @@ Decide from the change, not the feature name. Record the tier and why in the ind
 | Medium | New or changed data, state transitions, new service API, new dependency | Full api.md security per operation; edge cases across all themes; migration notes |
 | High | Money/ledger/escrow, role or permission rules, account governance, data migrations touching existing rows, anything irreversible | Everything in Medium plus: threat list (who could abuse this, how), failure/rollback behaviour for every multi-step mutation, audit trail requirements, a concurrency analysis, and an explicit "what could corrupt data" section in edge-cases.md |
 
-SnoozeShare specifics to check: auth is mocked, so role separation lives in service code - every operation states which `Role` may call it and where it is enforced; any wallet change goes through `LedgerWriter` in a `TransactionManager` transaction with its audit rows.
+**Project invariants.** Read them from `PROJECT_STATE.md` (§ Architecture, § Conventions, § Known Gaps) every time; never from memory, because they change between iterations. For a multi-user networked system (the web pivot) the floor is **Medium**, and **High** for anything touching authentication, authorization, tenancy, money or personal data. Every operation in `api.md` must then state: the authenticated principal, the authorization rule and where it is enforced, the tenancy scope (whose data it may read or write, and how cross-tenant access is prevented), input validation limits, and what is logged. Any invariant `PROJECT_STATE.md` records for money, audit or transactions is restated per operation as a checkable rule.
 
 ## Perspectives (review pass)
 
@@ -140,6 +150,8 @@ A spec written from one point of view hides that point of view's blind spots. Be
 
 **Change control after approval.** Do not edit an Approved spec silently. Amend it, record it in the branch state as a Decision (`C~n`: what changed, why, who asked, what was rejected) and put a one-line pointer to it at the top of the index (`Amended YYYY-MM-DD: see branch state C~n`), re-run the lenses that the change touches, and tell the operator; if a plan exists, update the plan before coding continues.
 
+**Round cap.** At most two review rounds. After round two, any unresolved blocking finding becomes an open `Q` for the operator; do not loop.
+
 Triage findings: fix blocking ones in the files; turn judgement calls into `Q`s for the operator; record rejected findings with a reason under § Decisions made in this spec. Note in the index which lenses ran.
 
 ## Recording (AGENTS.md § 2-3)
@@ -158,7 +170,8 @@ On the feature branch, in the same commit as the spec or the next:
 - [ ] Non-goals listed.
 - [ ] No implementation detail outside `implementation-order.md`; no code bodies.
 - [ ] Banned vague words absent; no open `Q`.
-- [ ] Every API error and every F requirement has an edge-case row.
+- [ ] Every API error and every F requirement has an edge-case row with an ID.
+- [ ] `lint.mjs spec` passes with no errors.
 - [ ] Dependency table present; waves have no shared files.
 - [ ] Review pass ran; lenses noted; findings resolved or recorded.
 - [ ] Files are separate and each is short.

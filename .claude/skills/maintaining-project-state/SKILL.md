@@ -72,8 +72,8 @@ change still gets its Done line.
 Ambiguous size? **Treat it as big.** A spec you did not need costs twenty minutes; a feature
 built without one costs a rewrite.
 
-Use `writing-specs-lite` for the spec and `writing-plans-lite` for the plan (the repo
-defaults). `brainstorming`, `writing-plans` and `reviewed-plan` remain available only when the
+Use `writing-specs-lite` for the spec, `writing-plans-lite` for the plan and
+`executing-plans-lite` to implement it (the repo defaults). `brainstorming`, `writing-plans` and `reviewed-plan` remain available only when the
 operator asks for them by name.
 
 **If the operator asks to skip the spec or the plan on a big change:** say so once, then do as
