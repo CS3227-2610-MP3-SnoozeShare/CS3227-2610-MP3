@@ -2,14 +2,14 @@
 
 **Living document — the source of truth for this project.** Read it in full before doing
 anything, then run `git log --oneline -20` to confirm it still matches reality. On `main` it
-changes only through `sync-project-state` (or an owner hotfix); on a branch, read it and write
+changes only through `sync-project-state` (or an owner hotfix) on `development`; on a branch, read it and write
 the branch state instead.
 
 - **Iteration:** 2 — iteration 1 (W1–W16 and the MP3-0 fixes) is closed
 - **History:** [docs/project-history/](docs/project-history/README.md) — archived iteration 1; not read at session start, open it only to answer "why was X decided?"
-- **Phase:** MP3-0 finishing (CI protection); no new feature workstream has started
+- **Phase:** MP3-0 done; no new feature workstream has started
 - **Stack:** Java 25, JavaFX 25 (javafx.controls, javafx.fxml), Gradle (application + shadow + checkstyle plugins), SQLite (embedded, `org.xerial:sqlite-jdbc`) via plain JDBC, JUnit 5 + TestFX
-- **Branch:** `main` — this file describes `main` only; branches record their changes in `docs/project-state/branch-states/` and `sync-project-state` folds them in
+- **Branch:** `development` — this file describes `development` (the integration and default branch); `main` is the release branch and receives it by pull request. Branches record their changes in `docs/project-state/branch-states/` and `sync-project-state` folds them in after the merge into `development`
 - **Method:** TDD-first vertical slices; spec then plan for big changes (`AGENTS.md` § 3); small commits (`AGENTS.md` § 6)
 - **Last updated:** 2026-10-19 by Claude Sonnet 5.5 — refreshed into iteration 2 (archive: iteration 1)
 - **Last verified against repo:** 2026-10-19
@@ -39,7 +39,7 @@ no server.
 | `docs/SnoozeShare-Architecture-Proposal.md`, `docs/ProductBacklog.md` | Original design rationale and the F0–F12 backlog |
 | `docs/MP2-feedback-triage.md` | MP2 grade-report triage that produced MP3-0 |
 | `src/main/java/com/snoozeshare/` | Source: `domain`, `repository`, `service`, `infra`, `session`, `ui.{common,guest,host,admin}`, `app`, `config` |
-| `config/checkstyle/`, `.github/workflows/` | Checkstyle rules; `ci.yml` (Checkstyle every push, build + tests on PRs and `main`) and the Pages workflow |
+| `config/checkstyle/`, `.github/workflows/` | Checkstyle rules; `ci.yml` (Checkstyle on every push; build + tests on PRs and on pushes to `development` and `main`) and the Pages workflow (publishes `docs/` on push to `main`) |
 | `db/schema.sql`, `db/seed-mock-data.sql`, `db/snoozeshare-mock.db` | Shared reference DB, committed. **Rebuild the `.db` from the two SQL files after any seed edit.** Seed timestamps are UTC ISO-8601 ending in `Z`; seed ids are hex UUIDs (prefixes: users `a`/`b`/`c`, tickets `d`, listings `1`, bookings `2`, wallets `3`, transactions `4`, availability `5`, audit `6`, categories `7`, reviews `8`). The `.db` ships migrated (schema_history through v8); `CommittedMockDbTest` guards that. Running the app with no `SNOOZESHARE_DB_URL` opens and **writes** it, so run against a copy |
 | `logs/` | Agent session logs `YYYY-MM-DD_HH-mm-ss_<branch>.md` (SGT) |
 
@@ -60,7 +60,6 @@ its own resume point in `docs/project-state/branch-states/`.
 
 | Item | Kind | Context / done when | Source | Added |
 |---|---|---|---|---|
-| Require the CI checks on `main` (P1) | Todo | `ci.yml` is green on `main` (run on f06e998: `checkstyle` and `build` both passed). Done when the `checkstyle` and `build` checks are required by branch protection (a repository setting); then MP3-0 can be marked `Done` | handed over from MP3-0 | 2026-10-19 |
 | New MP3 feature workstream(s) | Workstream | None scoped yet. Done when the operator names one and it has an approved spec and plan (`brainstorming`, `writing-plans`) | iteration 1 close | 2026-10-19 |
 
 ---
@@ -72,7 +71,7 @@ rows are in the [iteration 1 archive](docs/project-history/iteration-1/PROJECT_S
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| MP3-0 | MP2 feedback fixes before new MP3 features (bugs B1–B7, design D1–D6, CI/skills/docs) | Building | [correctness-cluster design](docs/superpowers/specs/2026-10-18-mp3-correctness-cluster-design.md) | [correctness-cluster plan](docs/superpowers/plans/2026-10-18-mp3-correctness-cluster.md) | Merged (PRs #1–#3); Pages and CI verified green; open: required checks (P1, Upcoming) | Documented 2026-10-19 |
+| MP3-0 | MP2 feedback fixes before new MP3 features (bugs B1–B7, design D1–D6, CI/skills/docs) | Done | [correctness-cluster design](docs/superpowers/specs/2026-10-18-mp3-correctness-cluster-design.md) | [correctness-cluster plan](docs/superpowers/plans/2026-10-18-mp3-correctness-cluster.md) | Merged (PRs #1–#3); CI and Pages verified; required checks set; operator-confirmed 2026-10-19 | Documented 2026-10-19 |
 
 Status vocabulary, used verbatim: `Not started` · `Spec'd` · `Planned` · `Building` ·
 `Blocked — needs human` · `In review` · `Done` · `Abandoned`. Guide vocabulary (owned by
@@ -201,7 +200,7 @@ Highest IDs used before this iteration: **W16, C59, D38, Q3**. Numbering continu
 - Tests that match multi-line source text read it with `testsupport/SourceText.read` (CRLF working copies); tests never hard-code future dates (past dates are rejected).
 - Keep commits small and each one green (`AGENTS.md` § 6).
 - **IDs:** `W` workstream, `C` decision, `D` deviation, `Q` question. Allocated only by `sync-project-state`; a branch state uses provisional `~` IDs and never cites one outside itself.
-- **Branches never edit this file.** Each writes `docs/project-state/branch-states/<slug>.md`; the owner approves it and runs `sync-project-state` after the merge. Do not merge a branch that is not `Approved` or has live session rows.
+- **Branches never edit this file.** Each writes `docs/project-state/branch-states/<slug>.md`; the owner approves it, merges the branch into `development`, then runs `sync-project-state` there. Do not merge a branch that is not `Approved` or has live session rows. Where a skill says `main`, read `development` (C60).
 - **Iterations:** the owner runs `refresh-project-state` by hand, guide first. Agents never start one and never read `docs/project-history/` at session start.
 - Agent interaction logs under `logs/` are append-only, one file per session; the logging skill is invoked manually at session end.
 
@@ -237,10 +236,11 @@ Standing process decisions. Architecture-shaping ones sit with their area in § 
 
 | ID | Date | Decision | Why / who asked | Source |
 |---|---|---|---|---|
-| C54 | 2026-10-19 | Branch-state workflow: this file describes `main` only and changes via `sync-project-state`; branches write `docs/project-state/branch-states/<slug>.md` | Operator adopted the universal skills; the old shared-file workflow collided on IDs | Operator conversation |
+| C54 | 2026-10-19 | Branch-state workflow: this file describes the integration branch (`main` when decided, `development` since C60) and changes via `sync-project-state`; branches write `docs/project-state/branch-states/<slug>.md` | Operator adopted the universal skills; the old shared-file workflow collided on IDs | Operator conversation |
 | C55 | 2026-10-19 | `refresh-project-state` closes an iteration; run by the owner, guide first, nothing deleted, IDs continue | Operator added the skill | `.claude/skills/refresh-project-state/SKILL.md` |
 | C56 | 2026-10-19 | The docs site is published by `.github/workflows/jekyll-gh-pages.yml` with `source: ./docs` (Pages source = GitHub Actions); supersedes the branch/folder deploy of C52 | Operator followed GitHub's recommendation; the template's `./` would have published `AGENTS.md` and this file | Operator conversation |
 | C59 | 2026-10-19 | CI: Checkstyle on every push; full build + tests on every PR and on `main`; merging requires both once branch protection is set. Rejected: full build on every branch push; building only on `main` | Operator: Checkstyle for all pushes, build and test for all PRs at least | `.github/workflows/ci.yml` |
+| C60 | 2026-10-19 | Branching and CI model: feature branch → `development` (integration, default; direct pushes and PRs allowed) → `main` (release; PR only). `checkstyle` and `build` are required status checks on both. CI runs Checkstyle on every push and the full build on PRs and on pushes to `development` and `main`. This file and the guide are written on `development`, and a branch state is folded after its merge into `development`. Amends C59 (which named `main` only) and C54 (fold after the merge into `development`, not `main`). | Operator: development comes before main; push/merge into either must run checkstyle and build; fold after merger into development | Operator conversation, 2026-10-19; repository rulesets; `.github/workflows/ci.yml` |
 
 ---
 
@@ -266,4 +266,4 @@ Live traps only; resolved ones are in the archive. Each is what, the consequence
 The Done ledger lives in **[`docs/project-state/done-ledger.md`](docs/project-state/done-ledger.md)** — every change, big or small, newest first.
 
 - **Latest entry:** 2026-10-19
-- **Entries:** 3 (iteration 2 started; earlier entries in the archive)
+- **Entries:** 4 (iteration 2 started; earlier entries in the archive)

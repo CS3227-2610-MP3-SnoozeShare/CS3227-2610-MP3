@@ -6,10 +6,16 @@ Instructions for any AI agent working in this repository. Read this before touch
 
 The operator may switch between models, agents, and context windows. None of that history survives; the state files do.
 
+**Branches.** Work flows feature branch → `development` → `main`. `development` is the integration (default)
+branch: it accepts direct pushes and pull requests. `main` is the release branch and only changes by pull
+request from `development`. `checkstyle` and `build` are required status checks on both. Wherever the
+skills in `.claude/skills/` say `main`, read **`development`**: that is the branch a branch state is
+merged into and folded on, and where `PROJECT_STATE.md` and the guide are written.
+
 | | `PROJECT_STATE.md` | Branch state |
 |---|---|---|
 | **Path** | repo root | `docs/project-state/branch-states/<slug>.md` (`<slug>` = branch name, `/` becomes `-`) |
-| **Describes** | `main`: what is merged, decided and handed over | what one branch has added or changed |
+| **Describes** | `development`: what is merged there, decided and handed over (`main` receives it by release PR) | what one branch has added or changed |
 | **Written by** | the `sync-project-state` skill (the owner may hotfix it by hand) | every agent working on that branch |
 
 **Anything not written in them did not happen.** On a branch, `PROJECT_STATE.md` is read-only.
@@ -26,7 +32,7 @@ The operator may switch between models, agents, and context windows. None of tha
 
 ## 2. Update it as you go, not at the end
 
-On a branch, write to **the branch state** immediately when any of these happen. On `main`, the
+On a branch, write to **the branch state** immediately when any of these happen. On `development`, the
 owner's hotfixes aside, `PROJECT_STATE.md` changes only when `sync-project-state` folds a branch
 in.
 
@@ -47,8 +53,8 @@ in.
 7. The session is ending or context is running low — reconcile your session row and § Remaining
    so a different session can take over cold. Mark anything that should outlive the branch
    **Handover**.
-8. You merge `main` into the branch — diff `PROJECT_STATE.md` since the branch state's `Base`,
-   re-check every area and entry the branch edits, then move `Base` to the new `main` sha.
+8. You merge `development` into the branch — diff `PROJECT_STATE.md` since the branch state's `Base`,
+   re-check every area and entry the branch edits, then move `Base` to the new `development` sha.
 9. The branch is finished — empty the session table, set `Status: In review`, and tell the
    project owner.
 
@@ -57,8 +63,8 @@ task is not complete until the branch state reflects it.**
 
 **Approval gate.** Branch state `Status` runs `Draft` → `In review` → `Approved` → `Folded`. Only
 the project owner sets `Approved`, with their name and the date; an agent never does. Do not merge
-a branch until it is `Approved` and its session table is empty. After the merge the owner runs
-`sync-project-state` by hand; a file still in `branch-states/` on `main` means a fold is pending.
+a branch into `development` until it is `Approved` and its session table is empty. After the merge the owner runs
+`sync-project-state` by hand; a file still in `branch-states/` on `development` means a fold is pending.
 
 **IDs.** Permanent IDs (`C14`) are allocated only by `sync-project-state`. A branch mints
 provisional `~` IDs and never cites one outside its own branch state — not in a commit message or a
@@ -127,7 +133,7 @@ goals, requirements, architecture, key decisions, diagrams, how to test. It hold
 work and changes only at checkpoints, so it may lag. **It never directs coding:** if it disagrees
 with `PROJECT_STATE.md`, the state file wins. Do not edit the guide to fix it outside a checkpoint;
 add `guide out of date: <what>` to the workstream's Progress instead. **The guide is written only on
-`main`**, never on a branch: a branch leaves a workstream's Guide at `—` and notes `guide out of date`
+`development`** (or on a branch cut from it for review), never on a feature branch: a branch leaves a workstream's Guide at `—` and notes `guide out of date`
 in its branch state.
 
 - **Developer guide checkpoint:** `feature`
@@ -145,7 +151,7 @@ each claim you are about to keep or add against the code (defaults, filters, tab
 limits), not against the spec or a past version of the guide. The MP2 guide drifted on exactly
 these points.
 
-**When a workstream reaches `Done`** (at fold, or directly on `main`): set its **Guide** column to `Awaiting confirmation` (or `N/A`,
+**When a workstream reaches `Done`** (at fold, or directly on `development`): set its **Guide** column to `Awaiting confirmation` (or `N/A`,
 with the reason in Progress) and ask the operator whether it is confirmed; a yes makes it `Pending`.
 At each checkpoint, **propose** the update — the sections and diagrams to add or change — and
 **write nothing until the operator approves**; then set Guide to `Documented YYYY-MM-DD`. If the
@@ -173,7 +179,7 @@ integration commits touched 55–96 files and needed a follow-up repair. So:
 - **Write descriptive messages:** `type: what changed and why` (`fix:`, `feat:`, `refactor:`,
   `docs:`, `test:`), naming the area or item ID. Never `update`, `wip`, or "record origin/main
   as merged".
-- **Keep the record in step:** update the branch state (and, on `main`, `PROJECT_STATE.md` and the Done ledger) in the same commit
+- **Keep the record in step:** update the branch state (and, on `development`, `PROJECT_STATE.md` and the Done ledger) in the same commit
   as the work they describe, or the very next one.
 
 ---
@@ -188,7 +194,7 @@ diagrams). This file is the portable subset.*
 
 Closed iterations of the project state are archived in `docs/project-history/` by the
 `refresh-project-state` skill. They are not the source of truth. The skill is run by hand by the
-project owner, on `main`, and only after the Developer Guide holds the context being archived
+project owner, on `development`, and only after the Developer Guide holds the context being archived
 (guide first, archive second). Agents never start a refresh on their own initiative.
 
 - **Never read `docs/project-history/` at session start**, and never take direction from it.
