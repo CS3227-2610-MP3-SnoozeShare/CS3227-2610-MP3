@@ -7,15 +7,15 @@ after the branch merges.
 - **Branch:** lightweight-spec-plan-skills (from `development` at `33ee5b1`)
 - **Base:** `33ee5b1`
 - **Owner:** Xiao-Congchen
-- **Status:** Draft
+- **Status:** In review
 - **Approved:** —
-- **Last updated:** 2026-10-19 by Claude Sonnet 5.5 — first drafts of both skills
+- **Last updated:** 2026-10-19 by Claude Sonnet 5.5 — ready for owner review
 
 ---
 
 ## 1. Scope
 
-Add two project-level, lightweight skills, `writing-specs-lite` and `writing-plans-lite`, as an alternative to the heavier superpowers brainstorming / writing-plans flow. Process tooling only; no application code. Small change (AGENTS.md § 3): no spec or plan.
+Add the project-level lightweight spec/plan workflow and make it the repo default: skills `writing-specs-lite`, `writing-plans-lite`, `executing-plans-lite`, the read-only `lite-reviewer` agent and the `lint.mjs` checker. Process tooling only; no application code. Small change (AGENTS.md § 3): no spec or plan.
 
 ---
 
@@ -23,14 +23,12 @@ Add two project-level, lightweight skills, `writing-specs-lite` and `writing-pla
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-19 | Claude Sonnet 5.5 | — | Paused | Drafts written, awaiting operator review | Operator reviews `.claude/skills/writing-specs-lite/SKILL.md` and `writing-plans-lite/SKILL.md`; apply feedback; then commit | 2026-10-19 |
 
 **Remaining**
 
 - [ ] **Handover:** on `development`, update `PROJECT_STATE.md` § How to Resume → Upcoming row 1, which still names `brainstorming`/`writing-plans`, and add the lite skills to § Conventions (C~3).
 - [ ] **Handover:** on `development`, `PROJECT_STATE.md` must record the web pivot (C~7): Stack, Orientation, Phase, How to Resume commands, and the Known Gaps / out-of-scope entries it reverses (Q~1). Until then the lite skills tell agents to read those sections fresh, so the first web-app spec will hit the `AGENTS.md` § 4 keep-or-reverse stop for each entry.
-- [ ] Operator review of the gap fixes, `lite-reviewer`, `lint.mjs`, templates and `executing-plans-lite`.
-- [ ] Trial the skills on the next real feature and revise.
+- [ ] **Handover:** trial the lite skills on the first web-app spec and plan; revise `lint.mjs`, templates and `lite-reviewer` from what it shows.
 
 ---
 
@@ -59,8 +57,8 @@ Add two project-level, lightweight skills, `writing-specs-lite` and `writing-pla
 
 | Date | What changed | Workstream | Ref |
 |---|---|---|---|
-| 2026-10-19 | Added `writing-specs-lite` and `writing-plans-lite` project skills | — | pending commit |
-| 2026-10-19 | Made the lite skills the defaults (`AGENTS.md` § 3, `maintaining-project-state`; old skills marked non-default); added gap fixes: size gate, approaches, `ui.md`, migration/rollback, reviewer brief, change control, traceability, close-out, parallel/resume rules | — | pending commit |
-| 2026-10-19 | Added the `lite-reviewer` read-only subagent; specs and plans are reviewed by it (logic, then integration); plans may carry snippets; amendments live in the branch state | — | pending commit |
-| 2026-10-19 | Smoke-tested `lite-reviewer` on the MP3-0 spec and plan: it returned substantive logic and integration findings; revised the agent (stack-agnostic, `retrospective` mode, `UNVERIFIED` and `AGENT-NOTES` slots, chunked reads) | — | pending commit |
-| 2026-10-19 | Added `.claude/skills/writing-specs-lite/scripts/lint.mjs`, spec and plan templates, edge-case IDs, review round cap and `executing-plans-lite`; made the skills stack-agnostic for the web pivot; wired `executing-plans-lite` into `AGENTS.md` § 3 | — | pending commit |
+| 2026-10-19 | Added `writing-specs-lite` and `writing-plans-lite` project skills | — | this branch |
+| 2026-10-19 | Made the lite skills the defaults (`AGENTS.md` § 3, `maintaining-project-state`; old skills marked non-default); added gap fixes: size gate, approaches, `ui.md`, migration/rollback, reviewer brief, change control, traceability, close-out, parallel/resume rules | — | this branch |
+| 2026-10-19 | Added the `lite-reviewer` read-only subagent; specs and plans are reviewed by it (logic, then integration); plans may carry snippets; amendments live in the branch state | — | this branch |
+| 2026-10-19 | Smoke-tested `lite-reviewer` on the MP3-0 spec and plan: it returned substantive logic and integration findings; revised the agent (stack-agnostic, `retrospective` mode, `UNVERIFIED` and `AGENT-NOTES` slots, chunked reads) | — | this branch |
+| 2026-10-19 | Added `.claude/skills/writing-specs-lite/scripts/lint.mjs`, spec and plan templates, edge-case IDs, review round cap and `executing-plans-lite`; made the skills stack-agnostic for the web pivot; wired `executing-plans-lite` into `AGENTS.md` § 3 | — | this branch |
