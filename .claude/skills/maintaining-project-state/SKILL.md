@@ -177,9 +177,16 @@ is in § Workstreams and § Changes.
 `—` · `Awaiting confirmation` · `Pending` · `Documented YYYY-MM-DD` · `N/A`, owned by the
 `update-documentation` skill. It tracks the guide, not the build.
 
+**On a branch the Guide cell stays `—` (or `N/A`, with the reason in Progress), even when the workstream
+is `Done` and the operator has confirmed the guide.** Only `sync-project-state` sets
+`Awaiting confirmation`, at fold on `development`; the update-documentation checkpoint then runs there.
+Record a branch-side confirmation as text in Progress (`guide confirmed by <owner> <date>`) and add
+`guide out of date: <what>`, so the fold carries both. Never write the guide itself on a branch.
+
 ## Red Flags — Stop and Write
 
 - "I'll update the branch state at the end" → you will run out of context first.
+- "The workstream is `Done` and the owner confirmed the guide, so I'll set Guide to `Awaiting confirmation` or `Pending`" → not on a branch. Leave `—`, write `guide confirmed by <owner> <date>` and `guide out of date: <what>` in Progress; the fold sets the value.
 - "It's a small change" → small changes are recorded too. Always.
 - "I'll just edit `PROJECT_STATE.md`, it's quicker" → on a branch it is read-only. Write the
   branch state; sync does the rest.

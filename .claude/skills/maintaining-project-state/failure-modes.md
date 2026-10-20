@@ -65,3 +65,7 @@ a reason not to write something down.
 - **Resolving a collision by dropping a side.** If two people sharing a branch collide inside the
   branch state, keep both session rows and both entries. Dropping one to make the file look clean
   erases a decision or trap that has nowhere else to live.
+- **Setting the Guide column on a branch.** A workstream reached `Done` on a branch and the agent wrote
+  `Awaiting confirmation` (or `Pending`) in its Guide cell. That value belongs to the fold on
+  `development`, where the checkpoint can actually write the guide. Keep `—`, record the owner's
+  confirmation and `guide out of date: <what>` in Progress, and let `sync-project-state` set the cell.
