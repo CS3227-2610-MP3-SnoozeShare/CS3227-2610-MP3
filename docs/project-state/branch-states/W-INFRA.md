@@ -7,9 +7,9 @@ after the branch merges.
 - **Branch:** W-INFRA (from `development` at `e64e16c`)
 - **Base:** `e64e16c`
 - **Owner:** Xiao-Congchen
-- **Status:** Draft
+- **Status:** In review
 - **Approved:** —
-- **Last updated:** 2026-10-20 by Claude Sonnet 5.5 — spec drafted, reviewed round 1
+- **Last updated:** 2026-10-20 by Claude Sonnet 5.5 — T1-T8 done, CI green, ready for owner review
 
 ---
 
@@ -29,7 +29,6 @@ plan".
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-20 | Claude Sonnet 5.5 | W-INFRA | Active | T1-T8 done | Close-out: lint --closeout, code review, set In review | 2026-10-20 |
 
 **Remaining**
 
@@ -47,7 +46,7 @@ plan".
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-INFRA (proposed name) | Mono-repo skeletons, local Postgres, CI, deploy setup | Building | [spec](../../superpowers/specs/2026-10-20-w-infra-design.md) | [plan](../../superpowers/plans/2026-10-20-w-infra.md) | Task 8/8 done; close-out in flight | — |
+| W-INFRA (proposed name) | Mono-repo skeletons, local Postgres, CI, deploy setup | In review | [spec](../../superpowers/specs/2026-10-20-w-infra-design.md) | [plan](../../superpowers/plans/2026-10-20-w-infra.md) | T1-T8 done; T9 post-merge, human | — |
 
 ---
 
@@ -62,6 +61,7 @@ plan".
 - Host memory exhaustion (JVM `insufficient memory` aborts) when Checkstyle and the Testcontainers tests run in one Gradle invocation; run `checkstyleMain checkstyleTest` and `test` as separate commands on this machine. Stopping idle daemons (`gradlew --stop`) helps.
 - T6: runtime image is `eclipse-temurin:25-jre-jammy`, not `25-jre`: on this machine the `25-jre` layers were corrupt in Docker's store (`exec format error`) after a Docker Desktop crash; jammy is the same Temurin 25 JRE with an explicit OS. Root `.gitattributes` forces LF for `gradlew` (a CRLF copy exited 127 in the Docker build on Windows checkouts). Container smoke test: prod profile against compose Postgres returned `{"status":"UP"}`.
 - T8 walkthrough (clean clone of the pushed branch, Windows): `gradlew run` on a copy of the mock DB started the JavaFX app (killed by timeout); compose + `bootRun` returned `{"status":"UP"}`; `npm ci` then `npm run dev` showed `Backend: UP` in the browser (CORS works). N1 scan: hits are only env var names, the compose credentials and test code reading container credentials. N5: no cross-project paths; only `../config/checkstyle` in both build files. N2: no `latest` or `+` versions; lockfile present. Page title changed from the scaffold default to `SnoozeShare`.
+- Code review (medium, 8 angles) fixed: compose binds Postgres to 127.0.0.1; empty `NEXT_PUBLIC_API_BASE_URL` treated as unset; E10 test asserts the connection failure; Dockerfile caches dependencies and runs as non-root; CI jobs have 30 min timeouts; scaffold README and svgs removed. Not fixed, accepted: `ProdProfileTest` starts its own containers (slower, isolated by design); E7 test mutates the shared container (sequential execution; revisit if tests go parallel); `checkstyle` also runs inside `gradlew build` (duplicate work, kept so a local `build` is complete); red throwaway commits for the E5 check sit in history; runbook owners are placeholders for the team to fill (T9 prerequisite).
 
 ---
 

@@ -20,6 +20,6 @@ class StartupFailureTest {
                 .profiles("dev")
                 .web(WebApplicationType.NONE)
                 .run("--spring.datasource.url=jdbc:postgresql://localhost:1/snoozeshare"))
-                .isInstanceOf(Exception.class));
+                .hasStackTraceContaining("localhost:1"));
     }
 }
