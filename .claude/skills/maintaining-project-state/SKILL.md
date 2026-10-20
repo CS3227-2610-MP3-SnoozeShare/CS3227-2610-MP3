@@ -96,7 +96,9 @@ branch state's Needs a Human.
 
 ## Write Immediately When
 
-On a branch, **write to the branch state**; `PROJECT_STATE.md` is read-only there.
+On a branch, **write to the branch state**; `PROJECT_STATE.md` is read-only there. The branch state
+keeps every `PROJECT_STATE.md` heading; one with nothing to change says `No change.` (Architecture,
+Conventions and Known Gaps add a one-line reason), and you rewrite that line the moment it stops being true.
 
 1. **A workstream changes status, or a task starts, finishes, or blocks** — update its row and
    Progress cell. A guide-related note goes in the row too; the guide itself is handled at sync.

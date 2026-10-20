@@ -4,9 +4,12 @@ Copy to `docs/project-state/branch-states/<slug>.md`, where `<slug>` is the bran
 replaced by `-`. Create `docs/project-state/branch-states/archive/` once per project.
 
 A branch state is a **lean "what has changed" file**. It mirrors `PROJECT_STATE.md` section for
-section, but each section holds only what **this branch adds or changes**. **Omit any section with
-nothing to say.** `sync-project-state` reads it to update `PROJECT_STATE.md` after merge, so write
-each section as the text that should land there.
+section, but each section holds only what **this branch adds or changes**. **Keep every
+heading, in the same order and with the same names as `PROJECT_STATE.md`. A section with nothing to
+change says `No change.` and, for Architecture, Conventions and Known Gaps, one line saying why** (for
+example "No change: this branch only edits docs"). An empty heading is never left blank and never
+deleted. `sync-project-state` reads it to update `PROJECT_STATE.md` after merge, so write each section
+as the text that should land there, and it can tell "nothing to fold" from "forgot to write it".
 
 Rules that differ from `PROJECT_STATE.md`:
 
@@ -37,9 +40,14 @@ after the branch merges.
 
 ---
 
-## 1. Scope
+**Scope.** <One or two sentences: what this branch is for and which workstream it serves.>
 
-<One or two sentences: what this branch is for and which workstream it serves.>
+---
+
+## 1. Orientation
+
+Rows added or changed in `PROJECT_STATE.md` § Orientation (new directories, moved paths, new docs), written
+as the rows that should land there. Otherwise: `No change.`
 
 ---
 
@@ -90,7 +98,8 @@ the reason); the guide is never edited on a branch.
 ## 4. Architecture
 
 One block per area this branch changes, named exactly as in `PROJECT_STATE.md`. Write the text that
-should replace the area's **Now**, not a description of the change.
+should replace the area's **Now**, not a description of the change. If no area changes, write
+`No change: <one-line reason>`.
 
 ### 4.x <Area name>
 
@@ -107,10 +116,34 @@ replacement paragraph, naming real files and functions.>
 
 ---
 
-## 5. Conventions · 6. Known Gaps · 7. Needs a Human · 8. Decisions · 9. Deviations
+## 5. Conventions
 
-Same tables and rules as `PROJECT_STATE.md`, listing only entries added, changed (name the entry
-replaced) or removed. Use provisional IDs for new ones. Omit empty sections.
+Entries added, changed (name the entry replaced) or removed, in `PROJECT_STATE.md`'s format. Otherwise:
+`No change: <one-line reason>`.
+
+---
+
+## 6. Known Gaps
+
+Entries added, changed or removed. Otherwise: `No change: <one-line reason>`.
+
+---
+
+## 7. Needs a Human
+
+Questions added or resolved. Otherwise: `No change.`
+
+---
+
+## 8. Decisions
+
+Decisions added or changed, with provisional IDs. Otherwise: `No change.`
+
+---
+
+## 9. Deviations
+
+Deviations and discoveries added, with provisional IDs. Otherwise: `No change.`
 
 ---
 

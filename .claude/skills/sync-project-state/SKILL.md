@@ -51,6 +51,12 @@ in `docs/project-state/branch-states/` and ask which. Fold one at a time, oldest
 **2. Read** `PROJECT_STATE.md`, the head of `docs/project-state/done-ledger.md`, and the branch
 state, in full.
 
+**2a. Check the `No change` claims.** Every heading should be present. A missing heading is a gap: ask
+the owner or the author to add it before folding. For each Architecture, Conventions or Known Gaps
+section that says `No change`, skim the branch diff (`git diff <Base> <merge sha> --stat`) for new
+directories, dependencies, profiles, scripts or boundaries it contradicts; if it does, stop and ask.
+A true `No change` is skipped in step 5.
+
 **3. Check for stale bases — before editing anything.** A pure addition never conflicts. An
 **edit to an existing entry** (an area's *Now*, a Workstream row, a Convention, a Known Gap) does
 if another fold or hotfix changed it since the branch's `Base`:
@@ -70,7 +76,7 @@ reused. Give the branch state's provisional IDs the next numbers, in the order t
 top to bottom. Rewrite every citation inside the branch state text in **one regex pass**
 (`([WCDQ])~(\d+)`), so `C~1` can never match inside `C~12`. Keep the map; it goes in the archive.
 
-**5. Apply, section by section.** Newest first wherever the target is newest-first.
+**5. Apply, section by section.** Newest first wherever the target is newest-first. A section reading `No change` adds nothing.
 
 | Branch state | Goes to |
 |---|---|

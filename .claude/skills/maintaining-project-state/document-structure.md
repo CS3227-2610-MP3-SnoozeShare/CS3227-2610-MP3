@@ -97,17 +97,18 @@ them.
 that an interrupted session on the branch can be resumed by anyone.
 
 **It mirrors the project-state sections but holds only what the branch adds or changes.** A
-section with nothing to say is omitted. It is not a second copy of the project; if a reader needs
+section with nothing to change keeps its heading and says `No change.` (Architecture, Conventions and Known Gaps add a one-line reason), so the fold can tell "nothing to fold" from "forgot to write it". It is not a second copy of the project; if a reader needs
 the whole picture they read `PROJECT_STATE.md` and then the branch state.
 
 | Branch-state section | Holds | At fold it becomes |
 |---|---|---|
 | Header | Branch, `Base`, owner, `Status`, `Approved`, `Last updated` | Archive only |
-| 1. Scope | What the branch is for | A Workstream row |
+| Scope (header paragraph) | What the branch is for | A Workstream row |
+| 1. Orientation | Path-table rows added or changed | § Orientation |
 | 2. How to Resume | Setup, the session table, Remaining work | Sessions discarded; **Handover** items go to § How to Resume → Upcoming |
 | 3. Workstreams | Rows created or changed | § Workstreams |
 | 4. Architecture | Per area: proposed **Now**, Paths, decisions | § Architecture |
-| 5–9. Conventions … Deviations | Entries added, changed or removed | The matching section |
+| 5. Conventions, 6. Known Gaps, 7. Needs a Human, 8. Decisions, 9. Deviations | Entries added, changed or removed, or `No change.` | The matching section |
 | 10. Changes | Ledger lines | `done-ledger.md` |
 
 ### How to Resume — the part that matters most on a branch
