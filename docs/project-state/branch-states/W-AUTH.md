@@ -32,18 +32,18 @@ cd ../backend && ./gradlew test
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-21 | Codex (lead) | W-AUTH | Active | T2 step 1: verifier tests | Establish failing Firebase verifier/configuration tests; preserve the pre-existing Firebase dependency edits | 2026-10-21 |
+| S1 | 2026-10-21 | Codex (lead) | W-AUTH | Active | T3 step 1: security tests | Write the failing MockMvc tests for bearer verification, role paths and CORS; preserve the frontend Firebase dependency edit | 2026-10-21 |
 
 **Remaining**
 
-- [ ] T2: implement Firebase Admin configuration and token-verifier boundary.
+- [ ] T3: implement stateless Spring Security filters and role authorization.
 - [ ] **Handover:** After spec approval, write the implementation plan and execute it with Firebase emulator/test doubles for automated tests.
 
 ## 3. Workstreams
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AUTH | Firebase authentication and role authorization | Building | [spec](docs/superpowers/specs/2026-10-20-w-auth-design.md) | [plan](docs/superpowers/plans/2026-10-20-w-auth.md) | T1 complete; T2 step 1 next: verifier tests | — |
+| W-AUTH | Firebase authentication and role authorization | Building | [spec](docs/superpowers/specs/2026-10-20-w-auth-design.md) | [plan](docs/superpowers/plans/2026-10-20-w-auth.md) | T1 complete; T2 complete; T3 step 1 next: security tests | — |
 
 ## 4. Architecture
 
@@ -101,6 +101,7 @@ Firebase project, Email/Password provider, and local Admin SDK credentials are c
 |---|---|---|---|
 | D~1 | Branch had pre-existing uncommitted Firebase Admin and Firebase JS dependency edits when execution began | The clean-tree precondition cannot be met without touching operator work | Preserve the files, include them in their planned T2/T6 dependency commits, and verify the final diff before close-out |
 | D~2 | Frontend baseline `npm ci` could not resolve `registry.npmjs.org` in this environment | Frontend baseline tests/build remain unverified until npm network access is available | Retry the frontend gate before W-AUTH close-out; backend and desktop baselines passed |
+| D~3 | Firebase Admin beans are gated by `FIREBASE_ENABLED` so existing datasource-free contexts remain usable | Local auth activation requires `FIREBASE_ENABLED=true`; enabled startup still fails fast for missing project, codes or ADC credentials | Document the activation variable in the developer handover at the development checkpoint |
 
 ## 10. Changes
 
@@ -108,3 +109,4 @@ Firebase project, Email/Password provider, and local Admin SDK credentials are c
 |---|---|---|---|
 | 2026-10-20 | Started W-AUTH branch state and recorded Firebase credential setup | W-AUTH | working tree |
 | 2026-10-21 | Added V002 auth users/wallets schema, role model, JDBC repository contracts and implementations; focused migration test, checkstyle and backend build pass | W-AUTH | T1 |
+| 2026-10-21 | Added Firebase Admin configuration, revocation-aware token verifier, provider error classification and required backend dependencies; focused tests, checkstyle and backend build pass | W-AUTH | T2 |
