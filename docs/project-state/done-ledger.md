@@ -7,6 +7,7 @@ Iteration 2 started; earlier entries: [docs/project-history/iteration-1/done-led
 
 | Date | What changed | Workstream | Ref |
 |---|---|---|---|
+| 2026-10-20 | Recorded the web re-platform in `PROJECT_STATE.md` from `docs/Webapp-architecture-design.md`: Phase, Stack (today and target), Orientation, an Architecture note, decisions C76–C80, questions Q5 and Q6, and the migration order as Upcoming workstreams (replacing the placeholder and pivot rows). Owner-directed edit on `development`; the design doc stays a proposal and each workstream still needs its own spec | — | this commit |
 | 2026-10-20 | Closed Q4 (which Known Gaps and out-of-scope entries the web pivot reverses): decisions C69–C75. Retired the mocked-auth, audit-timestamp and Audit Log polish gaps; DTO layer adopted; JPA deferred to the W-DOMAIN spec; the rest kept. Owner-directed edit of this file on `development`. Q4 is resolved and its number is not reused | — | this commit |
 | 2026-10-19 | Folded the `lightweight-spec-plan-skills` branch state into `PROJECT_STATE.md`: decisions C61–C68, Q4, a Convention and an Orientation row, two Upcoming handovers; the old Upcoming row now names the lite skills | — | this sync commit |
 | 2026-10-19 | Added `.claude/skills/writing-specs-lite/scripts/lint.mjs`, spec and plan templates, edge-case IDs, review round cap and `executing-plans-lite`; made the skills stack-agnostic for the web pivot; wired `executing-plans-lite` into `AGENTS.md` § 3 | — | PR #8 (`ba554e5`) |
