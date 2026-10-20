@@ -53,6 +53,7 @@ plan".
 ## 7. Needs a Human
 
 - Plan review by the operator (spec approved 2026-10-20 by Xiao-Congchen, including SD10 and the SD13 extras).
+- Runbook owners (`docs/runbooks/dev-environment.md`) are left as placeholders by the operator's decision (2026-10-20); the team names them before T9 starts.
 - T9 (after merge): create Railway, Vercel and Neon projects/branch, set variables (runbook order).
 
 - D~1 (T3, plan-only): Spring's binder leaves an unresolved `${VAR}` in `spring.datasource.*` in place, so a missing prod variable surfaced as a driver error that did not name it (F6, E18 not met). Added `ProdEnvironmentGuard` (`@Profile("prod")` bean-factory post-processor reading the four required keys strictly), which also covers `snoozeshare.cors.allowed-origin` (E17, tested in T4). Test container is a JVM-wide singleton in `PostgresIntegrationTest`: a per-class `@Container` restarted on a new port while Spring reused the cached context.
