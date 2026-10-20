@@ -7,7 +7,7 @@
 - **Owner:** project owner
 - **Status:** In review
 - **Approved:** —
-- **Last updated:** 2026-10-21 by Codex — T1 schema and repository implementation
+- **Last updated:** 2026-10-21 by Codex — T3 security boundary implementation
 
 ---
 
@@ -32,24 +32,24 @@ cd ../backend && ./gradlew test
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-21 | Codex (lead) | W-AUTH | Active | T3 step 1: security tests | Write the failing MockMvc tests for bearer verification, role paths and CORS; preserve the frontend Firebase dependency edit | 2026-10-21 |
+| S1 | 2026-10-21 | Codex (lead) | W-AUTH | Active | T4 step 1: registration tests | Write the failing registration service/controller tests; preserve the frontend Firebase dependency edit | 2026-10-21 |
 
 **Remaining**
 
-- [ ] T3: implement stateless Spring Security filters and role authorization.
+- [ ] T4: implement transactional registration and `/api/auth/me`.
 - [ ] **Handover:** After spec approval, write the implementation plan and execute it with Firebase emulator/test doubles for automated tests.
 
 ## 3. Workstreams
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AUTH | Firebase authentication and role authorization | Building | [spec](docs/superpowers/specs/2026-10-20-w-auth-design.md) | [plan](docs/superpowers/plans/2026-10-20-w-auth.md) | T1 complete; T2 complete; T3 step 1 next: security tests | — |
+| W-AUTH | Firebase authentication and role authorization | Building | [spec](docs/superpowers/specs/2026-10-20-w-auth-design.md) | [plan](docs/superpowers/plans/2026-10-20-w-auth.md) | T1–T3 complete; T4 step 1 next: registration tests | — |
 
 ## 4. Architecture
 
 ### 4.9 Web platform skeleton (backend, frontend, hosting)
 
-**Now (proposed):** W-AUTH adds Firebase Admin initialization to the Spring Boot backend, verifies a Firebase ID token at the HTTP boundary, resolves the role from the PostgreSQL `users` row keyed by Firebase UID, and applies role-specific URL authorization. The Next.js frontend initializes the Firebase JS SDK from `NEXT_PUBLIC_FIREBASE_*` values, exposes auth state through `AuthProvider`, sends bearer tokens through the API wrapper, and protects role routes. Registration creates the Firebase identity client-side, then creates the backend profile and wallet transactionally after the backend verifies the bearer token.
+**Now:** W-AUTH initializes Firebase Admin when `FIREBASE_ENABLED=true`, verifies revocable Firebase ID tokens, establishes a stateless Spring Security principal, resolves the active role from the PostgreSQL `users` row keyed by Firebase UID, and applies role-specific URL authorization. When auth is disabled, a permit-all fallback preserves the existing backend skeleton contexts. The Next.js frontend and registration flow remain pending T4–T8.
 
 | Path | Role |
 |---|---|
@@ -110,3 +110,4 @@ Firebase project, Email/Password provider, and local Admin SDK credentials are c
 | 2026-10-20 | Started W-AUTH branch state and recorded Firebase credential setup | W-AUTH | working tree |
 | 2026-10-21 | Added V002 auth users/wallets schema, role model, JDBC repository contracts and implementations; focused migration test, checkstyle and backend build pass | W-AUTH | T1 |
 | 2026-10-21 | Added Firebase Admin configuration, revocation-aware token verifier, provider error classification and required backend dependencies; focused tests, checkstyle and backend build pass | W-AUTH | T2 |
+| 2026-10-21 | Added stateless Spring Security bearer filtering, role namespace authorization, service authorization boundary, CORS/health handling and security integration tests; full backend build passes | W-AUTH | T3 |
