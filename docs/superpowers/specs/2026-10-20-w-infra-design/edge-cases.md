@@ -15,7 +15,7 @@ IDs are permanent: never reuse or renumber. Every F requirement and every API er
 | ID | Requirement | Scenario | Expected behaviour (exact) | Why it matters | Test layer |
 |---|---|---|---|---|---|
 | E6 | F3 | Health called with the database up | 200, body exactly `{"status":"UP"}` | Railway and the page rely on the exact body | integration |
-| E7 | F3 | Database container paused (`pauseContainerCmd`, port unchanged) while the backend runs, then unpaused | 503 with body exactly `{"status":"DOWN"}` within 10 s of the pause; 200 `{"status":"UP"}` within 10 s of the unpause | A false UP routes traffic to a broken instance | integration |
+| E7 | F3 | Database logins blocked (`ALTER ROLE ... NOLOGIN` plus terminating the other backends; a paused container would hang the health query) while the backend runs, then restored | 503 with body exactly `{"status":"DOWN"}` within 10 s of the block; 200 `{"status":"UP"}` within 10 s of the restore | A false UP routes traffic to a broken instance | integration |
 | E8 | F3, N1 | `GET /actuator`, `/actuator/info`, `/actuator/env`, `/actuator/beans` | 404 | Information disclosure | integration |
 | E9 | F3, N1 | Health requested with `?show-details=always`, `?details=true` and an `Authorization` header | Body is still exactly `{"status":"UP"}` | A secret-bearing URL must not leak | integration |
 | E10 | F4 | Context starts with profile `dev` and Postgres not running | `SpringApplication.run` throws within 20 s with the connection error; no retry loop | A developer must see the real cause | integration |

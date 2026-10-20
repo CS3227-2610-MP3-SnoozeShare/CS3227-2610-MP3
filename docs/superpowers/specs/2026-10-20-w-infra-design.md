@@ -1,8 +1,9 @@
 # W-INFRA Design
 
-- **Status:** Draft
+- **Status:** Approved (Xiao-Congchen, 2026-10-20)
+- **Amended 2026-10-20:** see branch state C~4 (Checkstyle `configDirectory`, E7 mechanism)
 - **Risk tier:** Medium - adds a backend service, a frontend app and three new dependency stacks, moves the whole desktop tree, and rewrites the CI that gates merges; no authentication, money or personal data is touched.
-- **Workstream:** W-INFRA | **Plan:** not yet written
+- **Workstream:** W-INFRA | **Plan:** [W-INFRA plan](../plans/2026-10-20-w-infra.md)
 - **Constraints consulted:** C60 (branching and required checks `checkstyle`, `build`), C63/C64/C68 (lite skills), C69 (single instance), C73 (DTO layer, later), C74 (persistence approach deferred), C76-C78 (web re-platform, Postgres + Flyway, profiles), C80 (AI later), Q5 (the operator's answer is SD1; the branch state, not this spec, records it and PROJECT_STATE closes it at fold), § Known Gaps (single instance; no payment gateway), Webapp design §§ 3, 6, 9
 - **Reviewed by lenses:** Implementer, Tester, Maintainer, User (round 1, findings applied; round 2 not yet run)
 
