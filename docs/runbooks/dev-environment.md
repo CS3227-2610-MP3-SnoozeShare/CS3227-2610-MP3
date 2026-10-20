@@ -10,11 +10,11 @@ Render first, then Vercel, then Render again: the frontend needs the backend URL
 
 | # | Owner | Step |
 |---|---|---|
-| 1 | _team member, fill in_ | Render: New > Blueprint from this repo; it reads `render.yaml` (Docker web service on the free plan, branch `development`, build context `backend`, health check `/actuator/health`). Enter the `sync: false` secrets in the dashboard when prompted. |
-| 2 | _team member, fill in_ | Neon: create a project and a branch `dev`. On Render set `SPRING_PROFILES_ACTIVE=prod`, `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD`, and a placeholder `SNOOZESHARE_CORS_ALLOWED_ORIGIN` (for example `http://localhost:3000`). Deploy. |
-| 3 | _team member, fill in_ | Vercel: create a project with root directory `frontend`, Production Branch `development`, and `NEXT_PUBLIC_API_BASE_URL` set to the Render public URL (no trailing slash). A first deploy without the variable must fail the build. Set the Framework Preset to **Next.js**: if the preset is left on "Other", the build fails with `No Output Directory named "public" found` (`frontend/vercel.json` also pins it). |
-| 4 | _team member, fill in_ | Render: set `SNOOZESHARE_CORS_ALLOWED_ORIGIN` to Vercel's stable production domain (scheme and host, no trailing slash) and redeploy. |
-| 5 | _team member, fill in_ | Verify (below) and fill in the evidence block. |
+| 1 | Xiao-Congchen | Render: New > Blueprint from this repo; it reads `render.yaml` (Docker web service on the free plan, branch `development`, build context `backend`, health check `/actuator/health`). Enter the `sync: false` secrets in the dashboard when prompted. |
+| 2 | Xiao-Congchen | Neon: create a project and a branch `dev`. On Render set `SPRING_PROFILES_ACTIVE=prod`, `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD`, and a placeholder `SNOOZESHARE_CORS_ALLOWED_ORIGIN` (for example `http://localhost:3000`). Deploy. |
+| 3 | Xiao-Congchen | Vercel: create a project with root directory `frontend`, Production Branch `development`, and `NEXT_PUBLIC_API_BASE_URL` set to the Render public URL (no trailing slash). A first deploy without the variable must fail the build. Set the Framework Preset to **Next.js**: if the preset is left on "Other", the build fails with `No Output Directory named "public" found` (`frontend/vercel.json` also pins it). |
+| 4 | Xiao-Congchen | Render: set `SNOOZESHARE_CORS_ALLOWED_ORIGIN` to Vercel's stable production domain (scheme and host, no trailing slash) and redeploy. |
+| 5 | Xiao-Congchen | Verify (below) and fill in the evidence block. |
 
 ## Variables
 
@@ -55,11 +55,14 @@ Expect `{"status":"UP"}`. The Vercel URL must show `Backend: UP`; its `Re-check`
 
 ## Evidence
 
-Filled in after the first live deployment (T9).
+First live deployment (T9), 2026-10-20. Owner: Xiao-Congchen (owns the Vercel, Render and Neon accounts).
 
 | Item | Value |
 |---|---|
-| Backend URL | |
-| Frontend URL | |
-| UTC timestamp | |
-| `curl` output | |
+| Backend URL | https://snoozeshare-api.onrender.com |
+| Frontend URL | https://cs3227-snoozeshare.vercel.app (Production Branch `development`) |
+| UTC timestamp | 2026-10-20 10:34 (agent re-check of the health endpoint; the owner's own check was earlier the same day) |
+| `curl` output | HTTP 200, `{"status":"UP","groups":["liveness","readiness"]}` |
+| Frontend page | `Backend: UP`, reported by the owner |
+
+The body above does not match F3's exact `{"status":"UP"}`: Render runs on Kubernetes, where Spring Boot adds liveness and readiness probes. `management.endpoint.health.probes.enabled=false` (with `HealthOnKubernetesTest`) fixes this; after the next Render deploy the body is exactly `{"status":"UP"}`.

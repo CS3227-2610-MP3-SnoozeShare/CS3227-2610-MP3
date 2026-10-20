@@ -9,7 +9,7 @@ after the branch merges.
 - **Owner:** Xiao-Congchen
 - **Status:** Approved
 - **Approved:** Xiao-Congchen on 2026-10-20
-- **Last updated:** 2026-10-20 by Claude Sonnet 5.5 — T1-T8 done, CI green, reviewed
+- **Last updated:** 2026-10-20 by Claude Sonnet 5.5 — T9 evidence recorded, workstream Done
 
 ---
 
@@ -46,15 +46,13 @@ plan".
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-INFRA (proposed name) | Mono-repo skeletons, local Postgres, CI, deploy setup | In review | [spec](../../superpowers/specs/2026-10-20-w-infra-design.md) | [plan](../../superpowers/plans/2026-10-20-w-infra.md) | T1-T8 done; T9 post-merge, human | — |
+| W-INFRA (proposed name) | Mono-repo skeletons, local Postgres, CI, deploy setup | Done | [spec](../../superpowers/specs/2026-10-20-w-infra-design.md) | [plan](../../superpowers/plans/2026-10-20-w-infra.md) | T1-T9 done; dev live on Render + Vercel + Neon; guide confirmed by owner 2026-10-20; guide out of date: Setting Up, Testing and Overview commands now run in desktop/, plus new backend/frontend/CI/deploy content | — |
 
 ---
 
 ## 7. Needs a Human
 
 - Plan review by the operator (spec approved 2026-10-20 by Xiao-Congchen, including SD10 and the SD13 extras).
-- Runbook owners (`docs/runbooks/dev-environment.md`) are left as placeholders by the operator's decision (2026-10-20); the team names them before T9 starts.
-- T9 (after merge): create Render, Vercel and Neon projects/branch, set variables (runbook order).
 
 - D~1 (T3, plan-only): Spring's binder leaves an unresolved `${VAR}` in `spring.datasource.*` in place, so a missing prod variable surfaced as a driver error that did not name it (F6, E18 not met). Added `ProdEnvironmentGuard` (`@Profile("prod")` bean-factory post-processor reading the four required keys strictly), which also covers `snoozeshare.cors.allowed-origin` (E17, tested in T4). Test container is a JVM-wide singleton in `PostgresIntegrationTest`: a per-class `@Container` restarted on a new port while Spring reused the cached context.
 - E22 check on Windows: `DOCKER_HOST` alone is ignored because Testcontainers caches `docker.client.strategy` in `~/.testcontainers.properties`; with `TESTCONTAINERS_DOCKER_CLIENT_STRATEGY=org.testcontainers.dockerclient.EnvironmentAndSystemPropertyClientProviderStrategy` and `--no-daemon` the tests fail, none skipped.
@@ -63,6 +61,8 @@ plan".
 - T6: runtime image is `eclipse-temurin:25-jre-jammy`, not `25-jre`: on this machine the `25-jre` layers were corrupt in Docker's store (`exec format error`) after a Docker Desktop crash; jammy is the same Temurin 25 JRE with an explicit OS. Root `.gitattributes` forces LF for `gradlew` (a CRLF copy exited 127 in the Docker build on Windows checkouts). Container smoke test: prod profile against compose Postgres returned `{"status":"UP"}`.
 - T8 walkthrough (clean clone of the pushed branch, Windows): `gradlew run` on a copy of the mock DB started the JavaFX app (killed by timeout); compose + `bootRun` returned `{"status":"UP"}`; `npm ci` then `npm run dev` showed `Backend: UP` in the browser (CORS works). N1 scan: hits are only env var names, the compose credentials and test code reading container credentials. N5: no cross-project paths; only `../config/checkstyle` in both build files. N2: no `latest` or `+` versions; lockfile present. Page title changed from the scaffold default to `SnoozeShare`.
 - Code review (medium, 8 angles) fixed: compose binds Postgres to 127.0.0.1; empty `NEXT_PUBLIC_API_BASE_URL` treated as unset; E10 test asserts the connection failure; Dockerfile caches dependencies and runs as non-root; CI jobs have 30 min timeouts; scaffold README and svgs removed. Not fixed, accepted: `ProdProfileTest` starts its own containers (slower, isolated by design); E7 test mutates the shared container (sequential execution; revisit if tests go parallel); `checkstyle` also runs inside `gradlew build` (duplicate work, kept so a local `build` is complete); red throwaway commits for the E5 check sit in history; runbook owners are placeholders for the team to fill (T9 prerequisite).
+- D~3 (T9 evidence): Render runs on Kubernetes, so Spring Boot enabled liveness/readiness probes and the live health body was `{"status":"UP","groups":["liveness","readiness"]}`, not the exact body F3/E6 require. CI could not see it. Fixed after the merge with `management.endpoint.health.probes.enabled: false` and `HealthOnKubernetesTest` (`spring.main.cloud-platform=kubernetes`). Lesson: platform-detection behaviour needs a test that simulates the platform.
+- T9 done by the owner (Xiao-Congchen): Render (free web service), Vercel (Production Branch `development`, Framework Preset Next.js) and Neon; evidence in the runbook. Neon's libpq string must be converted to a JDBC URL (runbook section added).
 
 ---
 
@@ -236,3 +236,4 @@ Observations for the Handover todo (what to revise):
 | 2026-10-20 | T7 step 6 (E5): a throwaway unused import + failing test made `checkstyle` fail and uploaded `checkstyle-reports` (desktop and backend files); with the import removed the failing test made `build` fail and uploaded `test-reports` including backend `ThrowawayFailureTest`; both reverted. The backend `gradle build` runs Checkstyle before tests, so a Checkstyle violation hides backend test reports. Green `build` takes about 3 minutes (N3) | W-INFRA | this commit |
 | 2026-10-20 | README rewritten (layout, pinned versions, per-component run commands, `POSTGRES_PORT`); `docs/runbooks/dev-environment.md` (order, owners, variables, evidence block); walkthrough, N1, N2, N5 checks pass; page title set | W-INFRA | this commit |
 | 2026-10-20 | Pivoted backend hosting from Railway to Render (C~5): `render.yaml` replaces `backend/railway.json`; spec, plan, runbook and README updated; Render free-tier behaviour documented | W-INFRA | this commit |
+| 2026-10-20 | T9 live dev deployment done by the owner; evidence in the runbook; health probes disabled so the body is exactly `{"status":"UP"}` on Render (D~3); runbook owners set; workstream Done at the owner's request | W-INFRA | this commit |
