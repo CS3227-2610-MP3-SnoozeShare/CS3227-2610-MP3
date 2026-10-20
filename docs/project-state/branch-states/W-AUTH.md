@@ -7,7 +7,7 @@
 - **Owner:** project owner
 - **Status:** Building
 - **Approved:** —
-- **Last updated:** 2026-10-21 by Codex — T5 backend verification complete; T6 ready
+- **Last updated:** 2026-10-21 by Codex — T6 Firebase browser client complete; T7 ready
 
 ---
 
@@ -32,24 +32,24 @@ cd ../backend && ./gradlew test
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-21 | Codex (lead) | W-AUTH | Active | T6 Firebase JS client and token-aware API | Implement frontend Firebase initialization, authenticated API calls and mocked client tests; preserve the existing dependency edit | 2026-10-21 |
+| S1 | 2026-10-21 | Codex (lead) | W-AUTH | Active | T7 AuthProvider and role-aware route guards | Add session state, backend profile loading, registration retry/sign-out handling and role redirects; preserve local env files | 2026-10-21 |
 
 **Remaining**
 
-- [ ] T6: implement Firebase JS client and token-aware API.
+- [ ] T7: implement AuthProvider and role-aware route guards.
 - [ ] **Handover:** After spec approval, write the implementation plan and execute it with Firebase emulator/test doubles for automated tests.
 
 ## 3. Workstreams
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AUTH | Firebase authentication and role authorization | Building | [spec](docs/superpowers/specs/2026-10-20-w-auth-design.md) | [plan](docs/superpowers/plans/2026-10-20-w-auth.md) | T1–T5 complete; T6 Firebase JS client ready | — |
+| W-AUTH | Firebase authentication and role authorization | Building | [spec](docs/superpowers/specs/2026-10-20-w-auth-design.md) | [plan](docs/superpowers/plans/2026-10-20-w-auth.md) | T1–T6 complete; T7 AuthProvider and guards ready | — |
 
 ## 4. Architecture
 
 ### 4.9 Web platform skeleton (backend, frontend, hosting)
 
-**Now:** W-AUTH initializes Firebase Admin when `FIREBASE_ENABLED=true`, verifies revocable Firebase ID tokens, establishes a stateless Spring Security principal, resolves the active role from the PostgreSQL `users` row keyed by Firebase UID, applies role-specific URL authorization, and provides transactional profile/wallet registration plus `/api/auth/me`. Registration conflict handling is rollback-safe and tested under concurrent requests. The Next.js frontend remains pending T6–T8.
+**Now:** W-AUTH initializes Firebase Admin when `FIREBASE_ENABLED=true`, verifies revocable Firebase ID tokens, establishes a stateless Spring Security principal, resolves the active role from the PostgreSQL `users` row keyed by Firebase UID, applies role-specific URL authorization, and provides transactional profile/wallet registration plus `/api/auth/me`. The frontend validates public Firebase configuration in production, lazily initializes Firebase browser auth, attaches ID tokens to backend requests, and maps stable backend errors. T7–T8 remain pending.
 
 | Path | Role |
 |---|---|
@@ -114,3 +114,4 @@ Firebase project, Email/Password provider, and local Admin SDK credentials are c
 | 2026-10-21 | Added registration DTOs, transactional profile/wallet provisioning, role-code validation, rate limiter, idempotent retries and `/api/auth/me`; full backend build passes; edge coverage remains | W-AUTH | T4 core |
 | 2026-10-21 | Completed T4 edge coverage for inactive and unverified identities, safe request IDs, immutable identity snapshots, UID/IP limiter reset and expiry, and concurrent same-UID registration; checkstyle and full backend build pass | W-AUTH | T4 edge |
 | 2026-10-21 | Added backend auth contract checks for stable error responses, secret-safe messages, unknown routes and actual-response CORS; complete backend build and checkstyle pass | W-AUTH | T5 |
+| 2026-10-21 | Added Firebase browser configuration validation, lazy client initialization, email auth actions, authenticated API fetch and mocked client/API tests; frontend tests, lint and production build pass | W-AUTH | T6 |
