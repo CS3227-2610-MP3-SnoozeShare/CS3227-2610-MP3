@@ -19,8 +19,8 @@
 | T1 | — | — | 1 | Done |
 | T2 | T1 | — | 2 | Done |
 | T3 | T1, T2 | — | 3 | Done |
-| T4 | T3 | — | 4 | Not started |
-| T5 | T4 | — | 5 | Not started |
+| T4 | T3 | — | 4 | Done |
+| T5 | T4 | — | 5 | Done |
 
 ## Traceability
 
@@ -140,11 +140,11 @@
 
 **Checklist**
 
-- [ ] 1. Run `cd backend && ./gradlew build`.
-- [ ] 2. Run `cd frontend && npm run build` with `NEXT_PUBLIC_API_BASE_URL=http://localhost:8080`, `NEXT_PUBLIC_FIREBASE_API_KEY=key`, `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=project.firebaseapp.com`, `NEXT_PUBLIC_FIREBASE_PROJECT_ID=project`, `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=project.firebasestorage.app`, `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123`, and `NEXT_PUBLIC_FIREBASE_APP_ID=app-id`.
-- [ ] 3. Run `git diff --check` and inspect the complete diff for credentials, tokens, or unrelated files.
-- [ ] 4. Record all command evidence and any deviations in the branch state.
-- [ ] 5. Commit: `test: verify registration pre-validation integration`.
+- [x] 1. Run `cd backend && ./gradlew build`.
+- [x] 2. Run `cd frontend && npm run build` with `NEXT_PUBLIC_API_BASE_URL=http://localhost:8080`, `NEXT_PUBLIC_FIREBASE_API_KEY=key`, `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=project.firebaseapp.com`, `NEXT_PUBLIC_FIREBASE_PROJECT_ID=project`, `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=project.firebasestorage.app`, `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123`, and `NEXT_PUBLIC_FIREBASE_APP_ID=app-id`.
+- [x] 3. Run `git diff --check` and inspect the complete diff for credentials, tokens, or unrelated files.
+- [x] 4. Record all command evidence and any deviations in the branch state.
+- [x] 5. Commit: `test: verify registration pre-validation integration`.
 
 ### T5: Close-out and handoff
 
@@ -159,7 +159,7 @@
 
 **Checklist**
 
-- [ ] 1. Confirm every Traceability row has a passing test or documented manual check.
-- [ ] 2. Confirm the spec, plan, branch state, and commits agree; record any deviation instead of silently changing scope.
-- [ ] 3. Set branch state to `In review`; never set it to `Approved`.
-- [ ] 4. Tell the project owner the branch is ready for review.
+- [x] 1. Confirm every Traceability row has a passing test or documented manual check.
+- [x] 2. Confirm the spec, plan, branch state, and commits agree; record any deviation instead of silently changing scope.
+- [x] 3. Set branch state to `In review`; never set it to `Approved`.
+- [x] 4. Tell the project owner the branch is ready for review.
