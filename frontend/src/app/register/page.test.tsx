@@ -20,4 +20,20 @@ describe('register page', () => {
     await waitFor(() => expect(register).toHaveBeenCalledWith({ role: 'HOST', registrationCode: 'host-code', displayName: undefined }));
     expect(push).toHaveBeenCalledWith('/host');
   });
+
+  it('returns an existing account to the login page', () => {
+    render(<RegisterPage />);
+    fireEvent.click(screen.getByRole('button', { name: 'I have an account' }));
+    expect(push).toHaveBeenCalledWith('/login');
+  });
+
+  it('shows a specific message when the Firebase email is already registered', async () => {
+    registerWithEmail.mockRejectedValue({ code: 'auth/email-already-in-use' });
+    render(<RegisterPage />);
+    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'existing@example.com' } });
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'password' } });
+    fireEvent.submit(screen.getByRole('button', { name: 'Create account' }));
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('An account with this email already exists. Sign in instead.'));
+    expect(register).not.toHaveBeenCalled();
+  });
 });
