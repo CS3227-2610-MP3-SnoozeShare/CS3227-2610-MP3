@@ -14,7 +14,7 @@ IDs are permanent: never reuse or renumber. Every F requirement and every API er
 ## Backend
 | ID | Requirement | Scenario | Expected behaviour (exact) | Why it matters | Test layer |
 |---|---|---|---|---|---|
-| E6 | F3 | Health called with the database up | 200, body exactly `{"status":"UP"}` | Railway and the page rely on the exact body | integration |
+| E6 | F3 | Health called with the database up | 200, body exactly `{"status":"UP"}` | Render and the page rely on the exact body | integration |
 | E7 | F3 | Database logins blocked (`ALTER ROLE ... NOLOGIN` plus terminating the other backends; a paused container would hang the health query) while the backend runs, then restored | 503 with body exactly `{"status":"DOWN"}` within 10 s of the block; 200 `{"status":"UP"}` within 10 s of the restore | A false UP routes traffic to a broken instance | integration |
 | E8 | F3, N1 | `GET /actuator`, `/actuator/info`, `/actuator/env`, `/actuator/beans` | 404 | Information disclosure | integration |
 | E9 | F3, N1 | Health requested with `?show-details=always`, `?details=true` and an `Authorization` header | Body is still exactly `{"status":"UP"}` | A secret-bearing URL must not leak | integration |
@@ -27,8 +27,8 @@ IDs are permanent: never reuse or renumber. Every F requirement and every API er
 | E16 | F5 | `snoozeshare.cors.allowed-origin` blank, containing `*`, or ending in `/` | Context fails to start; message names `snoozeshare.cors.allowed-origin` | A wildcard defeats the origin rule when credentials arrive in W-AUTH | integration |
 | E17 | F6 | Profile `prod` with `SNOOZESHARE_CORS_ALLOWED_ORIGIN` unset | Context fails with a message naming `SNOOZESHARE_CORS_ALLOWED_ORIGIN` | Production never runs on a dev default | integration |
 | E18 | F6 | Profile `prod` with any of the three datasource variables unset | Context fails with a message naming an unresolved variable (Spring reports the first unresolved placeholder it meets; no order is promised) | Same | integration |
-| E19 | F6 | `SPRING_PROFILES_ACTIVE` unset | The `dev` profile is used (`spring.profiles.default`); on Railway this fails fast on the missing local database (E10) rather than serving | An unset profile must never reach production data | integration |
-| E20 | F3 | `PORT` unset or set | Server listens on 8080 when unset and on `PORT` when set | Railway injects `PORT` | integration |
+| E19 | F6 | `SPRING_PROFILES_ACTIVE` unset | The `dev` profile is used (`spring.profiles.default`); on Render this fails fast on the missing local database (E10) rather than serving | An unset profile must never reach production data | integration |
+| E20 | F3 | `PORT` unset or set | Server listens on 8080 when unset and on `PORT` when set | Render injects `PORT` | integration |
 | E21 | F2, N4 | New backend file violates the shared Checkstyle ruleset | `checkstyleMain` fails the build | Style gate parity with desktop | integration |
 | E22 | F2 | `./gradlew build` in `backend/` without Docker | Tests fail with the Testcontainers error; none is skipped | A skipped DB test hides regressions | integration |
 | E23 | F2 | `bootJar` and `jar` both enabled | `jar { enabled = false }`, so `build/libs/` has one jar | The Dockerfile copies one known file | integration |
@@ -48,7 +48,7 @@ IDs are permanent: never reuse or renumber. Every F requirement and every API er
 | E29 | F8 | Pull request changes only `docs/` | Both `checkstyle` and `build` still run and report (no path filters) | A required check that never reports blocks merging forever | integration |
 | E30 | F8 | Any component fails | The job fails and the failing step name starts with the component; later steps do not run | Clear culprit | manual |
 | E31 | F8, N3 | `build` job exceeds 15 minutes on the first green run | Recorded in the branch state; the operator decides (raise N3 or cut tests); the job is not split | N3 is a gate on approval | manual |
-| E32 | F9 | Railway deploy health check fails | Railway marks the deployment failed and keeps the previous one (platform behaviour); the runbook lists the variables to check | Broken deploys must not replace working ones | manual |
+| E32 | F9 | Render deploy health check fails | Render marks the deployment failed and keeps the previous one (platform behaviour); the runbook lists the variables to check | Broken deploys must not replace working ones | manual |
 | E33 | F9 | Vercel builds before `NEXT_PUBLIC_API_BASE_URL` is set | Build fails (E27) | Misconfiguration surfaces at build time | manual |
 | E34 | F9, F10 | Account-bound steps in T9 need a human who is unavailable | T9 stays `Blocked — needs human` in the branch state naming the step | Agents never enter credentials | manual |
 | E35 | F10 | README command no longer works | The T8 walkthrough runs every README command once on a clean clone; failures are fixed before approval | Docs drift | manual |

@@ -37,7 +37,7 @@ plan".
 - [x] Execute T1-T8 with `executing-plans-lite`
 - [ ] **Handover:** T9, the live dev deployment, runs on `development` after the merge (needs a human; see SD10)
 - [ ] **Handover:** at fold, update PROJECT_STATE § How to Resume commands, § Orientation paths, remove Q5, and note C~2 against C77 and Webapp design § 6.2
-- [ ] **Handover (PROJECT_STATE fold):** § How to Resume commands now run inside `desktop/`, `backend/`, `frontend/`; § Orientation paths; remove Q5; `AGENTS.md` § 6 `.\gradlew build` wording now `desktop/`; refine C77 per C~2; no Known Gaps added.
+- [ ] **Handover (PROJECT_STATE fold):** Railway becomes Render in `PROJECT_STATE.md` (W-INFRA row, C76/C77 text) and in `docs/Webapp-architecture-design.md` (MP3-D8, deployment diagram, environment table); both are read-only on this branch. § How to Resume commands now run inside `desktop/`, `backend/`, `frontend/`; § Orientation paths; remove Q5; `AGENTS.md` § 6 `.\gradlew build` wording now `desktop/`; refine C77 per C~2; no Known Gaps added.
 - [ ] **Handover:** lite-skills trial findings (below, § Lite-skills trial) to revise `lint.mjs`, templates and `lite-reviewer`
 
 ---
@@ -54,7 +54,7 @@ plan".
 
 - Plan review by the operator (spec approved 2026-10-20 by Xiao-Congchen, including SD10 and the SD13 extras).
 - Runbook owners (`docs/runbooks/dev-environment.md`) are left as placeholders by the operator's decision (2026-10-20); the team names them before T9 starts.
-- T9 (after merge): create Railway, Vercel and Neon projects/branch, set variables (runbook order).
+- T9 (after merge): create Render, Vercel and Neon projects/branch, set variables (runbook order).
 
 - D~1 (T3, plan-only): Spring's binder leaves an unresolved `${VAR}` in `spring.datasource.*` in place, so a missing prod variable surfaced as a driver error that did not name it (F6, E18 not met). Added `ProdEnvironmentGuard` (`@Profile("prod")` bean-factory post-processor reading the four required keys strictly), which also covers `snoozeshare.cors.allowed-origin` (E17, tested in T4). Test container is a JVM-wide singleton in `PostgresIntegrationTest`: a per-class `@Container` restarted on a new port while Spring reused the cached context.
 - E22 check on Windows: `DOCKER_HOST` alone is ignored because Testcontainers caches `docker.client.strategy` in `~/.testcontainers.properties`; with `TESTCONTAINERS_DOCKER_CLIENT_STRATEGY=org.testcontainers.dockerclient.EnvironmentAndSystemPropertyClientProviderStrategy` and `--no-daemon` the tests fail, none skipped.
@@ -75,6 +75,7 @@ plan".
 | C~3 | 2026-10-20 | Required checks keep names `checkstyle` and `build`, each covering all three components; backend tests use Testcontainers Postgres 17; W-INFRA includes the live dev deployment (Railway `dev`, Vercel with Production Branch `development`, Neon branch `dev`), done after merge | Operator chose these | spec SD4-SD6, SD9, SD10 |
 
 | C~4 | 2026-10-20 | Spec amended after plan review: Checkstyle needs `configDirectory = file('../config/checkstyle')` as well as `configFile` (else `${config_loc}/suppressions.xml` resolves under the project and fails); E7 uses `ALTER ROLE ... NOLOGIN` plus terminating backends instead of pausing the container (a paused container hangs the health query); the `.gitignore` wrapper-jar negation becomes `!**/gradle/wrapper/gradle-wrapper.jar` | Plan-review findings; no behaviour or scope change | spec conventions.md, edge-cases.md; plan T1, T3 |
+| C~5 | 2026-10-20 | Backend hosting pivots from Railway to Render (free web service, Docker, `render.yaml` Blueprint at the repo root replacing `backend/railway.json`); Vercel and Neon unchanged. Supersedes the Railway parts of SD6, SD9, SD13, F9, E32 and the runbook. | Operator (Xiao-Congchen): Railway costs money. Rejected: Cloudflare (no free JVM hosting), Cloud Run (needs a card). Trade-off accepted: the free service sleeps when idle, so the first request after idle is slow and the page shows unreachable until `Re-check` | Operator |
 
 ---
 
@@ -234,3 +235,4 @@ Observations for the Handover todo (what to revise):
 | 2026-10-20 | Pushed W-INFRA and opened draft PR #9: `checkstyle` (1m45s) and `build` (3m, N3 well under 15 min) green for desktop, backend and frontend; run https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/actions/runs/39381234684 | W-INFRA | — |
 | 2026-10-20 | T7 step 6 (E5): a throwaway unused import + failing test made `checkstyle` fail and uploaded `checkstyle-reports` (desktop and backend files); with the import removed the failing test made `build` fail and uploaded `test-reports` including backend `ThrowawayFailureTest`; both reverted. The backend `gradle build` runs Checkstyle before tests, so a Checkstyle violation hides backend test reports. Green `build` takes about 3 minutes (N3) | W-INFRA | this commit |
 | 2026-10-20 | README rewritten (layout, pinned versions, per-component run commands, `POSTGRES_PORT`); `docs/runbooks/dev-environment.md` (order, owners, variables, evidence block); walkthrough, N1, N2, N5 checks pass; page title set | W-INFRA | this commit |
+| 2026-10-20 | Pivoted backend hosting from Railway to Render (C~5): `render.yaml` replaces `backend/railway.json`; spec, plan, runbook and README updated; Render free-tier behaviour documented | W-INFRA | this commit |

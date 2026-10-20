@@ -1,7 +1,7 @@
 # W-INFRA Design
 
 - **Status:** Approved (Xiao-Congchen, 2026-10-20)
-- **Amended 2026-10-20:** see branch state C~4 (Checkstyle `configDirectory`, E7 mechanism)
+- **Amended 2026-10-20:** see branch state C~4 (Checkstyle `configDirectory`, E7 mechanism) and C~5 (backend hosting: Render replaces Railway)
 - **Risk tier:** Medium - adds a backend service, a frontend app and three new dependency stacks, moves the whole desktop tree, and rewrites the CI that gates merges; no authentication, money or personal data is touched.
 - **Workstream:** W-INFRA | **Plan:** [W-INFRA plan](../plans/2026-10-20-w-infra.md)
 - **Constraints consulted:** C60 (branching and required checks `checkstyle`, `build`), C63/C64/C68 (lite skills), C69 (single instance), C73 (DTO layer, later), C74 (persistence approach deferred), C76-C78 (web re-platform, Postgres + Flyway, profiles), C80 (AI later), Q5 (the operator's answer is SD1; the branch state, not this spec, records it and PROJECT_STATE closes it at fold), § Known Gaps (single instance; no payment gateway), Webapp design §§ 3, 6, 9
@@ -11,7 +11,7 @@
 
 **Current behaviour.** The repository is one Gradle build at the root (`build.gradle`, `settings.gradle`, `gradlew`, `config/`, `db/`, `src/`) producing the JavaFX app. `.github/workflows/ci.yml` runs `./gradlew checkstyleMain checkstyleTest` (job `checkstyle`) and `xvfb-run ./gradlew build` (job `build`) from the root. There is no `backend/`, no `frontend/`, no local Postgres, and nothing deployed.
 
-**Desired behaviour.** The mono-repo of Webapp design § 6.1 exists: the desktop app lives under `desktop/` and still builds and tests; `backend/` is a Spring Boot skeleton that connects to Postgres, runs Flyway and answers a health check; `frontend/` is a Next.js skeleton that shows the backend's health; `docker-compose.yml` starts local Postgres; CI checks all three under the unchanged required check names; and a dev environment on Railway and Vercel serves both. Every later workstream (W-AUTH onward) builds on this and none of them has to touch build, CI or hosting plumbing.
+**Desired behaviour.** The mono-repo of Webapp design § 6.1 exists: the desktop app lives under `desktop/` and still builds and tests; `backend/` is a Spring Boot skeleton that connects to Postgres, runs Flyway and answers a health check; `frontend/` is a Next.js skeleton that shows the backend's health; `docker-compose.yml` starts local Postgres; CI checks all three under the unchanged required check names; and a dev environment on Render and Vercel serves both. Every later workstream (W-AUTH onward) builds on this and none of them has to touch build, CI or hosting plumbing.
 
 Affected: all developers (new layout and commands) and every later workstream.
 
@@ -28,7 +28,7 @@ Ten functional and five non-functional requirements; the full list with acceptan
 - Domain model, services, repositories, JPA or ported JDBC - W-DOMAIN decides persistence (C74); the skeleton adds the Postgres driver, JDBC and Flyway only.
 - Any AI or LLM code (C80).
 - Porting desktop features, and deleting the desktop code - the desktop stays until the web app reaches parity (SD1).
-- Production environment, custom domains, HTTPS beyond what Railway and Vercel provide by default, monitoring - W-DEPLOY.
+- Production environment, custom domains, HTTPS beyond what Render and Vercel provide by default, monitoring - W-DEPLOY.
 - Multi-instance deployment (C69, § Known Gaps).
 - Dockerizing the frontend - Vercel builds it from source.
 
@@ -56,12 +56,12 @@ Ten functional and five non-functional requirements; the full list with acceptan
 | SD3 | The Checkstyle ruleset stays at the repo root `config/checkstyle/checkstyle.xml` and both Gradle builds read it via `../config/checkstyle/checkstyle.xml`, so the ruleset survives the desktop's removal | Avoids a copy that drifts; refines SD1 | Agent, for operator review |
 | SD4 | The required checks keep the names `checkstyle` and `build`; each covers all three components. Rejected: per-component jobs (the owner would have to edit branch protection and could merge in the gap) | Operator choice | Operator |
 | SD5 | Backend tests use Testcontainers Postgres 17. Rejected: H2 (dialect drift from Neon) | Operator choice | Operator |
-| SD6 | W-INFRA includes the live dev deployment (Railway backend, Vercel frontend), not just config; the account-bound steps are listed in a runbook for a human | Operator choice; Done-when in PROJECT_STATE says deployed | Operator |
+| SD6 | W-INFRA includes the live dev deployment (Render backend, Vercel frontend), not just config; the account-bound steps are listed in a runbook for a human | Operator choice; Done-when in PROJECT_STATE says deployed | Operator |
 | SD7 | The backend skeleton has no JPA and no entities; `spring-boot-starter-jdbc`, the Postgres driver and Flyway only | C74 defers the persistence approach | Agent from C74 |
 | SD8 | Dev config: `application-dev.yml` is committed and holds only non-secret local defaults (the compose database); secrets later go in a gitignored `application-local.yml` that `application.yml` imports as `optional:`. Refines Webapp design § 6.2 ("application-dev.yml gitignored"), which assumed secrets in that file | A committed file with no secrets lets a fresh clone run | Agent, for operator review |
-| SD9 | The hosted "dev" environment tracks the `development` branch: Railway environment `dev` and the Vercel project with Production Branch set to `development`, with a Neon branch `dev` as its database. W-DEPLOY re-points Vercel at `main` | The design has dev and prod; only dev exists in this workstream | Agent, for operator review |
+| SD9 | The hosted "dev" environment tracks the `development` branch: the Render service tracking `development` and the Vercel project with Production Branch set to `development`, with a Neon branch `dev` as its database. W-DEPLOY re-points Vercel at `main` | The design has dev and prod; only dev exists in this workstream | Agent, for operator review |
 | SD10 | Exit condition: the owner approves and merges the branch after T1-T8; T9 (live deployment) runs on `development` after the merge and is a Handover item, because both hosts track that branch. W-INFRA is `Done` only when the F9 evidence is in the runbook; the owner sets it. Rejected: deploy from the feature branch (a second set of host settings to undo) | The approval gate would otherwise be circular | Agent, for operator review |
 | SD11 | The desktop move is one commit of renames plus three named edits (conventions), so it builds. Rejected: a rename-only commit followed by a fix (red at the rename, against AGENTS.md § 6) | Review finding | Agent |
 | SD12 | Actuator CORS is configured through `management.endpoints.web.cors.*`, fed from the same property as `CorsConfig`; the MVC mapping alone does not cover the actuator | Review finding | Agent |
-| SD13 | Review round 1 findings not applied: none rejected. Items accepted as small scope the operator may strike: F6 (prod fail-fast), the `Re-check` button, `backend/Dockerfile` and `railway.json` | They trace to Webapp design §§ 6 and 9 | Agent, for operator review |
+| SD13 | Review round 1 findings not applied: none rejected. Items accepted as small scope the operator may strike: F6 (prod fail-fast), the `Re-check` button, `backend/Dockerfile` and `render.yaml` | They trace to Webapp design §§ 6 and 9 | Agent, for operator review |
 | SD14 | The branch state, not this spec, records the refinement of C77 and the Webapp design § 6.2 by SD8, and lists as fold todos: PROJECT_STATE § How to Resume commands, § Orientation paths, removal of Q5 | Review finding | Agent |

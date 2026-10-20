@@ -3,7 +3,7 @@
 Two operations, both public. W-AUTH adds the security layer; until then the backend has no authenticated endpoint.
 
 Backend runtime settings that these operations rely on (decided here so tests can assert them):
-- `server.port=${PORT:8080}`; `spring.profiles.default=dev` (so `./gradlew bootRun` uses `dev`; Railway sets `SPRING_PROFILES_ACTIVE=prod`).
+- `server.port=${PORT:8080}`; `spring.profiles.default=dev` (so `./gradlew bootRun` uses `dev`; Render sets `SPRING_PROFILES_ACTIVE=prod`).
 - `management.endpoints.web.exposure.include=health`; `management.endpoints.web.discovery.enabled=false`; `management.endpoint.health.show-details=never`; `management.endpoint.health.show-components=never`; the health group contains the `db` indicator only.
 - `spring.datasource.hikari.connection-timeout=5000` (ms), so a down database yields 503 and a failed start within 20 s.
 - Actuator CORS is configured separately from application CORS in Spring Boot, so one property feeds both: `management.endpoints.web.cors.allowed-origins=${snoozeshare.cors.allowed-origin}` with methods `GET,OPTIONS` and headers `Authorization,Content-Type`; and `CorsConfig` (a `WebMvcConfigurer`) for application endpoints with methods `GET,POST,PUT,DELETE,OPTIONS`.
@@ -11,7 +11,7 @@ Backend runtime settings that these operations rely on (decided here so tests ca
 ## GET /actuator/health
 | Field | Definition |
 |---|---|
-| Caller and principal | Anyone, unauthenticated (Railway health check, the frontend page). No role |
+| Caller and principal | Anyone, unauthenticated (Render health check, the frontend page). No role |
 | Authorization rule | None. This is the only public surface; W-AUTH must keep it public |
 | Tenancy scope | None; returns no user data |
 | Inputs | None |
@@ -21,7 +21,7 @@ Backend runtime settings that these operations rely on (decided here so tests ca
 | Transaction boundary | Read-only connectivity check; no commit |
 | Events / audit | None. Not audited |
 | Logging | Request line at the framework default level; never the datasource URL, username or password |
-| Compatibility | New. Railway's `healthcheckPath` and the frontend page call it |
+| Compatibility | New. Render's `healthCheckPath` and the frontend page call it |
 
 ## OPTIONS /actuator/health (CORS preflight)
 | Field | Definition |
