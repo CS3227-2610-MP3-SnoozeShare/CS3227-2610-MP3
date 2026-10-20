@@ -7,7 +7,7 @@
 - **Owner:** project owner
 - **Status:** Building
 - **Approved:** —
-- **Last updated:** 2026-10-21 by Codex — T4 edge pass complete; T5 ready
+- **Last updated:** 2026-10-21 by Codex — T5 backend verification complete; T6 ready
 
 ---
 
@@ -32,18 +32,18 @@ cd ../backend && ./gradlew test
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-21 | Codex (lead) | W-AUTH | Active | T5 backend auth verification suite | Add contract/security regression coverage and review the complete backend auth surface; preserve the frontend Firebase dependency edit | 2026-10-21 |
+| S1 | 2026-10-21 | Codex (lead) | W-AUTH | Active | T6 Firebase JS client and token-aware API | Implement frontend Firebase initialization, authenticated API calls and mocked client tests; preserve the existing dependency edit | 2026-10-21 |
 
 **Remaining**
 
-- [ ] T5: complete backend auth verification suite and review the frontend auth handoff.
+- [ ] T6: implement Firebase JS client and token-aware API.
 - [ ] **Handover:** After spec approval, write the implementation plan and execute it with Firebase emulator/test doubles for automated tests.
 
 ## 3. Workstreams
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AUTH | Firebase authentication and role authorization | Building | [spec](docs/superpowers/specs/2026-10-20-w-auth-design.md) | [plan](docs/superpowers/plans/2026-10-20-w-auth.md) | T1–T4 complete; T5 backend verification suite ready | — |
+| W-AUTH | Firebase authentication and role authorization | Building | [spec](docs/superpowers/specs/2026-10-20-w-auth-design.md) | [plan](docs/superpowers/plans/2026-10-20-w-auth.md) | T1–T5 complete; T6 Firebase JS client ready | — |
 
 ## 4. Architecture
 
@@ -113,3 +113,4 @@ Firebase project, Email/Password provider, and local Admin SDK credentials are c
 | 2026-10-21 | Added stateless Spring Security bearer filtering, role namespace authorization, service authorization boundary, CORS/health handling and security integration tests; full backend build passes | W-AUTH | T3 |
 | 2026-10-21 | Added registration DTOs, transactional profile/wallet provisioning, role-code validation, rate limiter, idempotent retries and `/api/auth/me`; full backend build passes; edge coverage remains | W-AUTH | T4 core |
 | 2026-10-21 | Completed T4 edge coverage for inactive and unverified identities, safe request IDs, immutable identity snapshots, UID/IP limiter reset and expiry, and concurrent same-UID registration; checkstyle and full backend build pass | W-AUTH | T4 edge |
+| 2026-10-21 | Added backend auth contract checks for stable error responses, secret-safe messages, unknown routes and actual-response CORS; complete backend build and checkstyle pass | W-AUTH | T5 |
