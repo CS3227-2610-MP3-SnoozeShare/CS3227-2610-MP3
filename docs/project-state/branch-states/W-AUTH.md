@@ -121,3 +121,4 @@ Firebase project, Email/Password provider, and local Admin SDK credentials are c
 | 2026-10-21 | Removed the verification-email commit from local branch history and verified the replacement policy with backend build plus frontend tests, lint and production build | W-AUTH | C~4 reversal |
 | 2026-10-21 | Fixed login routing to wait for the resolved backend profile, route registered users by role, and send unregistered users to registration; added regression coverage | W-AUTH | login redirect fix |
 | 2026-10-21 | Added outlined account-return action, artifact-aligned role dropdown styling, and specific duplicate-email registration feedback; frontend tests, lint and production build pass | W-AUTH | register-page UX |
+| 2026-10-21 | Replaced the native role select with a reusable artifact-style custom dropdown using the shared `bg-background` field surface; interaction coverage added and all frontend checks pass | W-AUTH | custom dropdown |

@@ -3,6 +3,7 @@
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { SelectField } from '@/components/ui/select';
 import { registerWithEmail } from '@/lib/firebase';
 import { useAuth } from '@/providers/AuthProvider';
 
@@ -19,7 +20,7 @@ export default function RegisterPage() {
     <label className="block">Email<input className="mt-1 w-full rounded-md border bg-background p-2" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></label>
     <label className="block">Password<input className="mt-1 w-full rounded-md border bg-background p-2" type="password" minLength={6} required value={password} onChange={(e) => setPassword(e.target.value)} /></label>
     <label className="block">Display name<input className="mt-1 w-full rounded-md border bg-background p-2" value={name} onChange={(e) => setName(e.target.value)} /></label>
-    <label className="block">Role<select className="mt-1 h-9 w-full rounded-lg border border-input bg-card px-3 py-1.5 text-sm shadow-xs outline-none transition-colors focus:border-ring focus:ring-3 focus:ring-ring/50" value={role} onChange={(e) => setRole(e.target.value as typeof role)}><option>GUEST</option><option>HOST</option><option>AGENT</option></select></label>
+    <label className="block">Role<SelectField aria-label="Role" name="role" value={role} onValueChange={(value) => setRole(value as typeof role)} options={[{ value: 'GUEST', label: 'GUEST' }, { value: 'HOST', label: 'HOST' }, { value: 'AGENT', label: 'AGENT' }]} /></label>
     {role !== 'GUEST' && <label className="block">Registration code<input className="mt-1 w-full rounded-md border bg-background p-2" required value={code} onChange={(e) => setCode(e.target.value)} /></label>}
     {error && <p role="alert" className="text-destructive">{error}</p>}<Button type="submit" className="w-full" disabled={state === 'loading'}>Create account</Button><Button type="button" variant="outline" className="w-full" onClick={() => router.push('/login')}>I have an account</Button>
   </form></main>;

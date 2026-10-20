@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import RegisterPage from './page';
 
@@ -14,7 +15,8 @@ describe('register page', () => {
     render(<RegisterPage />);
     fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'host@example.com' } });
     fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'password' } });
-    fireEvent.change(screen.getByLabelText('Role'), { target: { value: 'HOST' } });
+    await userEvent.click(screen.getByRole('combobox', { name: 'Role' }));
+    await userEvent.click(await screen.findByRole('option', { name: 'HOST' }));
     fireEvent.change(screen.getByLabelText('Registration code'), { target: { value: 'host-code' } });
     fireEvent.submit(screen.getByRole('button', { name: 'Create account' }));
     await waitFor(() => expect(register).toHaveBeenCalledWith({ role: 'HOST', registrationCode: 'host-code', displayName: undefined }));
@@ -35,5 +37,14 @@ describe('register page', () => {
     fireEvent.submit(screen.getByRole('button', { name: 'Create account' }));
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('An account with this email already exists. Sign in instead.'));
     expect(register).not.toHaveBeenCalled();
+  });
+
+  it('opens the role dropdown and updates the selected role', async () => {
+    render(<RegisterPage />);
+    const trigger = screen.getByRole('combobox', { name: 'Role' });
+    expect(trigger.tagName).toBe('BUTTON');
+    await userEvent.click(trigger);
+    await userEvent.click(await screen.findByRole('option', { name: 'HOST' }));
+    expect(screen.getByRole('combobox', { name: 'Role' })).toHaveTextContent('HOST');
   });
 });
