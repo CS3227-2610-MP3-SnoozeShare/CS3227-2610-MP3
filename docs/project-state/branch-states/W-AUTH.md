@@ -7,7 +7,7 @@
 - **Owner:** project owner
 - **Status:** Building
 - **Approved:** —
-- **Last updated:** 2026-10-21 by Codex — T7 auth provider and guard UI complete; T8 ready
+- **Last updated:** 2026-10-21 by Codex — T8 frontend acceptance tests complete; T9 ready
 
 ---
 
@@ -32,24 +32,24 @@ cd ../backend && ./gradlew test
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-21 | Codex (lead) | W-AUTH | Active | T8 frontend auth and guard acceptance tests | Add route/page flow tests for sign-in, registration, reset, verification, inactive and backend-error states; preserve local env files | 2026-10-21 |
+| S1 | 2026-10-21 | Codex (lead) | W-AUTH | Active | T9 full verification and handoff evidence | Run combined backend/frontend gates, inspect the final diff and record any remaining environment limitation; preserve local env files | 2026-10-21 |
 
 **Remaining**
 
-- [ ] T8: complete frontend auth and guard acceptance tests.
+- [ ] T9: complete full verification and handoff evidence.
 - [ ] **Handover:** After spec approval, write the implementation plan and execute it with Firebase emulator/test doubles for automated tests.
 
 ## 3. Workstreams
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AUTH | Firebase authentication and role authorization | Building | [spec](docs/superpowers/specs/2026-10-20-w-auth-design.md) | [plan](docs/superpowers/plans/2026-10-20-w-auth.md) | T1–T7 complete; T8 frontend acceptance tests ready | — |
+| W-AUTH | Firebase authentication and role authorization | Building | [spec](docs/superpowers/specs/2026-10-20-w-auth-design.md) | [plan](docs/superpowers/plans/2026-10-20-w-auth.md) | T1–T8 complete; T9 full verification ready | — |
 
 ## 4. Architecture
 
 ### 4.9 Web platform skeleton (backend, frontend, hosting)
 
-**Now:** W-AUTH initializes Firebase Admin when `FIREBASE_ENABLED=true`, verifies revocable Firebase ID tokens, establishes a stateless Spring Security principal, resolves the active role from the PostgreSQL `users` row keyed by Firebase UID, applies role-specific URL authorization, and provides transactional profile/wallet registration plus `/api/auth/me`. The frontend validates public Firebase configuration in production, lazily initializes Firebase browser auth, attaches ID tokens to backend requests, maps stable backend errors, exposes auth screens, and protects role routes with client-side guards. T8 remains pending.
+**Now:** W-AUTH initializes Firebase Admin when `FIREBASE_ENABLED=true`, verifies revocable Firebase ID tokens, establishes a stateless Spring Security principal, resolves the active role from the PostgreSQL `users` row keyed by Firebase UID, applies role-specific URL authorization, and provides transactional profile/wallet registration plus `/api/auth/me`. The frontend validates public Firebase configuration in production, lazily initializes Firebase browser auth, attaches ID tokens to backend requests, maps stable backend errors, exposes auth screens, and protects role routes with client-side guards. T9 remains pending.
 
 | Path | Role |
 |---|---|
@@ -116,3 +116,4 @@ Firebase project, Email/Password provider, and local Admin SDK credentials are c
 | 2026-10-21 | Added backend auth contract checks for stable error responses, secret-safe messages, unknown routes and actual-response CORS; complete backend build and checkstyle pass | W-AUTH | T5 |
 | 2026-10-21 | Added Firebase browser configuration validation, lazy client initialization, email auth actions, authenticated API fetch and mocked client/API tests; frontend tests, lint and production build pass | W-AUTH | T6 |
 | 2026-10-21 | Added AuthProvider session/profile state, verification refresh and sign-out handling, artifact-aligned login/register/reset screens, role route guards and provider coverage; frontend tests, lint and production build pass | W-AUTH | T7 |
+| 2026-10-21 | Added page-level sign-in, registration, password-reset and route-guard acceptance tests; 27 frontend tests, lint and production build pass | W-AUTH | T8 |
