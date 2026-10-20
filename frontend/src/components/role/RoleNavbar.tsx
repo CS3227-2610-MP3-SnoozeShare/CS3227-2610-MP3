@@ -16,22 +16,26 @@ const workspaceLabels: Partial<Record<WorkspaceRole, string>> = {
 export function RoleNavbar({ role }: { role: WorkspaceRole }) {
   const landingPath = `/${role.toLowerCase()}`;
   return (
-    <nav aria-label="Workspace navigation" className="ss-role-navbar border-b border-[var(--border-muted)] bg-card px-6 py-3">
-      <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-8 gap-y-3">
-        <Link href={landingPath} className="text-base font-bold tracking-tight text-foreground">SnoozeShare</Link>
-        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-5 gap-y-2">
+    <nav aria-label="Workspace navigation" className="ss-role-navbar border-b border-[var(--border-muted)] bg-card px-6 pb-0 pt-3">
+      <div className="w-full">
+        <div data-testid="workspace-navbar-top" className="flex min-h-7 items-center gap-3">
+          <Link href={landingPath} className="text-sm font-extrabold tracking-[0.04em] text-primary">SnoozeShare</Link>
+          {workspaceLabels[role] && <span className="ss-pill ss-status-neutral">{workspaceLabels[role]}</span>}
+          <span aria-label="Wallet" className="ss-pill ss-status-neutral ml-auto">Wallet</span>
+        </div>
+        <div data-testid="workspace-navbar-divider" className="-mx-6 mt-3 border-t border-[var(--border-muted)]" />
+        <div data-testid="workspace-navbar-tabs" className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2">
           {navigation[role].map((item, index) => (
             <Link
               key={item}
               href={landingPath}
               aria-current={index === 0 ? 'page' : undefined}
-              className="text-sm text-muted-foreground transition-colors hover:text-primary aria-[current=page]:font-semibold aria-[current=page]:text-primary"
+              className="border-b-2 border-transparent px-3 pb-3 text-xs text-muted-foreground transition-colors hover:text-primary aria-[current=page]:border-primary aria-[current=page]:font-semibold aria-[current=page]:text-primary"
             >
               {item}
             </Link>
           ))}
         </div>
-        {workspaceLabels[role] && <span className="ss-pill ss-status-neutral shrink-0">{workspaceLabels[role]}</span>}
       </div>
     </nav>
   );
