@@ -29,7 +29,7 @@ plan".
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-20 | Claude Sonnet 5.5 | W-INFRA | Active | T1, T2, T3, T5 done | T4 step 1: CORS (plan T4) | 2026-10-20 |
+| S1 | 2026-10-20 | Claude Sonnet 5.5 | W-INFRA | Active | T1-T5 done | T6 step 1: backend container (plan T6) | 2026-10-20 |
 
 **Remaining**
 
@@ -46,7 +46,7 @@ plan".
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-INFRA (proposed name) | Mono-repo skeletons, local Postgres, CI, deploy setup | Building | [spec](../../superpowers/specs/2026-10-20-w-infra-design.md) | [plan](../../superpowers/plans/2026-10-20-w-infra.md) | Task 3/8 done; T4 CORS next | — |
+| W-INFRA (proposed name) | Mono-repo skeletons, local Postgres, CI, deploy setup | Building | [spec](../../superpowers/specs/2026-10-20-w-infra-design.md) | [plan](../../superpowers/plans/2026-10-20-w-infra.md) | Task 5/8 done; T6 container next | — |
 
 ---
 
@@ -57,6 +57,8 @@ plan".
 
 - D~1 (T3, plan-only): Spring's binder leaves an unresolved `${VAR}` in `spring.datasource.*` in place, so a missing prod variable surfaced as a driver error that did not name it (F6, E18 not met). Added `ProdEnvironmentGuard` (`@Profile("prod")` bean-factory post-processor reading the four required keys strictly), which also covers `snoozeshare.cors.allowed-origin` (E17, tested in T4). Test container is a JVM-wide singleton in `PostgresIntegrationTest`: a per-class `@Container` restarted on a new port while Spring reused the cached context.
 - E22 check on Windows: `DOCKER_HOST` alone is ignored because Testcontainers caches `docker.client.strategy` in `~/.testcontainers.properties`; with `TESTCONTAINERS_DOCKER_CLIENT_STRATEGY=org.testcontainers.dockerclient.EnvironmentAndSystemPropertyClientProviderStrategy` and `--no-daemon` the tests fail, none skipped.
+- D~2 (T4, spec E14 amended): Spring strips a trailing slash from the request `Origin` before comparing, so `http://localhost:3000/` is accepted; browsers never send one. E14 now tests an `https` variant and a different port instead; the trailing-slash rule stays enforced on the configured value (E16).
+- Host memory exhaustion (JVM `insufficient memory` aborts) when Checkstyle and the Testcontainers tests run in one Gradle invocation; run `checkstyleMain checkstyleTest` and `test` as separate commands on this machine. Stopping idle daemons (`gradlew --stop`) helps.
 
 ---
 
@@ -222,3 +224,4 @@ Observations for the Handover todo (what to revise):
 | 2026-10-20 | Spec approved by Xiao-Congchen; W-INFRA implementation plan (T1-T9 + close-out) written, linted, reviewed; spec amended (C~4) | W-INFRA | — |
 | 2026-10-20 | Added `frontend/` (Next.js 15.5.28, React 19.1.0, Tailwind 4, shadcn CLI 4.22.1 Button, Vitest 5, Node 22 pinned via `.nvmrc`, `.npmrc`, `engines`): `env.ts` validation, `BackendStatus` page; 15 tests, lint and build verified, `npm ci` works | W-INFRA | this commit |
 | 2026-10-20 | Added `backend/` (Spring Boot 3.5.16, Java 25, Gradle 9.7.1 wrapper, Flyway `V001`, health-only actuator, dev/prod profiles, `ProdEnvironmentGuard`); 15 Testcontainers Postgres 17 tests, Checkstyle clean, single jar (see D~1) | W-INFRA | this commit |
+| 2026-10-20 | Exact-origin CORS: `CorsProperties` (validated), `CorsConfig` for application endpoints, actuator CORS keys, test-only `/test/cors`; prod fail-fast on the origin (E17); 30 backend tests green (see D~2) | W-INFRA | this commit |
