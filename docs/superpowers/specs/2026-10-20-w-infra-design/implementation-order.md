@@ -7,10 +7,10 @@
 | T3 | Backend skeleton | `backend/` Gradle project and wrapper, Spring Boot app, Flyway `V001`, profiles and runtime keys from api.md, `CorsProperties` validation, Testcontainers base class, health and fail-fast tests, Boot/Java 25 support check | F2, F3, F4, F6, N1, N2, N4 |
 | T4 | CORS | `CorsConfig`, actuator CORS keys, tests on both mechanisms | F5 |
 | T5 | Frontend skeleton | `frontend/` Next.js + Tailwind + Shadcn `Button`, status page, `env.ts`, `api.ts`, Vitest tests, `.nvmrc`, `.npmrc`, `.env.example`, lockfile | F7, N2 |
-| T6 | Backend container | `backend/Dockerfile`, `backend/railway.json` | F9 |
+| T6 | Backend container | `backend/Dockerfile`, `render.yaml` | F9 |
 | T7 | CI for all components | `ci.yml` covering desktop, backend (Testcontainers), frontend under `checkstyle` and `build`, step names per conventions | F8, N3 |
 | T8 | Documentation and checks | `README.md` rewrite of the run sections with pinned versions, `docs/runbooks/dev-environment.md`, N1 scan, N2 and N5 checks, README walkthrough | F10, N1, N2, N5 |
-| T9 | Live dev deployment (human steps, after merge) | Railway `dev` and Vercel projects tracking `development`, Neon branch `dev`, variables set in the stated order, evidence in the runbook | F9 |
+| T9 | Live dev deployment (human steps, after merge) | Render `dev` and Vercel projects tracking `development`, Neon branch `dev`, variables set in the stated order, evidence in the runbook | F9 |
 
 T1-T8 are done on the `W-INFRA` branch and are what the owner approves (SD10). T9 runs on `development` after the merge, because both hosts track that branch; it is a Handover item.
 
