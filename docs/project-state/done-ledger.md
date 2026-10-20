@@ -7,6 +7,7 @@ Iteration 2 started; earlier entries: [docs/project-history/iteration-1/done-led
 
 | Date | What changed | Workstream | Ref |
 |---|---|---|---|
+| 2026-10-20 | Updated `docs/DeveloperGuide.md` for W-INFRA (owner-approved proposal): desktop commands and links now under `desktop/`, backend and frontend setup, CI, web environment variables, § 3.2 with a deployment diagram, § 4.17, limitations, glossary and testing | W-INFRA | this commit |
 | 2026-10-20 | Folded the `W-INFRA` branch state into `PROJECT_STATE.md`: decisions C81–C85, deviations D39–D41, a new § Architecture 4.9, Conventions, Known Gaps and Upcoming handovers; Q5 resolved and removed; the W-INFRA workstream is Done with its Guide Pending | W-INFRA | this sync commit |
 | 2026-10-20 | T9 live dev deployment done by the owner; evidence in the runbook; health probes disabled so the body is exactly `{"status":"UP"}` on Render (D41); runbook owners set; workstream Done at the owner's request | W-INFRA | this commit |
 | 2026-10-20 | Pivoted backend hosting from Railway to Render (C85): `render.yaml` replaces `backend/railway.json`; spec, plan, runbook and README updated; Render free-tier behaviour documented | W-INFRA | this commit |

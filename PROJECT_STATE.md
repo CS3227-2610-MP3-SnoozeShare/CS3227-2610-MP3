@@ -14,7 +14,7 @@ the branch state instead.
 - **Method:** TDD-first vertical slices; spec then plan for big changes (`AGENTS.md` § 3); small commits (`AGENTS.md` § 6)
 - **Last updated:** 2026-10-20 by Claude Sonnet 5.5 — folded W-INFRA
 - **Last verified against repo:** 2026-10-20
-- **Developer guide:** `docs/DeveloperGuide.md` documents W1–W16 and the MP3-0 fixes (last full update 2026-10-19); it still describes the desktop app only, and W-INFRA's update is Pending (see § Workstreams). Residual limitations stay in the guide's Known Limitations and § Known Gaps.
+- **Developer guide:** `docs/DeveloperGuide.md` documents W1–W16 and the MP3-0 fixes (last full update 2026-10-19) and, since 2026-10-20, the W-INFRA web skeletons and dev deployment (§ 3.2, § 4.17). Residual limitations stay in the guide's Known Limitations and § Known Gaps.
 
 Sections are ordered by how often they are needed: **1–3 say where we are, 4–5 say what the
 system is, 6–7 say what not to touch and what is stuck, 8–10 are the record.** Cite sections by
@@ -69,7 +69,7 @@ its own resume point in `docs/project-state/branch-states/`.
 
 | Item | Kind | Context / done when | Source | Added |
 |---|---|---|---|---|
-| Docs: Railway to Render, and per-component commands | Todo | `docs/Webapp-architecture-design.md` (MP3-D8, deployment diagram, environment table) and `AGENTS.md` § 6 (`.\gradlew build` now runs per component) still use the old hosting and root commands. The developer guide is covered by its own Pending checkpoint | handed over from W-INFRA | 2026-10-20 |
+| Docs: Railway to Render, and per-component commands | Todo | `docs/Webapp-architecture-design.md` (MP3-D8, deployment diagram, environment table) and `AGENTS.md` § 6 (`.\gradlew build` now runs per component) still use the old hosting and root commands. The developer guide was updated on 2026-10-20 | handed over from W-INFRA | 2026-10-20 |
 | W-AUTH | Workstream | Firebase project and Admin SDK, `FirebaseAuthFilter`, role registration endpoint, Next.js `AuthProvider` and route guards (C70, C79). Start here: W-INFRA is done | Webapp design § 9 | 2026-10-20 |
 | W-DOMAIN | Workstream | Port the domain model and core services; settles the persistence approach (C74) and the entity-versus-record question. After W-AUTH | Webapp design § 9 | 2026-10-20 |
 | W-GUEST, W-HOST, W-AGENT | Workstream | The three role feature sets and their Next.js pages. Can run in parallel after W-DOMAIN | Webapp design § 9 | 2026-10-20 |
@@ -87,7 +87,7 @@ rows are in the [iteration 1 archive](docs/project-history/iteration-1/PROJECT_S
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
 | MP3-0 | MP2 feedback fixes before new MP3 features (bugs B1–B7, design D1–D6, CI/skills/docs) | Done | [correctness-cluster design](docs/superpowers/specs/2026-10-18-mp3-correctness-cluster-design.md) | [correctness-cluster plan](docs/superpowers/plans/2026-10-18-mp3-correctness-cluster.md) | Merged (PRs #1–#3); CI and Pages verified; required checks set; operator-confirmed 2026-10-19 | Documented 2026-10-19 |
-| W-INFRA | Mono-repo skeletons (`desktop/`, `backend/`, `frontend/`), local Postgres, CI for all three, Render/Vercel/Neon dev deployment | Done | [spec](docs/superpowers/specs/2026-10-20-w-infra-design.md) | [plan](docs/superpowers/plans/2026-10-20-w-infra.md) | Merged (PRs #11, #12); dev live on Render + Vercel + Neon; guide confirmed 2026-10-20 | Pending |
+| W-INFRA | Mono-repo skeletons (`desktop/`, `backend/`, `frontend/`), local Postgres, CI for all three, Render/Vercel/Neon dev deployment | Done | [spec](docs/superpowers/specs/2026-10-20-w-infra-design.md) | [plan](docs/superpowers/plans/2026-10-20-w-infra.md) | Merged (PRs #11, #12); dev live on Render + Vercel + Neon; guide confirmed 2026-10-20 | Documented 2026-10-20 |
 
 Status vocabulary, used verbatim: `Not started` · `Spec'd` · `Planned` · `Building` ·
 `Blocked — needs human` · `In review` · `Done` · `Abandoned`. Guide vocabulary (owned by
@@ -327,4 +327,4 @@ Live traps only; resolved ones are in the archive. Each is what, the consequence
 The Done ledger lives in **[`docs/project-state/done-ledger.md`](docs/project-state/done-ledger.md)** — every change, big or small, newest first.
 
 - **Latest entry:** 2026-10-20
-- **Entries:** 28 (iteration 2 started; earlier entries in the archive)
+- **Entries:** 29 (iteration 2 started; earlier entries in the archive)

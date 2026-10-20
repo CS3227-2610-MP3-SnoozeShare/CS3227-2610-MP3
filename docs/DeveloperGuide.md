@@ -10,7 +10,7 @@ Handover brief for developers taking over this project. It describes **confirmed
 is updated at checkpoints, so it can lag behind the code. For current status, work in flight, and
 what to build next, read [`PROJECT_STATE.md`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/PROJECT_STATE.md) — that is the source of truth.
 
-**Last updated:** 2026-10-19 — covers W1 to W16 and the MP3-0 fixes; checked against the built app (database selection, search budget filter, Trips groups, date rules, post-commit events)
+**Last updated:** 2026-10-20 — covers W1 to W16, the MP3-0 fixes and the W-INFRA web skeletons and dev deployment; the desktop sections were checked against the built app on 2026-10-19, the web sections against `backend/`, `frontend/`, `render.yaml` and the live health check on 2026-10-20
 
 ## Contents
 
@@ -30,8 +30,13 @@ what to build next, read [`PROJECT_STATE.md`](https://github.com/CS3227-2610-MP3
 SnoozeShare is a Java 25 / JavaFX desktop application for short-term property rentals. Guests book
 stays, hosts list properties, and support agents settle disputes between them. All money moves
 through one wallet and transaction ledger, and the booking price is held in escrow until the stay
-and its dispute window are over. It runs as a single process against an embedded SQLite database;
-there is no server.
+and its dispute window are over. The desktop app runs as a single process against an embedded SQLite
+database; there is no server.
+
+The project is being re-platformed as a web app (C76). The repository is a mono-repo of three
+independent builds: `desktop/` (this guide's JavaFX app), `backend/` (a Spring Boot API on PostgreSQL) and
+`frontend/` (a Next.js app). So far the web side is a skeleton: a health endpoint, a status page, CI and
+a live dev deployment. None of the desktop features exist on the web yet (see [3.2](#32-web-platform-and-deployment)).
 
 **Target user:** the three roles the app serves — Guest (renter), Host (homeowner) and Support
 Agent (platform admin). This guide documents the role shells, Host operations, Support Agent
@@ -97,23 +102,48 @@ Every payout follows one uniform fee rule, so the ledger always adds up.
 
 | Tool | Version | Notes |
 |---|---|---|
-| JDK | 25 | `build.gradle` sets a Java 25 toolchain |
-| Gradle | 9.7.1 | Provided by the wrapper (`gradlew`, `gradlew.bat`); nothing to install |
+| JDK | 25 | `desktop/build.gradle` and `backend/build.gradle` set a Java 25 toolchain |
+| Gradle | 9.7.1 | Each of `desktop/` and `backend/` has its own wrapper (`gradlew`, `gradlew.bat`); nothing to install |
 | JavaFX | 25.0.4 | Fetched by the `org.openjfx.javafxplugin` Gradle plugin; no separate SDK |
-| SQLite | embedded | `org.xerial:sqlite-jdbc` is a Gradle dependency; the `sqlite3` CLI is only needed to rebuild `db/snoozeshare-mock.db` |
+| SQLite | embedded | `org.xerial:sqlite-jdbc` is a Gradle dependency; the `sqlite3` CLI is only needed to rebuild `desktop/db/snoozeshare-mock.db` |
+| Docker | current | Local Postgres (`docker-compose.yml`) and the backend tests (Testcontainers) |
+| Node.js | 22 | `frontend/.nvmrc`; `engine-strict` rejects other majors |
+| PostgreSQL | 17 | `postgres:17` in `docker-compose.yml`; nothing to install |
+| Spring Boot | 3.5.16 | `backend/build.gradle` |
+| Next.js | 15.5.28 | `frontend/package.json` |
 
-**Build, test, run** (Windows PowerShell; on macOS/Linux use `./gradlew`)
+**Desktop: build, test, run** (Windows PowerShell; on macOS/Linux use `./gradlew`). There is no root build: run these inside `desktop/`.
 
 ```powershell
+cd desktop
 .\gradlew build   # compile, checkstyle, tests
 .\gradlew test    # tests only
 .\gradlew run     # start the app (main class com.snoozeshare.app.Launcher)
 ```
 
-**Continuous integration.** Two workflows live in `.github/workflows/`. `ci.yml` runs Checkstyle
-(`checkstyleMain checkstyleTest`) on every push to any branch, and the full `build` (compile,
-Checkstyle, all tests, under `xvfb-run` so the JavaFX suites have a display) on every pull request and
-on every push to `main`. `jekyll-gh-pages.yml` builds `docs/` with Jekyll and publishes it to GitHub
+**Backend: build, test, run.** Start the database, then the app; the default `dev` profile connects to it.
+
+```powershell
+docker compose up -d postgres
+cd backend
+.\gradlew bootRun    # http://localhost:8080/actuator/health
+.\gradlew build      # compile, Checkstyle, tests (needs Docker)
+```
+
+If port 5432 is taken, set `POSTGRES_PORT` (for example `$env:POSTGRES_PORT='5433'`) before `docker compose up` and before `bootRun`. On a machine short of memory, run `.\gradlew checkstyleMain checkstyleTest` and `.\gradlew test` as separate commands.
+
+**Frontend: install, run, test.**
+
+```powershell
+cd frontend
+npm ci
+npm run dev      # http://localhost:3000
+npm test         # Vitest
+npm run lint
+npm run build    # needs NEXT_PUBLIC_API_BASE_URL
+```
+
+**Continuous integration.** Two workflows live in `.github/workflows/`. `ci.yml` has two jobs, `checkstyle` and `build`, and each covers all three components (steps are named `desktop:`, `backend:` and `frontend:`). `checkstyle` runs on every push to any branch: Checkstyle for `desktop/` and `backend/`, and `npm run lint` for `frontend/`. `build` runs on every pull request and on every push to `development` and `main`: the desktop build (under `xvfb-run` so the JavaFX suites have a display), the backend build (its tests use Testcontainers on the runner's Docker) and the frontend `npm test` and `npm run build`. A failed run uploads the `checkstyle-reports` and `test-reports` artifacts. `jekyll-gh-pages.yml` builds `docs/` with Jekyll and publishes it to GitHub
 Pages on every push to `main` (Settings > Pages > Source is GitHub Actions). Making the `build` check
 required before merge is a repository branch-protection setting, not something the workflows enforce.
 
@@ -121,13 +151,19 @@ required before merge is a repository branch-protection setting, not something t
 
 | Name | Purpose | Where to obtain the value |
 |---|---|---|
-| `SNOOZESHARE_DB_URL` | Optional JDBC URL that points the app at a SQLite file, for example `jdbc:sqlite:build/acceptance.db`. When unset or blank the app opens `db/snoozeshare-mock.db` if that file exists in the working directory (it does when you run from the project root); only if the file is missing does it fall back to an empty in-memory database, which nothing survives a restart. | Build it from a copy of the mock DB (below). No secret is involved. |
+| `POSTGRES_PORT` | Optional host port for the local Postgres container and the backend's `dev` profile (default 5432) | Choose a free port |
+| `PORT` | Backend listening port (default 8080); the host sets it | The hosting platform |
+| `NEXT_PUBLIC_API_BASE_URL` | Backend base URL for the frontend, without a trailing slash (default `http://localhost:8080` in development; required for a production build) | `frontend/.env.example`; the Render URL on Vercel |
+| `SPRING_PROFILES_ACTIVE` | `prod` on the hosted backend; unset means `dev` | The runbook |
+| `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD` | `prod` database settings, no defaults; the URL is a JDBC URL ending in `?sslmode=require` | Neon (see the runbook) |
+| `SNOOZESHARE_CORS_ALLOWED_ORIGIN` | `prod` only: the one browser origin allowed to call the backend | The Vercel production domain |
+| `SNOOZESHARE_DB_URL` | Optional JDBC URL that points the app at a SQLite file, for example `jdbc:sqlite:build/acceptance.db`. When unset or blank the app opens `desktop/db/snoozeshare-mock.db` if that file exists in the working directory (it does when you run from the project root); only if the file is missing does it fall back to an empty in-memory database, which nothing survives a restart. | Build it from a copy of the mock DB (below). No secret is involved. |
 
-`Main.resolveDatabaseUrl` picks the database in this order: an explicit `SNOOZESHARE_DB_URL`, then `db/snoozeshare-mock.db` if it exists, otherwise in-memory. The result goes to `AppContext.create(String)`, or to `AppContext.create()` for the in-memory case.
+`Main.resolveDatabaseUrl` picks the database in this order: an explicit `SNOOZESHARE_DB_URL`, then `desktop/db/snoozeshare-mock.db` if it exists, otherwise in-memory. The result goes to `AppContext.create(String)`, or to `AppContext.create()` for the in-memory case.
 
-**Run against a copy of the mock database**
+**Run the desktop app against a copy of the mock database** (from `desktop/`)
 
-`db/snoozeshare-mock.db` is a committed, pre-populated reference database. A plain `.\gradlew run`
+`desktop/db/snoozeshare-mock.db` is a committed, pre-populated reference database. A plain `.\gradlew run`
 opens it directly, and the app writes to whatever it opens, so your changes land in the committed
 file and show up in `git status`. To keep the reference database clean, copy it first:
 
@@ -142,20 +178,20 @@ The first start records the schema baseline in `schema_history` (D10); the copy 
 preparation.
 
 **Mock logins.** Authentication is mocked (`UserService.authenticate(email)`): the login screen takes
-an email and checks no credential. The mock agents seeded in [`db/seed-mock-data.sql`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/db/seed-mock-data.sql) are
+an email and checks no credential. The mock agents seeded in [`desktop/db/seed-mock-data.sql`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/db/seed-mock-data.sql) are
 `amy.tanaka@snoozeshare.test`, `ben.alvarez@snoozeshare.test` and `chen.wu@snoozeshare.test`. Registering
 a Host or Agent through the app needs a registration code; those are mock constants in
-[`RegistrationCodes`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/config/RegistrationCodes.java).
+[`RegistrationCodes`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/config/RegistrationCodes.java).
 
 **Rebuilding the mock database** (only after editing the seed):
-`sqlite3 x.db < db/schema.sql` then `sqlite3 x.db < db/seed-mock-data.sql`, and replace
-`db/snoozeshare-mock.db`. See the conventions in [Testing](#7-testing) before editing the seed.
+`sqlite3 x.db < desktop/db/schema.sql` then `sqlite3 x.db < desktop/db/seed-mock-data.sql`, and replace
+`desktop/db/snoozeshare-mock.db`. See the conventions in [Testing](#7-testing) before editing the seed.
 
 ---
 
 ## 3. Architecture
 
-SnoozeShare is a layered modular monolith in one Gradle module. Dependencies run strictly downward:
+The desktop app is a layered modular monolith in one Gradle module (sections 3.1 and 4). The web platform is described in [3.2](#32-web-platform-and-deployment). Dependencies run strictly downward:
 `ui` → `service` → `domain` and `repository` → `infra.db`. The diagram shows the dispute-resolution
 slice only; `AppContext` wires every box and hands the services to the UI.
 
@@ -177,11 +213,11 @@ W1 establishes the application boundaries used by every later workstream:
   `TransactionManager` takes an optional `TransactionListener` (`onBegin`, `afterCommit`,
   `afterRollback`); `inTransactionUnchecked` wraps work that cannot throw `SQLException`.
 - `domain.policy` is the single home of two date rules, each built from a `Clock` only:
-  [`DisputeWindowPolicy`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/domain/policy/DisputeWindowPolicy.java)
+  [`DisputeWindowPolicy`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/domain/policy/DisputeWindowPolicy.java)
   (a ticket can be filed from check-in through check-out + 7 days; a `CONFIRMED` booking auto-completes
   only from check-out + 8 days, so an accepted dispute always reaches a booking that can still be
   settled; C48) and
-  [`StayDatePolicy`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/domain/policy/StayDatePolicy.java)
+  [`StayDatePolicy`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/domain/policy/StayDatePolicy.java)
   (a stay or a search range may not start or end in the past, and check-out must follow check-in;
   `requireNotInPast` backs Host calendar blocks). Services call these; controllers and services never
   re-implement the rules. `AppContext` builds one `Clock.systemDefaultZone()` and passes it to the
@@ -192,7 +228,7 @@ W1 establishes the application boundaries used by every later workstream:
   `balanceAfter`) in the same transaction; there is a single ledger, not a separate one.
 - `EventBus`/`InProcessEventBus` publish committed domain events after successful transactions, and
   the shared audit contracts provide typed audit records for mutating services. Services do not publish
-  wallet events themselves: [`PostCommitEvents`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/infra/events/PostCommitEvents.java)
+  wallet events themselves: [`PostCommitEvents`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/infra/events/PostCommitEvents.java)
   is the `TransactionListener` that queues events during a transaction, publishes them in order through an
   `EventSink` (the one-method seam over the bus) after commit, and discards them on rollback. It is one
   shared queue, which relies on the single-process assumption (C50); nested transactions are rejected.
@@ -325,6 +361,47 @@ change back. See [4.14](#414-audit-trail).
 | The suspension reason lives in a nullable `users.suspensionReason` column (migration V003) and is also written to the audit row. | Looking a reason up should not mean reading the audit log, which is not a data store. | A `suspensions` table; deriving the reason from `audit_log` | C34 (reverses the no-column part of C32) |
 | Suspending a Guest or Host force-cancels their PENDING and not-yet-started CONFIRMED bookings (check-in after today) with a 100% refund; a Host's ACTIVE listings become INACTIVE. Started and ended stays are untouched, and reactivation restores nothing. | Upcoming stays cannot be honoured by a suspended party; a stay in progress settles through the normal path (W8 auto-completion, or W10 dispute resolution). | Cancelling PENDING only; reinstating on reactivation | C36 |
 
+
+### 3.2 Web platform and deployment
+
+The web side so far is a skeleton: a Spring Boot API with one endpoint, a Next.js page that checks it, and
+a hosted dev environment that tracks the `development` branch. No desktop feature has been ported.
+
+```mermaid
+flowchart LR
+  subgraph Local["Local development"]
+    FE1["frontend: npm run dev :3000"]
+    BE1["backend: bootRun :8080 (profile dev)"]
+    PG1[("Postgres 17: docker-compose.yml")]
+  end
+  subgraph Hosted["Hosted dev environment (branch development)"]
+    V["Vercel: frontend, Next.js"]
+    R["Render: backend/Dockerfile via render.yaml (profile prod)"]
+    N[("Neon: branch dev")]
+  end
+  FE1 -->|"GET /actuator/health"| BE1
+  BE1 -->|"JDBC"| PG1
+  V -->|"GET /actuator/health (one allowed origin)"| R
+  R -->|"JDBC, sslmode=require"| N
+```
+
+1. The browser loads the page from `frontend/` (locally on port 3000, in the hosted environment from Vercel).
+2. `BackendStatus` calls `fetchBackendHealth` (`src/lib/api.ts`), which requests `NEXT_PUBLIC_API_BASE_URL` + `/actuator/health`; the component aborts the request after 5 seconds.
+3. The backend answers only if the request's `Origin` equals `snoozeshare.cors.allowed-origin` (the actuator and application endpoints are configured separately but fed from that one property).
+4. The health check runs a query against Postgres: locally the compose container, hosted a Neon branch. Flyway applied `V001__baseline.sql` at startup.
+5. The page shows `Backend: UP` for a 200 response whose JSON status is `UP`, and `Backend: unreachable` for anything else; `Re-check` repeats the request.
+
+The hosted backend runs from `backend/Dockerfile` on Render's free plan, so it sleeps when idle and the first
+request after a pause is slow. `docs/runbooks/dev-environment.md` holds the deployment order, variables and
+evidence.
+
+| Decision | Why | Rejected | Ref |
+|---|---|---|---|
+| Desktop code moves under `desktop/`; `backend/` and `frontend/` sit beside it; independent builds, no root build | One repo for the re-platform, with the desktop tests still guarding the business rules | Leave in place; delete now; a root multi-project build | C81 |
+| `application-dev.yml` is committed with non-secret local defaults; secrets go in a gitignored `application-local.yml` | A fresh clone runs without setup | | C82 |
+| The `checkstyle` and `build` checks keep their names and each covers all three components; backend tests use Testcontainers Postgres 17 | Branch protection keeps working; tests run on the same database engine as production | | C83 |
+| Backend hosting is Render (free Docker web service); Vercel and Neon unchanged | Railway costs money | Railway; Cloudflare (no free JVM hosting); Cloud Run (needs a card) | C85 |
+
 ---
 
 ## 4. Components
@@ -337,9 +414,9 @@ Dependencies come first. Money is `BigDecimal` at scale 2 with `HALF_UP` through
 
 **API**
 
-- [`SettlementCalculator.split(escrow, guestRefund)`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/domain/settlement/SettlementCalculator.java) returns a `SettlementBreakdown`.
-- [`SettlementBreakdown`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/domain/settlement/SettlementBreakdown.java) is a record of `escrow`, `guestRefund`, `hostGross`, `fee`, `hostNet`.
-- [`EscrowPolicy.isHeld(bookingTransactions)`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/domain/settlement/EscrowPolicy.java) is true when the list has an `ESCROW_HOLD` row and no `ESCROW_REFUND`, `BOOKING_PAYOUT`, `TICKET_REMEDY` or `AGENT_OVERRIDE` row.
+- [`SettlementCalculator.split(escrow, guestRefund)`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/domain/settlement/SettlementCalculator.java) returns a `SettlementBreakdown`.
+- [`SettlementBreakdown`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/domain/settlement/SettlementBreakdown.java) is a record of `escrow`, `guestRefund`, `hostGross`, `fee`, `hostNet`.
+- [`EscrowPolicy.isHeld(bookingTransactions)`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/domain/settlement/EscrowPolicy.java) is true when the list has an `ESCROW_HOLD` row and no `ESCROW_REFUND`, `BOOKING_PAYOUT`, `TICKET_REMEDY` or `AGENT_OVERRIDE` row.
 
 **Depends on:** `domain.enums`, `domain.model.WalletTransaction`, `DomainValidation`. No JavaFX or JDBC.
 
@@ -356,7 +433,7 @@ Dependencies come first. Money is `BigDecimal` at scale 2 with `HALF_UP` through
 
 **Purpose:** the single legality check for booking and ticket transitions.
 
-**API:** [`BookingStateMachine.canTransition(from, to, role)`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/domain/statemachine/BookingStateMachine.java) and [`TicketStateMachine.canTransition(from, to, role)`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/domain/statemachine/TicketStateMachine.java).
+**API:** [`BookingStateMachine.canTransition(from, to, role)`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/domain/statemachine/BookingStateMachine.java) and [`TicketStateMachine.canTransition(from, to, role)`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/domain/statemachine/TicketStateMachine.java).
 
 **Depends on:** `domain.enums` only.
 
@@ -381,9 +458,9 @@ booking machine but nothing in the agent UI uses them (C22).
 
 **API**
 
-- [`TicketRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/repository/TicketRepository.java) and its adapter [`JdbcTicketRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/repository/jdbc/JdbcTicketRepository.java): `findById`, `findByStatus`, `findQueue(status, assignee, agentId)`, `existsByCategory(label)`, `save` (upsert).
-- [`TicketCategoryRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/repository/TicketCategoryRepository.java) and [`JdbcTicketCategoryRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/repository/jdbc/JdbcTicketCategoryRepository.java): `findActive`, `findAll`, `findById`, `labelInUse(label, excludeCategoryId)`, `save`, `deleteById`.
-- [`MigrationRunner.migrate`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/infra/db/migration/MigrationRunner.java) applies the ordered V001–V008 migrations, or adopts a database that already has the foundation tables (such as the mock DB) by recording the baseline before applying later migrations.
+- [`TicketRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/repository/TicketRepository.java) and its adapter [`JdbcTicketRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/repository/jdbc/JdbcTicketRepository.java): `findById`, `findByStatus`, `findQueue(status, assignee, agentId)`, `existsByCategory(label)`, `save` (upsert).
+- [`TicketCategoryRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/repository/TicketCategoryRepository.java) and [`JdbcTicketCategoryRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/repository/jdbc/JdbcTicketCategoryRepository.java): `findActive`, `findAll`, `findById`, `labelInUse(label, excludeCategoryId)`, `save`, `deleteById`.
+- [`MigrationRunner.migrate`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/infra/db/migration/MigrationRunner.java) applies the ordered V001–V008 migrations, or adopts a database that already has the foundation tables (such as the mock DB) by recording the baseline before applying later migrations.
 
 ```mermaid
 erDiagram
@@ -427,7 +504,7 @@ erDiagram
 
 `raisedByRole` is limited to `GUEST` or `HOST`; `requestedRemedy` to `FULL_REFUND`, `PARTIAL_REFUND`,
 `HOST_PAYOUT`, `OTHER`; `status` to `OPEN`, `IN_REVIEW`, `RESOLVED_APPROVED`, `RESOLVED_REJECTED`
-(all `CHECK` constraints in [`db/schema.sql`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/db/schema.sql)).
+(all `CHECK` constraints in [`desktop/db/schema.sql`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/db/schema.sql)).
 
 **Depends on:** `infra.db.ConnectionFactory`, `JdbcCodecs` and `RowMappers` (`repository.jdbc.support`), `java.sql` (only here).
 
@@ -447,9 +524,9 @@ erDiagram
 
 **API**
 
-- [`MessageService`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/MessageService.java): `thread(ticketId, channel, viewerId, viewerRole)`, `post(ticketId, channel, authorId, authorRole, body)`, `conversationsFor(userId, role)`, `unreadCount(userId, role)`, `markRead(ticketId, channel, userId, role)`.
-- [`MessageServiceImpl`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/impl/MessageServiceImpl.java) and [`JdbcMessageRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/repository/jdbc/JdbcMessageRepository.java), over the `messages` and `message_reads` tables.
-- [`Message`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/domain/model/Message.java), [`ThreadChannel`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/domain/enums/ThreadChannel.java) (`GUEST`, `HOST`), [`ConversationSummary`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/ConversationSummary.java), [`MessagePostedEvent`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/infra/events/events/MessagePostedEvent.java), published after the insert commits.
+- [`MessageService`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/MessageService.java): `thread(ticketId, channel, viewerId, viewerRole)`, `post(ticketId, channel, authorId, authorRole, body)`, `conversationsFor(userId, role)`, `unreadCount(userId, role)`, `markRead(ticketId, channel, userId, role)`.
+- [`MessageServiceImpl`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/impl/MessageServiceImpl.java) and [`JdbcMessageRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/repository/jdbc/JdbcMessageRepository.java), over the `messages` and `message_reads` tables.
+- [`Message`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/domain/model/Message.java), [`ThreadChannel`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/domain/enums/ThreadChannel.java) (`GUEST`, `HOST`), [`ConversationSummary`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/ConversationSummary.java), [`MessagePostedEvent`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/infra/events/events/MessagePostedEvent.java), published after the insert commits.
 
 **Depends on:** `TicketRepository`, `BookingRepository`, `PropertyRepository`, `UserRepository`, `EventBus`, a `Clock`, `DomainValidation`.
 
@@ -467,9 +544,9 @@ erDiagram
 
 **API**
 
-- [`BookingConversationService`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/BookingConversationService.java): `thread(bookingId, viewerId, viewerRole)`, `post(bookingId, authorId, authorRole, body)`, `conversationsFor(userId, role)`, `unreadCount(userId, role)`, `markRead(bookingId, userId, role)`.
-- [`BookingConversationServiceImpl`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/impl/BookingConversationServiceImpl.java) and [`JdbcBookingMessageRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/repository/jdbc/JdbcBookingMessageRepository.java), over the `booking_messages` and `booking_message_reads` tables.
-- [`BookingMessage`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/domain/model/BookingMessage.java), [`BookingConversationSummary`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/BookingConversationSummary.java), [`BookingMessagePostedEvent`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/infra/events/events/BookingMessagePostedEvent.java).
+- [`BookingConversationService`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/BookingConversationService.java): `thread(bookingId, viewerId, viewerRole)`, `post(bookingId, authorId, authorRole, body)`, `conversationsFor(userId, role)`, `unreadCount(userId, role)`, `markRead(bookingId, userId, role)`.
+- [`BookingConversationServiceImpl`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/impl/BookingConversationServiceImpl.java) and [`JdbcBookingMessageRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/repository/jdbc/JdbcBookingMessageRepository.java), over the `booking_messages` and `booking_message_reads` tables.
+- [`BookingMessage`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/domain/model/BookingMessage.java), [`BookingConversationSummary`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/BookingConversationSummary.java), [`BookingMessagePostedEvent`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/infra/events/events/BookingMessagePostedEvent.java).
 
 **Depends on:** `BookingRepository`, `PropertyRepository`, `UserRepository`, `EventBus`, a `Clock`, `DomainValidation`.
 
@@ -485,7 +562,7 @@ erDiagram
 
 **Purpose:** the only class that moves money when an agent resolves a dispute.
 
-**API:** [`DisputeSettlementService.settle(ticketId, mode, guestRefund, agentId, reason)`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/DisputeSettlementService.java), implemented by [`DisputeSettlementServiceImpl`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/impl/DisputeSettlementServiceImpl.java). It returns a [`Settlement`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/Settlement.java) (ticket, booking, `SettlementBreakdown`, and the guest and host `WalletTransaction`, either of which is `null` when its amount was zero). [`ResolutionMode`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/domain/enums/ResolutionMode.java) is `ACCEPT`, `REJECT` or `MANUAL`.
+**API:** [`DisputeSettlementService.settle(ticketId, mode, guestRefund, agentId, reason)`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/DisputeSettlementService.java), implemented by [`DisputeSettlementServiceImpl`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/impl/DisputeSettlementServiceImpl.java). It returns a [`Settlement`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/Settlement.java) (ticket, booking, `SettlementBreakdown`, and the guest and host `WalletTransaction`, either of which is `null` when its amount was zero). [`ResolutionMode`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/domain/enums/ResolutionMode.java) is `ACCEPT`, `REJECT` or `MANUAL`.
 
 **Outcome by mode**
 
@@ -544,7 +621,7 @@ sequenceDiagram
 
 **Purpose:** the ticket lifecycle for agents (queue, assign, unassign, notes, resolve) and category administration.
 
-**API:** [`TicketService`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/TicketService.java), implemented by [`TicketServiceImpl`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/impl/TicketServiceImpl.java).
+**API:** [`TicketService`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/TicketService.java), implemented by [`TicketServiceImpl`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/impl/TicketServiceImpl.java).
 
 | Method | Behaviour |
 |---|---|
@@ -577,7 +654,7 @@ sequenceDiagram
 
 **Purpose:** read models for the agent screens, so controllers never touch repositories.
 
-**API:** [`DisputeQueryService`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/DisputeQueryService.java) with `queue(status, assignee, agentId)` returning [`DisputeSummary`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/DisputeSummary.java) rows and `detail(ticketId)` returning a [`DisputeDetail`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/DisputeDetail.java), implemented by [`DisputeQueryServiceImpl`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/impl/DisputeQueryServiceImpl.java).
+**API:** [`DisputeQueryService`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/DisputeQueryService.java) with `queue(status, assignee, agentId)` returning [`DisputeSummary`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/DisputeSummary.java) rows and `detail(ticketId)` returning a [`DisputeDetail`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/DisputeDetail.java), implemented by [`DisputeQueryServiceImpl`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/impl/DisputeQueryServiceImpl.java).
 
 - `DisputeSummary`: ticket id and label, title, category, listing title, guest, host and assignee names, status, `createdAt`.
 - `DisputeDetail`: the ticket, listing and dates, party names, booking status, `escrowAmount`, `escrowHeld` and `phaseLabel`.
@@ -759,11 +836,11 @@ breadcrumbs; create/edit retain their form titles while detail and calendar incl
 |---|---|
 | `HostShellController` + `host-shell.fxml` | Host navigation shell with Listings, Requests, Messages and Wallet tabs. |
 | `HostMessagesController` + `host-messages.fxml` | Merged Host inbox for ticket and private booking conversations; delegates to the appropriate persistent messaging service and disables replies after a thread becomes read-only. |
-| [`HostListingsController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/host/listings/HostListingsController.java) + `host-listings.fxml` | Host-scoped listing dashboard with listing cards, booking/rating metrics, Active/Inactive control, Edit and calendar entry. |
-| [`HostListingFormController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/host/listings/HostListingFormController.java) + `host-listing-form.fxml` | Shared create/edit form for details, location, capacity, pricing and amenities; validates checkout after check-in. |
-| [`HostListingDetailController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/host/listings/HostListingDetailController.java) + `host-listing-detail.fxml` | Host-facing detail page with Back, Edit and booking-calendar actions. |
-| [`ListingServiceImpl`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/impl/ListingServiceImpl.java) | Enforces host ownership, validates listing data, persists changes and emits audit records. |
-| [`ListingMetricsService`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/ListingMetricsService.java) | Supplies booking, occupancy and earnings metrics with zero-value fallbacks. |
+| [`HostListingsController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/host/listings/HostListingsController.java) + `host-listings.fxml` | Host-scoped listing dashboard with listing cards, booking/rating metrics, Active/Inactive control, Edit and calendar entry. |
+| [`HostListingFormController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/host/listings/HostListingFormController.java) + `host-listing-form.fxml` | Shared create/edit form for details, location, capacity, pricing and amenities; validates checkout after check-in. |
+| [`HostListingDetailController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/host/listings/HostListingDetailController.java) + `host-listing-detail.fxml` | Host-facing detail page with Back, Edit and booking-calendar actions. |
+| [`ListingServiceImpl`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/impl/ListingServiceImpl.java) | Enforces host ownership, validates listing data, persists changes and emits audit records. |
+| [`ListingMetricsService`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/ListingMetricsService.java) | Supplies booking, occupancy and earnings metrics with zero-value fallbacks. |
 
 **Host service surface**
 
@@ -821,7 +898,7 @@ validation/ownership, metrics, navigation, layout and Host stylesheet ownership.
 
 **Purpose:** hosts inspect one listing's monthly availability and create or remove manual blocks.
 
-[`HostCalendarController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/host/calendar/HostCalendarController.java)
+[`HostCalendarController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/host/calendar/HostCalendarController.java)
 uses `AvailabilityService` to load the selected month, navigate months, add inclusive single-date or
 range blocks, and remove existing manual blocks. Booking blocks and manual blocks are shown with separate
 visual treatments. Validation rejects an end date before the start date and overlapping unavailable dates.
@@ -867,7 +944,7 @@ overlap rejection, block history and removal rules.
 
 **Purpose:** hosts review pending requests, decide them, inspect earnings and see request history.
 
-[`HostBookingsController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/host/bookings/HostBookingsController.java)
+[`HostBookingsController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/host/bookings/HostBookingsController.java)
 uses `BookingService.pendingRequestRowsFor` and `historyRowsFor` for host-scoped projections. The request
 table includes guest, dates, nights, amount, estimated net earnings and guest rating. Approve and reject
 decisions use the shared host modal style; rejection may include the persisted `hostDecisionMessage`.
@@ -932,7 +1009,7 @@ machine coverage is exercised through the booking service tests.
 **Purpose:** provide hosts with the same native wallet capability and visual language as the guest wallet,
 while keeping the presentation owned by the common wallet module.
 
-The shared [`WalletDashboardController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/common/wallet/WalletDashboardController.java)
+The shared [`WalletDashboardController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/common/wallet/WalletDashboardController.java)
 and `wallet-dashboard.fxml` are loaded by both Guest and Host shells. The page includes the available
 balance, the amount currently held in escrow for pending bookings, top-up and withdrawal actions, and a
 five-column transaction statement. The statement uses compact type badges, aligned date/related/amount/
@@ -975,20 +1052,20 @@ and booking decision/calendar-block audit coverage is incomplete as recorded in 
 
 | File | Role |
 |---|---|
-| [`AdminShellController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/admin/AdminShellController.java) + [`admin-shell.fxml`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/resources/com/snoozeshare/ui/admin/admin-shell.fxml) | Top bar and tab strip (Disputes, Accounts, Audit Log, Categories); swaps the centre view and disposes the live views (queue, accounts) when it does. |
-| [`DisputeQueueController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/admin/tickets/DisputeQueueController.java) + `dispute-queue.fxml` | Oldest-first table, All / Unassigned / Mine chips, status filter (All statuses, Open, In review, Approved, Rejected), "N unassigned" badge; refreshes on `TicketResolvedEvent`. |
-| [`DisputeDetailController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/admin/tickets/DisputeDetailController.java) + `dispute-detail.fxml` | Booking summary, guest and host chat panes, one notes field, Assign to me / Unassign, Accept, Reject dispute, Manual adjustment. The Accept label follows the ticket raiser ("remedy guest" or "remedy host"). |
-| [`ResolutionDialogController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/admin/tickets/ResolutionDialogController.java) + `resolution-dialog.fxml` | One dialog for the three modes; reason required; live preview. |
-| [`ResolutionPreview`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/admin/tickets/ResolutionPreview.java) | Pure logic that turns a refund text into a preview or an error message, using `SettlementCalculator`. |
-| [`CategoryAdminController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/admin/categories/CategoryAdminController.java), [`CategoryDialogController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/admin/categories/CategoryDialogController.java) | Category table with active toggle, Add and Edit modals; Edit has Delete. |
-| [`AuditLogController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/admin/audit/AuditLogController.java) + [`audit-log.fxml`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/resources/com/snoozeshare/ui/admin/audit/audit-log.fxml) | The read-only Audit Log screen (below). |
-| [`AccountGovernanceController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/admin/accounts/AccountGovernanceController.java) + [`account-governance.fxml`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/resources/com/snoozeshare/ui/admin/accounts/account-governance.fxml) | The Accounts screen (below). Refreshes on `AccountStatusChangedEvent`. |
-| [`SuspensionDialogController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/admin/accounts/SuspensionDialogController.java) + `suspension-dialog.fxml` | The Suspend and Reactivate modal (one card, two modes). |
-| [`AccountText`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/admin/accounts/AccountText.java), [`AccountSearch`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/admin/accounts/AccountSearch.java) | Pure helpers: role and status labels, `DD MMM YYYY` dates, and the live-search match. |
-| [`MultiSelectMenu`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/admin/audit/MultiSelectMenu.java) | The action-type dropdown with a check per option; an empty selection means every action. |
-| [`AgentModal`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/admin/AgentModal.java) | Shared modal shell: transparent undecorated stage plus a light-grey scrim over the owner window. |
-| [`HeightGrip`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/admin/HeightGrip.java) | Drag handle that resizes chat panes together and the notes box, within min and max heights. |
-| [`agent-theme.css`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/resources/com/snoozeshare/ui/admin/agent-theme.css) | The "Fall Light" palette, loaded on the agent scene root only. |
+| [`AdminShellController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/admin/AdminShellController.java) + [`admin-shell.fxml`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/resources/com/snoozeshare/ui/admin/admin-shell.fxml) | Top bar and tab strip (Disputes, Accounts, Audit Log, Categories); swaps the centre view and disposes the live views (queue, accounts) when it does. |
+| [`DisputeQueueController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/admin/tickets/DisputeQueueController.java) + `dispute-queue.fxml` | Oldest-first table, All / Unassigned / Mine chips, status filter (All statuses, Open, In review, Approved, Rejected), "N unassigned" badge; refreshes on `TicketResolvedEvent`. |
+| [`DisputeDetailController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/admin/tickets/DisputeDetailController.java) + `dispute-detail.fxml` | Booking summary, guest and host chat panes, one notes field, Assign to me / Unassign, Accept, Reject dispute, Manual adjustment. The Accept label follows the ticket raiser ("remedy guest" or "remedy host"). |
+| [`ResolutionDialogController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/admin/tickets/ResolutionDialogController.java) + `resolution-dialog.fxml` | One dialog for the three modes; reason required; live preview. |
+| [`ResolutionPreview`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/admin/tickets/ResolutionPreview.java) | Pure logic that turns a refund text into a preview or an error message, using `SettlementCalculator`. |
+| [`CategoryAdminController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/admin/categories/CategoryAdminController.java), [`CategoryDialogController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/admin/categories/CategoryDialogController.java) | Category table with active toggle, Add and Edit modals; Edit has Delete. |
+| [`AuditLogController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/admin/audit/AuditLogController.java) + [`audit-log.fxml`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/resources/com/snoozeshare/ui/admin/audit/audit-log.fxml) | The read-only Audit Log screen (below). |
+| [`AccountGovernanceController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/admin/accounts/AccountGovernanceController.java) + [`account-governance.fxml`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/resources/com/snoozeshare/ui/admin/accounts/account-governance.fxml) | The Accounts screen (below). Refreshes on `AccountStatusChangedEvent`. |
+| [`SuspensionDialogController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/admin/accounts/SuspensionDialogController.java) + `suspension-dialog.fxml` | The Suspend and Reactivate modal (one card, two modes). |
+| [`AccountText`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/admin/accounts/AccountText.java), [`AccountSearch`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/admin/accounts/AccountSearch.java) | Pure helpers: role and status labels, `DD MMM YYYY` dates, and the live-search match. |
+| [`MultiSelectMenu`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/admin/audit/MultiSelectMenu.java) | The action-type dropdown with a check per option; an empty selection means every action. |
+| [`AgentModal`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/admin/AgentModal.java) | Shared modal shell: transparent undecorated stage plus a light-grey scrim over the owner window. |
+| [`HeightGrip`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/admin/HeightGrip.java) | Drag handle that resizes chat panes together and the notes box, within min and max heights. |
+| [`agent-theme.css`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/resources/com/snoozeshare/ui/admin/agent-theme.css) | The "Fall Light" palette, loaded on the agent scene root only. |
 
 **Audit Log screen (W12).** A read-only table over `AuditService.search` ([4.14](#414-audit-trail)).
 
@@ -1021,10 +1098,10 @@ and booking decision/calendar-block audit coverage is incomplete as recorded in 
 
 **API**
 
-- [`AuditService`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/AuditService.java), implemented by [`AuditServiceImpl`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/impl/AuditServiceImpl.java): `record(AuditRecord)` and `search(AuditFilter, limit, offset)`. `AuditService.SYSTEM_ACTOR_ID` is the seeded System user. (W14 removed the `recordWalletTransaction` helper: every money row now goes through `LedgerWriter`, [4.16](#416-unified-ledger-ledgerwriter).)
-- [`AuditRecord`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/AuditRecord.java) is what a service asks to write; [`AuditLogEntry`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/domain/model/AuditLogEntry.java) is what a search returns; [`AuditAction`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/domain/enums/AuditAction.java) is the enum of action types (the column stores the constant's name).
-- [`AuditFilter`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/AuditFilter.java) (`text`, a set of `actions`, inclusive `from` / `to` dates) is the screen's filter; [`AuditCriteria`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/repository/AuditCriteria.java) is its repository form. [`AuditLogRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/repository/AuditLogRepository.java) and [`JdbcAuditLogRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/repository/jdbc/JdbcAuditLogRepository.java) store and query rows.
-- The schema change is [`V002__audit_trail.sql`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/resources/db/migration/V002__audit_trail.sql), which is also reflected in [`db/schema.sql`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/db/schema.sql).
+- [`AuditService`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/AuditService.java), implemented by [`AuditServiceImpl`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/impl/AuditServiceImpl.java): `record(AuditRecord)` and `search(AuditFilter, limit, offset)`. `AuditService.SYSTEM_ACTOR_ID` is the seeded System user. (W14 removed the `recordWalletTransaction` helper: every money row now goes through `LedgerWriter`, [4.16](#416-unified-ledger-ledgerwriter).)
+- [`AuditRecord`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/AuditRecord.java) is what a service asks to write; [`AuditLogEntry`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/domain/model/AuditLogEntry.java) is what a search returns; [`AuditAction`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/domain/enums/AuditAction.java) is the enum of action types (the column stores the constant's name).
+- [`AuditFilter`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/AuditFilter.java) (`text`, a set of `actions`, inclusive `from` / `to` dates) is the screen's filter; [`AuditCriteria`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/repository/AuditCriteria.java) is its repository form. [`AuditLogRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/repository/AuditLogRepository.java) and [`JdbcAuditLogRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/repository/jdbc/JdbcAuditLogRepository.java) store and query rows.
+- The schema change is [`V002__audit_trail.sql`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/resources/db/migration/V002__audit_trail.sql), which is also reflected in [`desktop/db/schema.sql`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/db/schema.sql).
 
 **Column layout.** One row is one change. Migration V002 added seven columns to the V001 `audit_log` table:
 
@@ -1118,7 +1195,7 @@ sequenceDiagram
 7. Rows 1 and 2 record status only; rows 3–5 record money only, each with its own `balanceAfter`. All carry the ticket and booking ids.
 8. If anything throws, the transaction rolls back and no audit row survives.
 
-**Data model: the whole schema.** Every table in [`db/schema.sql`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/db/schema.sql). To stay readable, each table other than `audit_log` lists only its keys and the columns that matter here; the full column lists are in the schema file, and [4.3](#43-persistence-tickets-and-ticket-categories) has the full `tickets` and `ticket_categories`. `audit_log` shows all its columns, with the V002 and V007 additions marked. `wallet_transactions` no longer exists — W14's V008 dropped it ([4.16](#416-unified-ledger-ledgerwriter)).
+**Data model: the whole schema.** Every table in [`desktop/db/schema.sql`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/db/schema.sql). To stay readable, each table other than `audit_log` lists only its keys and the columns that matter here; the full column lists are in the schema file, and [4.3](#43-persistence-tickets-and-ticket-categories) has the full `tickets` and `ticket_categories`. `audit_log` shows all its columns, with the V002 and V007 additions marked. `wallet_transactions` no longer exists — W14's V008 dropped it ([4.16](#416-unified-ledger-ledgerwriter)).
 
 ```mermaid
 erDiagram
@@ -1232,7 +1309,7 @@ erDiagram
 - Names are snapshotted onto each row when written, and text searches go by user id, so renames do not hide history.
 - A money row's `balanceAfter` is written in the same `LedgerWriter` call as its `walletAdjustment`; `wallets.balance` is a cache of the owner's newest `balanceAfter`, checked by `LedgerConservationTest` ([4.16](#416-unified-ledger-ledgerwriter)).
 
-**Deviations:** D13 (dual-write until W14 — historical, see [4.16](#416-unified-ledger-ledgerwriter)); D15 (the committed mock DB ships already migrated — now at `schema_history` v8 after W14, see 4.16; the System user has existed since V002, and `db/schema.sql` creates `schema_history`); D16 (seed `availability_blocks` ids were remapped to valid hex); D17 (the spec's `AuditService.query` became `search`, `CATEGORY_DELETED` became `TICKET_CATEGORY_DELETED`, and the search was corrected to a contains-match with a 4-character minimum for id fragments; the Audit Log's `REF` column was later replaced by `TARGET`, W14 follow-up).
+**Deviations:** D13 (dual-write until W14 — historical, see [4.16](#416-unified-ledger-ledgerwriter)); D15 (the committed mock DB ships already migrated — now at `schema_history` v8 after W14, see 4.16; the System user has existed since V002, and `desktop/db/schema.sql` creates `schema_history`); D16 (seed `availability_blocks` ids were remapped to valid hex); D17 (the spec's `AuditService.query` became `search`, `CATEGORY_DELETED` became `TICKET_CATEGORY_DELETED`, and the search was corrected to a contains-match with a 4-character minimum for id fragments; the Audit Log's `REF` column was later replaced by `TARGET`, W14 follow-up).
 
 ### 4.15 Account governance
 
@@ -1240,9 +1317,9 @@ erDiagram
 
 **API**
 
-- [`AccountGovernanceService`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/AccountGovernanceService.java), implemented by [`AccountGovernanceServiceImpl`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/impl/AccountGovernanceServiceImpl.java): `listAccounts()` (every account except the System user, as [`AccountSummary`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/AccountSummary.java) read models), `suspend(userId, agentId, reason)` and `reactivate(userId, agentId, reason)`.
-- `AccountStatusChangedEvent` ([`infra/events/events`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/infra/events/events/AccountStatusChangedEvent.java)) is published after commit; the Accounts screen refreshes on it.
-- Supporting changes: `User.suspensionReason`, `UserRepository.findAll`, `BookingRepository.findByListing`, migration [`V003__suspension_reason.sql`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/resources/db/migration/V003__suspension_reason.sql), and a guard in `BookingServiceImpl.submitRequest` that refuses a guest whose account is not ACTIVE. The old `UserService.suspend` stub was removed (D19).
+- [`AccountGovernanceService`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/AccountGovernanceService.java), implemented by [`AccountGovernanceServiceImpl`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/impl/AccountGovernanceServiceImpl.java): `listAccounts()` (every account except the System user, as [`AccountSummary`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/AccountSummary.java) read models), `suspend(userId, agentId, reason)` and `reactivate(userId, agentId, reason)`.
+- `AccountStatusChangedEvent` ([`infra/events/events`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/infra/events/events/AccountStatusChangedEvent.java)) is published after commit; the Accounts screen refreshes on it.
+- Supporting changes: `User.suspensionReason`, `UserRepository.findAll`, `BookingRepository.findByListing`, migration [`V003__suspension_reason.sql`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/resources/db/migration/V003__suspension_reason.sql), and a guard in `BookingServiceImpl.submitRequest` that refuses a guest whose account is not ACTIVE. The old `UserService.suspend` stub was removed (D19).
 
 **Depends on:** the user, booking, property, wallet, transaction and availability repositories, `TransactionManager`, `AuditService`, the event bus and `BookingStateMachine`.
 
@@ -1297,9 +1374,9 @@ shape of row and a balance can never drift from the rows that explain it.
 
 **API**
 
-- [`LedgerWriter`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/impl/LedgerWriter.java): `post(walletId, type, amount, actorId, bookingId, ticketId, reason, at)` moves a signed `amount` in one wallet and writes its `audit_log` money row; `postPayout(hostWalletId, net, fee, actorId, bookingId, ticketId, at)` writes the host's `BOOKING_PAYOUT` row (`net`) and, only when `fee` is positive, a second `PLATFORM_FEE` row crediting the System wallet. Neither method opens a transaction — the caller wraps the call (and the state change it belongs with) in its own `TransactionManager.inTransaction` block.
-- [`LedgerRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/repository/LedgerRepository.java), implemented by [`JdbcLedgerRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/repository/jdbc/JdbcLedgerRepository.java): `entriesForWallet(walletId)` and `entriesForBooking(bookingId)`, both newest-row-order reads of the money rows in `audit_log` (joined to `wallets` on `subjectUserId`). `EscrowPolicy` and the wallet statement/escrow-hint screens read through this instead of a dedicated ledger table.
-- [`WalletTransactionType`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/domain/enums/WalletTransactionType.java) gained `PLATFORM_FEE` alongside `TOP_UP`, `WITHDRAWAL`, `ESCROW_HOLD`, `ESCROW_REFUND`, `BOOKING_PAYOUT`, `TICKET_REMEDY` and `AGENT_OVERRIDE`.
+- [`LedgerWriter`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/impl/LedgerWriter.java): `post(walletId, type, amount, actorId, bookingId, ticketId, reason, at)` moves a signed `amount` in one wallet and writes its `audit_log` money row; `postPayout(hostWalletId, net, fee, actorId, bookingId, ticketId, at)` writes the host's `BOOKING_PAYOUT` row (`net`) and, only when `fee` is positive, a second `PLATFORM_FEE` row crediting the System wallet. Neither method opens a transaction — the caller wraps the call (and the state change it belongs with) in its own `TransactionManager.inTransaction` block.
+- [`LedgerRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/repository/LedgerRepository.java), implemented by [`JdbcLedgerRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/repository/jdbc/JdbcLedgerRepository.java): `entriesForWallet(walletId)` and `entriesForBooking(bookingId)`, both newest-row-order reads of the money rows in `audit_log` (joined to `wallets` on `subjectUserId`). `EscrowPolicy` and the wallet statement/escrow-hint screens read through this instead of a dedicated ledger table.
+- [`WalletTransactionType`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/domain/enums/WalletTransactionType.java) gained `PLATFORM_FEE` alongside `TOP_UP`, `WITHDRAWAL`, `ESCROW_HOLD`, `ESCROW_REFUND`, `BOOKING_PAYOUT`, `TICKET_REMEDY` and `AGENT_OVERRIDE`.
 - Callers: `WalletServiceImpl`, `TransactionServiceImpl`, `BookingServiceImpl`, `DisputeSettlementServiceImpl` ([4.5](#45-disputesettlementservice)) and `AccountGovernanceServiceImpl` ([4.15](#415-account-governance)). `WalletService` and `TransactionService` stay separate interfaces (C3, narrowed rather than removed by C39) — both now write through `LedgerWriter` instead of each hand-rolling "read wallet, add, save, insert ledger row".
 
 **Events and the fee rule.** `LedgerWriter` queues a `WalletTransactionRecordedEvent` for every money row
@@ -1347,6 +1424,26 @@ sequenceDiagram
 - Listing rates must be positive with at most 2 decimal places (`ListingServiceImpl`, `HostListingFormController`), so a booking's settlement always nets to a positive host payout or an explicit zero handled by the caller (C42; a $0 listing is forbidden, not supported end to end).
 
 **Deviations:** the spec's single ledger-fold migration was split into V006/V007/V008 so code could stop writing `wallet_transactions` (V006, V007) before it was dropped (V008), which the plan anticipated. C42: Task 8's review found a $0 or sub-cent listing rate crashed settlement once `LedgerWriter` rejected its zero-amount payout; the operator chose to forbid degenerate rates rather than build free-stay support end to end.
+
+
+### 4.17 Web skeletons (`backend/`, `frontend/`)
+
+**Purpose.** Prove that the web stack builds, deploys and talks to its database; no domain logic yet.
+
+**API.**
+- `GET /actuator/health` (backend): 200 with exactly `{"status":"UP"}`, or 503 with `{"status":"DOWN"}` when the database login fails. Every other actuator path is 404; details and probe groups are off.
+- `SnoozeShareApplication` (`backend/src/main/java/com/snoozeshare/`), `config/CorsConfig`, `config/CorsProperties`, `ProdEnvironmentGuard`.
+- `fetchBackendHealth(signal)` (`frontend/src/lib/api.ts`), `apiBaseUrl()` and `validateEnv()` (`frontend/src/lib/env.ts`), `BackendStatus` (`frontend/src/components/BackendStatus.tsx`).
+
+**Depends on.** PostgreSQL 17 through Spring JDBC and Flyway (`db/migration/V001__baseline.sql`, a comment-only baseline); the frontend depends on the backend URL.
+
+**Invariants.**
+- The `prod` profile has no defaults for the database or the allowed origin; `ProdEnvironmentGuard` fails startup and names any of `SPRING_DATASOURCE_URL`, `_USERNAME`, `_PASSWORD` or `SNOOZESHARE_CORS_ALLOWED_ORIGIN` that is missing. With no profile set the `dev` profile applies.
+- The allowed origin is one `http(s)` origin with no wildcard and no trailing slash, or the application does not start.
+- `src/lib/env.ts` is the only reader of `NEXT_PUBLIC_API_BASE_URL`, and a production build fails without it.
+- The health body must stay exactly `{"status":"UP"}`.
+
+**Deviations.** D39 (the guard exists because Spring's binder leaves an unresolved `${VAR}` in place); D40 (the request `Origin` is compared after Spring strips a trailing slash); D41 (Render runs on Kubernetes, so Spring's probe groups are disabled explicitly and `HealthOnKubernetesTest` simulates the platform).
 
 ---
 
@@ -1419,6 +1516,8 @@ they exist. It describes current behavior, including deliberate deferrals and co
 - **A stay checking in today counts as started** — a CONFIRMED booking with today's check-in is not cancelled by a suspension (C36). A suspended guest's in-progress stay is paid out by the normal settlement (`BookingService.completeEligibleBookings()`, run at startup, skipping bookings with an open ticket) or by an agent through a dispute ticket.
 - **Ticket categories are a lookup table, not a rules engine** — revisit only if workflow branching is needed (`PROJECT_STATE.md` § Known Gaps).
 - **Authentication is mocked** — login takes an email and checks no credential; role separation is enforced in service code (`PROJECT_STATE.md` § Known Gaps).
+- **The hosted dev backend sleeps when idle** — Render's free plan stops the service after a pause; the first request is slow and the page shows `Backend: unreachable` until `Re-check` (C85; `PROJECT_STATE.md` § Known Gaps).
+- **Vercel deploys from `development`** — its Production Branch stays `development` until the production deployment work re-points it at `main` (`PROJECT_STATE.md` § Known Gaps).
 - **Single-process only** — no multi-instance or distributed deployment support (`PROJECT_STATE.md` § Known Gaps).
 - **Sub-second ticket ordering** — the queue orders by `createdAt` text, so tickets created in the same second can mis-order (D12 (a)).
 - **Migration adoption is shallow** — `MigrationRunner` adopts any database that has a `users` table (D12 (b)).
@@ -1438,6 +1537,11 @@ they exist. It describes current behavior, including deliberate deferrals and co
 
 ## 6. Glossary
 
+- **Flyway:** the database migration tool used by `backend/`; `V001__baseline.sql` is its first migration.
+- **Neon:** the hosted PostgreSQL service; the hosted dev backend uses its `dev` branch.
+- **Render:** the host for the backend's Docker image, configured by `render.yaml`.
+- **Testcontainers:** the library that starts a throwaway Postgres 17 container for the backend tests.
+- **Vercel:** the host for the Next.js frontend.
 - **Agent (Support Agent):** the platform-admin role. Agents triage tickets, settle disputes and maintain ticket categories.
 - **AGENT_OVERRIDE:** wallet transaction type written on the guest's wallet for a manual adjustment that refunds the guest.
 - **Action type:** the kind of change an audit row records, one `AuditAction` constant (for example `TICKET_RESOLVED`, `ESCROW_HOLD`). The Audit Log filters by a set of them.
@@ -1458,7 +1562,7 @@ they exist. It describes current behavior, including deliberate deferrals and co
 - **Ledger:** the money rows of `audit_log` — a row with a `walletAdjustment` and a `balanceAfter` — written through `LedgerWriter` (W14, [4.16](#416-unified-ledger-ledgerwriter)). Each wallet's `balance` is a cache of its owner's newest `balanceAfter`; before W14 the ledger was a separate `wallet_transactions` table (see Dual-write).
 - **LedgerWriter:** the single class that changes a wallet balance; every money-moving service calls `post` or `postPayout` on it, inside its own transaction ([4.16](#416-unified-ledger-ledgerwriter)).
 - **Manual adjustment:** an agent-chosen split of the held escrow (Full refund, Full payout or Custom), independent of the remedy the ticket asked for.
-- **Mock DB:** the committed reference database `db/snoozeshare-mock.db`, built from `db/schema.sql` and `db/seed-mock-data.sql`.
+- **Mock DB:** the committed reference database `desktop/db/snoozeshare-mock.db`, built from `desktop/db/schema.sql` and `desktop/db/seed-mock-data.sql`.
 - **PLATFORM_FEE:** wallet transaction type crediting the System wallet with the platform's 3% cut of a host payout; written by `LedgerWriter.postPayout` only when the fee is positive (W14).
 - **Post-commit events:** domain events queued by `PostCommitEvents` during a transaction and published only after it commits (discarded on rollback), so a listener never sees a change that was rolled back ([3.1](#31-shared-foundation)).
 - **Reactivation:** returning a SUSPENDED Guest or Host to ACTIVE and clearing the reason. It restores no bookings or listings.
@@ -1484,11 +1588,15 @@ they exist. It describes current behavior, including deliberate deferrals and co
 
 | Command | What it does |
 |---|---|
-| `.\gradlew test` | Runs every suite below (JUnit 5, TestFX on the classpath). |
-| `.\gradlew build` | Compiles, runs checkstyle (`config/checkstyle/checkstyle.xml`), then all tests. |
+| `cd desktop; .\gradlew test` | Runs every desktop suite below (JUnit 5, TestFX on the classpath). |
+| `cd desktop; .\gradlew build` | Compiles, runs checkstyle (`config/checkstyle/checkstyle.xml`), then all desktop tests. |
+| `cd backend; .\gradlew test` | Runs the backend suites (JUnit 5, Spring Boot Test, Testcontainers); needs Docker. |
+| `cd backend; .\gradlew build` | Compiles, runs Checkstyle (the same ruleset), then the backend tests. |
+| `cd frontend; npm test` | Runs the frontend unit tests (Vitest and Testing Library). |
+| `cd frontend; npm run lint` and `npm run build` | ESLint; a production build (needs `NEXT_PUBLIC_API_BASE_URL`). |
 | `.\gradlew test --tests "com.snoozeshare.service.DisputeFlowEndToEndTest"` | Runs one class. A pattern such as `--tests "*DisputeSettlement*"` also works. |
 
-The same commands run in CI (`.github/workflows/ci.yml`, see [Setting Up](#2-setting-up)). No credentials or external services are needed. Database-backed suites copy `db/snoozeshare-mock.db`
+The same commands run in CI (`.github/workflows/ci.yml`, see [Setting Up](#2-setting-up)). The desktop and frontend suites need no credentials or external services; the backend suites need Docker. Database-backed suites copy `desktop/db/snoozeshare-mock.db`
 to a temporary directory, so the committed file is never modified. Test run times were not
 measured for this guide.
 
@@ -1498,17 +1606,19 @@ measured for this guide.
 | Unit: `SettlementCalculatorTest`, `EscrowPolicyTest`, `StateMachineTest`, `AgentCompletionTest`, `ResolutionPreviewTest`, `HeightGripTest` | Split maths and fee rounding, the escrow-held rule, every legal and illegal transition per role, live preview text, drag-height bounds. |
 | Service, fakes: `TicketServiceTest`, `TicketServiceCategoryTest` | Queue order and filters, assign / unassign / notes rules, category rules including delete-when-used. |
 | Messaging, mock-DB: `MessageServiceTest`, `BookingConversationServiceTest`, `MessagingMigrationTest` | Ticket and booking chat party checks, resolved/closed-window rejection, ordering, unread counts and `markRead`, `MessagePostedEvent`/`BookingMessagePostedEvent` published once per post; the `messages`/`message_reads`/`booking_messages`/`booking_message_reads` migrations against a fresh and an adopted database. |
-| Mock-DB integration: `DisputeSettlementServiceTest`, `TicketServiceIntegrationTest`, `DisputeQueryServiceTest`, `JdbcTicketRepositoryTest`, `JdbcTicketCategoryRepositoryTest` | Exact ledger rows, wallet balances, ticket and booking end states, audit content, precondition rejections that leave the database unchanged, repository round trips, read models. Built on [`MockDbFixture`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/test/java/com/snoozeshare/testsupport/MockDbFixture.java) with `MockIds` and `SettlementFixtures`. |
+| Mock-DB integration: `DisputeSettlementServiceTest`, `TicketServiceIntegrationTest`, `DisputeQueryServiceTest`, `JdbcTicketRepositoryTest`, `JdbcTicketCategoryRepositoryTest` | Exact ledger rows, wallet balances, ticket and booking end states, audit content, precondition rejections that leave the database unchanged, repository round trips, read models. Built on [`MockDbFixture`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/test/java/com/snoozeshare/testsupport/MockDbFixture.java) with `MockIds` and `SettlementFixtures`. |
 | Audit trail, unit and service: `AuditActionTest`, `AuditRecordTest`, `AuditServiceTest`, `WalletLedgerAuditTest`, `AuditLogFormattingTest` | The enum and wallet-type mapping, the one-row-one-change rule and builder, status-only rows with name snapshots, search by name (surviving a rename), id fragment, action set, inclusive dates and ordering, top-up and withdrawal money rows and rollback when the audit write fails, and the screen's status, amount and TARGET text. |
-| Audit trail, database: `JdbcAuditLogRepositoryTest`, `AuditTrailMigrationTest`, `MockAuditSeedTest`, `CommittedMockDbTest` | Repository round trips and search clauses; V002 adds the columns and the System user and is idempotent; the seeded audit rows (one money row per ledger row, the four rows of ticket `#0004`, governance rows in the shape W11 will write). `CommittedMockDbTest` opens the committed `db/snoozeshare-mock.db` **directly and read-only** (not a copy, and without `MigrationRunner`) and checks it already has the audit columns, the System user and a migration version of at least 2 (now v8 after W14 — see the next row), so a stale committed file cannot hide behind a migrated copy (D15). |
+| Audit trail, database: `JdbcAuditLogRepositoryTest`, `AuditTrailMigrationTest`, `MockAuditSeedTest`, `CommittedMockDbTest` | Repository round trips and search clauses; V002 adds the columns and the System user and is idempotent; the seeded audit rows (one money row per ledger row, the four rows of ticket `#0004`, governance rows in the shape W11 will write). `CommittedMockDbTest` opens the committed `desktop/db/snoozeshare-mock.db` **directly and read-only** (not a copy, and without `MigrationRunner`) and checks it already has the audit columns, the System user and a migration version of at least 2 (now v8 after W14 — see the next row), so a stale committed file cannot hide behind a migrated copy (D15). |
 | Date rules and post-commit events (MP3-0): `DisputeWindowPolicyTest`, `StayDatePolicyTest`, `DisputeWindowBoundaryTest`, `PostCommitEventsTest`, `GuestVisualsDatePickerTest`, `TicketFilingControllerTest` | The day-7 filing and day-8 completion boundary, joined across the policy, the booking service and the sweep (including a second sweep settling nothing more); past and inverted ranges refused, today allowed; events published only after commit, in order, and discarded on rollback; a typed past date reported and kept while today and future dates pass; "Other" always last in the dispute categories. |
 | Unified ledger (W14): `LedgerWriterTest`, `JdbcLedgerRepositoryTest`, `LedgerConservationTest`, `MigrationForeignKeyTest`, `SystemRoleMigrationTest`, `SystemUserGuardTest`, `UnifiedLedgerMigrationTest`, `DropWalletTransactionsMigrationTest` | `LedgerWriter.post`/`postPayout` money rows, balances and the System `PLATFORM_FEE` credit; `LedgerRepository` queries; the conservation invariant (a wallet's `balance` equals its newest row, and a refund + host net + fee nets to the original escrow) against the mock DB and a real settlement; V006 rebuilding `users` with foreign keys off and restoring them; the System role and wallet; the System user guard (cannot authenticate, be suspended, or appear governable); V007's `balanceAfter` backfill and legacy `PLATFORM_FEE` rows; V008 dropping `wallet_transactions` ([4.16](#416-unified-ledger-ledgerwriter)). |
 | Audit screen layout (FX toolkit): `MultiSelectMenuTest`, `AdminTableLayoutTest` | The multi-select control's behaviour; fixed table headers, shared control heights, hover without a hand cursor and the date-picker styling on the agent tables. They skip when the toolkit cannot start. |
 | Account governance: `AccountGovernanceServiceTest`, `AccountGovernanceCascadeTest`, `AccountGovernanceAtomicityTest`, `SuspensionReasonMigrationTest`, `BookingServiceTest` | Validation, audit rows and events; the cascade scope (PENDING and not-yet-started CONFIRMED), refunds and listing deactivation; rollback on failure; V003; the suspended-guest booking guard |
 | Accounts UI: `AccountTextTest`, `AccountSearchTest`, `SuspensionDialogFlowTest`, `AccountGovernanceUiTest` | Labels and dates, live-search matching, the modal's required reason, the screen's rows, actions and refresh |
 | Atomicity: `DisputeSettlementAtomicityTest` | A forced failure after the guest row rolls back everything and publishes nothing; the connection stays usable. |
-| Schema and migration: `SchemaParityTest`, `MockDbFixtureTest`, `MigrationRunnerReferenceDbTest` | `V001__foundation.sql` matches `db/schema.sql`; the mock DB opens and passes the ledger invariant; baseline adoption. |
+| Schema and migration: `SchemaParityTest`, `MockDbFixtureTest`, `MigrationRunnerReferenceDbTest` | `V001__foundation.sql` matches `desktop/db/schema.sql`; the mock DB opens and passes the ledger invariant; baseline adoption. |
 | End to end: `DisputeFlowEndToEndTest` | `AppContext` on a mock DB copy: agent works an open ticket from queue to resolution through the real services. |
+| Backend (`backend/src/test/java/com/snoozeshare`): `HealthEndpointTest`, `HealthOnKubernetesTest`, `FlywayBaselineTest`, `StartupFailureTest`, `ProfileDefaultsTest`, `ServerPortDefaultTest`, `ServerPortOverrideTest`, `ProdProfileTest`, `CorsPropertiesTest`, `CorsIntegrationTest` | Health body and status, no other actuator paths, DOWN and recovery when the database login is blocked, the baseline migration, fail-fast on an unreachable or missing database, the default profile and port, `prod` naming a missing variable, exact-origin CORS on the actuator and application endpoints. |
+| Frontend (`frontend/src`): `env.test.ts`, `BackendStatus.test.tsx` | Environment validation, and the status page for UP, each failure, the 5-second timeout, the disabled `Re-check` button and aborting on unmount. |
 | Architecture: `LayerDependencyTest`, `UiDependencyTest` | `domain` has no JavaFX or `java.sql` imports; `ui` has no `com.snoozeshare.repository` or `java.sql` imports. |
 | Layout: `AdminFxmlLayoutTest`, `AdminShellInitialsTest`, `ShellLayoutTest`, `AuthLayoutTest` | FXML and CSS content checks; these need no display. |
 | FX smoke and flow: `AdminUiSmokeTest`, `AgentModalTest`, `ResolutionDialogFlowTest`, `CategoryDialogFlowTest` | Real JavaFX toolkit: screens render, dialogs validate and return results, the scrim is added and removed. They skip (`assumeTrue`) when the toolkit cannot start, for example on a headless machine. |
@@ -1523,7 +1633,7 @@ measured for this guide.
 - SQLite returns money columns as `REAL`, so a `BigDecimal` can come back at scale 1 (`150.0`). Assert money with `compareTo`, never `equals`.
 - Tests that match multi-line source text (CSS or FXML snippets) must read it with `testsupport/SourceText.read`, which normalises line endings; on Windows with `core.autocrlf=true` the working copy is CRLF and a raw `\n` match never succeeds.
 - Do not hard-code future calendar dates in booking or search tests: past dates are now rejected, so use dates relative to today (or a fixed `Clock`, as `AvailabilityServiceTest` does).
-- Rebuild `db/snoozeshare-mock.db` from `db/schema.sql` and `db/seed-mock-data.sql` after any seed edit, and keep the ledger invariant (NFR6) true.
+- Rebuild `desktop/db/snoozeshare-mock.db` from `desktop/db/schema.sql` and `desktop/db/seed-mock-data.sql` after any seed edit, and keep the ledger invariant (NFR6) true.
 
 ### Manual
 
@@ -1589,6 +1699,7 @@ measured for this guide.
 * [JUnit 5](https://junit.org/junit5/) provides the test framework, and [TestFX](https://github.com/TestFX/TestFX) drives the JavaFX smoke tests.
 * [Gradle](https://gradle.org/) and the [Gradle Wrapper](https://docs.gradle.org/current/userguide/gradle_wrapper.html) provide the build and dependency-management workflow. The project also uses the [Shadow](https://gradleup.com/shadow/) plugin to create a runnable fat JAR.
 * [Checkstyle](https://checkstyle.org/) enforces the source style checks run by `.\gradlew build`.
+* [Spring Boot](https://spring.io/projects/spring-boot), [Flyway](https://flywaydb.org/) and [Testcontainers](https://testcontainers.com/) provide the backend; [Next.js](https://nextjs.org/) and [Vitest](https://vitest.dev/) the frontend; [Render](https://render.com/), [Vercel](https://vercel.com/) and [Neon](https://neon.tech/) host the dev environment.
 * [Jekyll](https://jekyllrb.com/) and [GitHub Pages](https://pages.github.com/) render the User Guide and this guide.
 * [Superpowers](https://github.com/obra/superpowers) supplied the agent skills for brainstorming, planning and subagent-driven development. The copies the project uses are committed in `.claude/skills/`.
 * Anthropic Claude (through Claude Code) and OpenAI Codex were the AI tools used during development. The project-specific conventions and constraints they worked under are recorded in `AGENTS.md`, and the session history is summarised in [Reflections](reflections/).
