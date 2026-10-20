@@ -37,6 +37,30 @@ export async function authenticatedFetch(path: string, init: RequestInit = {}): 
   );
 }
 
+export async function registerProfile(payload: {
+  role: 'GUEST' | 'HOST' | 'AGENT';
+  registrationCode?: string;
+  displayName?: string;
+}) {
+  const response = await authenticatedFetch('/api/auth/register', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+  return response.json() as Promise<AuthProfile>;
+}
+
+export async function fetchCurrentProfile() {
+  const response = await authenticatedFetch('/api/auth/me');
+  return response.json() as Promise<AuthProfile>;
+}
+
+export type AuthProfile = {
+  email: string;
+  role: 'GUEST' | 'HOST' | 'AGENT';
+  displayName: string | null;
+  walletId: string | null;
+};
+
 /** True only for a 200 response whose JSON body has status UP; every other outcome is false. */
 export async function fetchBackendHealth(signal: AbortSignal): Promise<boolean> {
   try {

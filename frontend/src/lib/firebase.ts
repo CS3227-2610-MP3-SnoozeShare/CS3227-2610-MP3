@@ -2,6 +2,9 @@ import { getApps, initializeApp } from 'firebase/app';
 import {
   createUserWithEmailAndPassword,
   getAuth,
+  onAuthStateChanged,
+  sendEmailVerification,
+  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
 } from 'firebase/auth';
@@ -45,4 +48,16 @@ export function registerWithEmail(email: string, password: string) {
 
 export function signOutUser() {
   return signOut(getFirebaseAuth());
+}
+
+export function observeAuth(callback: Parameters<typeof onAuthStateChanged>[1]) {
+  return onAuthStateChanged(getFirebaseAuth(), callback);
+}
+
+export function resendVerification(user: Parameters<typeof sendEmailVerification>[0]) {
+  return sendEmailVerification(user);
+}
+
+export function resetPassword(email: string) {
+  return sendPasswordResetEmail(getFirebaseAuth(), email);
 }
