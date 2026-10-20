@@ -29,7 +29,7 @@ plan".
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-20 | Claude Sonnet 5.5 | W-INFRA | Active | Wave 1 in flight: T1, T2 done, T5 next | T5 step 1: scaffold `frontend/` (plan T5) | 2026-10-20 |
+| S1 | 2026-10-20 | Claude Sonnet 5.5 | W-INFRA | Active | Wave 1 done (T1, T2, T5); Wave 2 next | T3 step 1: backend skeleton (plan T3) | 2026-10-20 |
 
 **Remaining**
 
@@ -46,7 +46,7 @@ plan".
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-INFRA (proposed name) | Mono-repo skeletons, local Postgres, CI, deploy setup | Building | [spec](../../superpowers/specs/2026-10-20-w-infra-design.md) | [plan](../../superpowers/plans/2026-10-20-w-infra.md) | Wave 1: T1, T2 done; T5 next | — |
+| W-INFRA (proposed name) | Mono-repo skeletons, local Postgres, CI, deploy setup | Building | [spec](../../superpowers/specs/2026-10-20-w-infra-design.md) | [plan](../../superpowers/plans/2026-10-20-w-infra.md) | Task 3/8 next: backend skeleton | — |
 
 ---
 
@@ -202,6 +202,7 @@ Observations for the Handover todo (what to revise):
 - Plan review (one Implementer lens) found real defects the author missed: `properties()` is the lowest Spring precedence so an E10 test would connect to a local DB; a copied `gradlew` loses its exec bit; the root `.gitignore` hides the new wrapper jar and `.env.example`; Gradle 9 needs `junit-platform-launcher`. One reviewer was enough at the plan stage.
 - Execution: after a task that moves files, `lint.mjs plan` fails its own Modify rows (the old paths no longer exist), so lint is only meaningful before execution or with executed tasks skipped; consider a `--executed T1` flag or ignoring Done tasks.
 - Spec and plan tooling friction: very long inline shell heredocs failed twice; write scripts to files instead.
+- T5 observations: `npm audit` reports 7 vulnerabilities (eslint-config-next/braces, postcss) with Next 15.5.28 already the latest 15.x; not fixed, revisit in W-SECURITY/W-DEPLOY. Vitest crashed once on Windows (worker exit 3221226505) and passed on two reruns; treat as transient.
 - Four parallel reviewers on a Medium spec produced heavily overlapping findings; two lenses (Implementer + Tester) would have caught most.
 
 ---
@@ -215,3 +216,4 @@ Observations for the Handover todo (what to revise):
 | 2026-10-20 | Moved the desktop app under `desktop/` (renames at 100% except `build.gradle`: Checkstyle now reads root `config/checkstyle`); `.gitignore` and `ci.yml` adjusted; desktop build green with per-class test counts equal to the baseline; no desktop test reads `docs/` or `config/` | W-INFRA | this commit |
 | 2026-10-20 | Added `docker-compose.yml` (Postgres 17, healthcheck, `POSTGRES_PORT`); verified healthy, `select 1`, port override | W-INFRA | this commit |
 | 2026-10-20 | Spec approved by Xiao-Congchen; W-INFRA implementation plan (T1-T9 + close-out) written, linted, reviewed; spec amended (C~4) | W-INFRA | — |
+| 2026-10-20 | Added `frontend/` (Next.js 15.5.28, React 19.1.0, Tailwind 4, shadcn CLI 4.22.1 Button, Vitest 5, Node 22 pinned via `.nvmrc`, `.npmrc`, `engines`): `env.ts` validation, `BackendStatus` page; 15 tests, lint and build verified, `npm ci` works | W-INFRA | this commit |
