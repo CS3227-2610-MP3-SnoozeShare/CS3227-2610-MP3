@@ -29,7 +29,7 @@ plan".
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-20 | Claude Sonnet 5.5 | W-INFRA | Active | T1-T5 done; T6 in progress | T6 step 4: Docker Desktop was down; rerun container smoke test (Dockerfile, railway.json, .gitattributes uncommitted) | 2026-10-20 |
+| S1 | 2026-10-20 | Claude Sonnet 5.5 | W-INFRA | Active | T1-T6 done | T7 step 1: CI for all components (plan T7) | 2026-10-20 |
 
 **Remaining**
 
@@ -46,7 +46,7 @@ plan".
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-INFRA (proposed name) | Mono-repo skeletons, local Postgres, CI, deploy setup | Building | [spec](../../superpowers/specs/2026-10-20-w-infra-design.md) | [plan](../../superpowers/plans/2026-10-20-w-infra.md) | Task 5/8 done; T6 container next | — |
+| W-INFRA (proposed name) | Mono-repo skeletons, local Postgres, CI, deploy setup | Building | [spec](../../superpowers/specs/2026-10-20-w-infra-design.md) | [plan](../../superpowers/plans/2026-10-20-w-infra.md) | Task 6/8 done; T7 CI next | — |
 
 ---
 
@@ -59,6 +59,7 @@ plan".
 - E22 check on Windows: `DOCKER_HOST` alone is ignored because Testcontainers caches `docker.client.strategy` in `~/.testcontainers.properties`; with `TESTCONTAINERS_DOCKER_CLIENT_STRATEGY=org.testcontainers.dockerclient.EnvironmentAndSystemPropertyClientProviderStrategy` and `--no-daemon` the tests fail, none skipped.
 - D~2 (T4, spec E14 amended): Spring strips a trailing slash from the request `Origin` before comparing, so `http://localhost:3000/` is accepted; browsers never send one. E14 now tests an `https` variant and a different port instead; the trailing-slash rule stays enforced on the configured value (E16).
 - Host memory exhaustion (JVM `insufficient memory` aborts) when Checkstyle and the Testcontainers tests run in one Gradle invocation; run `checkstyleMain checkstyleTest` and `test` as separate commands on this machine. Stopping idle daemons (`gradlew --stop`) helps.
+- T6: runtime image is `eclipse-temurin:25-jre-jammy`, not `25-jre`: on this machine the `25-jre` layers were corrupt in Docker's store (`exec format error`) after a Docker Desktop crash; jammy is the same Temurin 25 JRE with an explicit OS. Root `.gitattributes` forces LF for `gradlew` (a CRLF copy exited 127 in the Docker build on Windows checkouts). Container smoke test: prod profile against compose Postgres returned `{"status":"UP"}`.
 
 ---
 
@@ -225,3 +226,4 @@ Observations for the Handover todo (what to revise):
 | 2026-10-20 | Added `frontend/` (Next.js 15.5.28, React 19.1.0, Tailwind 4, shadcn CLI 4.22.1 Button, Vitest 5, Node 22 pinned via `.nvmrc`, `.npmrc`, `engines`): `env.ts` validation, `BackendStatus` page; 15 tests, lint and build verified, `npm ci` works | W-INFRA | this commit |
 | 2026-10-20 | Added `backend/` (Spring Boot 3.5.16, Java 25, Gradle 9.7.1 wrapper, Flyway `V001`, health-only actuator, dev/prod profiles, `ProdEnvironmentGuard`); 15 Testcontainers Postgres 17 tests, Checkstyle clean, single jar (see D~1) | W-INFRA | this commit |
 | 2026-10-20 | Exact-origin CORS: `CorsProperties` (validated), `CorsConfig` for application endpoints, actuator CORS keys, test-only `/test/cors`; prod fail-fast on the origin (E17); 30 backend tests green (see D~2) | W-INFRA | this commit |
+| 2026-10-20 | Added `backend/Dockerfile` (multi-stage, Gradle 9.7.1/JDK 25, Temurin 25 JRE jammy), `railway.json` (health check `/actuator/health`), `.dockerignore`, root `.gitattributes` (LF `gradlew`); container verified UP | W-INFRA | this commit |
