@@ -5,21 +5,34 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { signIn } from '@/lib/firebase';
+import { useAuth } from '@/providers/AuthProvider';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [returnTo, setReturnTo] = useState('/register');
+  const { state, profile } = useAuth();
+  const [returnTo, setReturnTo] = useState<string | null>(null);
+  const [signInPending, setSignInPending] = useState(false);
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setReturnTo(safeReturnTo(params.get('returnTo')));
   }, []);
+  useEffect(() => {
+    if (!signInPending) return;
+    if (state === 'registering') {
+      router.push('/register');
+      setSignInPending(false);
+    } else if (state === 'authenticated' && profile) {
+      router.push(returnTo ?? `/${profile.role.toLowerCase()}`);
+      setSignInPending(false);
+    }
+  }, [profile, returnTo, router, signInPending, state]);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   async function submit(event: FormEvent) {
     event.preventDefault();
     setError('');
-    try { await signIn(email, password); router.push(returnTo); } catch { setError('Unable to sign in with those details.'); }
+    try { await signIn(email, password); setSignInPending(true); } catch { setError('Unable to sign in with those details.'); }
   }
   return <main className="flex min-h-screen items-center justify-center p-6"><form className="ss-card w-full max-w-md space-y-4 p-8" onSubmit={submit}>
     <p className="ss-pill ss-status-neutral">SnoozeShare</p><h1 className="text-2xl font-semibold">Welcome back</h1>
@@ -31,5 +44,5 @@ export default function LoginPage() {
 }
 
 function safeReturnTo(value: string | null) {
-  return value && value.startsWith('/') && !value.startsWith('//') ? value : '/register';
+  return value && value.startsWith('/') && !value.startsWith('//') ? value : null;
 }

@@ -119,3 +119,4 @@ Firebase project, Email/Password provider, and local Admin SDK credentials are c
 | 2026-10-21 | Completed final backend/frontend verification, diff check and credential scan; branch is review-ready with no tracked service-account JSON, bearer token or password credential | W-AUTH | T9 |
 | 2026-10-21 | Reversed email-verification enforcement: unverified Firebase identities may authenticate, register and access protected routes; removed verification-email client behavior and updated contract coverage | W-AUTH | C~4 reversal |
 | 2026-10-21 | Removed the verification-email commit from local branch history and verified the replacement policy with backend build plus frontend tests, lint and production build | W-AUTH | C~4 reversal |
+| 2026-10-21 | Fixed login routing to wait for the resolved backend profile, route registered users by role, and send unregistered users to registration; added regression coverage | W-AUTH | login redirect fix |
