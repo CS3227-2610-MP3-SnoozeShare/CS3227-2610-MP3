@@ -17,7 +17,7 @@
 | Task | Depends on | Can run concurrently with | Wave | Status |
 |---|---|---|---|---|
 | T1 | — | — | 1 | Done |
-| T2 | T1 | — | 2 | Not started |
+| T2 | T1 | — | 2 | Done |
 | T3 | T1, T2 | — | 3 | Not started |
 | T4 | T3 | — | 4 | Not started |
 | T5 | T4 | — | 5 | Not started |
@@ -97,12 +97,12 @@
 
 **Checklist**
 
-- [ ] 1. Add failing API/page tests proving invalid Host/Agent code prevents `registerWithEmail`, Guest skips preflight, and existing sessions skip duplicate signup.
-- [ ] 2. Implement the public API helper with JSON request headers and established `BackendApiError` mapping.
-- [ ] 3. Update the register submit state machine and exact user-facing messages from the approved UI contract.
-- [ ] 4. Run `cd frontend && npm test -- --run` and `cd frontend && npm run lint`; fix all failures.
-- [ ] 5. Update branch-state Progress and Changes for T2.
-- [ ] 6. Commit: `feat: validate registration codes before Firebase signup`.
+- [x] 1. Add failing API/page tests proving invalid Host/Agent code prevents `registerWithEmail`, Guest skips preflight, and existing sessions skip duplicate signup.
+- [x] 2. Implement the public API helper with JSON request headers and established `BackendApiError` mapping.
+- [x] 3. Update the register submit state machine and exact user-facing messages from the approved UI contract.
+- [x] 4. Run `cd frontend && npm test -- --run` and `cd frontend && npm run lint`; fix all failures.
+- [x] 5. Update branch-state Progress and Changes for T2.
+- [x] 6. Commit: `feat: validate registration codes before Firebase signup`.
 
 ### T3: Cross-layer regression and abuse coverage
 

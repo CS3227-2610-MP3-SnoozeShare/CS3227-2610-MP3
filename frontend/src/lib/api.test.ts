@@ -45,3 +45,32 @@ describe('authenticatedFetch', () => {
     );
   });
 });
+
+describe('validateRegistrationCode', () => {
+  beforeEach(() => {
+    vi.resetModules();
+    vi.clearAllMocks();
+    process.env.NEXT_PUBLIC_API_BASE_URL = 'http://localhost:8080';
+    auth.currentUser = null;
+  });
+
+  it('validates without requiring a Firebase user', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status: 204 })));
+    const { validateRegistrationCode } = await import('./api');
+    await expect(validateRegistrationCode('HOST', 'host-code')).resolves.toBeUndefined();
+    const [, options] = vi.mocked(fetch).mock.calls[0];
+    expect(options?.method).toBe('POST');
+    expect(JSON.parse(String(options?.body))).toEqual({ role: 'HOST', registrationCode: 'host-code' });
+  });
+
+  it('maps invalid-code and rate-limit responses', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(
+      JSON.stringify({ code: 'INVALID_REGISTRATION_CODE', message: 'Request could not be completed', requestId: 'id' }),
+      { status: 403, headers: { 'Content-Type': 'application/json' } },
+    )));
+    const { validateRegistrationCode } = await import('./api');
+    await expect(validateRegistrationCode('HOST', 'wrong')).rejects.toMatchObject({
+      code: 'INVALID_REGISTRATION_CODE', status: 403, requestId: 'id',
+    });
+  });
+});

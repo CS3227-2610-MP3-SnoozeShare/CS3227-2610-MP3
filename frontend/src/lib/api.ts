@@ -23,13 +23,35 @@ export async function authenticatedFetch(path: string, init: RequestInit = {}): 
   if (init.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
   const response = await fetch(`${apiBaseUrl()}${path}`, { ...init, headers });
   if (response.ok) return response;
+  throw await toBackendError(response);
+}
+
+export async function validateRegistrationCode(
+  role: 'HOST' | 'AGENT',
+  registrationCode: string,
+): Promise<void> {
+  let response: Response;
+  try {
+    response = await fetch(`${apiBaseUrl()}/api/auth/registration-code/validate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role, registrationCode }),
+    });
+  } catch {
+    throw new BackendApiError('API_UNAVAILABLE', 'Unable to validate registration right now', undefined, 0);
+  }
+  if (response.ok) return;
+  throw await toBackendError(response);
+}
+
+async function toBackendError(response: Response): Promise<BackendApiError> {
   let body: { code?: unknown; message?: unknown; requestId?: unknown } = {};
   try {
     body = await response.json();
   } catch {
     // Preserve the HTTP status when the backend did not return JSON.
   }
-  throw new BackendApiError(
+  return new BackendApiError(
     typeof body.code === 'string' ? body.code : 'API_ERROR',
     typeof body.message === 'string' ? body.message : 'Request could not be completed',
     typeof body.requestId === 'string' ? body.requestId : undefined,
