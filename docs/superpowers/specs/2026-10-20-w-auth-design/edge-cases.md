@@ -7,7 +7,7 @@
 | E3 | F3, F5, N3 | Same-role registration repeats | Return existing profile with `200`; create no second profile or wallet | Makes retries safe | Backend integration |
 | E4 | F3, F6, N3, `ROLE_ALREADY_ASSIGNED`, `ROLE_MISMATCH` | User attempts a different role or namespace | Registration returns `409 ROLE_ALREADY_ASSIGNED`; mismatched namespace returns `403 ROLE_MISMATCH` | Prevents privilege changes | Backend integration |
 | E5 | F4, N1, `INVALID_REGISTRATION_CODE` | HOST/AGENT code is blank, wrong or cross-role | Return `403 INVALID_REGISTRATION_CODE`; create no profile or wallet and log no code | Prevents privileged self-registration | Backend unit/integration |
-| E6 | F3, `EMAIL_NOT_VERIFIED` | Firebase token has `email_verified=false` | Return `403 EMAIL_NOT_VERIFIED`; create no profile or wallet | Prevents unverified identities entering the app | Backend integration/UI |
+| E6 | F3 | Firebase token has `email_verified=false` | Continue authentication and registration; do not use email verification as an access gate | Owner reversed the earlier verification prerequisite for the current milestone | Backend integration |
 | E7 | F3, `VALIDATION_ERROR` | Invalid role, display name or request shape | Return `400 VALIDATION_ERROR`; perform no write | Prevents malformed profile data | Backend controller |
 | E8 | F3, F5, N3 | Two first-registration requests race | Uniqueness and transaction handling leave exactly one profile and one required wallet | Prevents duplicate data | Backend integration |
 | E9 | F7 | Verified token email differs from stored snapshot | Return the stored snapshot; do not update it or change role during `/me` | Prevents identity confusion | Backend service |

@@ -3,7 +3,6 @@ import {
   createUserWithEmailAndPassword,
   getAuth,
   onAuthStateChanged,
-  sendEmailVerification,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
@@ -52,10 +51,6 @@ export function signOutUser() {
 
 export function observeAuth(callback: Parameters<typeof onAuthStateChanged>[1]) {
   return onAuthStateChanged(getFirebaseAuth(), callback);
-}
-
-export function resendVerification(user: Parameters<typeof sendEmailVerification>[0]) {
-  return sendEmailVerification(user);
 }
 
 export function resetPassword(email: string) {

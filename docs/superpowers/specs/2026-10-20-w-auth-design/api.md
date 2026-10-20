@@ -14,9 +14,9 @@ Request:
 }
 ```
 
-The Firebase UID and email come only from the verified token. The request must not accept a client-supplied UID. The verified token must have `email_verified=true`.
+The Firebase UID and email come only from the verified token. The request must not accept a client-supplied UID. The token's email-verification state is not used as an access gate.
 
-Role is parsed case-sensitively. Unknown JSON fields are rejected. `displayName` is trimmed, must not contain control characters, and is serialized as `null` when absent; an explicitly blank value is treated as `null`. A Guest request containing `registrationCode` is rejected with `400 VALIDATION_ERROR`. A same-role retry must still provide the valid role code for HOST/AGENT, returns `200 OK`, and does not change profile snapshots. A new profile returns `201 Created`. Validation occurs before profile lookup, then token email verification, then registration-code validation, then profile lookup, then the transaction.
+Role is parsed case-sensitively. Unknown JSON fields are rejected. `displayName` is trimmed, must not contain control characters, and is serialized as `null` when absent; an explicitly blank value is treated as `null`. A Guest request containing `registrationCode` is rejected with `400 VALIDATION_ERROR`. A same-role retry must still provide the valid role code for HOST/AGENT, returns `200 OK`, and does not change profile snapshots. A new profile returns `201 Created`. Validation occurs before profile lookup, then registration-code validation, then profile lookup, then the transaction.
 
 Response:
 
@@ -30,11 +30,11 @@ Response:
 }
 ```
 
-Failures: `400 VALIDATION_ERROR`, `401 INVALID_TOKEN`, `403 EMAIL_NOT_VERIFIED` or `PROFILE_INACTIVE` or `INVALID_REGISTRATION_CODE`, `409 ROLE_ALREADY_ASSIGNED`, `429 REGISTRATION_RATE_LIMITED`, and `503 AUTH_PROVIDER_UNAVAILABLE`.
+Failures: `400 VALIDATION_ERROR`, `401 INVALID_TOKEN`, `403 PROFILE_INACTIVE` or `INVALID_REGISTRATION_CODE`, `409 ROLE_ALREADY_ASSIGNED`, `429 REGISTRATION_RATE_LIMITED`, and `503 AUTH_PROVIDER_UNAVAILABLE`.
 
 ## `GET /api/auth/me`
 
-Success: `200 OK` with the same profile response. A valid verified Firebase identity without a backend profile returns `404` with stable error code `PROFILE_NOT_REGISTERED`. A valid unverified token returns `403 EMAIL_NOT_VERIFIED`; a non-`ACTIVE` profile returns `403 PROFILE_INACTIVE`.
+Success: `200 OK` with the same profile response. A valid Firebase identity, whether or not its email is verified, without a backend profile returns `404` with stable error code `PROFILE_NOT_REGISTERED`. A non-`ACTIVE` profile returns `403 PROFILE_INACTIVE`.
 
 ## Protected role routes
 
@@ -44,7 +44,7 @@ Success: `200 OK` with the same profile response. A valid verified Firebase iden
 
 ```json
 {
-  "code": "INVALID_TOKEN|EMAIL_NOT_VERIFIED|PROFILE_NOT_REGISTERED|PROFILE_INACTIVE|ROLE_MISMATCH|INVALID_REGISTRATION_CODE|ROLE_ALREADY_ASSIGNED|REGISTRATION_RATE_LIMITED|AUTH_PROVIDER_UNAVAILABLE|VALIDATION_ERROR",
+  "code": "INVALID_TOKEN|PROFILE_NOT_REGISTERED|PROFILE_INACTIVE|ROLE_MISMATCH|INVALID_REGISTRATION_CODE|ROLE_ALREADY_ASSIGNED|REGISTRATION_RATE_LIMITED|AUTH_PROVIDER_UNAVAILABLE|VALIDATION_ERROR",
   "message": "safe user-facing message",
   "requestId": "non-secret correlation id"
 }

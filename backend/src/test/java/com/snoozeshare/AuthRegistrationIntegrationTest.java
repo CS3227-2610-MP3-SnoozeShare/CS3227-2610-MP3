@@ -122,7 +122,7 @@ class AuthRegistrationIntegrationTest extends PostgresIntegrationTest {
     }
 
     @Test
-    void inactiveProfileAndUnverifiedEmailAreRejectedWithSafeRequestIds() throws Exception {
+    void inactiveProfileIsRejectedAndUnverifiedEmailCanReachRegistration() throws Exception {
         UUID userId = UUID.randomUUID();
         jdbc.update("insert into users (id, firebase_uid, email, role, status) values (?, ?, ?, ?, ?)",
             userId, token, "inactive@example.com", "GUEST", "INACTIVE");
@@ -135,8 +135,8 @@ class AuthRegistrationIntegrationTest extends PostgresIntegrationTest {
         String unverifiedToken = token + "-unverified";
         verifier.add(unverifiedToken, unverifiedToken, "unverified@example.com", false);
         mockMvc.perform(get("/api/auth/me").header("Authorization", "Bearer " + unverifiedToken))
-            .andExpect(status().isForbidden())
-            .andExpect(jsonPath("$.code").value("EMAIL_NOT_VERIFIED"))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.code").value("PROFILE_NOT_REGISTERED"))
             .andExpect(jsonPath("$.requestId").isString());
     }
 

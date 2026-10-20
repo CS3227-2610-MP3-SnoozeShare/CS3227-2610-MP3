@@ -7,7 +7,7 @@
 - **Owner:** project owner
 - **Status:** In review
 - **Approved:** —
-- **Last updated:** 2026-10-21 by Codex — T9 full verification complete; awaiting owner review
+- **Last updated:** 2026-10-21 by Codex — email-verification policy reversed; verification complete
 
 ---
 
@@ -42,13 +42,13 @@ cd ../backend && ./gradlew test
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AUTH | Firebase authentication and role authorization | In review | [spec](docs/superpowers/specs/2026-10-20-w-auth-design.md) | [plan](docs/superpowers/plans/2026-10-20-w-auth.md) | T1–T9 complete; awaiting owner review and merge decision | — |
+| W-AUTH | Firebase authentication and role authorization | In review | [spec](docs/superpowers/specs/2026-10-20-w-auth-design.md) | [plan](docs/superpowers/plans/2026-10-20-w-auth.md) | Email verification no longer gates auth; backend/frontend gates pass | — |
 
 ## 4. Architecture
 
 ### 4.9 Web platform skeleton (backend, frontend, hosting)
 
-**Now:** W-AUTH initializes Firebase Admin when `FIREBASE_ENABLED=true`, verifies revocable Firebase ID tokens, establishes a stateless Spring Security principal, resolves the active role from the PostgreSQL `users` row keyed by Firebase UID, applies role-specific URL authorization, and provides transactional profile/wallet registration plus `/api/auth/me`. The frontend validates public Firebase configuration in production, lazily initializes Firebase browser auth, attaches ID tokens to backend requests, maps stable backend errors, exposes auth screens, and protects role routes with client-side guards. T9 remains pending.
+**Now:** W-AUTH initializes Firebase Admin when `FIREBASE_ENABLED=true`, verifies revocable Firebase ID tokens, establishes a stateless Spring Security principal, resolves the active role from the PostgreSQL `users` row keyed by Firebase UID, applies role-specific URL authorization, and provides transactional profile/wallet registration plus `/api/auth/me`. Email verification status is informational only and does not gate authentication or registration. The frontend validates public Firebase configuration in production, lazily initializes Firebase browser auth, attaches ID tokens to backend requests, maps stable backend errors, exposes auth screens, and protects role routes with client-side guards.
 
 | Path | Role |
 |---|---|
@@ -78,7 +78,7 @@ No change: this branch does not settle domain persistence beyond the authenticat
 | ID | Question | Why it blocks | Owner |
 |---|---|---|---|
 Resolved: HOST and AGENT use separate reusable server-side configuration secrets; rotation happens by changing the environment/configuration value.
-Resolved: Firebase email verification is required before backend registration and protected API access.
+Resolved: Firebase email verification is not required before backend registration or protected API access.
 Resolved: Keep the Firebase session after backend registration failure; allow retry or explicit sign-out.
 Firebase project, Email/Password provider, and local Admin SDK credentials are configured. Review rounds are complete.
 
@@ -89,7 +89,7 @@ Firebase project, Email/Password provider, and local Admin SDK credentials are c
 | C~1 | Roles are stored in the backend database, not Firebase custom claims | Keeps authorization controlled by the backend and avoids claim refresh/synchronization problems |
 | C~2 | HOST and AGENT registration requires distinct server-side registration codes | Prevents users from choosing privileged roles without operator authorization |
 | C~3 | HOST and AGENT codes are reusable configuration secrets named `SNOOZESHARE_HOST_REGISTRATION_CODE` and `SNOOZESHARE_AGENT_REGISTRATION_CODE`; rotation replaces the configured value | Project owner selected configuration-only codes for the initial milestone; database rotation is deferred | Project owner, 2026-10-20 |
-| C~4 | Firebase email verification is required before backend registration and protected API access | Project owner selected verified email as a prerequisite for application identity | Project owner, 2026-10-20 |
+| C~4 | Firebase email verification is not required before backend registration or protected API access | Project owner reversed the earlier verification prerequisite to allow immediate local and browser testing | Project owner, 2026-10-21 |
 | C~5 | Keep the Firebase session after backend registration failure and expose retry/sign-out actions | Prevents a recoverable backend outage from forcing a new account/password flow | Project owner, 2026-10-20 |
 | C~6 | W-AUTH may add the minimal V002 migration for auth users and wallets; W-DOMAIN owns later domain migrations and must preserve the auth contract | Project owner approved the exception so W-AUTH can be independently implemented and tested | Project owner, 2026-10-20 |
 | C~7 | W-AUTH supersedes the older architecture flow that sends `firebaseUid` from the client and relies on Next middleware auth; the W-AUTH API derives UID from the verified bearer token and uses client-side guards | The older design predates the concrete Firebase browser flow; changing it avoids trusting client identity and avoids an unspecified session-cookie system | W-AUTH spec, 2026-10-20 |
@@ -117,3 +117,5 @@ Firebase project, Email/Password provider, and local Admin SDK credentials are c
 | 2026-10-21 | Added AuthProvider session/profile state, verification refresh and sign-out handling, artifact-aligned login/register/reset screens, role route guards and provider coverage; frontend tests, lint and production build pass | W-AUTH | T7 |
 | 2026-10-21 | Added page-level sign-in, registration, password-reset and route-guard acceptance tests; 27 frontend tests, lint and production build pass | W-AUTH | T8 |
 | 2026-10-21 | Completed final backend/frontend verification, diff check and credential scan; branch is review-ready with no tracked service-account JSON, bearer token or password credential | W-AUTH | T9 |
+| 2026-10-21 | Reversed email-verification enforcement: unverified Firebase identities may authenticate, register and access protected routes; removed verification-email client behavior and updated contract coverage | W-AUTH | C~4 reversal |
+| 2026-10-21 | Removed the verification-email commit from local branch history and verified the replacement policy with backend build plus frontend tests, lint and production build | W-AUTH | C~4 reversal |

@@ -3,9 +3,9 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import type { User } from 'firebase/auth';
 import { BackendApiError, fetchCurrentProfile, registerProfile, type AuthProfile } from '@/lib/api';
-import { observeAuth, resendVerification, signOutUser } from '@/lib/firebase';
+import { observeAuth, signOutUser } from '@/lib/firebase';
 
-export type AuthState = 'loading' | 'signed_out' | 'verify_email' | 'registering' | 'authenticated' | 'inactive' | 'error';
+export type AuthState = 'loading' | 'signed_out' | 'registering' | 'authenticated' | 'inactive' | 'error';
 
 type AuthContextValue = {
   state: AuthState;
@@ -13,8 +13,6 @@ type AuthContextValue = {
   profile: AuthProfile | null;
   error: BackendApiError | Error | null;
   register: (payload: Parameters<typeof registerProfile>[0]) => Promise<void>;
-  refreshVerification: () => Promise<void>;
-  resendVerification: () => Promise<void>;
   retry: () => Promise<void>;
   signOut: () => Promise<void>;
 };
@@ -33,10 +31,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setError(null);
     if (!nextUser) {
       setState('signed_out');
-      return;
-    }
-    if (!nextUser.emailVerified) {
-      setState('verify_email');
       return;
     }
     try {
@@ -67,14 +61,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setProfile(await registerProfile(payload));
       setState('authenticated');
     },
-    async refreshVerification() {
-      if (!user) return;
-      await user.reload();
-      await loadUser(user);
-    },
-    async resendVerification() {
-      if (user) await resendVerification(user);
-    },
     async retry() {
       await loadUser(user);
     },
@@ -93,8 +79,4 @@ export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) throw new Error('useAuth must be used inside AuthProvider');
   return context;
-}
-
-export async function sendVerificationEmail(user: User) {
-  return resendVerification(user);
 }

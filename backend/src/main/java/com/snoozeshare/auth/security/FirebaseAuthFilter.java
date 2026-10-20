@@ -43,10 +43,6 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
         }
         try {
             FirebaseAuthentication identity = verifier.verify(token);
-            if (!identity.emailVerified()) {
-                AuthErrorWriter.write(response, HttpServletResponse.SC_FORBIDDEN, "EMAIL_NOT_VERIFIED");
-                return;
-            }
             var authentication = UsernamePasswordAuthenticationToken.authenticated(identity, null, List.of());
             SecurityContextHolder.getContext().setAuthentication(authentication);
             filterChain.doFilter(request, response);

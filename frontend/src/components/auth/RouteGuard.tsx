@@ -11,7 +11,6 @@ export function RouteGuard({ role, children }: { role: 'GUEST' | 'HOST' | 'AGENT
   useEffect(() => {
     const returnTo = encodeURIComponent(pathname || '/');
     if (state === 'signed_out') router.replace(`/login?returnTo=${returnTo}`);
-    if (state === 'verify_email') router.replace(`/login?reason=verify&returnTo=${returnTo}`);
     if (state === 'registering') router.replace('/register');
     if (state === 'authenticated' && profile?.role !== role) router.replace(`/${profile?.role.toLowerCase()}`);
   }, [pathname, profile, role, router, state]);
