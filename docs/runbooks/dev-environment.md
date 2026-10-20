@@ -12,7 +12,7 @@ Render first, then Vercel, then Render again: the frontend needs the backend URL
 |---|---|---|
 | 1 | _team member, fill in_ | Render: New > Blueprint from this repo; it reads `render.yaml` (Docker web service on the free plan, branch `development`, build context `backend`, health check `/actuator/health`). Enter the `sync: false` secrets in the dashboard when prompted. |
 | 2 | _team member, fill in_ | Neon: create a project and a branch `dev`. On Render set `SPRING_PROFILES_ACTIVE=prod`, `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD`, and a placeholder `SNOOZESHARE_CORS_ALLOWED_ORIGIN` (for example `http://localhost:3000`). Deploy. |
-| 3 | _team member, fill in_ | Vercel: create a project with root directory `frontend`, Production Branch `development`, and `NEXT_PUBLIC_API_BASE_URL` set to the Render public URL (no trailing slash). A first deploy without the variable must fail the build. |
+| 3 | _team member, fill in_ | Vercel: create a project with root directory `frontend`, Production Branch `development`, and `NEXT_PUBLIC_API_BASE_URL` set to the Render public URL (no trailing slash). A first deploy without the variable must fail the build. Set the Framework Preset to **Next.js**: if the preset is left on "Other", the build fails with `No Output Directory named "public" found` (`frontend/vercel.json` also pins it). |
 | 4 | _team member, fill in_ | Render: set `SNOOZESHARE_CORS_ALLOWED_ORIGIN` to Vercel's stable production domain (scheme and host, no trailing slash) and redeploy. |
 | 5 | _team member, fill in_ | Verify (below) and fill in the evidence block. |
 
@@ -28,6 +28,18 @@ Render first, then Vercel, then Render again: the frontend needs the backend URL
 | `NEXT_PUBLIC_API_BASE_URL` | Vercel | Render public URL |
 
 With `prod` active, the backend refuses to start if any of the first five is missing, and the error names the variable. Without `SPRING_PROFILES_ACTIVE` the `dev` profile applies and startup fails on the missing local database rather than serving.
+
+## Neon connection string
+
+Neon shows a libpq string (`postgresql://USER:PASSWORD@HOST/DB?sslmode=require&channel_binding=require`). The backend needs a JDBC URL and separate credentials, so convert it:
+
+| Variable | Value |
+|---|---|
+| `SPRING_DATASOURCE_URL` | `jdbc:postgresql://HOST/DB?sslmode=require` (no user or password, no `channel_binding`) |
+| `SPRING_DATASOURCE_USERNAME` | `USER` |
+| `SPRING_DATASOURCE_PASSWORD` | `PASSWORD` |
+
+Use the direct host, not the `-pooler` one: Flyway's migration lock can misbehave through the pooler. A URL that does not start with `jdbc` fails startup with `'url' must start with "jdbc"`.
 
 ## Free-tier behaviour
 
