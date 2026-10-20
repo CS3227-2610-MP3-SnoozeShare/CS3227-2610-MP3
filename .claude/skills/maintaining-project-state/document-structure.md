@@ -90,7 +90,7 @@ them.
 
 ## The Branch State
 
-`PROJECT_STATE.md` describes `main`. Everything still in flight lives in a branch state,
+`PROJECT_STATE.md` describes `INT`. Everything still in flight lives in a branch state,
 `docs/project-state/branch-states/<slug>.md`, copied from
 [branch-state-template.md](branch-state-template.md). It exists so that branches never edit
 `PROJECT_STATE.md` — no shared counters, no shared insertion points, no ID collisions — and so
@@ -145,7 +145,7 @@ at approval has to be finished or removed.
 
 ### How to Resume in `PROJECT_STATE.md`
 
-On `main` the section holds the commands that reach a working state, plus an **Upcoming** table:
+On `INT` the section holds the commands that reach a working state, plus an **Upcoming** table:
 planned workstreams and the todos handed over at each sync, in priority order. **The first row is
 the next action.** It does not track sessions, branches or other people's work — a branch's own
 state does that.
@@ -169,7 +169,7 @@ Citing an existing permanent ID is always fine. Session IDs (`S1`) are local and
 A **pure addition** (a new decision, deviation, workstream, ledger line) can never conflict with
 another branch. An **edit to something already in `PROJECT_STATE.md`** (an area's *Now*, a
 Workstream row, a Convention, a Known Gap) can: another branch may have changed the same entry.
-Name the entry you replace, keep `Base` current, and expect sync to stop and ask if `main` moved.
+Name the entry you replace, keep `Base` current, and expect sync to stop and ask if `INT` moved.
 
 ## Root Document vs Linked Document
 

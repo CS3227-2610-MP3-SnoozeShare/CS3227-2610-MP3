@@ -4,7 +4,7 @@
 ## 1. Goal
 
 Migrate SnoozeShare from a JavaFX desktop appto a production-deployed web app with:
-1. **Java Spring Boot REST API** backend (deployed on Railway)
+1. **Java Spring Boot REST API** backend (deployed on Render)
 2. **Next.js frontend** with Shadcn/ui + Tailwind CSS (deployed on Vercel)
 3. **LLM-based AI features** for each of the three roles (Guest, Host, Support Agent)
 4. **Real authentication and security** (Firebase Auth, replacing mocked auth)
@@ -52,7 +52,7 @@ What does **not** carry over:
 └──────────────────────┼─────────────────────────────────────────────┘
                        │ (CORS, Firebase ID token)
 ┌──────────────────────┼─────────────────────────────────────────────┐
-│          Spring Boot API Server (Railway)                          │
+│          Spring Boot API Server (Render)                           │
 │                      │                                             │
 │  ┌───────────────────▼──────────────────────┐                     │
 │  │         REST Controllers (per role)       │                     │
@@ -310,7 +310,7 @@ The assignment specifically asks about attack surfaces. Key considerations:
                     └────┬────────┬────┘
                          │        │
               ┌──────────▼──┐  ┌──▼──────────┐
-              │   Vercel    │  │   Railway   │
+              │   Vercel    │  │   Render    │
               │  (frontend) │  │  (backend)  │
               │             │  │             │
               │   Next.js   │  │ Spring Boot │
@@ -348,10 +348,10 @@ CS3227-2610-MP3/
 | Concern | Development | Production |
 |---|---|---|
 | **Frontend** | `localhost:3000` (Next.js dev server) | Vercel (`snoozeshare.vercel.app` or similar) |
-| **Backend** | `localhost:8080` (Spring Boot) | Railway (`snoozeshare-api.up.railway.app` or similar) |
+| **Backend** | `localhost:8080` (Spring Boot) | Render (`snoozeshare-api.onrender.com`) |
 | **Database** | Local PostgreSQL (Docker) or H2 in-memory for fast tests | Neon Postgres |
 | **LLM API** | NUS SOC LLM with lower rate limits / test credentials | NUS SOC LLM with production credentials |
-| **Auth secrets** | `application-dev.yml` (gitignored) | Environment variables on Railway |
+| **Auth secrets** | `application-local.yml` (gitignored; `application-dev.yml` is committed without secrets, C82) | Environment variables on Render |
 | **CORS** | `http://localhost:3000` | `https://snoozeshare.vercel.app` |
 
 Spring profiles: `dev` and `prod`, selected by `SPRING_PROFILES_ACTIVE` env var.
@@ -429,7 +429,7 @@ Login, token refresh, and password reset are handled entirely by the Firebase JS
 | MP3-D5 | Polling for real-time updates (not WebSocket) | Simpler to implement; acceptable for course scope; can upgrade later if needed |
 | MP3-D6 | AI features are suggestions only — human confirms before action | Assignment requires security + human oversight; prevents AI from making unauthorized changes |
 | MP3-D7 | All AI prompts and templates are server-side code, never client-configurable | Prevents prompt injection via template manipulation |
-| MP3-D8 | Next.js frontend on Vercel, Spring Boot backend on Railway | Vercel excels at Next.js hosting; Railway hosts Java; Neon Postgres accessible from both |
+| MP3-D8 | Next.js frontend on Vercel, Spring Boot backend on Render (Railway originally; changed on cost, C85) | Vercel excels at Next.js hosting; Render hosts a Docker-based Java service on a free plan; Neon Postgres accessible from both |
 | MP3-D9 | Next.js with Shadcn/ui + Tailwind CSS for frontend | Lightweight, customizable component library; team owns the component code |
 | MP3-D10 | NUS SOC LLM as sole LLM provider | Mandated by course policy |
 | MP3-D11 | Re-platform from MP2 — keep domain/services/state machines, swap delivery layer | Maximizes code reuse; reduces risk; team already understands the business logic |
@@ -441,7 +441,7 @@ Login, token refresh, and password reset are handled entirely by the Firebase JS
 
 | Order | Workstream | Description | Depends on |
 |---|---|---|---|
-| 1 | **W-INFRA** | Project scaffolding — Spring Boot skeleton, Next.js skeleton, Docker Compose for local Postgres, CI pipeline, Vercel + Railway hosting setup | Nothing |
+| 1 | **W-INFRA** | Project scaffolding — Spring Boot skeleton, Next.js skeleton, Docker Compose for local Postgres, CI pipeline, Vercel + Render hosting setup | Nothing |
 | 2 | **W-AUTH** | Authentication — Firebase project setup, Firebase Admin SDK in Spring Boot, `FirebaseAuthFilter`, role registration endpoint, Next.js `AuthProvider` + route guards | W-INFRA |
 | 3 | **W-DOMAIN** | Port domain model + core services — JPA entities, Spring Data repositories, state machines, wallet/booking/ticket services | W-AUTH |
 | 4 | **W-GUEST** | Guest features — search, booking, trip hub, wallet, tickets, reviews, messages, Next.js pages | W-DOMAIN |

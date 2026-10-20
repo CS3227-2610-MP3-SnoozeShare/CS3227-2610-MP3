@@ -21,7 +21,7 @@ a reason not to write something down.
 | "I'm mid-task, I'll write it when this is done" | If the task derails — and derailed tasks are the ones most worth recording — it never gets written |
 | "Another session is probably handling that" | Check its row's `Last touched` against `git log` before assuming. A stale `Active` row means nobody is |
 | "I'll skip adding my session row, it's just a quick fix" | A quick fix is exactly what another agent on the same branch duplicates or overwrites. Claim the row first, delete it after if the fix really was that small |
-| "I'll just edit PROJECT_STATE.md, it's quicker than the branch state" | On a branch it is read-only. The edit conflicts with every other branch's, and it records unmerged work as if it were on `main`. Write the branch state; sync does the rest |
+| "I'll just edit PROJECT_STATE.md, it's quicker than the branch state" | On a branch it is read-only. The edit conflicts with every other branch's, and it records unmerged work as if it were on `INT`. Write the branch state; sync does the rest |
 | "The branch is basically done, I'll merge and get it approved afterwards" | Approval is the owner's gate, not a formality. Ask first; sync will refuse an unapproved state anyway |
 
 ## Common Mistakes
@@ -34,10 +34,10 @@ a reason not to write something down.
   with how they will know it is done.
 - **Citing a provisional ID outside the branch state.** `C~1` in a commit message or a code
   comment points at nothing once sync renumbers it. Cite a permanent ID, or describe the decision.
-- **A stale `Base`.** Merging `main` into the branch without re-checking the entries the branch
+- **A stale `Base`.** Merging `INT` into the branch without re-checking the entries the branch
   edits, so sync later stops on a conflict that was avoidable weeks earlier.
 - **A fold nobody runs.** A merged branch whose state is still sitting in `branch-states/` makes
-  `PROJECT_STATE.md` lie by omission. Reconciliation on `main` lists them; tell the owner.
+  `PROJECT_STATE.md` lie by omission. Reconciliation on `INT` lists them; tell the owner.
 - **Orphan specs.** A spec sitting in `docs/` with no workstream row pointing at it is
   invisible, and will be rewritten from scratch by someone who never found it.
 - **Status drift.** `Building` on something untouched for weeks. See

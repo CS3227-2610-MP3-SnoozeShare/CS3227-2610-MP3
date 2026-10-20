@@ -4,8 +4,14 @@ name: CI
 # JUnit and TestFX suites, runs on every pull request and on every push to development or main, so
 # each merged result is checked as well as the branch that produced it. `checkstyle` and `build` are
 # the required status checks on both branches, and each covers desktop, backend and frontend.
+# A push that changes only the state files or documentation cannot break a build, so it does not run CI
+# (`paths-ignore` is on push only: a pull request always runs, because its required checks must report).
 on:
   push:
+    paths-ignore:
+      - 'PROJECT_STATE.md'
+      - 'AGENTS.md'
+      - 'docs/**'
   pull_request:
 
 concurrency:

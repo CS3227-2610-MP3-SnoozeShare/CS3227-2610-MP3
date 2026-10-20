@@ -27,12 +27,12 @@ Rules that differ from `PROJECT_STATE.md`:
 ````markdown
 # Branch State — <branch>
 
-**What this branch has changed, and how to pick it up.** `PROJECT_STATE.md` describes `main`;
+**What this branch has changed, and how to pick it up.** `PROJECT_STATE.md` describes `INT`;
 read it for context and write here instead of editing it. `sync-project-state` folds this file in
 after the branch merges.
 
-- **Branch:** <branch> (from `main` at `<sha>`)
-- **Base:** <sha of the `main` commit last merged into this branch — move it when you merge `main`>
+- **Branch:** <branch> (from `INT` at `<sha>`)
+- **Base:** <sha of the `INT` commit last merged into this branch — move it when you merge `INT`>
 - **Owner:** <name>
 - **Status:** Draft   (`Draft` · `In review` · `Approved` · `Folded`)
 - **Approved:** — (project owner only: <name> YYYY-MM-DD)

@@ -9,6 +9,7 @@
 **Risk tier:** <tier>
 
 ## Task order
+<!-- Status: Not started / In progress / Done / Blocked / Post-merge (a human step after the merge) -->
 | Task | Depends on | Can run concurrently with | Wave | Status |
 |---|---|---|---|---|
 | T1 <name> | - | - | 1 | Not started |

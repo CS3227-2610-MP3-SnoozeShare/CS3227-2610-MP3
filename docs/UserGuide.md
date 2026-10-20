@@ -70,7 +70,7 @@ SnoozeShare decides which data to open when it starts, **by looking for a file n
 #### To start with sample data
 
 1. Download `snoozeshare-mock.db` from the release page. If you cloned the repository, the file
-   is already at `db/snoozeshare-mock.db`.
+   is already at `desktop/db/snoozeshare-mock.db`, and you launch the app from the `desktop` folder.
 2. Put it in a folder named **`db`** in the folder you will launch the app from (the project
    folder, or the folder that holds `SnoozeShare.jar`):
 
@@ -100,7 +100,7 @@ Make sure there is no `db/snoozeshare-mock.db` (delete it or rename it), then st
 
 ### 3. Start the app
 
-**From the source code** (from the project folder):
+**From the source code** (from the `desktop` folder inside the project folder):
 
 ```shell
 .\gradlew run
@@ -122,6 +122,8 @@ The **Welcome back** login screen appears. The window is at least 1280 × 800.
 *Figure: The "Welcome back" login screen.*
 
 ### 4. Other useful commands
+
+Run these from the `desktop` folder.
 
 | Command | What it does |
 |---|---|

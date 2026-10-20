@@ -6,6 +6,11 @@ services:
     plan: free
     branch: development
     autoDeploy: true
+    # Redeploy only when the backend or this Blueprint changes, not for documentation or frontend pushes.
+    buildFilter:
+      paths:
+        - backend/**
+        - render.yaml
     dockerContext: ./backend
     dockerfilePath: ./backend/Dockerfile
     healthCheckPath: /actuator/health

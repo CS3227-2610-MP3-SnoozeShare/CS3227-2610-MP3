@@ -243,6 +243,10 @@ function lintPlan(planFile) {
   }
 
   // per-task checks
+  // Task status comes from the plan's Task order table: Done tasks are history (their paths have moved on), and
+  // Post-merge tasks are human steps done after the merge (see close-out below).
+  const status = new Map(tableRows(planOrder).filter((r) => /^T\d+/.test(r[0])).map((r) => [r[0].match(/^T\d+/)[0], r[r.length - 1]]));
+  const created = new Set();
   const blocks = body.split(/^### /m).slice(1);
   for (const b of blocks) {
     const title = b.split('\n')[0];
@@ -253,6 +257,12 @@ function lintPlan(planFile) {
       if (!/\*\*Files\*\*/.test(b)) err(f, `${id}: missing **Files** table`);
       if (!/^\|\s*(Create|Modify|Test)\s*\|/m.test(b)) err(f, `${id}: Files table has no Create/Modify/Test rows`);
       if (boxes > 10) err(f, `${id}: ${boxes} checklist steps (>10): split the task`);
+      const history = /^done/i.test(status.get(id) || '');
+      for (const line of b.split(/\r?\n/)) {
+        const step = line.match(/^- \[[ xX]\]\s*(?:\d+\.\s*)?(.*)$/);
+        if (step && !/^GATE:/.test(step[1]) && /\b(push|pull request|open a (draft )?PR|deploy|publish|force-push|merge)\b/i.test(step[1]) && !history)
+          warn(f, `${id}: step touches something outside the machine; start it with "GATE:" so the executor stops for the operator: ${step[1].slice(0, 70)}`);
+      }
       for (const r of tableRows(b)) {
         if (!['Create', 'Modify', 'Test'].includes(r[0])) continue;
         const m = r[1] && r[1].match(/`([^`]+)`/);
@@ -260,17 +270,24 @@ function lintPlan(planFile) {
         const p = m[1].replace(/\s*\(.*$/, '').replace(/:\d+(-\d+)?$/, '');
         const abs = path.resolve(root, p);
         const exists = fs.existsSync(abs);
-        if (r[0] === 'Modify' && !exists) err(f, `${id}: Modify path does not exist: ${p}`);
-        if (r[0] === 'Create' && exists) err(f, `${id}: Create path already exists: ${p}`);
+        if (r[0] === 'Create') created.add(p);
+        if (!history) {
+          if (r[0] === 'Modify' && !exists && !created.has(p)) err(f, `${id}: Modify path does not exist: ${p}`);
+          if (r[0] === 'Create' && exists) err(f, `${id}: Create path already exists: ${p}`);
+        }
         if (r[0] === 'Test' && !exists && !/Create/.test(r[0])) warn(f, `${id}: Test path does not exist yet (ok if the task creates it): ${p}`);
       }
     }
   }
   if (flag('--closeout')) {
-    const open = (body.match(/^- \[ \]/gm) || []).length;
+    // A Post-merge task is a human step done after the merge: it may stay open at close-out, but it is
+    // reported so it can be carried into PROJECT_STATE as a Handover item.
+    const post = [...status].filter(([, v]) => /^post-merge/i.test(v)).map(([k]) => k);
+    const open = blocks.filter((b) => !post.includes((b.match(/^T\d+/) || [])[0])).reduce((n, b) => n + (b.match(/^- \[ \]/gm) || []).length, 0);
     if (open) err(f, `${open} unticked checklist step(s) at close-out`);
-    const status = tableRows(planOrder).filter((r) => /^T\d+/.test(r[0])).filter((r) => !/done/i.test(r[r.length - 1]));
-    if (status.length) err(f, `Task order still shows non-Done tasks: ${status.map((r) => r[0].match(/^T\d+/)[0]).join(', ')}`);
+    const notDone = [...status].filter(([, v]) => !/^(done|post-merge)/i.test(v)).map(([k]) => k);
+    if (notDone.length) err(f, `Task order still shows tasks that are neither Done nor Post-merge: ${notDone.join(', ')}`);
+    if (post.length) warn(f, `Post-merge tasks left open for a human: ${post.join(', ')} (write each as a Handover item in the branch state)`);
   }
 }
 

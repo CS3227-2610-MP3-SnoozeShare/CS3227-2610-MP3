@@ -69,13 +69,13 @@ its own resume point in `docs/project-state/branch-states/`.
 
 | Item | Kind | Context / done when | Source | Added |
 |---|---|---|---|---|
-| Docs: Railway to Render, and per-component commands | Todo | `docs/Webapp-architecture-design.md` (MP3-D8, deployment diagram, environment table) and `AGENTS.md` § 6 (`.\gradlew build` now runs per component) still use the old hosting and root commands. The developer guide was updated on 2026-10-20 | handed over from W-INFRA | 2026-10-20 |
+| Rewrite the Developer Guide for the web app only | Todo | The owner will rewrite `docs/DeveloperGuide.md` to describe only the web app as it is built, dropping the desktop sections as `desktop/` retires. Web configuration and deployment content (§ 2, § 3.2, § 4.17) goes first. Done when the guide has no desktop-only content | Operator, 2026-10-20 | 2026-10-20 |
 | W-AUTH | Workstream | Firebase project and Admin SDK, `FirebaseAuthFilter`, role registration endpoint, Next.js `AuthProvider` and route guards (C70, C79). Start here: W-INFRA is done | Webapp design § 9 | 2026-10-20 |
 | W-DOMAIN | Workstream | Port the domain model and core services; settles the persistence approach (C74) and the entity-versus-record question. After W-AUTH | Webapp design § 9 | 2026-10-20 |
 | W-GUEST, W-HOST, W-AGENT | Workstream | The three role feature sets and their Next.js pages. Can run in parallel after W-DOMAIN | Webapp design § 9 | 2026-10-20 |
 | W-AI-GUEST, W-AI-HOST, W-AI-AGENT | Workstream | AI features (C80), parallel after their role workstream. Host and Agent features are undecided and the SOC LLM contract is unconfirmed (Q6) | Webapp design § 9 | 2026-10-20 |
 | W-SECURITY, W-DEPLOY | Workstream | AI security hardening, then production deployment. After all of the above | Webapp design § 9 | 2026-10-20 |
-| Revise the lite skills from the W-INFRA trial | Todo | The first web-app spec, plan and execution used them. Revise `lint.mjs` (false positives for Modify rows on files an earlier task creates; fails Modify rows after a task moves files; close-out heading must carry no `T` number; no check that the index goal matches `requirements.md` IDs), the templates and `lite-reviewer` (two lenses, Implementer and Tester, caught most of what four did). Findings are in the [W-INFRA archive](docs/project-state/branch-states/archive/2026-10-20-W-INFRA.md) § Lite-skills trial | handed over from W-INFRA | 2026-10-20 |
+| Revise the lite skills from the W-INFRA trial | Todo | The first web-app spec, plan and execution used them. Revise `lint.mjs` (done 2026-10-20: Modify rows on files an earlier task creates, rows of Done tasks, a `Post-merge` task status, `GATE:` warnings; still open: close-out heading must carry no `T` number; no check that the index goal matches `requirements.md` IDs), the templates and `lite-reviewer` (two lenses, Implementer and Tester, caught most of what four did). Findings are in the [W-INFRA archive](docs/project-state/branch-states/archive/2026-10-20-W-INFRA.md) § Lite-skills trial | handed over from W-INFRA | 2026-10-20 |
 
 ---
 
@@ -235,6 +235,8 @@ Highest IDs used before this iteration: **W16, C59, D38, Q3** (this iteration so
 - The `prod` profile has no defaults for database or CORS settings, and `ProdEnvironmentGuard` names a missing variable (Spring's binder otherwise leaves `${VAR}` in place). The health body stays exactly `{"status":"UP"}`.
 - Neon's libpq string must be converted to a JDBC URL with separate username and password (see the runbook). `NEXT_PUBLIC_API_BASE_URL` has no trailing slash and `src/lib/env.ts` is its only reader.
 - Local traps on Windows: `DOCKER_HOST` alone does not break Testcontainers (it caches `docker.client.strategy` in `~/.testcontainers.properties`; also set `TESTCONTAINERS_DOCKER_CLIENT_STRATEGY` and use `--no-daemon`); running Checkstyle and the Testcontainers tests in one Gradle invocation can exhaust memory, so run them separately; Docker image layers can corrupt after a Docker Desktop crash (`exec format error`), so pull a different tag.
+- Branch states keep every `PROJECT_STATE.md` heading in order; a section with nothing to change says `No change.` (Architecture, Conventions and Known Gaps give a one-line reason), and `sync-project-state` checks those claims against the branch diff. Skills say `INT` for the integration branch (here `development`; `maintaining-project-state` § Branch Model). Plan tasks a human does after the merge are `Post-merge` and become Handover items; steps that leave the machine start with `GATE:`.
+- A push that changes only `PROJECT_STATE.md`, `AGENTS.md` or `docs/**` does not run CI (`paths-ignore` on push only; pull requests always run), and a push to a branch with an open pull request skips the duplicate push run. Render redeploys only for `backend/**` or `render.yaml` changes, and Vercel skips a deploy with no `frontend/` change.
 - **IDs:** `W` workstream, `C` decision, `D` deviation, `Q` question. Allocated only by `sync-project-state`; a branch state uses provisional `~` IDs and never cites one outside itself.
 - **Branches never edit this file.** Each writes `docs/project-state/branch-states/<slug>.md`; the owner approves it, merges the branch into `development`, then runs `sync-project-state` there. Do not merge a branch that is not `Approved` or has live session rows. Where a skill says `main`, read `development` (C60).
 - **Iterations:** the owner runs `refresh-project-state` by hand, guide first. Agents never start one and never read `docs/project-history/` at session start.
@@ -327,4 +329,4 @@ Live traps only; resolved ones are in the archive. Each is what, the consequence
 The Done ledger lives in **[`docs/project-state/done-ledger.md`](docs/project-state/done-ledger.md)** — every change, big or small, newest first.
 
 - **Latest entry:** 2026-10-20
-- **Entries:** 29 (iteration 2 started; earlier entries in the archive)
+- **Entries:** 30 (iteration 2 started; earlier entries in the archive)
