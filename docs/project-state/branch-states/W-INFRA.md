@@ -1,0 +1,236 @@
+# Branch State — W-INFRA
+
+**What this branch has changed, and how to pick it up.** `PROJECT_STATE.md` describes `development`;
+read it for context and write here instead of editing it. `sync-project-state` folds this file in
+after the branch merges.
+
+- **Branch:** W-INFRA (from `development` at `e64e16c`)
+- **Base:** `e64e16c`
+- **Owner:** Xiao-Congchen
+- **Status:** Approved
+- **Approved:** Xiao-Congchen on 2026-10-20
+- **Last updated:** 2026-10-20 by Claude Sonnet 5.5 — T1-T8 done, CI green, reviewed
+
+---
+
+## 1. Scope
+
+W-INFRA: Spring Boot and Next.js skeletons in a mono-repo (`backend/`, `frontend/`), Docker Compose for
+local Postgres, CI, Vercel and Railway setup (Webapp design § 9). This branch is also the trial of the
+lite skills (`writing-specs-lite`, `writing-plans-lite`, `executing-plans-lite`, `lint.mjs`,
+`lite-reviewer`), which is the open Upcoming todo "Trial the lite skills on the first web-app spec and
+plan".
+
+---
+
+## 2. How to Resume
+
+**Sessions**
+
+| Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
+|---|---|---|---|---|---|---|---|
+
+**Remaining**
+
+- [x] Operator reviews the plan
+- [x] Before T1: record per-class desktop test counts from `desktop/build/test-results` (F1 baseline) here
+- [x] Execute T1-T8 with `executing-plans-lite`
+- [ ] **Handover:** T9, the live dev deployment, runs on `development` after the merge (needs a human; see SD10)
+- [ ] **Handover:** at fold, update PROJECT_STATE § How to Resume commands, § Orientation paths, remove Q5, and note C~2 against C77 and Webapp design § 6.2
+- [ ] **Handover (PROJECT_STATE fold):** § How to Resume commands now run inside `desktop/`, `backend/`, `frontend/`; § Orientation paths; remove Q5; `AGENTS.md` § 6 `.\gradlew build` wording now `desktop/`; refine C77 per C~2; no Known Gaps added.
+- [ ] **Handover:** lite-skills trial findings (below, § Lite-skills trial) to revise `lint.mjs`, templates and `lite-reviewer`
+
+---
+
+## 3. Workstreams
+
+| ID | Workstream | Status | Spec | Plan | Progress | Guide |
+|---|---|---|---|---|---|---|
+| W-INFRA (proposed name) | Mono-repo skeletons, local Postgres, CI, deploy setup | In review | [spec](../../superpowers/specs/2026-10-20-w-infra-design.md) | [plan](../../superpowers/plans/2026-10-20-w-infra.md) | T1-T8 done; T9 post-merge, human | — |
+
+---
+
+## 7. Needs a Human
+
+- Plan review by the operator (spec approved 2026-10-20 by Xiao-Congchen, including SD10 and the SD13 extras).
+- Runbook owners (`docs/runbooks/dev-environment.md`) are left as placeholders by the operator's decision (2026-10-20); the team names them before T9 starts.
+- T9 (after merge): create Railway, Vercel and Neon projects/branch, set variables (runbook order).
+
+- D~1 (T3, plan-only): Spring's binder leaves an unresolved `${VAR}` in `spring.datasource.*` in place, so a missing prod variable surfaced as a driver error that did not name it (F6, E18 not met). Added `ProdEnvironmentGuard` (`@Profile("prod")` bean-factory post-processor reading the four required keys strictly), which also covers `snoozeshare.cors.allowed-origin` (E17, tested in T4). Test container is a JVM-wide singleton in `PostgresIntegrationTest`: a per-class `@Container` restarted on a new port while Spring reused the cached context.
+- E22 check on Windows: `DOCKER_HOST` alone is ignored because Testcontainers caches `docker.client.strategy` in `~/.testcontainers.properties`; with `TESTCONTAINERS_DOCKER_CLIENT_STRATEGY=org.testcontainers.dockerclient.EnvironmentAndSystemPropertyClientProviderStrategy` and `--no-daemon` the tests fail, none skipped.
+- D~2 (T4, spec E14 amended): Spring strips a trailing slash from the request `Origin` before comparing, so `http://localhost:3000/` is accepted; browsers never send one. E14 now tests an `https` variant and a different port instead; the trailing-slash rule stays enforced on the configured value (E16).
+- Host memory exhaustion (JVM `insufficient memory` aborts) when Checkstyle and the Testcontainers tests run in one Gradle invocation; run `checkstyleMain checkstyleTest` and `test` as separate commands on this machine. Stopping idle daemons (`gradlew --stop`) helps.
+- T6: runtime image is `eclipse-temurin:25-jre-jammy`, not `25-jre`: on this machine the `25-jre` layers were corrupt in Docker's store (`exec format error`) after a Docker Desktop crash; jammy is the same Temurin 25 JRE with an explicit OS. Root `.gitattributes` forces LF for `gradlew` (a CRLF copy exited 127 in the Docker build on Windows checkouts). Container smoke test: prod profile against compose Postgres returned `{"status":"UP"}`.
+- T8 walkthrough (clean clone of the pushed branch, Windows): `gradlew run` on a copy of the mock DB started the JavaFX app (killed by timeout); compose + `bootRun` returned `{"status":"UP"}`; `npm ci` then `npm run dev` showed `Backend: UP` in the browser (CORS works). N1 scan: hits are only env var names, the compose credentials and test code reading container credentials. N5: no cross-project paths; only `../config/checkstyle` in both build files. N2: no `latest` or `+` versions; lockfile present. Page title changed from the scaffold default to `SnoozeShare`.
+- Code review (medium, 8 angles) fixed: compose binds Postgres to 127.0.0.1; empty `NEXT_PUBLIC_API_BASE_URL` treated as unset; E10 test asserts the connection failure; Dockerfile caches dependencies and runs as non-root; CI jobs have 30 min timeouts; scaffold README and svgs removed. Not fixed, accepted: `ProdProfileTest` starts its own containers (slower, isolated by design); E7 test mutates the shared container (sequential execution; revisit if tests go parallel); `checkstyle` also runs inside `gradlew build` (duplicate work, kept so a local `build` is complete); red throwaway commits for the E5 check sit in history; runbook owners are placeholders for the team to fill (T9 prerequisite).
+
+---
+
+## 8. Decisions
+
+| ID | Date | Decision | Why / who asked | Source |
+|---|---|---|---|---|
+| C~1 | 2026-10-20 | Q5 resolved: the desktop code and root Gradle build move under `desktop/`; `backend/` and `frontend/` sit beside it; nothing is deleted. Independent Gradle builds (no root build); Checkstyle ruleset stays at root `config/checkstyle/` | Operator in chat; rejected: leave in place, delete now, root multi-project | [spec SD1-SD3](../../superpowers/specs/2026-10-20-w-infra-design.md) |
+| C~2 | 2026-10-20 | Dev config: `application-dev.yml` is committed with non-secret local defaults; secrets go in a gitignored `application-local.yml`. Refines C77 and Webapp design § 6.2 ("secrets in gitignored dev config") | Agent; a committed no-secret file lets a fresh clone run | spec SD8 |
+| C~3 | 2026-10-20 | Required checks keep names `checkstyle` and `build`, each covering all three components; backend tests use Testcontainers Postgres 17; W-INFRA includes the live dev deployment (Railway `dev`, Vercel with Production Branch `development`, Neon branch `dev`), done after merge | Operator chose these | spec SD4-SD6, SD9, SD10 |
+
+| C~4 | 2026-10-20 | Spec amended after plan review: Checkstyle needs `configDirectory = file('../config/checkstyle')` as well as `configFile` (else `${config_loc}/suppressions.xml` resolves under the project and fails); E7 uses `ALTER ROLE ... NOLOGIN` plus terminating backends instead of pausing the container (a paused container hangs the health query); the `.gitignore` wrapper-jar negation becomes `!**/gradle/wrapper/gradle-wrapper.jar` | Plan-review findings; no behaviour or scope change | spec conventions.md, edge-cases.md; plan T1, T3 |
+
+---
+
+## F1 baseline
+
+Desktop `.\gradlew cleanTest test` at the repo root before the move, run twice with identical output: 115 test classes, 581 tests, 0 failures, 0 skipped. After the move `desktop/.\gradlew build` (with Checkstyle) produced the same per-class counts. Format: `class tests failures skipped`.
+
+```text
+com.snoozeshare.app.MainDatabaseSelectionTest 3 0 0
+com.snoozeshare.app.SceneRouterTest 4 0 0
+com.snoozeshare.architecture.LayerDependencyTest 1 0 0
+com.snoozeshare.domain.AuditActionTest 1 0 0
+com.snoozeshare.domain.DomainModelTest 6 0 0
+com.snoozeshare.domain.policy.DisputeWindowPolicyTest 6 0 0
+com.snoozeshare.domain.policy.StayDatePolicyTest 6 0 0
+com.snoozeshare.domain.settlement.EscrowPolicyTest 3 0 0
+com.snoozeshare.domain.settlement.SettlementCalculatorTest 12 0 0
+com.snoozeshare.domain.statemachine.AgentCompletionTest 4 0 0
+com.snoozeshare.domain.statemachine.StateMachineTest 9 0 0
+com.snoozeshare.foundation.W1FoundationIntegrationTest 1 0 0
+com.snoozeshare.infra.db.AuditTrailMigrationTest 2 0 0
+com.snoozeshare.infra.db.CommittedMockDbTest 1 0 0
+com.snoozeshare.infra.db.DatabaseBootstrapTest 4 0 0
+com.snoozeshare.infra.db.DropWalletTransactionsMigrationTest 1 0 0
+com.snoozeshare.infra.db.MessagingMigrationTest 4 0 0
+com.snoozeshare.infra.db.MigrationForeignKeyTest 1 0 0
+com.snoozeshare.infra.db.MigrationRunnerReferenceDbTest 3 0 0
+com.snoozeshare.infra.db.MockDbFixtureTest 2 0 0
+com.snoozeshare.infra.db.SchemaParityTest 1 0 0
+com.snoozeshare.infra.db.SuspensionReasonMigrationTest 1 0 0
+com.snoozeshare.infra.db.SystemRoleMigrationTest 3 0 0
+com.snoozeshare.infra.db.TransactionManagerTest 6 0 0
+com.snoozeshare.infra.db.UnifiedLedgerMigrationTest 9 0 0
+com.snoozeshare.infra.events.InProcessEventBusTest 2 0 0
+com.snoozeshare.infra.events.PostCommitEventsTest 6 0 0
+com.snoozeshare.repository.jdbc.JdbcAvailabilityBlockRepositoryTest 4 0 0
+com.snoozeshare.repository.jdbc.JdbcBookingRepositoryFindByListingTest 1 0 0
+com.snoozeshare.repository.jdbc.JdbcBookingRepositoryTest 3 0 0
+com.snoozeshare.repository.jdbc.JdbcLedgerRepositoryTest 1 0 0
+com.snoozeshare.repository.jdbc.JdbcPropertyRepositoryTest 9 0 0
+com.snoozeshare.repository.jdbc.JdbcRepositoryIntegrationTest 2 0 0
+com.snoozeshare.repository.jdbc.JdbcReviewRepositoryTest 1 0 0
+com.snoozeshare.repository.jdbc.JdbcTicketCategoryRepositoryTest 5 0 0
+com.snoozeshare.repository.jdbc.JdbcTicketRepositoryTest 7 0 0
+com.snoozeshare.repository.jdbc.NumericPropertySchemaTest 3 0 0
+com.snoozeshare.repository.JdbcAuditLogRepositoryTest 8 0 0
+com.snoozeshare.repository.JdbcUserRepositoryTest 2 0 0
+com.snoozeshare.service.AccountGovernanceAtomicityTest 2 0 0
+com.snoozeshare.service.AccountGovernanceCascadeTest 4 0 0
+com.snoozeshare.service.AccountGovernanceServiceTest 6 0 0
+com.snoozeshare.service.AuditAtomicityTest 12 0 0
+com.snoozeshare.service.AuditRecordTest 5 0 0
+com.snoozeshare.service.AuditServiceTest 5 0 0
+com.snoozeshare.service.AvailabilityServiceTest 13 0 0
+com.snoozeshare.service.BookingConversationServiceTest 10 0 0
+com.snoozeshare.service.BookingServiceTest 32 0 0
+com.snoozeshare.service.DisputeFlowEndToEndTest 1 0 0
+com.snoozeshare.service.DisputeQueryServiceTest 5 0 0
+com.snoozeshare.service.DisputeSettlementAtomicityTest 4 0 0
+com.snoozeshare.service.DisputeSettlementServiceTest 15 0 0
+com.snoozeshare.service.DisputeWindowBoundaryTest 3 0 0
+com.snoozeshare.service.FileTicketTest 14 0 0
+com.snoozeshare.service.LedgerConservationTest 2 0 0
+com.snoozeshare.service.LedgerWriterTest 4 0 0
+com.snoozeshare.service.ListingMetricsServiceTest 4 0 0
+com.snoozeshare.service.ListingServiceTest 30 0 0
+com.snoozeshare.service.MessageServiceTest 10 0 0
+com.snoozeshare.service.ReviewServiceTest 9 0 0
+com.snoozeshare.service.SearchCriteriaTest 3 0 0
+com.snoozeshare.service.SystemUserGuardTest 3 0 0
+com.snoozeshare.service.TicketServiceCategoryTest 8 0 0
+com.snoozeshare.service.TicketServiceIntegrationTest 5 0 0
+com.snoozeshare.service.TicketServiceTest 14 0 0
+com.snoozeshare.service.TransactionServiceTest 8 0 0
+com.snoozeshare.service.UserServiceTest 5 0 0
+com.snoozeshare.service.WalletEventPublishingTest 3 0 0
+com.snoozeshare.service.WalletLedgerAuditTest 3 0 0
+com.snoozeshare.service.WalletLedgerTest 4 0 0
+com.snoozeshare.service.WalletTransactionAtomicityTest 1 0 0
+com.snoozeshare.session.SessionContextTest 1 0 0
+com.snoozeshare.testsupport.MockAuditSeedTest 4 0 0
+com.snoozeshare.ui.admin.AccountGovernanceUiTest 5 0 0
+com.snoozeshare.ui.admin.accounts.AccountSearchTest 4 0 0
+com.snoozeshare.ui.admin.accounts.AccountTextTest 2 0 0
+com.snoozeshare.ui.admin.AdminDetailSnapshotTest 3 0 0
+com.snoozeshare.ui.admin.AdminFxmlLayoutTest 8 0 0
+com.snoozeshare.ui.admin.AdminModalSnapshotTest 2 0 0
+com.snoozeshare.ui.admin.AdminShellInitialsTest 3 0 0
+com.snoozeshare.ui.admin.AdminTableLayoutTest 9 0 0
+com.snoozeshare.ui.admin.AdminUiSmokeTest 6 0 0
+com.snoozeshare.ui.admin.AdminUiSnapshotTest 4 0 0
+com.snoozeshare.ui.admin.AgentModalTest 3 0 0
+com.snoozeshare.ui.admin.audit.AuditLogFormattingTest 6 0 0
+com.snoozeshare.ui.admin.CategoryDialogFlowTest 5 0 0
+com.snoozeshare.ui.admin.DisputeChatPaneTest 4 0 0
+com.snoozeshare.ui.admin.HeightGripTest 2 0 0
+com.snoozeshare.ui.admin.MultiSelectMenuTest 4 0 0
+com.snoozeshare.ui.admin.ResolutionDialogFlowTest 4 0 0
+com.snoozeshare.ui.admin.ResolutionPreviewTest 3 0 0
+com.snoozeshare.ui.admin.SuspensionDialogFlowTest 5 0 0
+com.snoozeshare.ui.AuthLayoutTest 3 0 0
+com.snoozeshare.ui.common.messaging.ChatBubblesTest 1 0 0
+com.snoozeshare.ui.guest.GuestUiSnapshotTest 11 0 0
+com.snoozeshare.ui.guest.GuestVisualsDatePickerTest 2 0 0
+com.snoozeshare.ui.guest.tickets.TicketFilingControllerTest 2 0 0
+com.snoozeshare.ui.guest.trips.TripDashboardGroupingTest 5 0 0
+com.snoozeshare.ui.host.HostCalendarVisualSnapshotTest 1 0 0
+com.snoozeshare.ui.host.HostConversationRowTest 1 0 0
+com.snoozeshare.ui.host.HostMessagesControllerTest 2 0 0
+com.snoozeshare.ui.host.HostMessagesLayoutTest 1 0 0
+com.snoozeshare.ui.HostBookingsControllerTest 5 0 0
+com.snoozeshare.ui.HostBreadcrumbNavigationTest 6 0 0
+com.snoozeshare.ui.HostCalendarControllerTest 4 0 0
+com.snoozeshare.ui.HostListingsControllerTest 25 0 0
+com.snoozeshare.ui.HostPageLayoutTest 3 0 0
+com.snoozeshare.ui.HostShellControllerTest 1 0 0
+com.snoozeshare.ui.HostThemeOwnershipTest 2 0 0
+com.snoozeshare.ui.ShellLayoutTest 5 0 0
+com.snoozeshare.ui.ShellNavigationTest 7 0 0
+com.snoozeshare.ui.UiDependencyTest 1 0 0
+com.snoozeshare.ui.WalletActionDialogControllerTest 2 0 0
+com.snoozeshare.ui.WalletDashboardControllerTest 5 0 0
+com.snoozeshare.ui.WalletUiStructureTest 4 0 0
+```
+
+---
+
+## Lite-skills trial
+
+Observations for the Handover todo (what to revise):
+- Reviewers caught real defects the author missed: actuator CORS is separate from MVC CORS; a pure rename commit cannot build; index F-numbers drifted from `requirements.md`; unscoped secret scan. Keep multi-lens review.
+- `lint.mjs` does not check that the index's goal summary matches `requirements.md` IDs, nor test-layer vocabulary; consider both.
+- Plan phase: `lint.mjs plan` reports "Modify path does not exist" for a file an earlier task creates (T4 modifying T3 files); it is a false positive, so either let a Modify row cite an earlier task's Create or downgrade it to a warning. It also requires the close-out heading to carry no `T` number, which the skill text (`Tn+1`) does not say.
+- Plan review (one Implementer lens) found real defects the author missed: `properties()` is the lowest Spring precedence so an E10 test would connect to a local DB; a copied `gradlew` loses its exec bit; the root `.gitignore` hides the new wrapper jar and `.env.example`; Gradle 9 needs `junit-platform-launcher`. One reviewer was enough at the plan stage.
+- Execution: after a task that moves files, `lint.mjs plan` fails its own Modify rows (the old paths no longer exist), so lint is only meaningful before execution or with executed tasks skipped; consider a `--executed T1` flag or ignoring Done tasks.
+- Spec and plan tooling friction: very long inline shell heredocs failed twice; write scripts to files instead.
+- T5 observations: `npm audit` reports 7 vulnerabilities (eslint-config-next/braces, postcss) with Next 15.5.28 already the latest 15.x; not fixed, revisit in W-SECURITY/W-DEPLOY. Vitest crashed once on Windows (worker exit 3221226505) and passed on two reruns; treat as transient.
+- T3: a host out-of-memory crashed the Gradle daemon once during `test`; rerun green. Boot 3.5.16 (Java 25 toolchain compiles and runs).
+- Four parallel reviewers on a Medium spec produced heavily overlapping findings; two lenses (Implementer + Tester) would have caught most.
+
+---
+
+## 10. Changes
+
+| Date | What changed | Workstream | Ref |
+|---|---|---|---|
+| 2026-10-20 | Created the W-INFRA branch and its branch state | W-INFRA | `8f80e0a` |
+| 2026-10-20 | W-INFRA design spec (index + 7 component files) written, linted, reviewed by four lenses | W-INFRA | `73ab826` |
+| 2026-10-20 | Moved the desktop app under `desktop/` (renames at 100% except `build.gradle`: Checkstyle now reads root `config/checkstyle`); `.gitignore` and `ci.yml` adjusted; desktop build green with per-class test counts equal to the baseline; no desktop test reads `docs/` or `config/` | W-INFRA | this commit |
+| 2026-10-20 | Added `docker-compose.yml` (Postgres 17, healthcheck, `POSTGRES_PORT`); verified healthy, `select 1`, port override | W-INFRA | this commit |
+| 2026-10-20 | Spec approved by Xiao-Congchen; W-INFRA implementation plan (T1-T9 + close-out) written, linted, reviewed; spec amended (C~4) | W-INFRA | — |
+| 2026-10-20 | Added `frontend/` (Next.js 15.5.28, React 19.1.0, Tailwind 4, shadcn CLI 4.22.1 Button, Vitest 5, Node 22 pinned via `.nvmrc`, `.npmrc`, `engines`): `env.ts` validation, `BackendStatus` page; 15 tests, lint and build verified, `npm ci` works | W-INFRA | this commit |
+| 2026-10-20 | Added `backend/` (Spring Boot 3.5.16, Java 25, Gradle 9.7.1 wrapper, Flyway `V001`, health-only actuator, dev/prod profiles, `ProdEnvironmentGuard`); 15 Testcontainers Postgres 17 tests, Checkstyle clean, single jar (see D~1) | W-INFRA | this commit |
+| 2026-10-20 | Exact-origin CORS: `CorsProperties` (validated), `CorsConfig` for application endpoints, actuator CORS keys, test-only `/test/cors`; prod fail-fast on the origin (E17); 30 backend tests green (see D~2) | W-INFRA | this commit |
+| 2026-10-20 | Added `backend/Dockerfile` (multi-stage, Gradle 9.7.1/JDK 25, Temurin 25 JRE jammy), `railway.json` (health check `/actuator/health`), `.dockerignore`, root `.gitattributes` (LF `gradlew`); container verified UP | W-INFRA | this commit |
+| 2026-10-20 | `ci.yml`: `checkstyle` and `build` now cover desktop, backend (Testcontainers on the runner's Docker) and frontend (Node from `.nvmrc`); step names prefixed `desktop:`/`backend:`/`frontend:`; reports from both Gradle projects uploaded; YAML parses | W-INFRA | this commit |
+| 2026-10-20 | Pushed W-INFRA and opened draft PR #9: `checkstyle` (1m45s) and `build` (3m, N3 well under 15 min) green for desktop, backend and frontend; run https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/actions/runs/39381234684 | W-INFRA | — |
+| 2026-10-20 | T7 step 6 (E5): a throwaway unused import + failing test made `checkstyle` fail and uploaded `checkstyle-reports` (desktop and backend files); with the import removed the failing test made `build` fail and uploaded `test-reports` including backend `ThrowawayFailureTest`; both reverted. The backend `gradle build` runs Checkstyle before tests, so a Checkstyle violation hides backend test reports. Green `build` takes about 3 minutes (N3) | W-INFRA | this commit |
+| 2026-10-20 | README rewritten (layout, pinned versions, per-component run commands, `POSTGRES_PORT`); `docs/runbooks/dev-environment.md` (order, owners, variables, evidence block); walkthrough, N1, N2, N5 checks pass; page title set | W-INFRA | this commit |

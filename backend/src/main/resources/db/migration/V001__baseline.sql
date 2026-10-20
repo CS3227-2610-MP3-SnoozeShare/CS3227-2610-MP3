@@ -1,0 +1,1 @@
+-- Baseline migration: the schema starts empty; domain tables arrive with later workstreams.

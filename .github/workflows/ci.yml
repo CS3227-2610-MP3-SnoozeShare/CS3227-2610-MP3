@@ -3,7 +3,7 @@ name: CI
 # Checkstyle runs on every push to any branch (fast, no display needed). The full build, with the
 # JUnit and TestFX suites, runs on every pull request and on every push to development or main, so
 # each merged result is checked as well as the branch that produced it. `checkstyle` and `build` are
-# the required status checks on both branches.
+# the required status checks on both branches, and each covers desktop, backend and frontend.
 on:
   push:
   pull_request:
@@ -18,6 +18,7 @@ permissions:
 jobs:
   checkstyle:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -25,19 +26,37 @@ jobs:
           distribution: temurin
           java-version: '25'
       - uses: gradle/actions/setup-gradle@v4
-      - name: Checkstyle (main and test sources)
+      - name: "desktop: checkstyle"
+        working-directory: desktop
         run: ./gradlew checkstyleMain checkstyleTest --no-daemon
+      - name: "backend: checkstyle"
+        working-directory: backend
+        run: ./gradlew checkstyleMain checkstyleTest --no-daemon
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: "frontend: install"
+        working-directory: frontend
+        run: npm ci
+      - name: "frontend: lint"
+        working-directory: frontend
+        run: npm run lint
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: checkstyle-reports
-          path: build/reports/checkstyle
+          path: |
+            desktop/build/reports/checkstyle
+            backend/build/reports/checkstyle
 
   build:
     # Pull requests, and pushes to development or main; a plain feature-branch push is covered by
     # checkstyle until its pull request opens.
     if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/development'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -45,10 +64,32 @@ jobs:
           distribution: temurin
           java-version: '25'
       - uses: gradle/actions/setup-gradle@v4
-      - name: Build and test (xvfb gives the TestFX suites a virtual display)
+      - name: "desktop: build (xvfb gives the TestFX suites a virtual display)"
+        working-directory: desktop
         run: xvfb-run -a ./gradlew build --no-daemon
+      - name: "backend: build (Testcontainers uses the runner's Docker)"
+        working-directory: backend
+        run: ./gradlew build --no-daemon
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: "frontend: install"
+        working-directory: frontend
+        run: npm ci
+      - name: "frontend: test"
+        working-directory: frontend
+        run: npm test
+      - name: "frontend: build"
+        working-directory: frontend
+        env:
+          NEXT_PUBLIC_API_BASE_URL: http://localhost:8080
+        run: npm run build
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: test-reports
-          path: build/reports/tests
+          path: |
+            desktop/build/reports/tests
+            backend/build/reports/tests

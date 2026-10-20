@@ -1,0 +1,8 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:${POSTGRES_PORT:5432}/snoozeshare
+    username: snoozeshare
+    password: snoozeshare
+snoozeshare:
+  cors:
+    allowed-origin: http://localhost:3000

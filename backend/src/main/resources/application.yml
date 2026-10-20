@@ -1,0 +1,31 @@
+spring:
+  profiles:
+    default: dev
+  config:
+    import: optional:classpath:application-local.yml
+  datasource:
+    hikari:
+      connection-timeout: 5000
+server:
+  port: ${PORT:8080}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+      discovery:
+        enabled: false
+      cors:
+        allowed-origins: ${snoozeshare.cors.allowed-origin}
+        allowed-methods: GET,OPTIONS
+        allowed-headers: Authorization,Content-Type
+        max-age: 3600s
+  endpoint:
+    health:
+      show-details: never
+      show-components: never
+  health:
+    defaults:
+      enabled: false
+    db:
+      enabled: true
