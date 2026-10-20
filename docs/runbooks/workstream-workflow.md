@@ -47,9 +47,9 @@ Anything feature-sized needs a spec and a plan. A bug fix or config tweak does n
    (requirements, data model, API, UI, conventions, edge cases `E1..`, implementation order `T1..`).
 x
 3. `node .claude/skills/writing-specs-lite/scripts/lint.mjs spec <index.md>` has no errors.
-4. Review by the read-only `lite-reviewer` agent, one per lens, scaled by tier: Low = Implementer + Tester; Medium adds Maintainer + User; High = all five, and the
-   Attacker lens writes a threat list (actor, abuse, mitigation present or missing). At most **two rounds**; unresolved blocking findings become open questions for the owner.
-   (The W-INFRA trial found four lenses overlapped heavily; see the Upcoming todo on revising the skills.)
+4. Review by the read-only `lite-reviewer` agent, one per lens, scaled by tier: Low and Medium = Implementer + Tester; High = Implementer + Tester + Maintainer (Attacker and User only on request). At High
+   tier the author writes the threat list (actor, abuse, mitigation present or missing) and the Tester lens checks each row has a test. At most **two rounds**;
+   unresolved blocking findings become open questions for the owner.
 5. Open questions (`Q`) go to the owner. Decisions the owner makes are recorded as `C~n` in the branch state.
 
 Gate: the owner reads the spec. **Owner approves** (Status `Approved (name, date)`). Nothing is built before this.
