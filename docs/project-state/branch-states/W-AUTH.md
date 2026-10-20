@@ -32,18 +32,18 @@ cd ../backend && ./gradlew test
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-20 | Codex (lead) | W-AUTH | Active | Approved spec; plan next | Write and lint the W-AUTH implementation plan, then request plan approval before coding | 2026-10-20 |
+| S1 | 2026-10-20 | Codex (lead) | W-AUTH | Active | Plan in review | Project owner reviews the implementation plan; after approval, execute T1 in the plan | 2026-10-20 |
 
 **Remaining**
 
-- [ ] Write and review the W-AUTH implementation plan.
+- [ ] Project owner approves the W-AUTH implementation plan.
 - [ ] **Handover:** After spec approval, write the implementation plan and execute it with Firebase emulator/test doubles for automated tests.
 
 ## 3. Workstreams
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AUTH | Firebase authentication and role authorization | Planned | [spec](docs/superpowers/specs/2026-10-20-w-auth-design.md) | — | Approved spec; implementation plan in progress | — |
+| W-AUTH | Firebase authentication and role authorization | Planned | [spec](docs/superpowers/specs/2026-10-20-w-auth-design.md) | [plan](docs/superpowers/plans/2026-10-20-w-auth.md) | Plan complete; awaiting project owner approval | — |
 
 ## 4. Architecture
 
@@ -53,10 +53,10 @@ cd ../backend && ./gradlew test
 
 | Path | Role |
 |---|---|
-| `backend/src/main/java/com/snoozeshare/config/FirebaseConfig.java` | Firebase Admin application and credential initialization |
-| `backend/src/main/java/com/snoozeshare/security/FirebaseAuthFilter.java` | Verify bearer ID tokens and establish the authenticated principal |
-| `backend/src/main/java/com/snoozeshare/security/RoleAuthorizationFilter.java` | Resolve and enforce database role for URL namespaces |
-| `backend/src/main/java/com/snoozeshare/controller/auth/AuthController.java` | Registration and current-user endpoints |
+| `backend/src/main/java/com/snoozeshare/auth/config/FirebaseConfig.java` | Firebase Admin application and credential initialization |
+| `backend/src/main/java/com/snoozeshare/auth/security/FirebaseAuthFilter.java` | Verify bearer ID tokens and establish the authenticated principal |
+| `backend/src/main/java/com/snoozeshare/auth/security/RoleAuthorizationFilter.java` | Resolve and enforce database role for URL namespaces |
+| `backend/src/main/java/com/snoozeshare/auth/controller/AuthController.java` | Registration and current-user endpoints |
 | `frontend/src/lib/firebase.ts` | Firebase JS SDK initialization |
 | `frontend/src/providers/AuthProvider.tsx` | Client auth state and role/profile loading |
 | `frontend/src` protected layouts | Client-side route protection and role redirects through `AuthProvider`; no middleware auth in W-AUTH |
