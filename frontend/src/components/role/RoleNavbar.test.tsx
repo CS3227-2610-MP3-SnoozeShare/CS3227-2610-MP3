@@ -43,7 +43,7 @@ describe('RoleNavbar', () => {
     render(<RoleNavbar role="GUEST" onLogout={onLogout} />);
 
     const button = screen.getByRole('button', { name: 'Log out' });
-    expect(button).toHaveClass('h-6');
+    expect(button).toHaveClass('h-6', 'border-0', 'bg-transparent', 'px-0');
     expect(screen.getByTestId('workspace-navbar-top')).toContainElement(button);
     fireEvent.click(button);
     expect(onLogout).toHaveBeenCalledOnce();

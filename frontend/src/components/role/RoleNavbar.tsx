@@ -22,7 +22,7 @@ export function RoleNavbar({ role, onLogout }: { role: WorkspaceRole; onLogout?:
           <Link href={landingPath} className="text-sm font-extrabold tracking-[0.04em] text-primary">SnoozeShare</Link>
           {workspaceLabels[role] && <span className="ss-pill ss-status-neutral">{workspaceLabels[role]}</span>}
           <span aria-label="Wallet" className="ss-pill ss-status-neutral ml-auto">Wallet</span>
-          <button type="button" className="h-6 shrink-0 rounded-md border border-border bg-background px-2 text-xs font-medium text-foreground hover:bg-muted" onClick={onLogout}>
+          <button type="button" className="h-6 shrink-0 border-0 bg-transparent px-0 text-xs font-medium text-foreground hover:bg-transparent hover:text-primary" onClick={onLogout}>
             Log out
           </button>
         </div>
