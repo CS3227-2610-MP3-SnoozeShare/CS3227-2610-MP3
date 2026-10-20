@@ -26,12 +26,13 @@ jobs:
           java-version: '25'
       - uses: gradle/actions/setup-gradle@v4
       - name: Checkstyle (main and test sources)
+        working-directory: desktop
         run: ./gradlew checkstyleMain checkstyleTest --no-daemon
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: checkstyle-reports
-          path: build/reports/checkstyle
+          path: desktop/build/reports/checkstyle
 
   build:
     # Pull requests, and pushes to development or main; a plain feature-branch push is covered by
@@ -46,9 +47,10 @@ jobs:
           java-version: '25'
       - uses: gradle/actions/setup-gradle@v4
       - name: Build and test (xvfb gives the TestFX suites a virtual display)
+        working-directory: desktop
         run: xvfb-run -a ./gradlew build --no-daemon
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: test-reports
-          path: build/reports/tests
+          path: desktop/build/reports/tests

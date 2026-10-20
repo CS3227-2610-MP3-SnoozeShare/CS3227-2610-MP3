@@ -16,7 +16,7 @@ build/
 
 # Package Files #
 *.jar
-!gradle/wrapper/gradle-wrapper.jar
+!**/gradle/wrapper/gradle-wrapper.jar
 *.war
 *.nar
 *.ear
@@ -33,7 +33,7 @@ replay_pid*
 *.sqlite3
 *.db-journal
 # ...except the shared mock reference DB the team commits and diffs together
-!db/snoozeshare-mock.db
+!desktop/db/snoozeshare-mock.db
 
 # Agents
 .codex
@@ -54,3 +54,11 @@ docs/Gemfile.lock
 
 # macOS clutter
 .DS_Store
+
+# Web components
+node_modules/
+.next/
+.env*.local
+backend/build/
+desktop/build/
+application-local.yml
