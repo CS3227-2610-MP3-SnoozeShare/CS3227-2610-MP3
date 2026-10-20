@@ -46,7 +46,7 @@ plan".
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-INFRA (proposed name) | Mono-repo skeletons, local Postgres, CI, deploy setup | Done | [spec](../../superpowers/specs/2026-10-20-w-infra-design.md) | [plan](../../superpowers/plans/2026-10-20-w-infra.md) | T1-T9 done; dev live on Render + Vercel + Neon | Awaiting confirmation |
+| W-INFRA (proposed name) | Mono-repo skeletons, local Postgres, CI, deploy setup | Done | [spec](../../superpowers/specs/2026-10-20-w-infra-design.md) | [plan](../../superpowers/plans/2026-10-20-w-infra.md) | T1-T9 done; dev live on Render + Vercel + Neon; guide confirmed by owner 2026-10-20; guide out of date: Setting Up, Testing and Overview commands now run in desktop/, plus new backend/frontend/CI/deploy content | — |
 
 ---
 
