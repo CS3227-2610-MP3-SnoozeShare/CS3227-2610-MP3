@@ -1,0 +1,26 @@
+spring:
+  profiles:
+    default: dev
+  config:
+    import: optional:classpath:application-local.yml
+  datasource:
+    hikari:
+      connection-timeout: 5000
+server:
+  port: ${PORT:8080}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+      discovery:
+        enabled: false
+  endpoint:
+    health:
+      show-details: never
+      show-components: never
+  health:
+    defaults:
+      enabled: false
+    db:
+      enabled: true

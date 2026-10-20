@@ -29,7 +29,7 @@ plan".
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-20 | Claude Sonnet 5.5 | W-INFRA | Active | Wave 1 done (T1, T2, T5); Wave 2 next | T3 step 1: backend skeleton (plan T3) | 2026-10-20 |
+| S1 | 2026-10-20 | Claude Sonnet 5.5 | W-INFRA | Active | T1, T2, T3, T5 done | T4 step 1: CORS (plan T4) | 2026-10-20 |
 
 **Remaining**
 
@@ -46,7 +46,7 @@ plan".
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-INFRA (proposed name) | Mono-repo skeletons, local Postgres, CI, deploy setup | Building | [spec](../../superpowers/specs/2026-10-20-w-infra-design.md) | [plan](../../superpowers/plans/2026-10-20-w-infra.md) | Task 3/8 next: backend skeleton | — |
+| W-INFRA (proposed name) | Mono-repo skeletons, local Postgres, CI, deploy setup | Building | [spec](../../superpowers/specs/2026-10-20-w-infra-design.md) | [plan](../../superpowers/plans/2026-10-20-w-infra.md) | Task 3/8 done; T4 CORS next | — |
 
 ---
 
@@ -54,6 +54,9 @@ plan".
 
 - Plan review by the operator (spec approved 2026-10-20 by Xiao-Congchen, including SD10 and the SD13 extras).
 - T9 (after merge): create Railway, Vercel and Neon projects/branch, set variables (runbook order).
+
+- D~1 (T3, plan-only): Spring's binder leaves an unresolved `${VAR}` in `spring.datasource.*` in place, so a missing prod variable surfaced as a driver error that did not name it (F6, E18 not met). Added `ProdEnvironmentGuard` (`@Profile("prod")` bean-factory post-processor reading the four required keys strictly), which also covers `snoozeshare.cors.allowed-origin` (E17, tested in T4). Test container is a JVM-wide singleton in `PostgresIntegrationTest`: a per-class `@Container` restarted on a new port while Spring reused the cached context.
+- E22 check on Windows: `DOCKER_HOST` alone is ignored because Testcontainers caches `docker.client.strategy` in `~/.testcontainers.properties`; with `TESTCONTAINERS_DOCKER_CLIENT_STRATEGY=org.testcontainers.dockerclient.EnvironmentAndSystemPropertyClientProviderStrategy` and `--no-daemon` the tests fail, none skipped.
 
 ---
 
@@ -203,6 +206,7 @@ Observations for the Handover todo (what to revise):
 - Execution: after a task that moves files, `lint.mjs plan` fails its own Modify rows (the old paths no longer exist), so lint is only meaningful before execution or with executed tasks skipped; consider a `--executed T1` flag or ignoring Done tasks.
 - Spec and plan tooling friction: very long inline shell heredocs failed twice; write scripts to files instead.
 - T5 observations: `npm audit` reports 7 vulnerabilities (eslint-config-next/braces, postcss) with Next 15.5.28 already the latest 15.x; not fixed, revisit in W-SECURITY/W-DEPLOY. Vitest crashed once on Windows (worker exit 3221226505) and passed on two reruns; treat as transient.
+- T3: a host out-of-memory crashed the Gradle daemon once during `test`; rerun green. Boot 3.5.16 (Java 25 toolchain compiles and runs).
 - Four parallel reviewers on a Medium spec produced heavily overlapping findings; two lenses (Implementer + Tester) would have caught most.
 
 ---
@@ -217,3 +221,4 @@ Observations for the Handover todo (what to revise):
 | 2026-10-20 | Added `docker-compose.yml` (Postgres 17, healthcheck, `POSTGRES_PORT`); verified healthy, `select 1`, port override | W-INFRA | this commit |
 | 2026-10-20 | Spec approved by Xiao-Congchen; W-INFRA implementation plan (T1-T9 + close-out) written, linted, reviewed; spec amended (C~4) | W-INFRA | — |
 | 2026-10-20 | Added `frontend/` (Next.js 15.5.28, React 19.1.0, Tailwind 4, shadcn CLI 4.22.1 Button, Vitest 5, Node 22 pinned via `.nvmrc`, `.npmrc`, `engines`): `env.ts` validation, `BackendStatus` page; 15 tests, lint and build verified, `npm ci` works | W-INFRA | this commit |
+| 2026-10-20 | Added `backend/` (Spring Boot 3.5.16, Java 25, Gradle 9.7.1 wrapper, Flyway `V001`, health-only actuator, dev/prod profiles, `ProdEnvironmentGuard`); 15 Testcontainers Postgres 17 tests, Checkstyle clean, single jar (see D~1) | W-INFRA | this commit |
