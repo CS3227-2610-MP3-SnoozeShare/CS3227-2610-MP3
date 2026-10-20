@@ -5,9 +5,9 @@
 - **Branch:** W-AUTH (from `development` at `a785e75`)
 - **Base:** `a785e75`
 - **Owner:** project owner
-- **Status:** Building
+- **Status:** In review
 - **Approved:** —
-- **Last updated:** 2026-10-21 by Codex — email-verification policy reversed; verification complete
+- **Last updated:** 2026-10-21 by Codex — W-AUTH implementation and close-out complete
 
 ---
 
@@ -36,7 +36,7 @@ cd ../backend && ./gradlew test
 **Remaining**
 
 - [ ] **Handover:** Owner reviews the W-AUTH branch and decides whether to approve and merge it into `development`.
-- [ ] **Handover:** After spec approval, write the implementation plan and execute it with Firebase emulator/test doubles for automated tests.
+- [ ] **Handover:** Owner reviews the complete W-AUTH branch, confirms the final verification evidence, and merges it into `development` when ready.
 
 ## 3. Workstreams
 
