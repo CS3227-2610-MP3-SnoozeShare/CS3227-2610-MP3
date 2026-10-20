@@ -8,6 +8,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -118,6 +121,73 @@ class AuthRegistrationIntegrationTest extends PostgresIntegrationTest {
             .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
     }
 
+    @Test
+    void inactiveProfileAndUnverifiedEmailAreRejectedWithSafeRequestIds() throws Exception {
+        UUID userId = UUID.randomUUID();
+        jdbc.update("insert into users (id, firebase_uid, email, role, status) values (?, ?, ?, ?, ?)",
+            userId, token, "inactive@example.com", "GUEST", "INACTIVE");
+
+        mockMvc.perform(get("/api/auth/me").header("Authorization", "Bearer " + token))
+            .andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.code").value("PROFILE_INACTIVE"))
+            .andExpect(jsonPath("$.requestId").isString());
+
+        String unverifiedToken = token + "-unverified";
+        verifier.add(unverifiedToken, unverifiedToken, "unverified@example.com", false);
+        mockMvc.perform(get("/api/auth/me").header("Authorization", "Bearer " + unverifiedToken))
+            .andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.code").value("EMAIL_NOT_VERIFIED"))
+            .andExpect(jsonPath("$.requestId").isString());
+    }
+
+    @Test
+    void identityEmailAndDisplayNameAreSnapshotsAndConcurrentRegistrationIsIdempotent() throws Exception {
+        mockMvc.perform(post("/api/auth/register")
+                .header("Authorization", "Bearer " + token)
+                .contentType("application/json")
+                .content("{\"role\":\"GUEST\",\"displayName\":\"First\"}"))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.email").value("user@example.com"));
+        verifier.add(token, token, "changed@example.com");
+        mockMvc.perform(post("/api/auth/register")
+                .header("Authorization", "Bearer " + token)
+                .contentType("application/json")
+                .content("{\"role\":\"GUEST\",\"displayName\":\"Second\"}"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.email").value("user@example.com"))
+            .andExpect(jsonPath("$.displayName").value("First"));
+
+        String concurrentToken = "concurrent-" + UUID.randomUUID();
+        verifier.add(concurrentToken, concurrentToken, "concurrent@example.com");
+        ExecutorService pool = Executors.newFixedThreadPool(2);
+        try {
+            Future<Integer> first = pool.submit(() -> registerGuest(concurrentToken));
+            Future<Integer> second = pool.submit(() -> registerGuest(concurrentToken));
+            int firstStatus = first.get();
+            int secondStatus = second.get();
+            org.assertj.core.api.Assertions.assertThat(java.util.Set.of(firstStatus, secondStatus))
+                .containsExactlyInAnyOrder(201, 200);
+        } finally {
+            pool.shutdownNow();
+        }
+        Integer profiles = jdbc.queryForObject(
+            "select count(*) from users where firebase_uid = ?", Integer.class, concurrentToken);
+        Integer wallets = jdbc.queryForObject(
+            "select count(*) from wallets w join users u on u.id = w.user_id where u.firebase_uid = ?",
+            Integer.class,
+            concurrentToken);
+        org.assertj.core.api.Assertions.assertThat(profiles).isEqualTo(1);
+        org.assertj.core.api.Assertions.assertThat(wallets).isEqualTo(1);
+    }
+
+    private int registerGuest(String registrationToken) throws Exception {
+        return mockMvc.perform(post("/api/auth/register")
+                .header("Authorization", "Bearer " + registrationToken)
+                .contentType("application/json")
+                .content("{\"role\":\"GUEST\"}"))
+            .andReturn().getResponse().getStatus();
+    }
+
     @TestConfiguration(proxyBeanMethods = false)
     static class TestAuthConfiguration {
 
@@ -133,7 +203,11 @@ class AuthRegistrationIntegrationTest extends PostgresIntegrationTest {
         private final Map<String, FirebaseAuthentication> tokens = new ConcurrentHashMap<>();
 
         void add(String token, String uid, String email) {
-            tokens.put(token, new FirebaseAuthentication(uid, email, true));
+            add(token, uid, email, true);
+        }
+
+        void add(String token, String uid, String email, boolean emailVerified) {
+            tokens.put(token, new FirebaseAuthentication(uid, email, emailVerified));
         }
 
         @Override

@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.snoozeshare.auth.api.AuthProfileResponse;
 import com.snoozeshare.auth.api.RegisterRequest;
@@ -17,7 +16,6 @@ import com.snoozeshare.auth.model.AuthRole;
 import com.snoozeshare.auth.repository.AuthUserRepository;
 import com.snoozeshare.auth.repository.AuthUserRepository.AuthUser;
 import com.snoozeshare.auth.repository.WalletRepository;
-import com.snoozeshare.auth.repository.WalletRepository.Wallet;
 import com.snoozeshare.auth.security.FirebaseTokenVerifier.FirebaseAuthentication;
 
 /** Transactional registration and profile lookup service. */
@@ -27,6 +25,7 @@ public class AuthRegistrationService {
 
     private final AuthUserRepository users;
     private final WalletRepository wallets;
+    private final AuthRegistrationWriter writer;
     private final RegistrationRateLimiter rateLimiter;
     private final String hostCode;
     private final String agentCode;
@@ -34,17 +33,18 @@ public class AuthRegistrationService {
     public AuthRegistrationService(
         AuthUserRepository users,
         WalletRepository wallets,
+        AuthRegistrationWriter writer,
         RegistrationRateLimiter rateLimiter,
         @Value("${snoozeshare.registration.host-code:}") String hostCode,
         @Value("${snoozeshare.registration.agent-code:}") String agentCode) {
         this.users = users;
         this.wallets = wallets;
+        this.writer = writer;
         this.rateLimiter = rateLimiter;
         this.hostCode = hostCode;
         this.agentCode = agentCode;
     }
 
-    @Transactional
     public RegistrationResult register(FirebaseAuthentication identity, RegisterRequest request, String ip) {
         validateCode(identity, request, ip);
         AuthUser existing = users.findByFirebaseUid(identity.uid()).orElse(null);
@@ -68,10 +68,7 @@ public class AuthRegistrationService {
             null,
             null);
         try {
-            users.insert(created);
-            if (request.role() != AuthRole.AGENT) {
-                wallets.insert(new Wallet(UUID.randomUUID(), created.id(), "SGD", new java.math.BigDecimal("0.00")));
-            }
+            writer.create(created);
         } catch (DataIntegrityViolationException conflict) {
             AuthUser winner = users.findByFirebaseUid(identity.uid()).orElseThrow(() -> conflict);
             if (winner.role() != request.role()) {
@@ -83,7 +80,6 @@ public class AuthRegistrationService {
         return new RegistrationResult(profile(created), true);
     }
 
-    @Transactional(readOnly = true)
     public AuthProfileResponse me(FirebaseAuthentication identity) {
         AuthUser user = users.findByFirebaseUid(identity.uid())
             .orElseThrow(() -> new AuthRegistrationException("PROFILE_NOT_REGISTERED", 404));
