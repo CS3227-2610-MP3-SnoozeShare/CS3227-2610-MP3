@@ -1,2 +1,3 @@
 import { RouteGuard } from '@/components/auth/RouteGuard';
-export default function HostLayout({ children }: { children: React.ReactNode }) { return <RouteGuard role="HOST">{children}</RouteGuard>; }
+import { RoleShell } from '@/components/role/RoleShell';
+export default function HostLayout({ children }: { children: React.ReactNode }) { return <RouteGuard role="HOST"><RoleShell role="HOST">{children}</RoleShell></RouteGuard>; }

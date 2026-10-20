@@ -93,6 +93,7 @@ Firebase project, Email/Password provider, and local Admin SDK credentials are c
 | C~5 | Keep the Firebase session after backend registration failure and expose retry/sign-out actions | Prevents a recoverable backend outage from forcing a new account/password flow | Project owner, 2026-10-20 |
 | C~6 | W-AUTH may add the minimal V002 migration for auth users and wallets; W-DOMAIN owns later domain migrations and must preserve the auth contract | Project owner approved the exception so W-AUTH can be independently implemented and tested | Project owner, 2026-10-20 |
 | C~7 | W-AUTH supersedes the older architecture flow that sends `firebaseUid` from the client and relies on Next middleware auth; the W-AUTH API derives UID from the verified bearer token and uses client-side guards | The older design predates the concrete Firebase browser flow; changing it avoids trusting client identity and avoids an unspecified session-cookie system | W-AUTH spec, 2026-10-20 |
+| C~8 | Implement the approved role navbar and empty landing shells directly without a standalone spec or plan | Project owner explicitly approved the inline implementation to keep this UI-only change moving; feature documents are intentionally skipped | Project owner, 2026-10-21 |
 
 ## 9. Deviations
 
@@ -123,3 +124,4 @@ Firebase project, Email/Password provider, and local Admin SDK credentials are c
 | 2026-10-21 | Added outlined account-return action, artifact-aligned role dropdown styling, and specific duplicate-email registration feedback; frontend tests, lint and production build pass | W-AUTH | register-page UX |
 | 2026-10-21 | Replaced the native role select with a reusable artifact-style custom dropdown using the shared `bg-background` field surface; interaction coverage added and all frontend checks pass | W-AUTH | custom dropdown |
 | 2026-10-21 | Applied the artifact login header treatment to login, register, and forgot-password pages through a shared auth-header component; 31 frontend tests, lint and production build pass | W-AUTH | auth header styling |
+| 2026-10-21 | Added shared role navbar without avatars, Host and Support Agent workspace pills, protected empty Guest/Host/Agent landing shells, and role-shell tests; 35 frontend tests, lint and production build pass | W-AUTH | role navbar and landing shells |

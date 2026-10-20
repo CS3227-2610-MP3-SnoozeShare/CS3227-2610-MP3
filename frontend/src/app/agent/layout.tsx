@@ -1,2 +1,3 @@
 import { RouteGuard } from '@/components/auth/RouteGuard';
-export default function AgentLayout({ children }: { children: React.ReactNode }) { return <RouteGuard role="AGENT">{children}</RouteGuard>; }
+import { RoleShell } from '@/components/role/RoleShell';
+export default function AgentLayout({ children }: { children: React.ReactNode }) { return <RouteGuard role="AGENT"><RoleShell role="AGENT">{children}</RoleShell></RouteGuard>; }
