@@ -5,7 +5,7 @@ import java.sql.SQLException;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Repository;
 
 /** JDBC implementation of the wallet persistence boundary. */
 @Repository
-@ConditionalOnBean(JdbcTemplate.class)
+@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 public class JdbcWalletRepository implements WalletRepository {
 
     private final JdbcTemplate jdbc;

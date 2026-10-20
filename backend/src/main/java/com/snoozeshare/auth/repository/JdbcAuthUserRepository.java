@@ -5,7 +5,7 @@ import java.sql.SQLException;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -15,7 +15,7 @@ import com.snoozeshare.auth.model.AuthRole;
 
 /** JDBC implementation of the auth user persistence boundary. */
 @Repository
-@ConditionalOnBean(JdbcTemplate.class)
+@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 public class JdbcAuthUserRepository implements AuthUserRepository {
 
     private static final String SELECT_COLUMNS =

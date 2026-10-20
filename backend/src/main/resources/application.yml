@@ -1,6 +1,9 @@
 spring:
   profiles:
     default: dev
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
   config:
     import: optional:classpath:application-local.yml
   datasource:
