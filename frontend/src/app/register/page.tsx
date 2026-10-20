@@ -32,11 +32,11 @@ export default function RegisterPage() {
     }
   }
   return <main className="flex min-h-screen items-center justify-center p-6"><form className="ss-card w-full max-w-md space-y-4 p-8" onSubmit={submit}><AuthHeader title="Create your account" />
-    <label className="block">Email<input className="mt-1 w-full rounded-md border bg-background p-2" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></label>
-    <label className="block">Password<input className="mt-1 w-full rounded-md border bg-background p-2" type="password" minLength={6} required value={password} onChange={(e) => setPassword(e.target.value)} /></label>
-    <label className="block">Display name<input className="mt-1 w-full rounded-md border bg-background p-2" value={name} onChange={(e) => setName(e.target.value)} /></label>
+    <label className="block">Email<input className="mt-1 w-full rounded-md border bg-background p-2" type="email" placeholder="you@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} /></label>
+    <label className="block">Password<input className="mt-1 w-full rounded-md border bg-background p-2" type="password" placeholder="Create a password" minLength={6} required value={password} onChange={(e) => setPassword(e.target.value)} /></label>
+    <label className="block">Display name<input className="mt-1 w-full rounded-md border bg-background p-2" placeholder="How should we call you?" value={name} onChange={(e) => setName(e.target.value)} /></label>
     <label className="block">Role<SelectField aria-label="Role" name="role" value={role} onValueChange={(value) => setRole(value as typeof role)} options={[{ value: 'GUEST', label: 'GUEST' }, { value: 'HOST', label: 'HOST' }, { value: 'AGENT', label: 'AGENT' }]} /></label>
-    {role !== 'GUEST' && <label className="block">Registration code<input className="mt-1 w-full rounded-md border bg-background p-2" required value={code} onChange={(e) => setCode(e.target.value)} /></label>}
+    {role !== 'GUEST' && <label className="block">Registration code<input className="mt-1 w-full rounded-md border bg-background p-2" placeholder="Enter your registration code" required value={code} onChange={(e) => setCode(e.target.value)} /></label>}
     {error && <p role="alert" className="text-destructive">{error}</p>}<Button type="submit" className="w-full" disabled={state === 'loading' || isSubmitting}>Create account</Button><Button type="button" variant="outline" className="w-full" onClick={() => router.push('/login')}>I have an account</Button>
   </form></main>;
 }

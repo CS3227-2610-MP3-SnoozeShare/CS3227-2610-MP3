@@ -138,3 +138,4 @@ Firebase project, Email/Password provider, and local Admin SDK credentials are c
 | 2026-10-21 | Added final-check bypass, stale-code, concurrent limiter, no-store/media, and unavailable-backend regression coverage; backend checkstyle/tests and 47 frontend tests/lint pass | W-AUTH | T3 |
 | 2026-10-21 | Full backend build and frontend production build pass with dummy public Firebase/API values; diff clean and branch pushed through T3 | W-AUTH | T4 |
 | 2026-10-21 | Completed registration pre-validation workstream slice; all plan tasks done, branch state is In review, and no merge/approval was performed | W-AUTH | T5 |
+| 2026-10-21 | Added descriptive placeholders to login, registration, and forgot-password form inputs; frontend presentation-only refinement | W-AUTH | auth form UX |
