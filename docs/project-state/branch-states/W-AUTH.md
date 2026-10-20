@@ -5,9 +5,9 @@
 - **Branch:** W-AUTH (from `development` at `a785e75`)
 - **Base:** `a785e75`
 - **Owner:** project owner
-- **Status:** Building
+- **Status:** In review
 - **Approved:** —
-- **Last updated:** 2026-10-21 by Codex — T8 frontend acceptance tests complete; T9 ready
+- **Last updated:** 2026-10-21 by Codex — T9 full verification complete; awaiting owner review
 
 ---
 
@@ -32,18 +32,17 @@ cd ../backend && ./gradlew test
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-21 | Codex (lead) | W-AUTH | Active | T9 full verification and handoff evidence | Run combined backend/frontend gates, inspect the final diff and record any remaining environment limitation; preserve local env files | 2026-10-21 |
 
 **Remaining**
 
-- [ ] T9: complete full verification and handoff evidence.
+- [ ] **Handover:** Owner reviews the W-AUTH branch and decides whether to approve and merge it into `development`.
 - [ ] **Handover:** After spec approval, write the implementation plan and execute it with Firebase emulator/test doubles for automated tests.
 
 ## 3. Workstreams
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AUTH | Firebase authentication and role authorization | Building | [spec](docs/superpowers/specs/2026-10-20-w-auth-design.md) | [plan](docs/superpowers/plans/2026-10-20-w-auth.md) | T1–T8 complete; T9 full verification ready | — |
+| W-AUTH | Firebase authentication and role authorization | In review | [spec](docs/superpowers/specs/2026-10-20-w-auth-design.md) | [plan](docs/superpowers/plans/2026-10-20-w-auth.md) | T1–T9 complete; awaiting owner review and merge decision | — |
 
 ## 4. Architecture
 
@@ -100,7 +99,7 @@ Firebase project, Email/Password provider, and local Admin SDK credentials are c
 | ID | What happened | Consequence | Action |
 |---|---|---|---|
 | D~1 | Branch had pre-existing uncommitted Firebase Admin and Firebase JS dependency edits when execution began | The clean-tree precondition cannot be met without touching operator work | Preserve the files, include them in their planned T2/T6 dependency commits, and verify the final diff before close-out |
-| D~2 | Frontend baseline `npm ci` could not resolve `registry.npmjs.org` in this environment | Frontend baseline tests/build remain unverified until npm network access is available | Retry the frontend gate before W-AUTH close-out; backend and desktop baselines passed |
+| D~2 | Initial frontend baseline `npm ci` was blocked by the environment cache/registry state | The gate was temporarily unverified | Resolved on 2026-10-21 with a task-local npm cache; `npm ci`, 27 tests, lint and production build pass |
 | D~3 | Firebase Admin beans are gated by `FIREBASE_ENABLED` so existing datasource-free contexts remain usable | Local auth activation requires `FIREBASE_ENABLED=true`; enabled startup still fails fast for missing project, codes or ADC credentials | Document the activation variable in the developer handover at the development checkpoint |
 
 ## 10. Changes
@@ -117,3 +116,4 @@ Firebase project, Email/Password provider, and local Admin SDK credentials are c
 | 2026-10-21 | Added Firebase browser configuration validation, lazy client initialization, email auth actions, authenticated API fetch and mocked client/API tests; frontend tests, lint and production build pass | W-AUTH | T6 |
 | 2026-10-21 | Added AuthProvider session/profile state, verification refresh and sign-out handling, artifact-aligned login/register/reset screens, role route guards and provider coverage; frontend tests, lint and production build pass | W-AUTH | T7 |
 | 2026-10-21 | Added page-level sign-in, registration, password-reset and route-guard acceptance tests; 27 frontend tests, lint and production build pass | W-AUTH | T8 |
+| 2026-10-21 | Completed final backend/frontend verification, diff check and credential scan; branch is review-ready with no tracked service-account JSON, bearer token or password credential | W-AUTH | T9 |
