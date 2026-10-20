@@ -16,7 +16,7 @@
 
 | Task | Depends on | Can run concurrently with | Wave | Status |
 |---|---|---|---|---|
-| T1 | — | — | 1 | Not started |
+| T1 | — | — | 1 | Done |
 | T2 | T1 | — | 2 | Not started |
 | T3 | T1, T2 | — | 3 | Not started |
 | T4 | T3 | — | 4 | Not started |
@@ -74,13 +74,13 @@
 
 **Checklist**
 
-- [ ] 1. Create failing `RegistrationCodeValidationTest` and extend `AuthContractTest` for public access, exact 400/403/429 responses, no-store headers, forwarded-header ignoring, atomic counter boundaries, and protected neighboring routes; run the focused tests and observe failure.
-- [ ] 2. Implement the strict request DTO, service, and atomic public limiter using the existing configured secrets and `MessageDigest.isEqual`.
-- [ ] 3. Add the controller route and exception/header handling; preserve `/api/auth/register` and `/api/auth/me` bearer requirements.
-- [ ] 4. Add the explicit Spring Security matcher and confirm Firebase filter path behavior.
-- [ ] 5. Run `cd backend && ./gradlew test` and `cd backend && ./gradlew checkstyleMain`; fix all failures.
-- [ ] 6. Update branch-state Progress and Changes for T1.
-- [ ] 7. Commit: `feat: add pre-registration code validation endpoint`.
+- [x] 1. Create failing `RegistrationCodeValidationTest` and extend `AuthContractTest` for public access, exact 400/403/429 responses, no-store headers, forwarded-header ignoring, atomic counter boundaries, and protected neighboring routes; run the focused tests and observe failure.
+- [x] 2. Implement the strict request DTO, service, and atomic public limiter using the existing configured secrets and `MessageDigest.isEqual`.
+- [x] 3. Add the controller route and exception/header handling; preserve `/api/auth/register` and `/api/auth/me` bearer requirements.
+- [x] 4. Add the explicit Spring Security matcher and confirm Firebase filter path behavior.
+- [x] 5. Run `cd backend && ./gradlew test` and `cd backend && ./gradlew checkstyleMain`; fix all failures.
+- [x] 6. Update branch-state Progress and Changes for T1.
+- [x] 7. Commit: `feat: add pre-registration code validation endpoint`.
 
 ### T2: Frontend pre-validation and retry-safe registration ordering
 

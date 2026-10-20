@@ -86,4 +86,27 @@ class AuthContractTest extends PostgresIntegrationTest {
         mockMvc.perform(get("/api/not-a-route"))
             .andExpect(status().isNotFound());
     }
+
+    @Test
+    void registrationCodePreflightIsPublicAndDoesNotExposeTheCode() throws Exception {
+        mockMvc.perform(post("/api/auth/registration-code/validate")
+                .contentType("application/json")
+                .content("{\"role\":\"HOST\",\"registrationCode\":\"host-secret\"}"))
+            .andExpect(status().isNoContent())
+            .andExpect(header -> org.assertj.core.api.Assertions.assertThat(
+                header.getResponse().getHeader("Cache-Control")).isEqualTo("no-store"));
+
+        mockMvc.perform(post("/api/auth/registration-code/validate")
+                .contentType("application/json")
+                .content("{\"role\":\"HOST\",\"registrationCode\":\"wrong\"}"))
+            .andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.code").value("INVALID_REGISTRATION_CODE"))
+            .andExpect(jsonPath("$.message").value("Request could not be completed"));
+
+        mockMvc.perform(post("/api/auth/registration-code/validate")
+                .contentType("application/json")
+                .content("{\"role\":\"GUEST\",\"registrationCode\":\"wrong\"}"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+    }
 }
