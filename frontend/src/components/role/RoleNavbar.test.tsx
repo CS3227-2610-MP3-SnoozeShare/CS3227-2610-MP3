@@ -1,5 +1,5 @@
-import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 import { RoleNavbar } from './RoleNavbar';
 
 describe('RoleNavbar', () => {
@@ -36,5 +36,16 @@ describe('RoleNavbar', () => {
     expect(screen.getByRole('link', { name: 'Listings' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('link', { name: 'Listings' })).toHaveClass('px-3', 'pb-3', 'text-xs');
     expect(screen.getByRole('link', { name: 'Requests' })).not.toHaveAttribute('aria-current');
+  });
+
+  it('renders a compact logout control beside the wallet pill', () => {
+    const onLogout = vi.fn();
+    render(<RoleNavbar role="GUEST" onLogout={onLogout} />);
+
+    const button = screen.getByRole('button', { name: 'Log out' });
+    expect(button).toHaveClass('h-6');
+    expect(screen.getByTestId('workspace-navbar-top')).toContainElement(button);
+    fireEvent.click(button);
+    expect(onLogout).toHaveBeenCalledOnce();
   });
 });

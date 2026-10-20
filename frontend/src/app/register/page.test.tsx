@@ -3,13 +3,26 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import RegisterPage from './page';
 
-const { registerWithEmail, register, push } = vi.hoisted(() => ({ registerWithEmail: vi.fn(), register: vi.fn(), push: vi.fn() }));
+const { registerWithEmail, register, push, replace, auth } = vi.hoisted(() => ({
+  registerWithEmail: vi.fn(),
+  register: vi.fn(),
+  push: vi.fn(),
+  replace: vi.fn(),
+  auth: { state: 'signed_out' as string, profile: null as { role: string } | null },
+}));
 vi.mock('@/lib/firebase', () => ({ registerWithEmail }));
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }));
-vi.mock('@/providers/AuthProvider', () => ({ useAuth: () => ({ state: 'signed_out', register }) }));
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push, replace }) }));
+vi.mock('@/providers/AuthProvider', () => ({ useAuth: () => ({ ...auth, register }) }));
 
 describe('register page', () => {
-  beforeEach(() => { vi.clearAllMocks(); registerWithEmail.mockResolvedValue({}); register.mockResolvedValue(undefined); });
+  beforeEach(() => { vi.clearAllMocks(); auth.state = 'signed_out'; auth.profile = null; registerWithEmail.mockResolvedValue({}); register.mockResolvedValue(undefined); });
+
+  it('redirects an already authenticated user to their role page', async () => {
+    auth.state = 'authenticated';
+    auth.profile = { role: 'AGENT' };
+    render(<RegisterPage />);
+    await waitFor(() => expect(replace).toHaveBeenCalledWith('/agent'));
+  });
 
   it('requires and submits a privileged registration code', async () => {
     render(<RegisterPage />);

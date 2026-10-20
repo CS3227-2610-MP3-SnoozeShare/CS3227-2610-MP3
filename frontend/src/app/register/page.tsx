@@ -4,6 +4,7 @@ import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { AuthHeader } from '@/components/auth/AuthHeader';
+import { useRedirectAuthenticated } from '@/components/auth/useRedirectAuthenticated';
 import { SelectField } from '@/components/ui/select';
 import { registerWithEmail } from '@/lib/firebase';
 import { useAuth } from '@/providers/AuthProvider';
@@ -11,6 +12,7 @@ import { useAuth } from '@/providers/AuthProvider';
 export default function RegisterPage() {
   const router = useRouter();
   const { state, register } = useAuth();
+  useRedirectAuthenticated();
   const [email, setEmail] = useState(''); const [password, setPassword] = useState('');
   const [role, setRole] = useState<'GUEST' | 'HOST' | 'AGENT'>('GUEST'); const [code, setCode] = useState(''); const [name, setName] = useState(''); const [error, setError] = useState('');
   async function submit(event: FormEvent) {

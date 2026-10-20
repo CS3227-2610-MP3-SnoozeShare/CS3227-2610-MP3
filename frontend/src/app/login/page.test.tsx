@@ -2,17 +2,25 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import LoginPage from './page';
 
-const { signIn, push, auth } = vi.hoisted(() => ({
+const { signIn, push, replace, auth } = vi.hoisted(() => ({
   signIn: vi.fn(),
   push: vi.fn(),
+  replace: vi.fn(),
   auth: { state: 'signed_out' as string, profile: null as { role: string } | null },
 }));
 vi.mock('@/lib/firebase', () => ({ signIn }));
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }));
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push, replace }) }));
 vi.mock('@/providers/AuthProvider', () => ({ useAuth: () => auth }));
 
 describe('login page', () => {
   beforeEach(() => { vi.clearAllMocks(); auth.state = 'signed_out'; auth.profile = null; signIn.mockResolvedValue({}); });
+
+  it('redirects an already authenticated user to their role page', async () => {
+    auth.state = 'authenticated';
+    auth.profile = { role: 'HOST' };
+    render(<LoginPage />);
+    await waitFor(() => expect(replace).toHaveBeenCalledWith('/host'));
+  });
 
   it('waits for the existing profile before navigating to its role area', async () => {
     const view = render(<LoginPage />);

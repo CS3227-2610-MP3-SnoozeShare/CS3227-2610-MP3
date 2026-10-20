@@ -27,6 +27,9 @@ export default function LoginPage() {
       setSignInPending(false);
     }
   }, [profile, returnTo, router, signInPending, state]);
+  useEffect(() => {
+    if (!signInPending && state === 'authenticated' && profile) router.replace(`/${profile.role.toLowerCase()}`);
+  }, [profile, router, signInPending, state]);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
