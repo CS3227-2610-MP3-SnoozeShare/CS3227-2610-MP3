@@ -29,7 +29,7 @@ plan".
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-20 | Claude Sonnet 5.5 | W-INFRA | Active | T1-T6 done; T7 steps 1-3 done | T7 step 4: ask operator before pushing the branch | 2026-10-20 |
+| S1 | 2026-10-20 | Claude Sonnet 5.5 | W-INFRA | Active | T1-T6 done; T7 steps 1-5 done | T7 step 6 (needs operator go-ahead), then T8 | 2026-10-20 |
 
 **Remaining**
 
@@ -46,7 +46,7 @@ plan".
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-INFRA (proposed name) | Mono-repo skeletons, local Postgres, CI, deploy setup | Building | [spec](../../superpowers/specs/2026-10-20-w-infra-design.md) | [plan](../../superpowers/plans/2026-10-20-w-infra.md) | Task 7/8: CI edited; push/PR checks awaiting operator go-ahead | — |
+| W-INFRA (proposed name) | Mono-repo skeletons, local Postgres, CI, deploy setup | Building | [spec](../../superpowers/specs/2026-10-20-w-infra-design.md) | [plan](../../superpowers/plans/2026-10-20-w-infra.md) | Task 7/8: CI green on PR; step 6 artifact check pending | — |
 
 ---
 
@@ -228,3 +228,4 @@ Observations for the Handover todo (what to revise):
 | 2026-10-20 | Exact-origin CORS: `CorsProperties` (validated), `CorsConfig` for application endpoints, actuator CORS keys, test-only `/test/cors`; prod fail-fast on the origin (E17); 30 backend tests green (see D~2) | W-INFRA | this commit |
 | 2026-10-20 | Added `backend/Dockerfile` (multi-stage, Gradle 9.7.1/JDK 25, Temurin 25 JRE jammy), `railway.json` (health check `/actuator/health`), `.dockerignore`, root `.gitattributes` (LF `gradlew`); container verified UP | W-INFRA | this commit |
 | 2026-10-20 | `ci.yml`: `checkstyle` and `build` now cover desktop, backend (Testcontainers on the runner's Docker) and frontend (Node from `.nvmrc`); step names prefixed `desktop:`/`backend:`/`frontend:`; reports from both Gradle projects uploaded; YAML parses | W-INFRA | this commit |
+| 2026-10-20 | Pushed W-INFRA and opened draft PR #9: `checkstyle` (1m45s) and `build` (3m, N3 well under 15 min) green for desktop, backend and frontend; run https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/actions/runs/39381234684 | W-INFRA | — |
