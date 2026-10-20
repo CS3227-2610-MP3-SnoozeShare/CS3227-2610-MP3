@@ -90,24 +90,25 @@ them.
 
 ## The Branch State
 
-`PROJECT_STATE.md` describes `main`. Everything still in flight lives in a branch state,
+`PROJECT_STATE.md` describes `INT`. Everything still in flight lives in a branch state,
 `docs/project-state/branch-states/<slug>.md`, copied from
 [branch-state-template.md](branch-state-template.md). It exists so that branches never edit
 `PROJECT_STATE.md` — no shared counters, no shared insertion points, no ID collisions — and so
 that an interrupted session on the branch can be resumed by anyone.
 
 **It mirrors the project-state sections but holds only what the branch adds or changes.** A
-section with nothing to say is omitted. It is not a second copy of the project; if a reader needs
+section with nothing to change keeps its heading and says `No change.` (Architecture, Conventions and Known Gaps add a one-line reason), so the fold can tell "nothing to fold" from "forgot to write it". It is not a second copy of the project; if a reader needs
 the whole picture they read `PROJECT_STATE.md` and then the branch state.
 
 | Branch-state section | Holds | At fold it becomes |
 |---|---|---|
 | Header | Branch, `Base`, owner, `Status`, `Approved`, `Last updated` | Archive only |
-| 1. Scope | What the branch is for | A Workstream row |
+| Scope (header paragraph) | What the branch is for | A Workstream row |
+| 1. Orientation | Path-table rows added or changed | § Orientation |
 | 2. How to Resume | Setup, the session table, Remaining work | Sessions discarded; **Handover** items go to § How to Resume → Upcoming |
 | 3. Workstreams | Rows created or changed | § Workstreams |
 | 4. Architecture | Per area: proposed **Now**, Paths, decisions | § Architecture |
-| 5–9. Conventions … Deviations | Entries added, changed or removed | The matching section |
+| 5. Conventions, 6. Known Gaps, 7. Needs a Human, 8. Decisions, 9. Deviations | Entries added, changed or removed, or `No change.` | The matching section |
 | 10. Changes | Ledger lines | `done-ledger.md` |
 
 ### How to Resume — the part that matters most on a branch
@@ -144,7 +145,7 @@ at approval has to be finished or removed.
 
 ### How to Resume in `PROJECT_STATE.md`
 
-On `main` the section holds the commands that reach a working state, plus an **Upcoming** table:
+On `INT` the section holds the commands that reach a working state, plus an **Upcoming** table:
 planned workstreams and the todos handed over at each sync, in priority order. **The first row is
 the next action.** It does not track sessions, branches or other people's work — a branch's own
 state does that.
@@ -168,7 +169,7 @@ Citing an existing permanent ID is always fine. Session IDs (`S1`) are local and
 A **pure addition** (a new decision, deviation, workstream, ledger line) can never conflict with
 another branch. An **edit to something already in `PROJECT_STATE.md`** (an area's *Now*, a
 Workstream row, a Convention, a Known Gap) can: another branch may have changed the same entry.
-Name the entry you replace, keep `Base` current, and expect sync to stop and ask if `main` moved.
+Name the entry you replace, keep `Base` current, and expect sync to stop and ask if `INT` moved.
 
 ## Root Document vs Linked Document
 

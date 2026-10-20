@@ -1,6 +1,6 @@
 # First Write
 
-`docs/DeveloperGuide.md` does not exist and a spec has been approved **and is on `main`** — the guide
+`docs/DeveloperGuide.md` does not exist and a spec has been approved **and is on `INT`** — the guide
 is never written on a branch, so a spec approved on a branch waits until it has merged. The first
 write is due under every checkpoint setting. Seed the guide with what the spec settles — nothing about code.
 

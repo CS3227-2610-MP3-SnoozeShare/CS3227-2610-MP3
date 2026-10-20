@@ -1,13 +1,13 @@
 # Project State — <Project Name>
 
 **Living document — the source of truth for this project.** Read it in full before doing
-anything, then run `git log --oneline -20` to confirm it still matches reality. On `main` it
+anything, then run `git log --oneline -20` to confirm it still matches reality. On `INT` it
 changes only through `sync-project-state` (or an owner hotfix); on a branch, read it and write
 the branch state instead.
 
 - **Phase:** <e.g. MVP build / hardening / shipped>
 - **Stack:** <e.g. Next.js, Prisma, Postgres (Neon), Auth.js, Vercel>
-- **Branch:** `main` — this file describes `main` only; branches record their changes in `docs/project-state/branch-states/` and `sync-project-state` folds them in
+- **Branch:** `INT` — this file describes `INT` only; branches record their changes in `docs/project-state/branch-states/` and `sync-project-state` folds them in
 - **Method:** <e.g. subagent-driven development; implementer then spec review then quality review>
 - **Last updated:** YYYY-MM-DD by <model / agent> — <what changed, five words>
 - **Last verified against repo:** YYYY-MM-DD

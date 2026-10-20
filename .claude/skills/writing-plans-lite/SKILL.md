@@ -17,7 +17,7 @@ A plan turns an **approved spec** into **tasks an agent can execute and tick off
 
 ## Commands
 
-`<BUILD>` and `<TEST>` below mean the project's build and test commands from `PROJECT_STATE.md` § How to Resume (today: `.\gradlew build` and `.\gradlew test`); write the real commands into the plan, and re-read that section because the web pivot changes it.
+`<BUILD>` and `<TEST>` below mean the project's build and test commands from `PROJECT_STATE.md` § How to Resume. When the project has several components, each with its own command (for example `cd backend; .\gradlew build`), a task's steps name the command for the component it touches, and `<BUILD>` in the Verification gates and the Close-out means **every** component command, in the order that section lists them. Write the real commands into the plan and re-read the section each time.
 
 ## Rules
 
@@ -27,6 +27,7 @@ A plan turns an **approved spec** into **tasks an agent can execute and tick off
 4. **Checklist is the work.** Steps are small, ordered, verifiable, and each ends in an observable result. They default to TDD: failing test -> implement -> green -> commit. Name the tests and what each asserts.
 5. **No placeholders.** No "TBD", "add error handling", "handle edge cases", "similar to Task N". Edge cases come from `edge-cases.md`: list the rows each task must cover by scenario name.
 6. **Small, green commits** (`AGENTS.md` § 6): one commit per task (or per logical slice), builds with `<BUILD>`, handful of files. If a task touches more than ~15 files, split it and tell the operator the spec's order needs the same split.
+7. **Gate human actions.** Start any step that leaves the machine or needs the operator's yes with `GATE:` (push, open a PR, deploy, publish, send a message, rotate a credential, anything irreversible). `lint.mjs` warns when a step mentions one without it. A task made only of steps a human performs outside the repo is `Post-merge`.
 
 ## Layout
 
@@ -46,7 +47,9 @@ Start from `templates/plan.md` in this skill folder.
 **Risk tier:** <from spec> - <what that means for verification below>
 
 ## Task order
-<copy the spec's dependency table; add a "Status" column: Not started / In progress / Done / Blocked>
+<copy the spec's dependency table; add a "Status" column: Not started / In progress / Done / Blocked / Post-merge>
+
+`Post-merge` marks a task a human does after the merge, such as a live deployment, a production data change, DNS, a secret rotation or the release PR. It has no code to review, so the executor skips it; `lint.mjs --closeout` accepts it as open, and the close-out makes each one a **Handover** item in the branch state.
 
 ## Traceability
 | Requirement | Task(s) | Verified by (test class or manual check) |

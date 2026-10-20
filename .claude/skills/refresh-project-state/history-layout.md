@@ -27,7 +27,7 @@ Insert as the first lines of the moved `PROJECT_STATE.md` and `done-ledger.md`:
 ```markdown
 # Refresh — iteration <n> closed
 
-- **Closed:** YYYY-MM-DD by <model> on <main | refresh/<n>> · last commit `<sha>`
+- **Closed:** YYYY-MM-DD by <model> on <INT | refresh/<n>> · last commit `<sha>`
 - **Approved by:** <owner> YYYY-MM-DD (disposition table)
 - **Developer guide at closure:** last full update YYYY-MM-DD, commit `<sha>`
 - **ID high-water:** W<n>, C<n>, D<n>, Q<n>, S<n>

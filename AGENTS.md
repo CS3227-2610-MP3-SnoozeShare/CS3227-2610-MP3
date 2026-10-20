@@ -8,9 +8,10 @@ The operator may switch between models, agents, and context windows. None of tha
 
 **Branches.** Work flows feature branch → `development` → `main`. `development` is the integration (default)
 branch: it accepts direct pushes and pull requests. `main` is the release branch and only changes by pull
-request from `development`. `checkstyle` and `build` are required status checks on both. Wherever the
-skills in `.claude/skills/` say `main`, read **`development`**: that is the branch a branch state is
-merged into and folded on, and where `PROJECT_STATE.md` and the guide are written.
+request from `development`. `checkstyle` and `build` are required status checks on both. The skills
+in `.claude/skills/` call the integration branch `INT` (see `maintaining-project-state` § Branch Model);
+in this project `INT` is **`development`**: the branch a branch state is merged into and folded on,
+and where `PROJECT_STATE.md` and the guide are written.
 
 | | `PROJECT_STATE.md` | Branch state |
 |---|---|---|
@@ -174,7 +175,7 @@ integration commits touched 55–96 files and needed a follow-up repair. So:
 
 - **One logical change per commit** — a fix, a refactor, a doc update, a test. Do not mix a
   behaviour change with unrelated formatting or cleanup.
-- **Each commit builds and passes tests** (`.\gradlew build`). Never commit a known-red tree to
+- **Each commit builds and passes tests** (the build command of each component you changed, from `PROJECT_STATE.md` § How to Resume). Never commit a known-red tree to
   "fix it in the next commit".
 - **Aim for a handful of files per commit.** If a change touches more than about 15 files,
   stop and split it (extract the refactor first, then the behaviour change), unless it is a

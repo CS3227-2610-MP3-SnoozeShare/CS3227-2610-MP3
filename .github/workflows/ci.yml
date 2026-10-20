@@ -4,8 +4,14 @@ name: CI
 # JUnit and TestFX suites, runs on every pull request and on every push to development or main, so
 # each merged result is checked as well as the branch that produced it. `checkstyle` and `build` are
 # the required status checks on both branches, and each covers desktop, backend and frontend.
+# A push that changes only the state files or documentation cannot break a build, so it does not run CI
+# (`paths-ignore` is on push only: a pull request always runs, because its required checks must report).
 on:
   push:
+    paths-ignore:
+      - 'PROJECT_STATE.md'
+      - 'AGENTS.md'
+      - 'docs/**'
   pull_request:
 
 concurrency:
@@ -14,9 +20,34 @@ concurrency:
 
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
+  # A push to a branch that already has an open pull request would repeat the checks the pull_request
+  # event runs for the same commit, so the push run stops here. Pushes to development and main always
+  # run (they check the merged result).
+  dedupe:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      has_pr: ${{ steps.pr.outputs.has_pr }}
+    steps:
+      - id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          if [ "$BRANCH" = "development" ] || [ "$BRANCH" = "main" ]; then
+            echo "has_pr=0" >> "$GITHUB_OUTPUT"
+          else
+            count=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --state open --json number --jq length)
+            echo "has_pr=$count" >> "$GITHUB_OUTPUT"
+          fi
+
   checkstyle:
+    needs: dedupe
+    if: ${{ !cancelled() && (github.event_name != 'push' || needs.dedupe.outputs.has_pr == '0') }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -54,7 +85,8 @@ jobs:
   build:
     # Pull requests, and pushes to development or main; a plain feature-branch push is covered by
     # checkstyle until its pull request opens.
-    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/development'
+    needs: dedupe
+    if: ${{ !cancelled() && (github.event_name == 'pull_request' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/development') }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
