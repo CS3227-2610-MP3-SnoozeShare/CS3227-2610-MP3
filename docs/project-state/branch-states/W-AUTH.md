@@ -5,7 +5,7 @@
 - **Branch:** W-AUTH (from `development` at `a785e75`)
 - **Base:** `a785e75`
 - **Owner:** project owner
-- **Status:** In review
+- **Status:** Building
 - **Approved:** —
 - **Last updated:** 2026-10-21 by Codex — email-verification policy reversed; verification complete
 
@@ -32,6 +32,7 @@ cd ../backend && ./gradlew test
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
+| Codex | 2026-10-21 | — | W-AUTH | Planned | Registration-code pre-validation | T1 step 1: add failing backend contract and limiter tests | 2026-10-21 |
 
 **Remaining**
 
@@ -42,7 +43,7 @@ cd ../backend && ./gradlew test
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AUTH | Firebase authentication and role authorization | In review | [spec](docs/superpowers/specs/2026-10-20-w-auth-design.md) | [plan](docs/superpowers/plans/2026-10-20-w-auth.md) | Email verification no longer gates auth; backend/frontend gates pass | — |
+| W-AUTH | Firebase authentication and role authorization | Planned | [spec](docs/superpowers/specs/2026-10-20-w-auth-design.md); [registration pre-validation spec](docs/superpowers/specs/2026-10-21-w-auth-registration-prevalidation-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-auth-registration-prevalidation.md) | T1 step 1 in flight: public pre-validation contract and atomic limiter | — |
 
 ## 4. Architecture
 
@@ -94,6 +95,7 @@ Firebase project, Email/Password provider, and local Admin SDK credentials are c
 | C~6 | W-AUTH may add the minimal V002 migration for auth users and wallets; W-DOMAIN owns later domain migrations and must preserve the auth contract | Project owner approved the exception so W-AUTH can be independently implemented and tested | Project owner, 2026-10-20 |
 | C~7 | W-AUTH supersedes the older architecture flow that sends `firebaseUid` from the client and relies on Next middleware auth; the W-AUTH API derives UID from the verified bearer token and uses client-side guards | The older design predates the concrete Firebase browser flow; changing it avoids trusting client identity and avoids an unspecified session-cookie system | W-AUTH spec, 2026-10-20 |
 | C~8 | Implement the approved role navbar and empty landing shells directly without a standalone spec or plan | Project owner explicitly approved the inline implementation to keep this UI-only change moving; feature documents are intentionally skipped | Project owner, 2026-10-21 |
+| C~9 | Validate HOST/AGENT registration codes before the website calls Firebase signup, while retaining backend final validation and rate limiting | Project owner observed that an invalid code currently creates a Firebase identity; the website flow must avoid that side effect, while direct or modified clients remain protected by the backend check | Project owner, 2026-10-21 |
 
 ## 9. Deviations
 
@@ -129,3 +131,6 @@ Firebase project, Email/Password provider, and local Admin SDK credentials are c
 | 2026-10-21 | Added compact outlined logout control wired to Firebase sign-out and redirected authenticated users away from login, registration, and password-reset pages; 41 frontend tests, lint and production build pass | W-AUTH | logout and auth-page redirects |
 | 2026-10-21 | Restyled the logout control as compact text-only action without outline or background; 41 frontend tests, lint and production build pass | W-AUTH | logout visual refinement |
 | 2026-10-21 | Increased spacing between the wallet pill and logout action and slightly increased navbar typography while preserving compact row height; 41 frontend tests, lint and production build pass | W-AUTH | navbar typography spacing |
+| 2026-10-21 | Started registration-code pre-validation design so invalid Host/Agent codes do not create Firebase accounts in the official website flow; backend final validation remains authoritative | W-AUTH | C~9 |
+| 2026-10-21 | Drafted and linted the high-risk registration pre-validation spec; read-only implementer, tester, attacker and maintainer reviews completed and findings incorporated | W-AUTH | [pre-validation spec](../../superpowers/specs/2026-10-21-w-auth-registration-prevalidation-design.md) |
+| 2026-10-21 | Wrote and linted the implementation plan; read-only plan review completed and findings incorporated | W-AUTH | [pre-validation plan](../../superpowers/plans/2026-10-21-w-auth-registration-prevalidation.md) |
