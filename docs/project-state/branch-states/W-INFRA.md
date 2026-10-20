@@ -29,7 +29,7 @@ plan".
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-20 | Claude Sonnet 5.5 | W-INFRA | Active | Wave 1 in flight: T1 done, T2 and T5 next | T2: create `docker-compose.yml` (plan T2 step 1) | 2026-10-20 |
+| S1 | 2026-10-20 | Claude Sonnet 5.5 | W-INFRA | Active | Wave 1 in flight: T1, T2 done, T5 next | T5 step 1: scaffold `frontend/` (plan T5) | 2026-10-20 |
 
 **Remaining**
 
@@ -46,7 +46,7 @@ plan".
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-INFRA (proposed name) | Mono-repo skeletons, local Postgres, CI, deploy setup | Building | [spec](../../superpowers/specs/2026-10-20-w-infra-design.md) | [plan](../../superpowers/plans/2026-10-20-w-infra.md) | Wave 1: T1 done; T2, T5 next | — |
+| W-INFRA (proposed name) | Mono-repo skeletons, local Postgres, CI, deploy setup | Building | [spec](../../superpowers/specs/2026-10-20-w-infra-design.md) | [plan](../../superpowers/plans/2026-10-20-w-infra.md) | Wave 1: T1, T2 done; T5 next | — |
 
 ---
 
@@ -213,4 +213,5 @@ Observations for the Handover todo (what to revise):
 | 2026-10-20 | Created the W-INFRA branch and its branch state | W-INFRA | `8f80e0a` |
 | 2026-10-20 | W-INFRA design spec (index + 7 component files) written, linted, reviewed by four lenses | W-INFRA | `73ab826` |
 | 2026-10-20 | Moved the desktop app under `desktop/` (renames at 100% except `build.gradle`: Checkstyle now reads root `config/checkstyle`); `.gitignore` and `ci.yml` adjusted; desktop build green with per-class test counts equal to the baseline; no desktop test reads `docs/` or `config/` | W-INFRA | this commit |
+| 2026-10-20 | Added `docker-compose.yml` (Postgres 17, healthcheck, `POSTGRES_PORT`); verified healthy, `select 1`, port override | W-INFRA | this commit |
 | 2026-10-20 | Spec approved by Xiao-Congchen; W-INFRA implementation plan (T1-T9 + close-out) written, linted, reviewed; spec amended (C~4) | W-INFRA | — |
