@@ -7,9 +7,9 @@ after the branch merges.
 - **Branch:** W-INFRA (from `development` at `e64e16c`)
 - **Base:** `e64e16c`
 - **Owner:** Xiao-Congchen
-- **Status:** In review
-- **Approved:** —
-- **Last updated:** 2026-10-20 by Claude Sonnet 5.5 — T1-T8 done, CI green, ready for owner review
+- **Status:** Approved
+- **Approved:** Xiao-Congchen on 2026-10-20
+- **Last updated:** 2026-10-20 by Claude Sonnet 5.5 — T1-T8 done, CI green, reviewed
 
 ---
 
@@ -34,7 +34,7 @@ plan".
 
 - [x] Operator reviews the plan
 - [x] Before T1: record per-class desktop test counts from `desktop/build/test-results` (F1 baseline) here
-- [ ] Execute T1-T8 with `executing-plans-lite`
+- [x] Execute T1-T8 with `executing-plans-lite`
 - [ ] **Handover:** T9, the live dev deployment, runs on `development` after the merge (needs a human; see SD10)
 - [ ] **Handover:** at fold, update PROJECT_STATE § How to Resume commands, § Orientation paths, remove Q5, and note C~2 against C77 and Webapp design § 6.2
 - [ ] **Handover (PROJECT_STATE fold):** § How to Resume commands now run inside `desktop/`, `backend/`, `frontend/`; § Orientation paths; remove Q5; `AGENTS.md` § 6 `.\gradlew build` wording now `desktop/`; refine C77 per C~2; no Known Gaps added.
