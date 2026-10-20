@@ -29,7 +29,7 @@ plan".
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-20 | Claude Sonnet 5.5 | W-INFRA | Active | T1-T5 done | T6 step 1: backend container (plan T6) | 2026-10-20 |
+| S1 | 2026-10-20 | Claude Sonnet 5.5 | W-INFRA | Active | T1-T5 done; T6 in progress | T6 step 4: Docker Desktop was down; rerun container smoke test (Dockerfile, railway.json, .gitattributes uncommitted) | 2026-10-20 |
 
 **Remaining**
 
