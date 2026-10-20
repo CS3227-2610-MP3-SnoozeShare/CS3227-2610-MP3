@@ -3,6 +3,7 @@
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { AuthHeader } from '@/components/auth/AuthHeader';
 import { SelectField } from '@/components/ui/select';
 import { registerWithEmail } from '@/lib/firebase';
 import { useAuth } from '@/providers/AuthProvider';
@@ -16,7 +17,7 @@ export default function RegisterPage() {
     event.preventDefault(); setError('');
     try { await registerWithEmail(email, password); await register({ role, registrationCode: code || undefined, displayName: name || undefined }); router.push(`/${role.toLowerCase()}`); } catch (caught) { setError(isDuplicateAccountError(caught) ? 'An account with this email already exists. Sign in instead.' : 'Registration could not be completed. Check your details and try again.'); }
   }
-  return <main className="flex min-h-screen items-center justify-center p-6"><form className="ss-card w-full max-w-md space-y-4 p-8" onSubmit={submit}><h1 className="text-2xl font-semibold">Create your account</h1>
+  return <main className="flex min-h-screen items-center justify-center p-6"><form className="ss-card w-full max-w-md space-y-4 p-8" onSubmit={submit}><AuthHeader title="Create your account" />
     <label className="block">Email<input className="mt-1 w-full rounded-md border bg-background p-2" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></label>
     <label className="block">Password<input className="mt-1 w-full rounded-md border bg-background p-2" type="password" minLength={6} required value={password} onChange={(e) => setPassword(e.target.value)} /></label>
     <label className="block">Display name<input className="mt-1 w-full rounded-md border bg-background p-2" value={name} onChange={(e) => setName(e.target.value)} /></label>
