@@ -2,6 +2,7 @@ package com.snoozeshare;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -101,12 +102,20 @@ class AuthContractTest extends PostgresIntegrationTest {
                 .content("{\"role\":\"HOST\",\"registrationCode\":\"wrong\"}"))
             .andExpect(status().isForbidden())
             .andExpect(jsonPath("$.code").value("INVALID_REGISTRATION_CODE"))
-            .andExpect(jsonPath("$.message").value("Request could not be completed"));
+            .andExpect(jsonPath("$.message").value("Request could not be completed"))
+            .andExpect(header().string("Cache-Control", "no-store"));
 
         mockMvc.perform(post("/api/auth/registration-code/validate")
                 .contentType("application/json")
                 .content("{\"role\":\"GUEST\",\"registrationCode\":\"wrong\"}"))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+
+        mockMvc.perform(post("/api/auth/registration-code/validate")
+                .contentType("text/plain")
+                .content("not-json"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+            .andExpect(header().string("Cache-Control", "no-store"));
     }
 }

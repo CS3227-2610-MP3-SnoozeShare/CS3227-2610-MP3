@@ -32,7 +32,7 @@ cd ../backend && ./gradlew test
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| Codex | 2026-10-21 | — | W-AUTH | Planned | Registration-code pre-validation | T3 step 1: add cross-layer bypass, race, boundary, and security regression tests | 2026-10-21 |
+| Codex | 2026-10-21 | — | W-AUTH | Planned | Registration-code pre-validation | T4 step 1: run full backend/frontend builds and inspect the diff | 2026-10-21 |
 
 **Remaining**
 
@@ -43,7 +43,7 @@ cd ../backend && ./gradlew test
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AUTH | Firebase authentication and role authorization | Planned | [spec](docs/superpowers/specs/2026-10-20-w-auth-design.md); [registration pre-validation spec](docs/superpowers/specs/2026-10-21-w-auth-registration-prevalidation-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-auth-registration-prevalidation.md) | T3 step 1 in flight: cross-layer bypass, race, boundary, and security regression tests | — |
+| W-AUTH | Firebase authentication and role authorization | Planned | [spec](docs/superpowers/specs/2026-10-20-w-auth-design.md); [registration pre-validation spec](docs/superpowers/specs/2026-10-21-w-auth-registration-prevalidation-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-auth-registration-prevalidation.md) | T4 step 1 in flight: full backend/frontend builds and diff verification | — |
 
 ## 4. Architecture
 
@@ -136,3 +136,4 @@ Firebase project, Email/Password provider, and local Admin SDK credentials are c
 | 2026-10-21 | Wrote and linted the implementation plan; read-only plan review completed and findings incorporated | W-AUTH | [pre-validation plan](../../superpowers/plans/2026-10-21-w-auth-registration-prevalidation.md) |
 | 2026-10-21 | Added public registration-code pre-validation endpoint, strict request contract, direct-peer IP limiter, security permit, and no-store responses; backend build/checkstyle/tests pass | W-AUTH | T1 |
 | 2026-10-21 | Added unauthenticated frontend preflight, stable error mapping, signup ordering, duplicate-submit lock, and existing-session retry behavior; 46 frontend tests and lint pass | W-AUTH | T2 |
+| 2026-10-21 | Added final-check bypass, stale-code, concurrent limiter, no-store/media, and unavailable-backend regression coverage; backend checkstyle/tests and 47 frontend tests/lint pass | W-AUTH | T3 |

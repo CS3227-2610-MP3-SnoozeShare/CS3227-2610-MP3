@@ -73,4 +73,12 @@ describe('validateRegistrationCode', () => {
       code: 'INVALID_REGISTRATION_CODE', status: 403, requestId: 'id',
     });
   });
+
+  it('maps unavailable validation requests', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('offline')));
+    const { validateRegistrationCode } = await import('./api');
+    await expect(validateRegistrationCode('AGENT', 'agent-code')).rejects.toMatchObject({
+      code: 'API_UNAVAILABLE', status: 0,
+    });
+  });
 });

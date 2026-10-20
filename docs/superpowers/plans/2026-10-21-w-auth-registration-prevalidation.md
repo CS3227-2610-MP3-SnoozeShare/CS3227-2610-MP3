@@ -18,7 +18,7 @@
 |---|---|---|---|---|
 | T1 | — | — | 1 | Done |
 | T2 | T1 | — | 2 | Done |
-| T3 | T1, T2 | — | 3 | Not started |
+| T3 | T1, T2 | — | 3 | Done |
 | T4 | T3 | — | 4 | Not started |
 | T5 | T4 | — | 5 | Not started |
 
@@ -120,12 +120,12 @@
 
 **Checklist**
 
-- [ ] 1. Add failing tests for E4–E11 and the F/N assertions not already covered by T1/T2: final-check bypass, stale-code rejection using two service instances with different configured codes, concurrent limiter boundaries, expiry/reset, no-store/error contracts, CORS/OPTIONS, and protected neighboring routes.
-- [ ] 2. Make no production test-bypass changes; only add deterministic test clocks or verifier/controller fixtures if required by the named assertions.
-- [ ] 3. Run focused backend and frontend suites, then the complete component suites.
-- [ ] 4. Run `cd backend && ./gradlew checkstyleMain` and `cd frontend && npm run lint`.
-- [ ] 5. Update branch-state Progress and Changes for T3.
-- [ ] 6. Commit: `test: cover registration pre-validation boundaries`.
+- [x] 1. Add failing tests for E4–E11 and the F/N assertions not already covered by T1/T2: final-check bypass, stale-code rejection using two service instances with different configured codes, concurrent limiter boundaries, expiry/reset, no-store/error contracts, CORS/OPTIONS, and protected neighboring routes.
+- [x] 2. Make no production test-bypass changes; only add deterministic test clocks or verifier/controller fixtures if required by the named assertions.
+- [x] 3. Run focused backend and frontend suites, then the complete component suites.
+- [x] 4. Run `cd backend && ./gradlew checkstyleMain` and `cd frontend && npm run lint`.
+- [x] 5. Update branch-state Progress and Changes for T3.
+- [x] 6. Commit: `test: cover registration pre-validation boundaries`.
 
 ### T4: Full verification and state evidence
 

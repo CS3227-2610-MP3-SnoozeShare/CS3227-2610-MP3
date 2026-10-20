@@ -106,6 +106,25 @@ class AuthRegistrationIntegrationTest extends PostgresIntegrationTest {
     }
 
     @Test
+    void publicPreflightCannotBypassFinalAuthenticatedCodeCheck() throws Exception {
+        mockMvc.perform(post("/api/auth/registration-code/validate")
+                .contentType("application/json")
+                .content("{\"role\":\"HOST\",\"registrationCode\":\"host-secret\"}"))
+            .andExpect(status().isNoContent());
+
+        mockMvc.perform(post("/api/auth/register")
+                .header("Authorization", "Bearer " + token)
+                .contentType("application/json")
+                .content("{\"role\":\"HOST\",\"registrationCode\":\"wrong\"}"))
+            .andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.code").value("INVALID_REGISTRATION_CODE"));
+
+        Integer profiles = jdbc.queryForObject(
+            "select count(*) from users where firebase_uid = ?", Integer.class, token);
+        org.assertj.core.api.Assertions.assertThat(profiles).isZero();
+    }
+
+    @Test
     void agentRegistrationDoesNotCreateWalletAndUnknownFieldsFail() throws Exception {
         mockMvc.perform(post("/api/auth/register")
                 .header("Authorization", "Bearer " + token)
