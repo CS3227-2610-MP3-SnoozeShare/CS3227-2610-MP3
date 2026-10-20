@@ -7,7 +7,7 @@
 - **Owner:** project owner
 - **Status:** In review
 - **Approved:** —
-- **Last updated:** 2026-10-20 by Codex — second review findings incorporated
+- **Last updated:** 2026-10-21 by Codex — T1 schema and repository implementation
 
 ---
 
@@ -32,18 +32,18 @@ cd ../backend && ./gradlew test
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-20 | Codex (lead) | W-AUTH | Active | Plan in review | Project owner reviews the implementation plan; after approval, execute T1 in the plan | 2026-10-20 |
+| S1 | 2026-10-21 | Codex (lead) | W-AUTH | Active | T2 step 1: verifier tests | Establish failing Firebase verifier/configuration tests; preserve the pre-existing Firebase dependency edits | 2026-10-21 |
 
 **Remaining**
 
-- [ ] Project owner approves the W-AUTH implementation plan.
+- [ ] T2: implement Firebase Admin configuration and token-verifier boundary.
 - [ ] **Handover:** After spec approval, write the implementation plan and execute it with Firebase emulator/test doubles for automated tests.
 
 ## 3. Workstreams
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AUTH | Firebase authentication and role authorization | Planned | [spec](docs/superpowers/specs/2026-10-20-w-auth-design.md) | [plan](docs/superpowers/plans/2026-10-20-w-auth.md) | Plan complete; awaiting project owner approval | — |
+| W-AUTH | Firebase authentication and role authorization | Building | [spec](docs/superpowers/specs/2026-10-20-w-auth-design.md) | [plan](docs/superpowers/plans/2026-10-20-w-auth.md) | T1 complete; T2 step 1 next: verifier tests | — |
 
 ## 4. Architecture
 
@@ -97,10 +97,14 @@ Firebase project, Email/Password provider, and local Admin SDK credentials are c
 
 ## 9. Deviations
 
-No change.
+| ID | What happened | Consequence | Action |
+|---|---|---|---|
+| D~1 | Branch had pre-existing uncommitted Firebase Admin and Firebase JS dependency edits when execution began | The clean-tree precondition cannot be met without touching operator work | Preserve the files, include them in their planned T2/T6 dependency commits, and verify the final diff before close-out |
+| D~2 | Frontend baseline `npm ci` could not resolve `registry.npmjs.org` in this environment | Frontend baseline tests/build remain unverified until npm network access is available | Retry the frontend gate before W-AUTH close-out; backend and desktop baselines passed |
 
 ## 10. Changes
 
 | Date | What changed | Workstream | Ref |
 |---|---|---|---|
 | 2026-10-20 | Started W-AUTH branch state and recorded Firebase credential setup | W-AUTH | working tree |
+| 2026-10-21 | Added V002 auth users/wallets schema, role model, JDBC repository contracts and implementations; focused migration test, checkstyle and backend build pass | W-AUTH | T1 |
