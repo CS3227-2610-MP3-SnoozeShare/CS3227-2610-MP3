@@ -129,6 +129,7 @@ No open questions.
 | D~16 | 2026-10-22 | T6's event-contract review found `LedgerWriter` publishes `WalletTransactionRecordedEvent` before transaction commit, contrary to the approved API spec | Register wallet event dispatch with transaction synchronization and test that rolled-back operations publish no event |
 | D~17 | 2026-10-22 | A direct frontend `npx tsc --noEmit` check includes existing test files and reports unrelated typing errors in `HostListings.test.tsx` and `api.test.ts` | The required Next.js production build type-checks successfully; errors remain confined to untouched test lines and were not changed or suppressed |
 | D~18 | 2026-10-22 | The fixture calendar's fixed September 15–17 default range would be in the past once the API calendar followed the current month | API mode now defaults to a valid upcoming range in the selected month; fixture presentation defaults remain unchanged |
+| D~19 | 2026-10-22 | T8 touched more than 15 files, exceeding the repository's preferred commit review size | Split the task into listing/forms and calendar/requests commits; both pass the same full frontend verification |
 
 ## 10. Changes
 
@@ -206,5 +207,5 @@ No open questions.
 | 2026-10-22 | Committed T6 wallet API as `ba67ad4`; beginning T7 authenticated frontend API adapter | W-HOST-API | T6/T7 |
 | 2026-10-22 | Added authenticated typed Host API route wrappers, bounded page validation, DTO mapping, shared async resource states, safe errors and token-rejection sign-out; cached wallet summary, lazy statement paging and no-retry ambiguous-failure refresh; 154 frontend tests, lint and production build pass | W-HOST-API | T7 |
 | 2026-10-22 | Committed T7 authenticated Host API adapter as `1d0adda`; starting T8 listing, calendar and request route tests | W-HOST-API | T7/T8 |
-| 2026-10-22 | Connected Host listing collection/detail and create/edit/status mutations to server data; API-mode route/form tests pass while fixture-backed visual tests remain supported | W-HOST-API | T8 in progress |
-| 2026-10-22 | Connected calendar month reads, audited block create/remove, bounded pending/history pages and server-authoritative booking decisions; full frontend suite 166 tests, lint and production build pass | W-HOST-API | T8 |
+| 2026-10-22 | Connected Host listing collection/detail and create/edit/status mutations to server data; API-mode route/form tests pass while fixture-backed visual tests remain supported | W-HOST-API | `2d8190f` |
+| 2026-10-22 | Connected calendar month reads, audited block create/remove, bounded pending/history pages and server-authoritative booking decisions; full frontend suite 166 tests, lint and production build pass | W-HOST-API | `2d8190f`, `80f3322` |

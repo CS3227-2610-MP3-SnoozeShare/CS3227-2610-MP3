@@ -300,7 +300,7 @@
 - [x] 2. Wire list/detail/forms, month calendar, and pending/history screens to T7 provider calls; send no host ID and keep mutation results server-authoritative.
 - [x] 3. Run affected route/component tests; verify existing visual checks and keyboard flows remain intact.
 - [x] 4. Run frontend lint and production build.
-- [ ] 5. Update branch state; commit `feat: connect Host listings calendar and requests`.
+- [x] 5. Update branch state; commit the listing and calendar/request portions separately (`2d8190f`, `80f3322`).
 
 ### T9: Wire messages and wallet screens
 
