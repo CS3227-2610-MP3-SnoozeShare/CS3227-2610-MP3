@@ -7,14 +7,14 @@ the branch state instead.
 
 - **Iteration:** 2 — iteration 1 (W1–W16 and the MP3-0 fixes) is closed
 - **History:** [docs/project-history/](docs/project-history/README.md) — archived iteration 1; not read at session start, open it only to answer "why was X decided?"
-- **Phase:** Iteration 2 is re-platforming SnoozeShare from the JavaFX desktop app to a web app (C76); MP3-0, W-INFRA and W-AUTH are done. `development` is a mono-repo: the desktop app under `desktop/`, a Spring Boot skeleton in `backend/` and a Next.js skeleton in `frontend/`, with a live dev deployment; Firebase authentication and role authorization are in place; no domain feature has been ported yet
-- **Stack (code on `development` today):** `desktop/`: Java 25, JavaFX 25 (javafx.controls, javafx.fxml), Gradle (application + shadow + checkstyle plugins), SQLite (embedded, `org.xerial:sqlite-jdbc`) via plain JDBC, JUnit 5 + TestFX. `backend/`: Spring Boot 3.5.16 (web, actuator, validation, JDBC, security), Firebase Admin 9.11, Java 25, Gradle 9.7.1, Flyway, PostgreSQL 17 (Testcontainers in tests), Checkstyle. `frontend/`: Next.js 15.5 (App Router), React 19, Tailwind 4, Shadcn/ui, Firebase JS SDK 12, Vitest, Node 22, npm. Hosting: Render (backend, free web service), Vercel (frontend), Neon (database)
-- **Stack (target, not yet built):** the ported domain and services, REST controllers per role, and the NUS SOC LLM for AI features, on top of the W-INFRA skeletons. Persistence approach (Spring Data JPA or ported JDBC) is decided in the W-DOMAIN spec (C74). Source: [docs/Webapp-architecture-design.md](docs/Webapp-architecture-design.md)
+- **Phase:** Iteration 2 is re-platforming SnoozeShare from the JavaFX desktop app to a web app (C76); MP3-0, W-INFRA, W-AUTH and W-DOMAIN are done. `development` is a mono-repo: the desktop app under `desktop/`, a Spring Boot backend in `backend/` and a Next.js frontend in `frontend/`, with a live dev deployment; Firebase authentication and role authorization are in place; the domain model, repositories and core services are ported to Spring Data JPA on PostgreSQL
+- **Stack (code on `development` today):** `desktop/`: Java 25, JavaFX 25 (javafx.controls, javafx.fxml), Gradle (application + shadow + checkstyle plugins), SQLite (embedded, `org.xerial:sqlite-jdbc`) via plain JDBC, JUnit 5 + TestFX. `backend/`: Spring Boot 3.5.16 (web, actuator, validation, data-jpa, security), Firebase Admin 9.11, Java 25, Gradle 9.7.1, Flyway, PostgreSQL 17 (Testcontainers in tests), Checkstyle. `frontend/`: Next.js 15.5 (App Router), React 19, Tailwind 4, Shadcn/ui, Firebase JS SDK 12, Vitest, Node 22, npm. Hosting: Render (backend, free web service), Vercel (frontend), Neon (database)
+- **Stack (target, not yet built):** REST controllers per role and the NUS SOC LLM for AI features, on top of the ported domain and services. Source: [docs/Webapp-architecture-design.md](docs/Webapp-architecture-design.md)
 - **Branch:** `development` — this file describes `development` (the integration and default branch); `main` is the release branch and receives it by pull request. Branches record their changes in `docs/project-state/branch-states/` and `sync-project-state` folds them in after the merge into `development`
 - **Method:** TDD-first vertical slices; spec then plan for big changes (`AGENTS.md` § 3); small commits (`AGENTS.md` § 6)
-- **Last updated:** 2026-10-22 by Claude Sonnet 5.5 — owner hotfix: workflow gates (C98, `AGENTS.md` § 8)
-- **Last verified against repo:** 2026-10-21
-- **Developer guide:** `docs/DeveloperGuide.md` documents W1–W16 and the MP3-0 fixes (last full update 2026-10-19) and, since 2026-10-20, the W-INFRA web skeletons and dev deployment (§ 3.2, § 4.17) and, since 2026-10-21, the W-AUTH web authentication (§ 4.18, with the auth parts of § 2, § 3.2, § 5–§ 7). Residual limitations stay in the guide's Known Limitations and § Known Gaps.
+- **Last updated:** 2026-10-22 by Claude Opus 4.6 — folded W-DOMAIN
+- **Last verified against repo:** 2026-10-22
+- **Developer guide:** `docs/DeveloperGuide.md` documents W1–W16 and the MP3-0 fixes (last full update 2026-10-19) and, since 2026-10-20, the W-INFRA web skeletons and dev deployment (§ 3.2, § 4.17) and, since 2026-10-21, the W-AUTH web authentication (§ 4.18, with the auth parts of § 2, § 3.2, § 5–§ 7). W-DOMAIN is awaiting guide confirmation. Residual limitations stay in the guide's Known Limitations and § Known Gaps.
 
 Sections are ordered by how often they are needed: **1–3 say where we are, 4–5 say what the
 system is, 6–7 say what not to touch and what is stuck, 8–10 are the record.** Cite sections by
@@ -41,7 +41,7 @@ no server. **That is the code on `development` today; it is being re-platformed*
 | `docs/SnoozeShare-Architecture-Proposal.md`, `docs/ProductBacklog.md` | Original design rationale and the F0–F12 backlog |
 | `docs/MP2-feedback-triage.md` | MP2 grade-report triage that produced MP3-0 |
 | `desktop/` | The JavaFX desktop app and its own Gradle build (C81): `src/main/java/com/snoozeshare/` (`domain`, `repository`, `service`, `infra`, `session`, `ui.{common,guest,host,admin}`, `app`, `config`), `src/test`, `db/` and the Gradle wrapper. Paths in § Architecture 4.1–4.8 are relative to it |
-| `backend/` | Spring Boot API skeleton (`com.snoozeshare`): health endpoint, `dev`/`prod` profiles, Flyway `V001`–`V002`, CORS, `ProdEnvironmentGuard`, `Dockerfile`, and Firebase token verification, role authorization and registration under `auth/`; independent Gradle build and wrapper |
+| `backend/` | Spring Boot API (`com.snoozeshare`): health endpoint, `dev`/`prod` profiles, Flyway `V001`–`V005`, CORS, `ProdEnvironmentGuard`, `Dockerfile`, Firebase auth under `auth/`, ported domain model (`domain/`), Spring Data JPA repositories (`repository/`), service layer (`service/`, `service/impl/`), DTOs (`api/request/`, `api/response/`, `api/mapper/`); independent Gradle build and wrapper |
 | `frontend/` | Next.js app: a `SnoozeShare` page with a backend-status check (`Re-check`), `src/lib/env.ts`, the login, register and forgot-password pages, `AuthProvider`, route guards and role shells, Vitest; npm, Node 22 |
 | `docker-compose.yml`, `render.yaml`, `docs/runbooks/dev-environment.md` | Local Postgres 17; the Render backend Blueprint; the deployment order, variables and live-environment evidence |
 | `config/checkstyle/`, `.github/workflows/` | Checkstyle rules shared by `desktop/` and `backend/`; `ci.yml` (`checkstyle` on every push; `build` on PRs and on pushes to `development` and `main`; each covers desktop, backend and frontend) and the Pages workflow (publishes `docs/` on push to `main`) |
@@ -70,7 +70,6 @@ its own resume point in `docs/project-state/branch-states/`.
 | Item | Kind | Context / done when | Source | Added |
 |---|---|---|---|---|
 | Rewrite the Developer Guide for the web app only | Todo | A rolling rewrite, updated as each web change is built, not a one-off: each web workstream adds its own content at its guide checkpoint, and the desktop sections are dropped as `desktop/` retires. Web configuration and deployment content (§ 2, § 3.2, § 4.17) goes first. Done so far: W-INFRA (2026-10-20) and W-AUTH (2026-10-21: § 4.18 and the auth parts of § 2, § 3.2, § 5–§ 7). Next: each later web workstream adds its content when it is confirmed. Done when the guide has no desktop-only content | Operator, 2026-10-20 | 2026-10-20 |
-| W-DOMAIN | Workstream | Port the domain model and core services; settles the persistence approach (C74) and the entity-versus-record question. After W-AUTH | Webapp design § 9 | 2026-10-20 |
 | W-GUEST, W-HOST, W-AGENT | Workstream | The three role feature sets and their Next.js pages. Can run in parallel after W-DOMAIN | Webapp design § 9 | 2026-10-20 |
 | W-AI-GUEST, W-AI-HOST, W-AI-AGENT | Workstream | AI features (C80), parallel after their role workstream. Host and Agent features are undecided and the SOC LLM contract is unconfirmed (Q6) | Webapp design § 9 | 2026-10-20 |
 | W-SECURITY, W-DEPLOY | Workstream | AI security hardening, then production deployment. After all of the above | Webapp design § 9 | 2026-10-20 |
@@ -88,6 +87,7 @@ rows are in the [iteration 1 archive](docs/project-history/iteration-1/PROJECT_S
 | MP3-0 | MP2 feedback fixes before new MP3 features (bugs B1–B7, design D1–D6, CI/skills/docs) | Done | [correctness-cluster design](docs/superpowers/specs/2026-10-18-mp3-correctness-cluster-design.md) | [correctness-cluster plan](docs/superpowers/plans/2026-10-18-mp3-correctness-cluster.md) | Merged (PRs #1–#3); CI and Pages verified; required checks set; operator-confirmed 2026-10-19 | Documented 2026-10-19 |
 | W-INFRA | Mono-repo skeletons (`desktop/`, `backend/`, `frontend/`), local Postgres, CI for all three, Render/Vercel/Neon dev deployment | Done | [spec](docs/superpowers/specs/2026-10-20-w-infra-design.md) | [plan](docs/superpowers/plans/2026-10-20-w-infra.md) | Merged (PRs #11, #12); dev live on Render + Vercel + Neon; guide confirmed 2026-10-20 | Documented 2026-10-20 |
 | W-AUTH | Firebase authentication and role authorization | Done | [spec](docs/superpowers/specs/2026-10-20-w-auth-design.md); [registration pre-validation spec](docs/superpowers/specs/2026-10-21-w-auth-registration-prevalidation-design.md) | [plan](docs/superpowers/plans/2026-10-20-w-auth.md); [registration pre-validation plan](docs/superpowers/plans/2026-10-21-w-auth-registration-prevalidation.md) | Merged (PR #14); owner approval recorded 2026-10-21, after the merge; confirmed 2026-10-21 | Documented 2026-10-21 |
+| W-DOMAIN | Port domain model, repositories and core services to Spring Boot with Spring Data JPA | Done | — | [plan](docs/superpowers/plans/2026-10-21-w-domain.md) | Merged (PR #15); approved 2026-10-21 (re-approved after PR bugfixes) | Awaiting confirmation |
 
 Status vocabulary, used verbatim: `Not started` · `Spec'd` · `Planned` · `Building` ·
 `Blocked — needs human` · `In review` · `Done` · `Abandoned`. Guide vocabulary (owned by
@@ -98,7 +98,7 @@ Status vocabulary, used verbatim: `Not started` · `Spec'd` · `Planned` · `Bui
 
 ## 4. Architecture
 
-> **§ 4.1–4.8 describe the desktop code as merged on `development`.** The web target is [docs/Webapp-architecture-design.md § 3](docs/Webapp-architecture-design.md): REST controllers per role, a security layer (Spring Security and Firebase), the ported service layer, domain, repositories and PostgreSQL, plus an LLM gateway. As a branch builds a web part, it rewrites that area's **Now** in its branch state. Desktop paths in 4.1–4.8 are relative to `desktop/` (C81); the web skeleton is in 4.9 and authentication in 4.10. The layering rules below and their architecture tests (`LayerDependencyTest`, `UiDependencyTest`) apply to the desktop code and are re-decided per area when the web equivalent lands.
+> **§ 4.1–4.8 describe the desktop code as merged on `development`.** The web target is [docs/Webapp-architecture-design.md § 3](docs/Webapp-architecture-design.md): REST controllers per role, a security layer (Spring Security and Firebase), the ported service layer, domain, repositories and PostgreSQL, plus an LLM gateway. As a branch builds a web part, it rewrites that area's **Now** in its branch state. Desktop paths in 4.1–4.8 are relative to `desktop/` (C81); the web skeleton is in 4.9, authentication in 4.10, and the ported persistence/domain/services in 4.5. The layering rules below and their architecture tests (`LayerDependencyTest`, `UiDependencyTest`) apply to the desktop code and are re-decided per area when the web equivalent lands.
 
 ```text
 ui.guest / ui.host / ui.admin   (JavaFX/FXML, role-isolated, on ui.common)
@@ -162,13 +162,34 @@ Decision rows below carry only the standing decisions; the full text of each is 
 
 ### 4.5 Repository & persistence
 
-**Now:** repository interfaces per aggregate; JDBC adapters in `repository.jdbc` with shared `RowMappers`. `JdbcLedgerRepository` reads money rows out of `audit_log` (a row with `walletAdjustment` and `balanceAfter`); there is no `wallet_transactions` table. `MigrationRunner` applies `src/main/resources/db/migration/V001–V008` (V002 has two files: audit trail and booking decision message) and adopts a pre-provisioned DB (the mock DB) by recording the baseline. `TransactionManager` takes a `TransactionListener` (`onBegin`, `afterCommit`, `afterRollback`) and offers `inTransactionUnchecked`. Tables: users (role includes `SYSTEM`), properties, availability_blocks, bookings (`hostDecisionMessage`), wallets (cached `balance`), tickets, ticket_categories, reviews, audit_log, messages/message_reads, booking_messages/booking_message_reads, schema_history.
+> **Desktop (§ 4.5 desktop):** repository interfaces per aggregate; JDBC adapters in `repository.jdbc` with shared `RowMappers`. `JdbcLedgerRepository` reads money rows out of `audit_log`; `MigrationRunner` applies `src/main/resources/db/migration/V001–V008`. `TransactionManager` with `TransactionListener` and `inTransactionUnchecked`. Tables: users, properties, availability_blocks, bookings, wallets, tickets, ticket_categories, reviews, audit_log, messages/message_reads, booking_messages/booking_message_reads, schema_history.
+
+**Now (web):** Spring Data JPA with Hibernate on PostgreSQL 17. Domain model uses `@Entity` classes (mutable, no-arg constructors) in `domain.model`, mapped to the schema created by Flyway V002 (auth tables from W-AUTH) and V003 (domain ALTERs and remaining 11 tables). All entities use `id` as the PK column name, matching W-AUTH's convention. `WalletTransaction` remains a record (not an entity) — it is a projection from `audit_log` rows read by a future `JdbcTemplate`-based `LedgerRepository`. V004 seeds the SYSTEM user and platform-fee wallet. V005 tightens the nightly-rate CHECK to reject zero and enforce two-decimal precision. JPA is configured with `ddl-auto: validate` and `open-in-view: false`.
+
+| Path | Role |
+|---|---|
+| `backend/src/main/java/com/snoozeshare/domain/model/` | 12 JPA entity classes + `AmenitySetConverter` + `WalletTransaction` record |
+| `backend/src/main/java/com/snoozeshare/domain/enums/` | 13 enums (copied from desktop) |
+| `backend/src/main/java/com/snoozeshare/domain/statemachine/` | `BookingStateMachine`, `TicketStateMachine` (copied from desktop) |
+| `backend/src/main/java/com/snoozeshare/domain/policy/` | `StayDatePolicy`, `DisputeWindowPolicy` (updated for entity getters) |
+| `backend/src/main/java/com/snoozeshare/domain/settlement/` | `SettlementCalculator`, `SettlementBreakdown`, `EscrowPolicy` (copied) |
+| `backend/src/main/java/com/snoozeshare/domain/validation/` | `DomainValidation` (copied) |
+| `backend/src/main/java/com/snoozeshare/service/` | 13 service interfaces, 14 value-object records, 2 request types |
+| `backend/src/main/java/com/snoozeshare/service/impl/` | 15 service implementations + `AuthorizationService` utility |
+| `backend/src/main/java/com/snoozeshare/api/request/` | 16 request DTOs (records with `@Valid` + `@JsonIgnoreProperties`) |
+| `backend/src/main/java/com/snoozeshare/api/response/` | 21 response DTOs (records with `static from()` factory methods) |
+| `backend/src/main/java/com/snoozeshare/api/mapper/` | 3 mapper utilities (`ListingMapper`, `TicketMapper`, `SearchMapper`) |
+| `backend/src/main/resources/db/migration/V003__domain_tables.sql` | ALTERs W-AUTH's users/wallets + creates 11 domain tables |
+| `backend/src/main/resources/db/migration/V004__seed_system_user.sql` | SYSTEM user + platform wallet seed |
+| `backend/src/main/resources/db/migration/V005__tighten_nightly_rate_constraint.sql` | Rejects zero nightly rate and enforces two-decimal precision |
 
 | ID | Decision |
 |---|---|
-| C5 | SQLite via `org.xerial:sqlite-jdbc` and hand-rolled `PreparedStatement` DAOs; no JPA |
-| C6 | `properties` columns are exactly the operator's field list (see `db/schema.sql`) |
+| C5 | *(desktop)* SQLite via `org.xerial:sqlite-jdbc` and hand-rolled `PreparedStatement` DAOs; no JPA |
+| C6 | `properties` columns are exactly the operator's field list (see `desktop/db/schema.sql`) |
 | C40 (W14) | `wallets` table stays (no `users.balance`); the System user has role `SYSTEM` and a real wallet receiving `PLATFORM_FEE` rows |
+| C99 | Use Spring Data JPA for persistence (reverses C74/C5 for web). Entities use `id` as PK column on all tables to match W-AUTH's convention |
+| C100 | Wallet balance uses `NUMERIC(19,2)` (from W-AUTH's V002), not `NUMERIC(19,4)` from the desktop schema. Other money columns (rates, amounts, adjustments) keep `NUMERIC(19,4)` |
 
 ### 4.6 Events (in-process bus)
 
@@ -204,7 +225,7 @@ Decision rows below carry only the standing decisions; the full text of each is 
 
 ### 4.9 Web platform skeleton (`backend/`, `frontend/`, hosting)
 
-**Now:** one repo, three independent builds (no root build) with a shared Checkstyle ruleset in `config/checkstyle/`. `backend/` is Spring Boot 3.5.16 on Java 25 with Flyway `V001` (a comment-only baseline) and `V002` (auth users and wallets, § 4.10) on PostgreSQL 17. Its health endpoint is `GET /actuator/health`, which returns exactly `{"status":"UP"}` (or `DOWN` with 503); every other actuator path is 404, details and Kubernetes probe groups are off; the `/api/auth/**` endpoints are in § 4.10. Profiles: `dev` is the default (`application-dev.yml`, committed, no secrets, local Postgres, CORS for `http://localhost:3000`; secrets go in a gitignored `application-local.yml`); `prod` has no defaults, and `ProdEnvironmentGuard` fails startup naming any missing `SPRING_DATASOURCE_URL`, `_USERNAME`, `_PASSWORD` or `SNOOZESHARE_CORS_ALLOWED_ORIGIN`, and requires `snoozeshare.security.enabled` and `snoozeshare.firebase.enabled` to be true (§ 4.10). CORS allows exactly one origin (`snoozeshare.cors.allowed-origin`, validated: no wildcard, no trailing slash), configured separately for application endpoints (`CorsConfig`) and the actuator. `server.port` follows `PORT`. `frontend/` is Next.js 15 (App Router): `src/lib/env.ts` is the only reader of `NEXT_PUBLIC_API_BASE_URL`, `next.config.ts` fails a production build without it, and `BackendStatus` shows `Backend: UP` or `unreachable` (5 s timeout, `Re-check` button); the auth pages and providers are in § 4.10. Tests: backend integration tests run on one JVM-wide Testcontainers Postgres 17; frontend uses Vitest. The dev environment tracks `development`: the Render Docker web service (`render.yaml`, free plan, sleeps when idle), the Vercel project (root `frontend`, Framework Preset Next.js, Production Branch `development` until W-DEPLOY) and a Neon branch `dev`. Deployment order and variables are in `docs/runbooks/dev-environment.md`.
+**Now:** one repo, three independent builds (no root build) with a shared Checkstyle ruleset in `config/checkstyle/`. `backend/` is Spring Boot 3.5.16 on Java 25 with Flyway `V001` (a comment-only baseline), `V002` (auth users and wallets, § 4.10), `V003`–`V005` (domain tables, system-user seed and nightly-rate constraint, § 4.5) on PostgreSQL 17. Its health endpoint is `GET /actuator/health`, which returns exactly `{"status":"UP"}` (or `DOWN` with 503); every other actuator path is 404, details and Kubernetes probe groups are off; the `/api/auth/**` endpoints are in § 4.10. Profiles: `dev` is the default (`application-dev.yml`, committed, no secrets, local Postgres, CORS for `http://localhost:3000`; secrets go in a gitignored `application-local.yml`); `prod` has no defaults, and `ProdEnvironmentGuard` fails startup naming any missing `SPRING_DATASOURCE_URL`, `_USERNAME`, `_PASSWORD` or `SNOOZESHARE_CORS_ALLOWED_ORIGIN`, and requires `snoozeshare.security.enabled` and `snoozeshare.firebase.enabled` to be true (§ 4.10). CORS allows exactly one origin (`snoozeshare.cors.allowed-origin`, validated: no wildcard, no trailing slash), configured separately for application endpoints (`CorsConfig`) and the actuator. `server.port` follows `PORT`. `frontend/` is Next.js 15 (App Router): `src/lib/env.ts` is the only reader of `NEXT_PUBLIC_API_BASE_URL`, `next.config.ts` fails a production build without it, and `BackendStatus` shows `Backend: UP` or `unreachable` (5 s timeout, `Re-check` button); the auth pages and providers are in § 4.10. Tests: backend integration tests run on one JVM-wide Testcontainers Postgres 17; frontend uses Vitest. The dev environment tracks `development`: the Render Docker web service (`render.yaml`, free plan, sleeps when idle), the Vercel project (root `frontend`, Framework Preset Next.js, Production Branch `development` until W-DEPLOY) and a Neon branch `dev`. Deployment order and variables are in `docs/runbooks/dev-environment.md`.
 
 | ID | Decision |
 |---|---|
@@ -237,7 +258,7 @@ Decision rows below carry only the standing decisions; the full text of each is 
 
 ## 5. Conventions
 
-Highest IDs used before this iteration: **W16, C59, D38, Q3** (this iteration so far: C98, D44, Q6). Numbering continues; never reuse. `C11, C28–C31, C37, C39–C41` each have two meanings in the archive; cite the archive section when it matters.
+Highest IDs used before this iteration: **W16, C59, D38, Q3** (this iteration so far: C100, D46, Q6). Numbering continues; never reuse. `C11, C28–C31, C37, C39–C41` each have two meanings in the archive; cite the archive section when it matters.
 
 - `ui.*` never imports `repository.*` or `infra.db.*` — only `service.*`. Only `repository.jdbc.*` imports `java.sql.*`.
 - `BookingService`/`TicketService` are the only callers of `TransactionService`; UI never calls it, and never calls `WalletService.topUp/withdraw` inside a booking/ticket flow.
@@ -254,6 +275,9 @@ Highest IDs used before this iteration: **W16, C59, D38, Q3** (this iteration so
 - Backend tests extend `PostgresIntegrationTest` (one container for the whole JVM; a per-class container restarts on a new port while Spring reuses the cached context). Tests that start an application programmatically pass overrides as command-line arguments, because `SpringApplicationBuilder.properties()` has the lowest precedence. Platform-dependent behaviour needs a test that simulates the platform (`spring.main.cloud-platform`).
 - The `prod` profile has no defaults for database or CORS settings, and `ProdEnvironmentGuard` names a missing variable (Spring's binder otherwise leaves `${VAR}` in place). The health body stays exactly `{"status":"UP"}`.
 - Authentication failures return a request ID that is logged with status, safe error code and path; credentials, tokens and registration codes are never logged. Production requires explicit security/Firebase enablement and all Firebase/registration/Admin credential settings. Public Firebase browser configuration is deployment metadata, not a secret.
+- JPA entities use `id` as the PK column name (not entity-specific names like `user_id`, `booking_id`); getter is `getId()`. Domain enums in `domain.enums` are shared between the desktop and backend; copy verbatim, change only the package declaration.
+- Checkstyle import order for the backend: `java.*` then `org.*` then `com.*` then `jakarta.*`, with blank lines between groups.
+- All service impls and JDBC repos use `@ConditionalOnBean(PropertyRepository.class)` to avoid loading in no-DB test contexts (e.g. `ServerPortDefaultTest`). Service impls use entity-style getters (`.getField()`) instead of record accessors (`.field()`); mutation uses setters + `repository.save()` instead of creating new records.
 - Neon's libpq string must be converted to a JDBC URL with separate username and password (see the runbook). `NEXT_PUBLIC_API_BASE_URL` has no trailing slash and `src/lib/env.ts` is its only reader.
 - Local traps on Windows: `DOCKER_HOST` alone does not break Testcontainers (it caches `docker.client.strategy` in `~/.testcontainers.properties`; also set `TESTCONTAINERS_DOCKER_CLIENT_STRATEGY` and use `--no-daemon`); running Checkstyle and the Testcontainers tests in one Gradle invocation can exhaust memory, so run them separately; Docker image layers can corrupt after a Docker Desktop crash (`exec format error`), so pull a different tag.
 - Branch states keep every `PROJECT_STATE.md` heading in order; a section with nothing to change says `No change.` (Architecture, Conventions and Known Gaps give a one-line reason), and `sync-project-state` checks those claims against the branch diff. Skills say `INT` for the integration branch (here `development`; `maintaining-project-state` § Branch Model). Plan tasks a human does after the merge are `Post-merge` and become Handover items; steps that leave the machine start with `GATE:`.
@@ -285,7 +309,7 @@ Highest IDs used before this iteration: **W16, C59, D38, Q3** (this iteration so
 - Protected frontend routes use client-side guards; backend role authorization remains authoritative.
 - Firebase token revocation is checked on every backend request, coupling request latency and availability to Firebase.
 
-**Explicitly out of scope:** microservices, message brokers, horizontal scaling, JPMS module boundaries, JPA/Hibernate (until the W-DOMAIN spec decides, C74), agent Force Cancel/Complete (C22).
+**Explicitly out of scope:** microservices, message brokers, horizontal scaling, JPMS module boundaries, agent Force Cancel/Complete (C22).
 
 ---
 
@@ -340,6 +364,8 @@ Standing process decisions. Architecture-shaping ones sit with their area in § 
 | C96 | 2026-10-21 | Auth error responses carry a generated request ID that is logged with status, safe code and path; unexpected failures use `INTERNAL_ERROR` | Review found that returned request IDs had no correlation and database failures were mislabeled as validation errors | Review remediation, 2026-10-21 |
 | C97 | 2026-10-21 | Use the proxy-set `CF-Connecting-IP` address only when `SNOOZESHARE_TRUST_FORWARD_HEADERS=true`; never read `X-Forwarded-For`; local development ignores proxy headers and falls back to `getRemoteAddr()`. Amends the first version of this decision, which took the first `X-Forwarded-For` entry | The operator requested per-client Render rate limiting while preserving safe local testing. Review found the leftmost `X-Forwarded-For` entry is client-forgeable (Render's proxy appends to it), which let an attacker rotate fake IPs past every limiter; Render's guidance is to use `CF-Connecting-IP` | Project owner, 2026-10-21; review remediation |
 | C98 | 2026-10-22 | Workflow gates (`AGENTS.md` § 8): the agent stops and asks the operator for a yes at six points — spec approved before the plan, plan approved before any code, branch review before any push or PR, sync after the merge, fold confirmation, then the guide proposal — and writes the `Approved (<name>, <date>)` marker itself on that yes. "By hand" in the sync and guide skills now means the operator's yes in chat, so the operator no longer has to know which skill comes next. Rejected: leaving the skills operator-invoked; relying on the `check-branch-states.sh` CI check alone (it skipped a PR that had no branch state; `ci.yml` now fails such a PR unless its head is `sync/*`) | Operator: W-AUTH was merged before its approval was recorded ("after the merge" in its Workstreams row) and the plan carried no approval marker, so nothing prompted the operator at the stage boundaries | `AGENTS.md` § 8; owner hotfix on `development` |
+| C99 | 2026-10-21 | Use Spring Data JPA for persistence (reverses C74/C5 for web). Entities use `id` as PK column on all tables to match W-AUTH's convention | JPA provides cleaner Spring integration (validation, transactions, repositories) than ported JDBC; column naming follows W-AUTH's established pattern | Plan T1 |
+| C100 | 2026-10-21 | Wallet balance uses `NUMERIC(19,2)` (from W-AUTH's V002), not `NUMERIC(19,4)` from the desktop schema. Other money columns (rates, amounts, adjustments) keep `NUMERIC(19,4)` | W-AUTH created the wallets table first; the domain migration builds on it | V002/V003 reconciliation |
 
 ---
 
@@ -363,6 +389,8 @@ Live traps only; resolved ones are in the archive. Each is what, the consequence
 - **D42 (W-AUTH)** — Branch had pre-existing uncommitted Firebase Admin and Firebase JS dependency edits when execution began. The clean-tree precondition cannot be met without touching operator work. Action: Preserve the files, include them in their planned T2/T6 dependency commits, and verify the final diff before close-out
 - **D43 (W-AUTH)** — Initial frontend baseline `npm ci` was blocked by the environment cache/registry state. The gate was temporarily unverified. Action: Resolved on 2026-10-21 with a task-local npm cache; `npm ci`, 27 tests, lint and production build pass
 - **D44 (W-AUTH)** — Firebase Admin beans are gated by `FIREBASE_ENABLED` so existing datasource-free contexts remain usable. Local auth activation requires `FIREBASE_ENABLED=true`; enabled startup still fails fast for missing project, codes or ADC credentials. Action: Document the activation variable in the developer handover at the development checkpoint
+- **D45 (W-DOMAIN)** — W-AUTH's V002 uses `id` as PK for users/wallets (not `user_id`/`wallet_id` from the desktop schema), `status` (not `account_status`), and includes `firebase_uid` + `updated_at`. The plan's original migration had to be restructured as V003 (ALTER + new tables) instead of V002 (CREATE all). All entity PK fields renamed to `id`; User entity gained `firebaseUid`, `updatedAt`; `accountStatus` renamed to `status`. Future services must use `getId()` not entity-specific getters
+- **D46 (W-DOMAIN)** — Flyway version conflict: W-AUTH claimed V002, domain tables shifted to V003, seed to V004. Migration numbering diverged from the plan; no functional impact
 
 ---
 
@@ -371,4 +399,4 @@ Live traps only; resolved ones are in the archive. Each is what, the consequence
 The Done ledger lives in **[`docs/project-state/done-ledger.md`](docs/project-state/done-ledger.md)** — every change, big or small, newest first.
 
 - **Latest entry:** 2026-10-22
-- **Entries:** 76 (iteration 2 started; earlier entries in the archive)
+- **Entries:** 87 (iteration 2 started; earlier entries in the archive)
