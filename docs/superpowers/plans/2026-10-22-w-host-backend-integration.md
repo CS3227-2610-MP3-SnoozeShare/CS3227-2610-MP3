@@ -25,7 +25,7 @@
 | T3 Make calendar mutations atomic and expose calendar API | T0,T1 | T2 | 2 | Done |
 | T4 Serialize Host booking decisions | T0,T1 | T5,T6 | 2 | Done |
 | T5 Add distinct Host conversation APIs | T0,T1 | T4,T6 | 2 | Done |
-| T6 Add Host wallet API | T0,T1 | T4,T5 | 2 | Not started |
+| T6 Add Host wallet API | T0,T1 | T4,T5 | 2 | In progress |
 | T7 Add authenticated frontend Host API adapter | T0,T1,T2,T3,T4,T5,T6 | - | 3 | Not started |
 | T8 Wire listing, calendar, and request screens | T2,T3,T4,T7 | - | 4 | Not started |
 | T9 Wire messages and wallet screens | T5,T6,T7,T8 | - | 5 | Not started |
@@ -229,7 +229,7 @@
 - [x] 2. Implement distinct routes and scoped page queries; keep conversation content out of logs and ensure event listeners run only after transaction commit.
 - [x] 3. Run tests; verify cross-tenant 404, resolved-thread 409, authorized read/post, bounded newest-first history, and no booking or ticket event on rollback.
 - [x] 4. Run backend Checkstyle (`./gradlew checkstyleMain checkstyleTest`) and build.
-- [x] 5. Update branch state; commit `feat: add Host booking and ticket messaging APIs`.
+- [x] 5. Update branch state; commit `feat: add Host booking and ticket messaging APIs` (`0b1f0ef`).
 
 ### T6: Add Host wallet API
 
