@@ -9,7 +9,7 @@ after the branch merges.
 - **Owner:** Nathan
 - **Status:** Draft   (`Draft` · `In review` · `Approved` · `Folded`)
 - **Approved:** —
-- **Last updated:** 2026-10-21 by Claude Opus 4.6 — merged W-AUTH, reconciled entities
+- **Last updated:** 2026-10-21 by Claude Opus 4.6 — T7 service implementations complete
 
 ---
 
@@ -35,13 +35,13 @@ cd backend; ./gradlew build   # needs Docker (Testcontainers)
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-21 10:00 | Claude Opus 4.6 | W~DOMAIN | Active | T6 done; T7 next | Port service implementations per plan T7, starting with AuditService (done), then UserService, WalletService, etc.; done when `./gradlew build` passes | 2026-10-21 12:49 |
+| S1 | 2026-10-21 10:00 | Claude Opus 4.6 | W~DOMAIN | Active | T7 done; T8 next | Port DTO layer per plan T8 (request/response records, mappers) | 2026-10-21 14:05 |
 
 **Remaining**
 
 - [x] T5: Spring Data JPA repository interfaces (12 repos)
 - [x] T6: Port infrastructure (@Transactional, ApplicationEventPublisher, LedgerWriter, Clock bean, AuditServiceImpl)
-- [ ] T7: Port 15 service implementations
+- [x] T7: Port 15 service implementations (13 interfaces, 14 value objects, 15 impls, 1 utility class, 2 request types)
 - [ ] T8: DTO layer (request/response records, mappers)
 - [ ] T9: Tests (unit + integration)
 - [ ] **Handover:** Update Developer Guide for W-DOMAIN (entities, repositories, services, JPA conventions)
@@ -52,7 +52,7 @@ cd backend; ./gradlew build   # needs Docker (Testcontainers)
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W~DOMAIN | Port domain model + core services to Spring Boot | Building | — | [plan](docs/superpowers/plans/2026-10-21-w-domain.md) | T6/9 done; T7 next | — |
+| W~DOMAIN | Port domain model + core services to Spring Boot | Building | — | [plan](docs/superpowers/plans/2026-10-21-w-domain.md) | T7/9 done; T8 next | — |
 
 ---
 
@@ -70,6 +70,8 @@ cd backend; ./gradlew build   # needs Docker (Testcontainers)
 | `backend/src/main/java/com/snoozeshare/domain/policy/` | `StayDatePolicy`, `DisputeWindowPolicy` (updated for entity getters) |
 | `backend/src/main/java/com/snoozeshare/domain/settlement/` | `SettlementCalculator`, `SettlementBreakdown`, `EscrowPolicy` (copied) |
 | `backend/src/main/java/com/snoozeshare/domain/validation/` | `DomainValidation` (copied) |
+| `backend/src/main/java/com/snoozeshare/service/` | 13 service interfaces, 14 value-object records, 2 request types |
+| `backend/src/main/java/com/snoozeshare/service/impl/` | 15 service implementations + `AuthorizationService` utility |
 | `backend/src/main/resources/db/migration/V003__domain_tables.sql` | ALTERs W-AUTH's users/wallets + creates 11 domain tables |
 | `backend/src/main/resources/db/migration/V004__seed_system_user.sql` | SYSTEM user + platform wallet seed |
 
@@ -85,6 +87,8 @@ cd backend; ./gradlew build   # needs Docker (Testcontainers)
 - JPA entities use `id` as the PK column name (not entity-specific names like `user_id`, `booking_id`). Getter is `getId()`.
 - Domain enums in `domain.enums` are shared between the desktop and backend; copy verbatim, change only the package declaration.
 - Checkstyle import order: `java.*` then `org.*` then `com.*` then `jakarta.*`, with blank lines between groups.
+- All service impls and JDBC repos use `@ConditionalOnBean(PropertyRepository.class)` to avoid loading in no-DB test contexts (e.g. `ServerPortDefaultTest`).
+- Service impls use entity-style getters (`.getField()`) instead of record accessors (`.field()`); mutation uses setters + `repository.save()` instead of creating new records.
 
 ---
 
@@ -127,3 +131,4 @@ No change.
 | 2026-10-21 | Port pure logic classes (state machines, policies, settlement, validation) from desktop; update `DisputeWindowPolicy` for entity-style getters | W~DOMAIN | `95ed596` |
 | 2026-10-21 | Create 12 JPA entity classes + `AmenitySetConverter` + `WalletTransaction` record | W~DOMAIN | `d96caca` |
 | 2026-10-21 | Merge W-AUTH from development: resolve Flyway V002 conflict (restructure to V003/V004), reconcile all entity PK columns to `id`, add `firebaseUid`/`updatedAt` to User, fix wallet balance scale to match V002 | W~DOMAIN | `3eeff49` |
+| 2026-10-21 | Port 15 service implementations (T7): 13 interfaces, 14 value objects, 2 request types, 15 impls, 1 utility; adapted desktop record patterns to JPA entity patterns; changed T6 JDBC repos and service impls from `@ConditionalOnBean(JdbcTemplate/WalletRepo/AuditLogRepo)` to `@ConditionalOnBean(PropertyRepository.class)` for reliable no-DB test support | W~DOMAIN | — |

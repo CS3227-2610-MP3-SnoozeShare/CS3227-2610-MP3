@@ -16,6 +16,7 @@ import com.snoozeshare.domain.model.AuditLogEntry;
 import com.snoozeshare.domain.model.User;
 import com.snoozeshare.repository.AuditCriteria;
 import com.snoozeshare.repository.AuditLogRepository;
+import com.snoozeshare.repository.PropertyRepository;
 import com.snoozeshare.repository.UserRepository;
 import com.snoozeshare.service.AuditFilter;
 import com.snoozeshare.service.AuditRecord;
@@ -23,7 +24,7 @@ import com.snoozeshare.service.AuditService;
 
 /** Writes and queries audit log entries. */
 @Service
-@ConditionalOnBean(AuditLogRepository.class)
+@ConditionalOnBean(PropertyRepository.class)
 public class AuditServiceImpl implements AuditService {
 
     private static final Pattern ID_FRAGMENT =

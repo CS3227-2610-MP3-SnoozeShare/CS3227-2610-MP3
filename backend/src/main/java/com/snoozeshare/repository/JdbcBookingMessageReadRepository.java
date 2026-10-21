@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 
 /** JDBC operations for booking message read tracking (composite-key table). */
 @Repository
-@ConditionalOnBean(JdbcTemplate.class)
+@ConditionalOnBean(PropertyRepository.class)
 public class JdbcBookingMessageReadRepository {
 
     private final JdbcTemplate jdbc;

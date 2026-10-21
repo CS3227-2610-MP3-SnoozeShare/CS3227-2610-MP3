@@ -10,7 +10,7 @@ import com.snoozeshare.domain.enums.ThreadChannel;
 
 /** JDBC operations for ticket message read tracking (composite-key table). */
 @Repository
-@ConditionalOnBean(JdbcTemplate.class)
+@ConditionalOnBean(PropertyRepository.class)
 public class JdbcMessageReadRepository {
 
     private final JdbcTemplate jdbc;

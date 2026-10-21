@@ -17,7 +17,7 @@ import com.snoozeshare.domain.model.WalletTransaction;
  * wallet_adjustment and subject_user_id.
  */
 @Repository
-@ConditionalOnBean(JdbcTemplate.class)
+@ConditionalOnBean(PropertyRepository.class)
 public class JdbcLedgerRepository implements LedgerRepository {
 
     private static final String BASE_SELECT =

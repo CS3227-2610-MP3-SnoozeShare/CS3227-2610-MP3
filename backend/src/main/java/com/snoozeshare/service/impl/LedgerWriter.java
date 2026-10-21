@@ -15,6 +15,7 @@ import com.snoozeshare.domain.model.Wallet;
 import com.snoozeshare.domain.model.WalletTransaction;
 import com.snoozeshare.domain.validation.DomainValidation;
 import com.snoozeshare.infra.events.WalletTransactionRecordedEvent;
+import com.snoozeshare.repository.PropertyRepository;
 import com.snoozeshare.repository.WalletRepository;
 import com.snoozeshare.service.AuditRecord;
 import com.snoozeshare.service.AuditService;
@@ -27,7 +28,7 @@ import com.snoozeshare.service.AuditService;
  * {@link ApplicationEventPublisher}.
  */
 @Service
-@ConditionalOnBean(WalletRepository.class)
+@ConditionalOnBean(PropertyRepository.class)
 public class LedgerWriter {
 
     private final WalletRepository wallets;
