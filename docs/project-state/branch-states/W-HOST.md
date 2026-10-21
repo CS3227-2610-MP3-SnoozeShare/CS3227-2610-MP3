@@ -9,7 +9,7 @@ in after the branch merges.
 - **Owner:** project owner
 - **Status:** Draft
 - **Approved:** —
-- **Last updated:** 2026-10-21 by GPT-5 — T1 complete; T2 started
+- **Last updated:** 2026-10-21 by GPT-5 — T2 complete; T3 started
 
 ---
 
@@ -32,7 +32,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-21 15:10 | GPT-5 (lead) | W-HOST | Active | T2 in progress: synthetic Host fixture adapter | Add failing fixture tests, then implement state-replaceable adapter/provider | 2026-10-21 16:55 |
+| S1 | 2026-10-21 15:10 | GPT-5 (lead) | W-HOST | Active | T3 in progress: Host shell and route navigation | Add failing route/navbar tests, then wire Host-only fixture shell and redirects | 2026-10-21 17:05 |
 
 **Remaining**
 
@@ -42,7 +42,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | Building | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | T2 in flight: state-replaceable synthetic fixture adapter | — |
+| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | Building | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | T3 in flight: Host shell and route navigation | — |
 
 ## 4. Architecture
 
@@ -76,3 +76,4 @@ No change.
 |---|---|---|---|
 | 2026-10-21 | Specified the exact Claude-artifact Fall Light Host UI, synthetic fixture contract, local-only presentation behavior, and visual verification criteria | W-HOST | `c608be1` |
 | 2026-10-21 | Added shared Fall Light tokens and UI primitives with accessible focus and status presentation | W-HOST | T1 |
+| 2026-10-21 | Added deterministic synthetic Host fixture adapter, typed records, and state-replaceable provider | W-HOST | T2 |
