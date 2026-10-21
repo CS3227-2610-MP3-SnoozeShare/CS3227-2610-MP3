@@ -10,7 +10,7 @@ Handover brief for developers taking over this project. It describes **confirmed
 is updated at checkpoints, so it can lag behind the code. For current status, work in flight, and
 what to build next, read [`PROJECT_STATE.md`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/PROJECT_STATE.md) — that is the source of truth.
 
-**Last updated:** 2026-10-20 — covers W1 to W16, the MP3-0 fixes and the W-INFRA web skeletons and dev deployment; the desktop sections were checked against the built app on 2026-10-19, the web sections against `backend/`, `frontend/`, `render.yaml` and the live health check on 2026-10-20
+**Last updated:** 2026-10-21 — covers W1 to W16, the MP3-0 fixes, the W-INFRA web skeletons and dev deployment, and the W-AUTH web authentication; the desktop sections were checked against the built app on 2026-10-19, the web sections against `backend/`, `frontend/`, `render.yaml` and the live health check on 2026-10-20, and the W-AUTH parts against `backend/src/main/java/com/snoozeshare/auth`, `frontend/src` and their tests on 2026-10-21
 
 ## Contents
 
@@ -35,8 +35,9 @@ database; there is no server.
 
 The project is being re-platformed as a web app (C76). The repository is a mono-repo of three
 independent builds: `desktop/` (this guide's JavaFX app), `backend/` (a Spring Boot API on PostgreSQL) and
-`frontend/` (a Next.js app). So far the web side is a skeleton: a health endpoint, a status page, CI and
-a live dev deployment. None of the desktop features exist on the web yet (see [3.2](#32-web-platform-and-deployment)).
+`frontend/` (a Next.js app). So far the web side is a skeleton with real sign-in: a health endpoint, a status page, Firebase authentication
+with role authorization ([4.18](#418-authentication-and-role-authorization-backendauth-frontend-providers)), CI and a live dev deployment. None of the desktop domain features exist on the web
+yet (see [3.2](#32-web-platform-and-deployment)).
 
 **Target user:** the three roles the app serves — Guest (renter), Host (homeowner) and Support
 Agent (platform admin). This guide documents the role shells, Host operations, Support Agent
@@ -60,6 +61,7 @@ dispute-resolution tooling, messaging, wallets and the platform audit trail.
 | F11 (W12) | **Platform Audit Trail:** every change is logged as one typed row, and agents search the log on the Audit Log screen | [4.14](#414-audit-trail) |
 | F12 (W13) | Persistent ticket and booking conversations, with Guest and Host Messages inboxes | [4.4](#44-ticket-messaging-messageservice), [4.4a](#44a-booking-messaging-bookingconversationservice), [4.8](#48-guest-portal-uiguest) and [4.9](#49-host-portal-uihost) |
 | — (W14) | **Unified Ledger:** every wallet movement is a single `audit_log` money row (with the wallet's running balance); the System user gets a real role and wallet and receives the platform's 3% fee | [4.16](#416-unified-ledger-ledgerwriter) |
+| — (W-AUTH) | **Web authentication:** Firebase sign-up and sign-in, registration with Host and Agent codes, role-based API authorization, and client-side route guards | [4.18](#418-authentication-and-role-authorization-backendauth-frontend-providers) |
 
 **Value proposition:** a support agent can take a dispute ticket, read both parties' evidence and
 chat, and settle the booking's held escrow between guest and host in one atomic, audited action.
@@ -143,7 +145,25 @@ npm run lint
 npm run build    # needs NEXT_PUBLIC_API_BASE_URL
 ```
 
-**Continuous integration.** Two workflows live in `.github/workflows/`. `ci.yml` has two jobs, `checkstyle` and `build`, and each covers all three components (steps are named `desktop:`, `backend:` and `frontend:`). `checkstyle` runs on every push to any branch: Checkstyle for `desktop/` and `backend/`, and `npm run lint` for `frontend/`. `build` runs on every pull request and on every push to `development` and `main`: the desktop build (under `xvfb-run` so the JavaFX suites have a display), the backend build (its tests use Testcontainers on the runner's Docker) and the frontend `npm test` and `npm run build`. A failed run uploads the `checkstyle-reports` and `test-reports` artifacts. `jekyll-gh-pages.yml` builds `docs/` with Jekyll and publishes it to GitHub
+**Turn authentication on locally.** With `FIREBASE_ENABLED` unset the `dev` profile leaves every path open and the
+`/api/auth` endpoints do not exist, so the health page works without a Firebase project. To sign in you need a Firebase
+project with the Email/Password provider enabled and a service-account key kept outside the repository. In PowerShell,
+from `backend/` (the placeholders are yours to choose; never commit real values):
+
+```powershell
+$env:FIREBASE_ENABLED = "true"
+$env:FIREBASE_PROJECT_ID = "<your-firebase-project-id>"
+$env:SNOOZESHARE_HOST_REGISTRATION_CODE = "<code-for-hosts>"
+$env:SNOOZESHARE_AGENT_REGISTRATION_CODE = "<code-for-agents>"
+$env:GOOGLE_APPLICATION_CREDENTIALS = "<path-to-service-account.json>"
+.\gradlew bootRun
+```
+
+Then put the six `NEXT_PUBLIC_FIREBASE_*` values from the Firebase console, plus `NEXT_PUBLIC_API_BASE_URL`, in the
+gitignored `frontend/.env.local` and run `npm run dev`. With auth on, the backend fails at startup if the project ID, either
+code or the credentials are missing.
+
+**Continuous integration.** Two workflows live in `.github/workflows/`. `ci.yml` has two jobs, `checkstyle` and `build`, and each covers all three components (steps are named `desktop:`, `backend:` and `frontend:`). `checkstyle` runs on every push to any branch: Checkstyle for `desktop/` and `backend/`, and `npm run lint` for `frontend/`. `build` runs on every pull request and on every push to `development` and `main`: the desktop build (under `xvfb-run` so the JavaFX suites have a display), the backend build (its tests use Testcontainers on the runner's Docker) and the frontend `npm test` and `npm run build`. A failed run uploads the `checkstyle-reports` and `test-reports` artifacts. The frontend production build also needs the six public `NEXT_PUBLIC_FIREBASE_*` values; CI reads them from repository variables and falls back to dummy values, so builds without those variables (forks, Dependabot) still pass. `jekyll-gh-pages.yml` builds `docs/` with Jekyll and publishes it to GitHub
 Pages on every push to `main` (Settings > Pages > Source is GitHub Actions). Making the `build` check
 required before merge is a repository branch-protection setting, not something the workflows enforce.
 
@@ -157,6 +177,13 @@ required before merge is a repository branch-protection setting, not something t
 | `SPRING_PROFILES_ACTIVE` | `prod` on the hosted backend; unset means `dev` | The runbook |
 | `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD` | `prod` database settings, no defaults; the URL is a JDBC URL ending in `?sslmode=require` | Neon (see the runbook) |
 | `SNOOZESHARE_CORS_ALLOWED_ORIGIN` | `prod` only: the one browser origin allowed to call the backend | The Vercel production domain |
+| `FIREBASE_ENABLED` | `true` turns on Firebase token verification and role authorization. In `dev` it defaults to `false` (every path is open) and also supplies `snoozeshare.security.enabled`; in `prod` it must be `true` | You locally; Render |
+| `SNOOZESHARE_SECURITY_ENABLED` | `prod` only: must be `true`, or startup fails | Render |
+| `FIREBASE_PROJECT_ID` | The Firebase project whose ID tokens the backend accepts; required when auth is on | Firebase console > Project settings |
+| `GOOGLE_APPLICATION_CREDENTIALS` | Path to the Firebase Admin service-account JSON (Application Default Credentials); keep it out of git | Firebase console > Project settings > Service accounts |
+| `SNOOZESHARE_HOST_REGISTRATION_CODE`, `SNOOZESHARE_AGENT_REGISTRATION_CODE` | The two secrets a person must enter to register as a Host or an Agent; required when auth is on; use long random values | Chosen by the operator; set on Render |
+| `SNOOZESHARE_TRUST_FORWARD_HEADERS` | `true` makes the backend take the client address for rate limits from `CF-Connecting-IP` (Render sits behind Cloudflare); `false` uses the direct peer. `dev` defaults to `false`; `prod` requires it | Render |
+| `NEXT_PUBLIC_FIREBASE_API_KEY`, `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`, `NEXT_PUBLIC_FIREBASE_PROJECT_ID`, `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`, `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`, `NEXT_PUBLIC_FIREBASE_APP_ID` | The public Firebase web-app configuration; all six are required for sign-in and for a production build | Firebase console > Project settings > Your apps |
 | `SNOOZESHARE_DB_URL` | Optional JDBC URL that points the app at a SQLite file, for example `jdbc:sqlite:build/acceptance.db`. When unset or blank the app opens `desktop/db/snoozeshare-mock.db` if that file exists in the working directory (it does when you run from the project root); only if the file is missing does it fall back to an empty in-memory database, which nothing survives a restart. | Build it from a copy of the mock DB (below). No secret is involved. |
 
 `Main.resolveDatabaseUrl` picks the database in this order: an explicit `SNOOZESHARE_DB_URL`, then `desktop/db/snoozeshare-mock.db` if it exists, otherwise in-memory. The result goes to `AppContext.create(String)`, or to `AppContext.create()` for the in-memory case.
@@ -364,8 +391,9 @@ change back. See [4.14](#414-audit-trail).
 
 ### 3.2 Web platform and deployment
 
-The web side so far is a skeleton: a Spring Boot API with one endpoint, a Next.js page that checks it, and
-a hosted dev environment that tracks the `development` branch. No desktop feature has been ported.
+The web side so far is a skeleton with authentication: a Spring Boot API whose only protected endpoints are the
+`/api/auth` ones, a Next.js app with sign-in, registration and empty role landing pages, and a hosted dev environment that
+tracks the `development` branch. No desktop domain feature has been ported.
 
 ```mermaid
 flowchart LR
@@ -379,17 +407,24 @@ flowchart LR
     R["Render: backend/Dockerfile via render.yaml (profile prod)"]
     N[("Neon: branch dev")]
   end
+  FB["Firebase Authentication (Email/Password)"]
   FE1 -->|"GET /actuator/health"| BE1
   BE1 -->|"JDBC"| PG1
   V -->|"GET /actuator/health (one allowed origin)"| R
+  V -->|"sign-up, sign-in (Firebase JS SDK)"| FB
+  V -->|"Bearer ID token: /api/auth/*"| R
+  R -->|"verify ID token (Firebase Admin)"| FB
   R -->|"JDBC, sslmode=require"| N
 ```
 
 1. The browser loads the page from `frontend/` (locally on port 3000, in the hosted environment from Vercel).
 2. `BackendStatus` calls `fetchBackendHealth` (`src/lib/api.ts`), which requests `NEXT_PUBLIC_API_BASE_URL` + `/actuator/health`; the component aborts the request after 5 seconds.
 3. The backend answers only if the request's `Origin` equals `snoozeshare.cors.allowed-origin` (the actuator and application endpoints are configured separately but fed from that one property).
-4. The health check runs a query against Postgres: locally the compose container, hosted a Neon branch. Flyway applied `V001__baseline.sql` at startup.
+4. The health check runs a query against Postgres: locally the compose container, hosted a Neon branch. Flyway applied `V001__baseline.sql` and `V002__auth_users_wallets.sql` at startup.
 5. The page shows `Backend: UP` for a 200 response whose JSON status is `UP`, and `Backend: unreachable` for anything else; `Re-check` repeats the request.
+6. An authenticated request starts in the browser: `authenticatedFetch` (`src/lib/api.ts`) takes the signed-in user's Firebase ID token and sends it as `Authorization: Bearer <token>` (the sign-up and register flow is in [4.18](#418-authentication-and-role-authorization-backendauth-frontend-providers)).
+7. `FirebaseAuthFilter` verifies the token with Firebase Admin, including a revocation check and the project ID; a missing or invalid token gets `401 INVALID_TOKEN`, and an unreachable Firebase `503 AUTH_PROVIDER_UNAVAILABLE`.
+8. For `/api/guest/**`, `/api/host/**` and `/api/agent/**`, `RoleAuthorizationFilter` loads the `users` row by Firebase UID and compares its role with the URL namespace; a mismatch gets `403 ROLE_MISMATCH`. The controller then runs.
 
 The hosted backend runs from `backend/Dockerfile` on Render's free plan, so it sleeps when idle and the first
 request after a pause is slow. `docs/runbooks/dev-environment.md` holds the deployment order, variables and
@@ -401,6 +436,11 @@ evidence.
 | `application-dev.yml` is committed with non-secret local defaults; secrets go in a gitignored `application-local.yml` | A fresh clone runs without setup | | C82 |
 | The `checkstyle` and `build` checks keep their names and each covers all three components; backend tests use Testcontainers Postgres 17 | Branch protection keeps working; tests run on the same database engine as production | | C83 |
 | Backend hosting is Render (free Docker web service); Vercel and Neon unchanged | Railway costs money | Railway; Cloudflare (no free JVM hosting); Cloud Run (needs a card) | C85 |
+| Roles live in PostgreSQL keyed by Firebase UID, not in Firebase custom claims | The backend controls authorization and there is no claim synchronization to go wrong | Firebase custom claims | C86 |
+| Host and Agent registration needs a server-side registration code; Guest needs none | A user cannot give themselves a privileged role | | C87 |
+| The API derives the UID from the verified bearer token, and route protection is client-side guards, not Next.js middleware | The client is never trusted for identity, and there is no session-cookie system to specify | A client-sent `firebaseUid`; Next.js middleware auth | C92 |
+| The `prod` profile fails startup unless security, Firebase, both codes and the Admin credentials are configured | An unset toggle would otherwise serve a permit-all production API | | C95 |
+| The client address for rate limits is `CF-Connecting-IP` when forwarded headers are trusted, and `X-Forwarded-For` is never read | Render's proxy appends to a client-supplied `X-Forwarded-For`, so its first entry is forgeable | The first `X-Forwarded-For` entry | C97 |
 
 ---
 
@@ -1431,19 +1471,118 @@ sequenceDiagram
 **Purpose.** Prove that the web stack builds, deploys and talks to its database; no domain logic yet.
 
 **API.**
-- `GET /actuator/health` (backend): 200 with exactly `{"status":"UP"}`, or 503 with `{"status":"DOWN"}` when the database login fails. Every other actuator path is 404; details and probe groups are off.
+- `GET /actuator/health` (backend): 200 with exactly `{"status":"UP"}`, or 503 with `{"status":"DOWN"}` when the database login fails. Every other actuator path is 404; details and probe groups are off. The authentication endpoints are in [4.18](#418-authentication-and-role-authorization-backendauth-frontend-providers).
 - `SnoozeShareApplication` (`backend/src/main/java/com/snoozeshare/`), `config/CorsConfig`, `config/CorsProperties`, `ProdEnvironmentGuard`.
 - `fetchBackendHealth(signal)` (`frontend/src/lib/api.ts`), `apiBaseUrl()` and `validateEnv()` (`frontend/src/lib/env.ts`), `BackendStatus` (`frontend/src/components/BackendStatus.tsx`).
 
-**Depends on.** PostgreSQL 17 through Spring JDBC and Flyway (`db/migration/V001__baseline.sql`, a comment-only baseline); the frontend depends on the backend URL.
+**Depends on.** PostgreSQL 17 through Spring JDBC and Flyway (`db/migration/V001__baseline.sql`, a comment-only baseline; `V002__auth_users_wallets.sql` belongs to [4.18](#418-authentication-and-role-authorization-backendauth-frontend-providers)); the frontend depends on the backend URL.
 
 **Invariants.**
-- The `prod` profile has no defaults for the database or the allowed origin; `ProdEnvironmentGuard` fails startup and names any of `SPRING_DATASOURCE_URL`, `_USERNAME`, `_PASSWORD` or `SNOOZESHARE_CORS_ALLOWED_ORIGIN` that is missing. With no profile set the `dev` profile applies.
+- The `prod` profile has no defaults for the database or the allowed origin; `ProdEnvironmentGuard` fails startup and names any of `SPRING_DATASOURCE_URL`, `_USERNAME`, `_PASSWORD` or `SNOOZESHARE_CORS_ALLOWED_ORIGIN` that is missing, and fails unless `snoozeshare.security.enabled` and `snoozeshare.firebase.enabled` are true ([4.18](#418-authentication-and-role-authorization-backendauth-frontend-providers)). With no profile set the `dev` profile applies.
 - The allowed origin is one `http(s)` origin with no wildcard and no trailing slash, or the application does not start.
 - `src/lib/env.ts` is the only reader of `NEXT_PUBLIC_API_BASE_URL`, and a production build fails without it.
 - The health body must stay exactly `{"status":"UP"}`.
 
 **Deviations.** D39 (the guard exists because Spring's binder leaves an unresolved `${VAR}` in place); D40 (the request `Origin` is compared after Spring strips a trailing slash); D41 (Render runs on Kubernetes, so Spring's probe groups are disabled explicitly and `HealthOnKubernetesTest` simulates the platform).
+
+
+### 4.18 Authentication and role authorization (`backend/auth/`, frontend providers)
+
+**Purpose.** Establish who is calling the API and which role they hold, and keep Guest, Host and Support Agent access apart on the web. Firebase Authentication owns passwords and tokens; the backend owns each person's role and wallet. The role pages are empty landing shells so far.
+
+**API.** Every error body is `{"code", "message", "requestId"}`; `requestId` is logged with the status, code and path.
+
+| Endpoint | Caller | Result |
+|---|---|---|
+| `POST /api/auth/registration-code/validate` | Anyone; body `{role: HOST or AGENT, registrationCode (1-128 characters)}` | `204` for a correct code; `400 VALIDATION_ERROR`, `403 INVALID_REGISTRATION_CODE`, `429 REGISTRATION_RATE_LIMITED` |
+| `POST /api/auth/register` | Bearer ID token; body `{role, registrationCode?, displayName? (at most 80 characters)}` | `201` with the new profile, `200` for a same-role retry; `400`, `403 INVALID_REGISTRATION_CODE` or `PROFILE_INACTIVE`, `409 ROLE_ALREADY_ASSIGNED`, `429` |
+| `GET /api/auth/me` | Bearer ID token | The profile `{id, email, role, displayName, walletId}`; `404 PROFILE_NOT_REGISTERED`, `403 PROFILE_INACTIVE` |
+| `/api/guest/**`, `/api/host/**`, `/api/agent/**` | Bearer ID token and the matching active role | `403 ROLE_MISMATCH` otherwise; no endpoints exist under these yet |
+
+At the security boundary a missing or invalid token is `401 INVALID_TOKEN` and an unreachable Firebase is `503 AUTH_PROVIDER_UNAVAILABLE`; an unexpected failure under `/api/auth` is `500 INTERNAL_ERROR`. Request bodies reject unknown fields and a Guest request that carries a code.
+
+- Backend (`backend/src/main/java/com/snoozeshare/auth/`): `config/SecurityConfig`, `config/FirebaseConfig`; `security/FirebaseAuthFilter`, `security/RoleAuthorizationFilter`, `security/RoleAuthorizationService`, `security/FirebaseTokenVerifier` and `FirebaseAdminTokenVerifier`, `security/ClientIpResolver`, `security/AuthErrorWriter`; `controller/AuthController`; `service/AuthRegistrationService`, `AuthRegistrationWriter`, `RegistrationCodeValidationService`, `RegistrationRateLimiter`, `PublicRegistrationRateLimiter`; `repository/AuthUserRepository` and `WalletRepository` with their JDBC implementations; the request and response records in `api/`.
+- Frontend (`frontend/src/`): `lib/firebase.ts` (`signIn`, `registerWithEmail`, `signOutUser`, `observeAuth`, `resetPassword`), `lib/api.ts` (`authenticatedFetch`, `validateRegistrationCode`, `registerProfile`, `fetchCurrentProfile`, `BackendApiError`), `providers/AuthProvider.tsx` (`useAuth`), `components/auth/RouteGuard.tsx` (`RouteGuard`, `AuthOnly`), `components/auth/useRedirectAuthenticated.ts`, `components/role/RoleShell.tsx` and `RoleNavbar.tsx`. Pages: `/login`, `/register`, `/forgot-password`; layouts `/guest`, `/host`, `/agent` wrap their landing page in `RouteGuard` and `RoleShell`.
+
+**Depends on.** Firebase Authentication (Email/Password) through the Firebase JS SDK 12 in the browser and Firebase Admin 9.11 on the server, which takes credentials from Application Default Credentials; Spring Security; PostgreSQL through Spring JDBC and Flyway (`db/migration/V002__auth_users_wallets.sql`).
+
+**Data model.** `users` holds the role and status; `wallets` has one row per Guest or Host and none for an Agent.
+
+```mermaid
+erDiagram
+  users ||--o| wallets : "has (GUEST and HOST only)"
+  users {
+    uuid id PK
+    varchar firebase_uid UK
+    varchar email
+    varchar role "GUEST, HOST or AGENT"
+    varchar display_name
+    varchar status "ACTIVE or INACTIVE"
+    timestamptz created_at
+    timestamptz updated_at
+  }
+  wallets {
+    uuid id PK
+    uuid user_id FK
+    varchar currency "SGD"
+    numeric balance
+  }
+```
+
+**Registration flow.** The Host and Agent code is checked before the Firebase account exists, so a wrong code never creates one.
+
+```mermaid
+sequenceDiagram
+  actor U as User
+  participant P as register/page.tsx
+  participant FB as Firebase Authentication
+  participant F as FirebaseAuthFilter
+  participant C as AuthController
+  participant S as AuthRegistrationService
+  participant W as AuthRegistrationWriter
+  U->>P: role, code, email, password
+  P->>C: POST /api/auth/registration-code/validate (Host or Agent)
+  C-->>P: 204, or 403 / 429 (stop here)
+  P->>FB: createUserWithEmailAndPassword
+  FB-->>P: signed-in user
+  P->>F: POST /api/auth/register with Bearer ID token
+  F->>FB: verify ID token
+  F->>C: authenticated principal
+  C->>S: register(identity, request, ip)
+  S->>W: create(user)
+  W-->>P: 201 profile (users row, plus wallets row for Guest and Host)
+```
+
+1. For a Host or Agent, `validateRegistrationCode` asks the backend to check the code. The limiter is consulted before the comparison, and the comparison is constant-time. A wrong or rate-limited code stops the flow, so no Firebase account is created. A Guest skips this step.
+2. If nobody is signed in, `registerWithEmail` creates the Firebase account. A person who is already signed in after an earlier failed registration skips it.
+3. `registerProfile` sends the request through `authenticatedFetch`, which adds the ID token.
+4. `FirebaseAuthFilter` verifies the token (revocation checked, project ID matched) and sets the principal. The UID and email come only from this token.
+5. `AuthRegistrationService.register` checks the code again for Host and Agent, so a modified client cannot skip step 1, then looks the user up by `firebase_uid`. An existing profile with the same role returns `200` unchanged; a different role is `409`; a non-`ACTIVE` profile is `403`.
+6. For a new user, `AuthRegistrationWriter.create` inserts the `users` row and, for Guest and Host, a `wallets` row of SGD 0.00 in one transaction. Two simultaneous registrations for one UID leave one profile: the loser reads the winner and returns it.
+7. The page routes to `/guest`, `/host` or `/agent`.
+
+**Frontend states and guards.** `AuthProvider` loads `/api/auth/me` whenever Firebase reports a user and exposes one of six states. A profile response that arrives after a newer request or a sign-out is ignored.
+
+| State | Meaning | `RouteGuard` result |
+|---|---|---|
+| `loading` | Firebase or `/me` not resolved | "Loading…", no redirect |
+| `signed_out` | No Firebase user | Redirect to `/login?returnTo=<path>` |
+| `registering` | Signed in, `PROFILE_NOT_REGISTERED` | Redirect to `/register` |
+| `authenticated` | Profile loaded | Render the page if the role matches; otherwise redirect to the person's own role page |
+| `inactive` | `PROFILE_INACTIVE` | "Profile unavailable" |
+| `error` | Any other failure, including a `401` from `/me`, or incomplete Firebase configuration | Retry and Sign out buttons |
+
+**Invariants.**
+- The role is the `users.role` column, never a Firebase claim (C86), and one account has one role (`409 ROLE_ALREADY_ASSIGNED`). `RoleAuthorizationFilter` reads it from the database on every request and requires `ACTIVE`.
+- With security off (the `dev` default) every path is open and `AuthController` is not registered. The `prod` profile cannot start in that state (C95).
+- The Host and Agent codes are configuration secrets; they are never logged, returned or compared with `equals`. Both the public check and `/register` apply the limits first: 5 invalid attempts per IP and role (public) or per user and IP (register), and 20 per IP, within 10 minutes. A correct code resets only its own counter, and a Guest registration resets nothing.
+- The client address is the direct peer unless `SNOOZESHARE_TRUST_FORWARD_HEADERS=true`, and then `CF-Connecting-IP`; `X-Forwarded-For` is never read (C97). The limiters are process-local.
+- Email verification is not required (C89), so an unverified Firebase account can register and sign in.
+- A failed registration keeps the Firebase session and the `registering` state so the person can retry or sign out (C90). `returnTo` is followed only when it parses to a same-origin path.
+- Route guards run in the browser only. The backend filters are the authority.
+- Errors and logs never contain a token, a password or a code.
+
+**Deviations.** D44 (Firebase beans exist only when `FIREBASE_ENABLED` is true, so contexts without a database or credentials still start).
 
 ---
 
@@ -1454,8 +1593,22 @@ sequenceDiagram
 The list is ordered by the implemented feature progression and uses the backlog identifiers where
 they exist. It describes current behavior, including deliberate deferrals and coverage gaps.
 
-- **F0.1.1** Registration creates a Guest, Host or Agent account; Host and Agent registration requires the corresponding mocked registration code.
-- **F0.1.2** Mocked email login establishes the active `SessionContext` and routes the user to the Guest, Host or Agent shell; no real credential verification is performed.
+- **F0.1.1** (desktop) Registration creates a Guest, Host or Agent account; Host and Agent registration requires the corresponding mocked registration code.
+- **F0.1.2** (desktop) Mocked email login establishes the active `SessionContext` and routes the user to the Guest, Host or Agent shell; no real credential verification is performed.
+- **F0.1.3** (web) The `/login`, `/register` and `/forgot-password` pages call Firebase Email/Password sign-in, sign-up and password reset and show loading and error states.
+- **F0.1.4** (web) A protected request with a missing, malformed, expired, revoked or wrong-project token gets `401 INVALID_TOKEN` and never reaches a controller.
+- **F0.1.5** (web) A valid Firebase identity with no profile can register once, whether or not its email is verified; registration creates one backend profile and returns its role and ID.
+- **F0.1.6** (web) Host and Agent registration needs the matching registration code; a missing, wrong or cross-role code gets `403 INVALID_REGISTRATION_CODE` and creates no profile.
+- **F0.1.7** (web) A Guest or Host gets exactly one wallet at registration and an Agent gets none; a retry creates no second wallet.
+- **F0.1.8** (web) A request to another role's URL namespace gets `403 ROLE_MISMATCH`.
+- **F0.1.9** (web) `GET /api/auth/me` returns the profile keyed by the verified UID.
+- **F0.1.10** (web) The frontend exposes the six states of [4.18](#418-authentication-and-role-authorization-backendauth-frontend-providers) and applies its guard matrix for sign-in, registration, wrong-role access, sign-out and backend failure.
+- **F0.1.11** (web) For a Host or Agent, the register page asks the backend to validate the code before it creates the Firebase account.
+- **F0.1.12** (web) A wrong, blank, cross-role or malformed code fails validation with a stable error and the page does not create a Firebase account.
+- **F0.1.13** (web) A correct code passes validation without creating a database row, a Firebase account or a session.
+- **F0.1.14** (web) `/api/auth/register` validates the code again and keeps its profile, wallet, role, idempotency and rate-limit behavior, so a modified client cannot skip the first check.
+- **F0.1.15** (web) A Guest registration never calls code validation.
+- **F0.1.16** (web) The page tells a code-validation failure from a Firebase sign-up failure, and neither shows the configured code.
 - **F0.2.1** Successful Guest and Host registration provisions a zero-balance wallet.
 - **F1.1.1** Guests can search active listings by city, minimum guest capacity, check-in/check-out dates and an optional maximum nightly budget (`SearchCriteria.maxNightlyRate`); availability considers host blocks and pending or confirmed bookings.
 - **F1.2.1** Guests can open a listing detail view with property specifications, address, host name, amenities, check-in/out times and pricing.
@@ -1507,6 +1660,10 @@ they exist. It describes current behavior, including deliberate deferrals and co
 - **NFR6** Ledger integrity: for each wallet, `balance` equals its newest `audit_log` money row's `balanceAfter`, and each row's `balanceAfter` equals the previous balance plus that row's `walletAdjustment` ([4.16](#416-unified-ledger-ledgerwriter)).
 - **NFR7** Role checks run in the service layer, not only in the UI.
 - **NFR8** Domain events are published only after the database transaction commits.
+- **NFR9** Credentials, bearer tokens, passwords and registration codes never appear in committed files, response bodies or application logs.
+- **NFR10** The backend auth tests use a token-verifier double and the frontend tests mock the Firebase client, so no test calls Firebase.
+- **NFR11** Repeated or concurrent registration for one UID leaves at most one profile and one required wallet.
+- **NFR12** The backend and frontend tests cover code-validation ordering, no sign-up on an invalid code, valid-code continuation, rate limiting and a modified client skipping the pre-check.
 
 ### Known Limitations
 
@@ -1515,7 +1672,13 @@ they exist. It describes current behavior, including deliberate deferrals and co
 - **Suspension refund is not checked against an escrow hold** — the cascade credits the booking's `totalAmount` without reading an `ESCROW_HOLD` row, as `BookingServiceImpl` does (D20).
 - **A stay checking in today counts as started** — a CONFIRMED booking with today's check-in is not cancelled by a suspension (C36). A suspended guest's in-progress stay is paid out by the normal settlement (`BookingService.completeEligibleBookings()`, run at startup, skipping bookings with an open ticket) or by an agent through a dispute ticket.
 - **Ticket categories are a lookup table, not a rules engine** — revisit only if workflow branching is needed (`PROJECT_STATE.md` § Known Gaps).
-- **Authentication is mocked** — login takes an email and checks no credential; role separation is enforced in service code (`PROJECT_STATE.md` § Known Gaps).
+- **The desktop app's authentication is mocked** — its login takes an email and checks no credential, and role separation is enforced in service code. The web app uses real Firebase authentication ([4.18](#418-authentication-and-role-authorization-backendauth-frontend-providers), C70).
+- **Web registration-code validation is a validity oracle** — the public check answers `204` or `403`, so the rate limits and long random codes are the protection (`PROJECT_STATE.md` § Known Gaps).
+- **Rate limits are process-local** — and the client address comes from `CF-Connecting-IP`, which is sound only while all traffic reaches Render through Cloudflare; re-check it if the hosting changes.
+- **Host and Agent codes are reusable configuration values** — rotating one means changing the deployment setting.
+- **Web route guards are client-side** — the backend filters are the authority.
+- **Each API request checks Firebase token revocation** — request latency and availability depend on Firebase.
+- **The role pages are empty landing shells** — W-DOMAIN owns the domain persistence and wallet operations beyond registration-time provisioning.
 - **The hosted dev backend sleeps when idle** — Render's free plan stops the service after a pause; the first request is slow and the page shows `Backend: unreachable` until `Re-check` (C85; `PROJECT_STATE.md` § Known Gaps).
 - **Vercel deploys from `development`** — its Production Branch stays `development` until the production deployment work re-points it at `main` (`PROJECT_STATE.md` § Known Gaps).
 - **Single-process only** — no multi-instance or distributed deployment support (`PROJECT_STATE.md` § Known Gaps).
@@ -1537,9 +1700,13 @@ they exist. It describes current behavior, including deliberate deferrals and co
 
 ## 6. Glossary
 
-- **Flyway:** the database migration tool used by `backend/`; `V001__baseline.sql` is its first migration.
+- **CF-Connecting-IP:** the request header Cloudflare sets to the real client address; with `SNOOZESHARE_TRUST_FORWARD_HEADERS=true` the backend uses it for rate limits and never reads `X-Forwarded-For`.
+- **Firebase ID token:** the signed token Firebase issues to a signed-in user; the frontend sends it as `Authorization: Bearer <token>` and the backend verifies it on each protected request.
+- **Flyway:** the database migration tool used by `backend/`; `V001__baseline.sql` is its first migration and `V002__auth_users_wallets.sql` its second.
 - **Neon:** the hosted PostgreSQL service; the hosted dev backend uses its `dev` branch.
+- **Registration code:** the secret a person enters to register as a Host or an Agent, set by `SNOOZESHARE_HOST_REGISTRATION_CODE` and `SNOOZESHARE_AGENT_REGISTRATION_CODE`; a Guest needs none.
 - **Render:** the host for the backend's Docker image, configured by `render.yaml`.
+- **Role namespace:** a URL prefix reserved for one role: `/api/guest/**`, `/api/host/**` or `/api/agent/**`.
 - **Testcontainers:** the library that starts a throwaway Postgres 17 container for the backend tests.
 - **Vercel:** the host for the Next.js frontend.
 - **Agent (Support Agent):** the platform-admin role. Agents triage tickets, settle disputes and maintain ticket categories.
@@ -1618,7 +1785,9 @@ measured for this guide.
 | Schema and migration: `SchemaParityTest`, `MockDbFixtureTest`, `MigrationRunnerReferenceDbTest` | `V001__foundation.sql` matches `desktop/db/schema.sql`; the mock DB opens and passes the ledger invariant; baseline adoption. |
 | End to end: `DisputeFlowEndToEndTest` | `AppContext` on a mock DB copy: agent works an open ticket from queue to resolution through the real services. |
 | Backend (`backend/src/test/java/com/snoozeshare`): `HealthEndpointTest`, `HealthOnKubernetesTest`, `FlywayBaselineTest`, `StartupFailureTest`, `ProfileDefaultsTest`, `ServerPortDefaultTest`, `ServerPortOverrideTest`, `ProdProfileTest`, `CorsPropertiesTest`, `CorsIntegrationTest` | Health body and status, no other actuator paths, DOWN and recovery when the database login is blocked, the baseline migration, fail-fast on an unreachable or missing database, the default profile and port, `prod` naming a missing variable, exact-origin CORS on the actuator and application endpoints. |
-| Frontend (`frontend/src`): `env.test.ts`, `BackendStatus.test.tsx` | Environment validation, and the status page for UP, each failure, the 5-second timeout, the disabled `Re-check` button and aborting on unmount. |
+| Backend authentication: `AuthMigrationTest`, `FirebaseConfigTest`, `FirebaseTokenVerifierTest`, `AuthSecurityIntegrationTest`, `AuthRegistrationIntegrationTest`, `AuthContractTest`, `RegistrationCodeValidationTest`, `RegistrationRateLimiterTest`, `PublicRegistrationRateLimiterTest`, `ClientIpResolverTest` | The `users` and `wallets` constraints, blank Firebase settings refused, token and project checks, `401` and `403` per route and role, registration (one wallet for a Guest and none for an Agent, same-role retry, inactive profile, concurrent registration), stable error shapes that leak no secret, the public pre-check and its limits (a correct code cannot beat an exhausted limit), and the client address (a forged `X-Forwarded-For` is ignored). A token-verifier double replaces Firebase, so no network is needed. |
+| Frontend (`frontend/src`): `env.test.ts`, `BackendStatus.test.tsx` | Environment validation (including the six Firebase variables), and the status page for UP, each failure, the 5-second timeout, the disabled `Re-check` button and aborting on unmount. |
+| Frontend authentication: `firebase.test.ts`, `api.test.ts`, `AuthProvider.test.tsx`, `route-guards.test.tsx`, the `login`, `register` and `forgot-password` `page.test.tsx` files, `AuthHeader.test.tsx`, `RoleNavbar.test.tsx`, `RoleShell.test.tsx` | Firebase initialisation once, the bearer header and stable error mapping, the six provider states (a stale profile response after sign-out is ignored, a failed registration stays on the registration step, missing Firebase configuration shows an error instead of crashing), guard redirects, the register page's validate-before-signup order, safe `returnTo` handling, and the role shell. The Firebase client is mocked. |
 | Architecture: `LayerDependencyTest`, `UiDependencyTest` | `domain` has no JavaFX or `java.sql` imports; `ui` has no `com.snoozeshare.repository` or `java.sql` imports. |
 | Layout: `AdminFxmlLayoutTest`, `AdminShellInitialsTest`, `ShellLayoutTest`, `AuthLayoutTest` | FXML and CSS content checks; these need no display. |
 | FX smoke and flow: `AdminUiSmokeTest`, `AgentModalTest`, `ResolutionDialogFlowTest`, `CategoryDialogFlowTest` | Real JavaFX toolkit: screens render, dialogs validate and return results, the scrim is added and removed. They skip (`assumeTrue`) when the toolkit cannot start, for example on a headless machine. |
@@ -1649,6 +1818,20 @@ measured for this guide.
   6. Open the Accounts tab and type part of a name, email, role or status: the list filters live, and a short result list shows in full with no scroll bar. Suspend a Guest with upcoming bookings (a reason is required): the banner shows the display name, email and role, the row turns SUSPENDED with its reason, and Audit Log shows `ACCOUNT_SUSPENDED` with the cancellation and refund rows. Reactivate the account: the status returns to ACTIVE and no booking or listing is restored. Agent rows show a dash.
   7. Open the Categories tab: add, rename and deactivate a category, try a duplicate label, and delete one that no ticket uses.
 - **Expected:** the agent screens use the canvas tab strip and "Fall Light" palette; every modal dims the window behind it with a light-grey scrim; the resolved ticket shows escrow as "Settled" and its actions are disabled; a duplicate category label shows an error; a category used by a ticket cannot be deleted; the Accounts modals show a red (Suspend) or green (Reactivate) banner and refuse an empty reason.
+
+**Web authentication check.** A real Firebase sign-up is cheaper to judge by hand than to automate.
+
+- **Prerequisites:** a Firebase project with Email/Password enabled; the backend running with auth on and a local Postgres, and the frontend running with the Firebase values, both as in [Setting Up](#2-setting-up); the Host and Agent codes you chose.
+- **Steps:**
+  1. Signed out, open `/guest`. You should land on `/login?returnTo=%2Fguest`.
+  2. Open `/register`, choose GUEST and create an account. You should land on the Guest shell.
+  3. Sign out. Register a HOST with a wrong code: the page says "Registration code is invalid" and the Firebase console shows no new user.
+  4. Register the HOST with the right code. You should land on the Host shell.
+  5. While signed in as the Host, open `/guest`. You should be sent to `/host`.
+  6. Try to register an AGENT with the Host code. It should be refused.
+  7. Enter wrong codes six times in a row. The page says "Too many attempts. Try again later".
+  8. On `/forgot-password`, request a reset for a registered email and check the mail arrives.
+- **Expected:** each role reaches only its own shell, a wrong code never creates a Firebase user, and the limiter stops repeated guesses.
 
 **Host Portal check.**
 

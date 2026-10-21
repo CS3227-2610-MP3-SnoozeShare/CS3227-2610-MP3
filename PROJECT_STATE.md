@@ -12,9 +12,9 @@ the branch state instead.
 - **Stack (target, not yet built):** the ported domain and services, REST controllers per role, and the NUS SOC LLM for AI features, on top of the W-INFRA skeletons. Persistence approach (Spring Data JPA or ported JDBC) is decided in the W-DOMAIN spec (C74). Source: [docs/Webapp-architecture-design.md](docs/Webapp-architecture-design.md)
 - **Branch:** `development` — this file describes `development` (the integration and default branch); `main` is the release branch and receives it by pull request. Branches record their changes in `docs/project-state/branch-states/` and `sync-project-state` folds them in after the merge into `development`
 - **Method:** TDD-first vertical slices; spec then plan for big changes (`AGENTS.md` § 3); small commits (`AGENTS.md` § 6)
-- **Last updated:** 2026-10-21 by Claude Sonnet 5.5 — folded W-AUTH
+- **Last updated:** 2026-10-21 by Claude Sonnet 5.5 — folded W-AUTH and documented it in the guide
 - **Last verified against repo:** 2026-10-21
-- **Developer guide:** `docs/DeveloperGuide.md` documents W1–W16 and the MP3-0 fixes (last full update 2026-10-19) and, since 2026-10-20, the W-INFRA web skeletons and dev deployment (§ 3.2, § 4.17). Residual limitations stay in the guide's Known Limitations and § Known Gaps.
+- **Developer guide:** `docs/DeveloperGuide.md` documents W1–W16 and the MP3-0 fixes (last full update 2026-10-19) and, since 2026-10-20, the W-INFRA web skeletons and dev deployment (§ 3.2, § 4.17) and, since 2026-10-21, the W-AUTH web authentication (§ 4.18, with the auth parts of § 2, § 3.2, § 5–§ 7). Residual limitations stay in the guide's Known Limitations and § Known Gaps.
 
 Sections are ordered by how often they are needed: **1–3 say where we are, 4–5 say what the
 system is, 6–7 say what not to touch and what is stuck, 8–10 are the record.** Cite sections by
@@ -69,7 +69,7 @@ its own resume point in `docs/project-state/branch-states/`.
 
 | Item | Kind | Context / done when | Source | Added |
 |---|---|---|---|---|
-| Rewrite the Developer Guide for the web app only | Todo | The owner will rewrite `docs/DeveloperGuide.md` to describe only the web app as it is built, dropping the desktop sections as `desktop/` retires. Web configuration and deployment content (§ 2, § 3.2, § 4.17) goes first. Done when the guide has no desktop-only content | Operator, 2026-10-20 | 2026-10-20 |
+| Rewrite the Developer Guide for the web app only | Todo | A rolling rewrite, updated as each web change is built, not a one-off: each web workstream adds its own content at its guide checkpoint, and the desktop sections are dropped as `desktop/` retires. Web configuration and deployment content (§ 2, § 3.2, § 4.17) goes first. Done so far: W-INFRA (2026-10-20) and W-AUTH (2026-10-21: § 4.18 and the auth parts of § 2, § 3.2, § 5–§ 7). Next: each later web workstream adds its content when it is confirmed. Done when the guide has no desktop-only content | Operator, 2026-10-20 | 2026-10-20 |
 | W-DOMAIN | Workstream | Port the domain model and core services; settles the persistence approach (C74) and the entity-versus-record question. After W-AUTH | Webapp design § 9 | 2026-10-20 |
 | W-GUEST, W-HOST, W-AGENT | Workstream | The three role feature sets and their Next.js pages. Can run in parallel after W-DOMAIN | Webapp design § 9 | 2026-10-20 |
 | W-AI-GUEST, W-AI-HOST, W-AI-AGENT | Workstream | AI features (C80), parallel after their role workstream. Host and Agent features are undecided and the SOC LLM contract is unconfirmed (Q6) | Webapp design § 9 | 2026-10-20 |
@@ -87,7 +87,7 @@ rows are in the [iteration 1 archive](docs/project-history/iteration-1/PROJECT_S
 |---|---|---|---|---|---|---|
 | MP3-0 | MP2 feedback fixes before new MP3 features (bugs B1–B7, design D1–D6, CI/skills/docs) | Done | [correctness-cluster design](docs/superpowers/specs/2026-10-18-mp3-correctness-cluster-design.md) | [correctness-cluster plan](docs/superpowers/plans/2026-10-18-mp3-correctness-cluster.md) | Merged (PRs #1–#3); CI and Pages verified; required checks set; operator-confirmed 2026-10-19 | Documented 2026-10-19 |
 | W-INFRA | Mono-repo skeletons (`desktop/`, `backend/`, `frontend/`), local Postgres, CI for all three, Render/Vercel/Neon dev deployment | Done | [spec](docs/superpowers/specs/2026-10-20-w-infra-design.md) | [plan](docs/superpowers/plans/2026-10-20-w-infra.md) | Merged (PRs #11, #12); dev live on Render + Vercel + Neon; guide confirmed 2026-10-20 | Documented 2026-10-20 |
-| W-AUTH | Firebase authentication and role authorization | Done | [spec](docs/superpowers/specs/2026-10-20-w-auth-design.md); [registration pre-validation spec](docs/superpowers/specs/2026-10-21-w-auth-registration-prevalidation-design.md) | [plan](docs/superpowers/plans/2026-10-20-w-auth.md); [registration pre-validation plan](docs/superpowers/plans/2026-10-21-w-auth-registration-prevalidation.md) | Merged (PR #14); owner approval recorded 2026-10-21, after the merge; confirmed 2026-10-21 | Pending |
+| W-AUTH | Firebase authentication and role authorization | Done | [spec](docs/superpowers/specs/2026-10-20-w-auth-design.md); [registration pre-validation spec](docs/superpowers/specs/2026-10-21-w-auth-registration-prevalidation-design.md) | [plan](docs/superpowers/plans/2026-10-20-w-auth.md); [registration pre-validation plan](docs/superpowers/plans/2026-10-21-w-auth-registration-prevalidation.md) | Merged (PR #14); owner approval recorded 2026-10-21, after the merge; confirmed 2026-10-21 | Documented 2026-10-21 |
 
 Status vocabulary, used verbatim: `Not started` · `Spec'd` · `Planned` · `Building` ·
 `Blocked — needs human` · `In review` · `Done` · `Abandoned`. Guide vocabulary (owned by
@@ -370,4 +370,4 @@ Live traps only; resolved ones are in the archive. Each is what, the consequence
 The Done ledger lives in **[`docs/project-state/done-ledger.md`](docs/project-state/done-ledger.md)** — every change, big or small, newest first.
 
 - **Latest entry:** 2026-10-21
-- **Entries:** 68 (iteration 2 started; earlier entries in the archive)
+- **Entries:** 69 (iteration 2 started; earlier entries in the archive)
