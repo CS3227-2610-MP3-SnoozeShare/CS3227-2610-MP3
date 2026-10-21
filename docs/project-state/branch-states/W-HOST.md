@@ -9,7 +9,7 @@ in after the branch merges.
 - **Owner:** project owner
 - **Status:** In review
 - **Approved:** —
-- **Last updated:** 2026-10-22 by GPT-5 — merged current `development` into W-HOST and verified a clean result
+- **Last updated:** 2026-10-22 by GPT-5 — completed the fixture-backed UI plan and opened the backend-integration phase
 
 ---
 
@@ -32,21 +32,23 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| — | — | — | — | — | — | — | — |
+| 2026-10-22 backend phase | 2026-10-22 | GPT-5 | W-HOST-API | Blocked — needs human | High-risk spec review found unresolved API, identity, concurrency, and wallet-contract decisions | Resolve Q~1, amend and re-review the spec, then request spec approval before writing the plan | 2026-10-22 |
 
 **Remaining**
 
-- [ ] Owner review and approval remain before integration. Keep domain-dependent contracts provisional until W-DOMAIN settles them.
+- [ ] Owner review and approval remain for the completed fixture-backed UI phase.
+- [ ] Backend-integration spec and plan require owner approval before implementation.
 
 ## 3. Workstreams
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
 | W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Listings, requests, and wallet scroll within viewport; 143 tests, lint and build pass | guide out of date: W-HOST Host UI pages and Fall Light details |
+| W-HOST-API | Replace Host fixtures with authenticated backend integration | Spec'd | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | — | Draft lint passes; reviewer blockers require exact contract decisions before approval | — |
 
 ## 4. Architecture
 
-No boundary changes. Host pages remain fixture-backed and independent of W-DOMAIN.
+**Now:** The completed Host UI remains fixture-backed; the new backend phase will add an authenticated `/api/host/**` boundary over W-DOMAIN services without changing the visual contract.
 
 ## 5. Conventions
 
@@ -58,7 +60,9 @@ No change: existing W-DOMAIN dependency and accepted gaps remain in force.
 
 ## 7. Needs a Human
 
-None.
+| ID | What is needed | What it blocks | Raised |
+|---|---|---|---|
+| Q~1 | Resolve the backend contract choices: listing detail/metrics shape; calendar month/range JSON and inclusivity; separate booking/ticket message routes; exact error-code matrix; Firebase-to-domain-user resolver; server-side wallet idempotency; and booking/availability/message transaction guarantees | W-HOST-API spec approval and all backend implementation | 2026-10-22 |
 
 ## 8. Decisions
 
@@ -135,3 +139,5 @@ None.
 | 2026-10-22 | Inspected the live Requests page; reduced pending-cell padding and set a 224px cap so four complete single-line rows fit before scrolling; 143 tests and lint pass | W-HOST | Operator follow-up |
 | 2026-10-22 | Confirmed the fourth row clipped at 224px in the live screenshot; raised the pending-table cap to 244px and verified all four rows fully show before scrolling; requests tests and lint pass | W-HOST | Operator follow-up |
 | 2026-10-22 | Merged current `development` into W-HOST with the `ort` strategy; no conflicts or conflict markers; branch state base advanced to `4257d4b` | W-HOST | `6709cc8` |
+| 2026-10-22 | Marked the fixture-backed W-HOST UI plan complete as scoped and opened W-HOST-API for authenticated backend integration | W-HOST / W-HOST-API | `2026-10-22` |
+| 2026-10-22 | Drafted W-HOST-API spec; lint passed, but Implementer/Tester/Maintainer/Attacker review found unresolved High-risk contract blockers recorded under Q~1 | W-HOST-API | `2026-10-22` |
