@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { BackendApiError } from '@/lib/api';
 import { AuthProvider, useAuth } from '@/providers/AuthProvider';
 
 const { observeAuth, signOutUser, fetchCurrentProfile, registerProfile } = vi.hoisted(() => ({
@@ -49,6 +50,22 @@ describe('AuthProvider', () => {
     await waitFor(() => expect(screen.getByText('signed_out')).toBeInTheDocument());
     resolveProfile({ role: 'GUEST' });
     await waitFor(() => expect(screen.getByText('signed_out')).toBeInTheDocument());
+  });
+
+  it('signs the user out when the backend rejects their token', async () => {
+    fetchCurrentProfile.mockRejectedValue(Object.assign(
+      new BackendApiError('INVALID_TOKEN', 'rejected', undefined, 401),
+      { code: 'INVALID_TOKEN', status: 401 },
+    ));
+    observeAuth.mockImplementation((callback: (user: { uid: string }) => void) => {
+      callback({ uid: 'firebase-user' });
+      return () => undefined;
+    });
+    signOutUser.mockResolvedValue(undefined);
+    render(<AuthProvider><StateProbe /></AuthProvider>);
+
+    await waitFor(() => expect(screen.getByText('signed_out')).toBeInTheDocument());
+    expect(signOutUser).toHaveBeenCalled();
   });
 
   it('stays on the registration step when registration fails with a live session', async () => {

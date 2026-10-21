@@ -42,7 +42,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setState('authenticated');
     } catch (caught) {
       if (generation !== requestGeneration.current) return;
-      if (caught instanceof BackendApiError && caught.code === 'PROFILE_NOT_REGISTERED') {
+      if (caught instanceof BackendApiError && caught.status === 401) {
+        // The backend rejected the token (expired, revoked, wrong project): end the Firebase session.
+        await signOutUser();
+        if (generation !== requestGeneration.current) return;
+        setUser(null);
+        setState('signed_out');
+      } else if (caught instanceof BackendApiError && caught.code === 'PROFILE_NOT_REGISTERED') {
         setState('registering');
       } else if (caught instanceof BackendApiError && caught.code === 'PROFILE_INACTIVE') {
         setState('inactive');
