@@ -9,7 +9,7 @@ export function HostBreadcrumbs({ items }: { items: HostBreadcrumbItem[] }) {
       {items.map((item, index) => (
         <Fragment key={`${item.label}-${index}`}>
           {index > 0 && <span aria-hidden="true">›</span>}
-          {item.href ? <Link className="text-primary" href={item.href}>{item.label}</Link> : <span>{item.label}</span>}
+          {item.href ? <Link className="text-primary" href={item.href}>{item.label}</Link> : <span aria-current="page" className="font-semibold">{item.label}</span>}
         </Fragment>
       ))}
     </>
