@@ -1,0 +1,29 @@
+package com.snoozeshare.service;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+
+import com.snoozeshare.domain.enums.ListingStatus;
+import com.snoozeshare.domain.model.Property;
+import com.snoozeshare.repository.SearchCriteria;
+
+/**
+ * Listing search, detail and host-side listing management.
+ */
+public interface ListingService {
+
+    List<SearchResult> search(SearchCriteria criteria);
+
+    Property getDetail(UUID propertyId);
+
+    PriceBreakdown estimateCost(UUID propertyId, LocalDate start, LocalDate end);
+
+    List<Property> findByHostId(UUID hostId);
+
+    Property create(Property draft, UUID hostId);
+
+    Property update(Property draft, UUID hostId);
+
+    Property updateStatus(UUID propertyId, ListingStatus status, UUID hostId);
+}

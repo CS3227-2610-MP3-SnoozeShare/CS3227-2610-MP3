@@ -1,0 +1,35 @@
+package com.snoozeshare.api.request;
+
+import java.math.BigDecimal;
+import java.time.LocalTime;
+import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.snoozeshare.domain.enums.AmenityType;
+import com.snoozeshare.domain.enums.ListingStatus;
+import com.snoozeshare.domain.enums.PropertyType;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
+
+/** Create a new property listing. */
+@JsonIgnoreProperties(ignoreUnknown = false)
+public record CreateListingRequest(
+        @NotBlank String title,
+        @NotBlank String description,
+        @NotNull PropertyType propertyType,
+        @NotNull ListingStatus status,
+        @NotBlank String streetAddress,
+        @NotBlank String city,
+        @NotBlank String region,
+        @Positive int postalCode,
+        @Positive int maxGuests,
+        @PositiveOrZero int bedrooms,
+        @PositiveOrZero int bathrooms,
+        @NotNull @Positive BigDecimal baseNightlyRate,
+        @NotNull LocalTime checkInTime,
+        @NotNull LocalTime checkOutTime,
+        Set<AmenityType> amenities) {
+}
