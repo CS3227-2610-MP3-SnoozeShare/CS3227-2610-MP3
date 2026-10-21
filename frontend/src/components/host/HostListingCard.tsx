@@ -23,7 +23,7 @@ export function HostListingCard({ listing, onToggle }: { listing: HostListing; o
         <span><strong className="block text-sm text-foreground">{listing.bookings}</strong> BOOKINGS</span>
         <span><strong className="block text-sm text-foreground">{listing.rating.toFixed(1)} ★</strong> RATING</span>
         <span className="text-[11px] font-semibold text-[var(--text-subtle)]">{listing.status === 'active' ? 'ACTIVE' : 'INACTIVE'}</span>
-        <button aria-label={`${listing.title} availability`} aria-checked={listing.status === 'active'} className={`relative h-5 w-9 rounded-full transition-colors ${listing.status === 'active' ? 'bg-[var(--success)]' : 'bg-[var(--border-default)]'}`} onClick={onToggle} role="switch" type="button"><span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white ${listing.status === 'active' ? 'left-4' : 'left-0.5'}`} /></button>
+        <button aria-label={`${listing.title} availability`} aria-checked={listing.status === 'active'} className={`relative h-5 w-9 rounded-full transition-colors ${listing.status === 'active' ? 'bg-[var(--success)]' : 'bg-[var(--border-muted)]'}`} onClick={onToggle} role="switch" type="button"><span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white ${listing.status === 'active' ? 'left-4' : 'left-0.5'}`} /></button>
         <Link className="text-primary underline-offset-2 hover:underline" href={`/host/listings/${listing.id}/calendar`}>Open Booking Calendar</Link>
         <Link className="text-primary underline-offset-2 hover:underline" href={`/host/listings/${listing.id}/edit`}>Edit</Link>
       </div>

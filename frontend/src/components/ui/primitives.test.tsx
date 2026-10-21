@@ -1,5 +1,5 @@
-import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 import { Button } from './button';
 import { CalendarGrid } from './calendar-grid';
 import { Card, CardContent, CardHeader, CardTitle } from './card';
@@ -10,6 +10,27 @@ import { StatusPill } from './status-pill';
 import { Table, Tbody, Td, Th, Thead, Tr } from './table';
 
 describe('Fall Light primitives', () => {
+  it('moves focus into a modal, traps Tab, and returns focus when Escape closes it', () => {
+    const onClose = vi.fn();
+    const { rerender } = render(<><button type="button">Open dialog</button><Modal open={false} title="Confirm" description="Confirm this action?" onClose={onClose} onConfirm={() => {}} /></>);
+    screen.getByRole('button', { name: 'Open dialog' }).focus();
+    rerender(<><button type="button">Open dialog</button><Modal open title="Confirm" description="Confirm this action?" onClose={onClose} onConfirm={() => {}} /></>);
+    const cancel = screen.getByRole('button', { name: 'Cancel' });
+    const confirm = screen.getByRole('button', { name: 'Confirm' });
+
+    expect(cancel).toHaveFocus();
+    confirm.focus();
+    fireEvent.keyDown(document, { key: 'Tab' });
+    expect(cancel).toHaveFocus();
+    fireEvent.keyDown(document, { key: 'Tab', shiftKey: true });
+    expect(confirm).toHaveFocus();
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(onClose).toHaveBeenCalledOnce();
+
+    rerender(<><button type="button">Open dialog</button><Modal open={false} title="Confirm" description="Confirm this action?" onClose={onClose} onConfirm={() => {}} /></>);
+    expect(screen.getByRole('button', { name: 'Open dialog' })).toHaveFocus();
+  });
+
   it('renders shared card, field, select, table, and button semantics', () => {
     render(
       <Card>

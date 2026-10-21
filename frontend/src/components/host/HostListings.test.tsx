@@ -29,6 +29,12 @@ describe('Host listing components', () => {
     expect(onToggle).toHaveBeenCalledOnce();
   });
 
+  it('uses a defined neutral track color for inactive availability', () => {
+    const listing = { ...createHostFixtureAdapter().getListings().data![0], status: 'inactive' as const };
+    render(<HostListingCard listing={listing} />);
+    expect(screen.getByRole('switch', { name: 'Lakeside Cabin availability' })).toHaveClass('bg-[var(--border-muted)]');
+  });
+
   it('changes listing availability locally when the switch is toggled', () => {
     render(<HostFixtureProvider><HostListingsPage /></HostFixtureProvider>);
     const toggle = screen.getByRole('switch', { name: 'Lakeside Cabin availability' });
