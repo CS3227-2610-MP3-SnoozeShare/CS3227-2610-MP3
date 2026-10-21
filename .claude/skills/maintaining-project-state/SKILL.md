@@ -25,7 +25,7 @@ these documents do. **Anything not written there did not happen.**
 
 Branches never edit `PROJECT_STATE.md`, so they cannot conflict on it or collide on its ID
 numbers. They read it for context and write to their own branch state. After the merge, the
-project owner runs `sync-project-state` by hand to fold the branch state in.
+agent asks the project owner and runs `sync-project-state` on their yes (`AGENTS.md` § 8) to fold the branch state in.
 
 `PROJECT_STATE.md` is an **index, not a library** — with one exception: a fact that contradicts
 or post-dates every spec and plan has nowhere else to live, so it lives in full. Everything else is
@@ -140,12 +140,12 @@ task is not complete until the branch state reflects it.**
 `Draft` → `In review` → `Approved` → `Folded`.
 
 - Agents set `Draft` (creating the file) and `In review` (spec, plan, build and review are done and
-  the session table is empty).
+  the session table is empty), then ask the owner to review (`AGENTS.md` § 8, gate 3).
 - **Only the project owner sets `Approved`**, with their name and the date. An agent never
   approves a branch, and never writes the `Approved` field on its own initiative.
 - **Do not merge a branch to `INT` until it is `Approved` and its session table is empty.** If
   you are asked to merge one that is not, say so and ask.
-- After the merge, the owner invokes `sync-project-state` — it refuses a state that is not
+- After the merge, the agent asks the owner and runs `sync-project-state` on their yes — it refuses a state that is not
   `Approved`, so approval can still be given at that point. A file left in `branch-states/` on
   `INT` means a fold is pending; reconciliation reports it.
 

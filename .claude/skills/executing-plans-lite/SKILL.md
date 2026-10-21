@@ -13,7 +13,7 @@ Implements a plan exactly as written, keeps the record current as it goes, and s
 
 ## Preconditions (stop if any fails)
 
-- Spec status is `Approved`; the plan has been reviewed by the operator; you are on a feature branch (never `INT` or the release branch).
+- Spec and plan are both `Approved (<name>, <date>)` (`lint.mjs plan <plan.md> --approved` passes); if the plan is not, stop and ask for approval (`AGENTS.md` § 8, gate 2). You are on a feature branch (never `INT` or the release branch).
 - Read `PROJECT_STATE.md` and the branch state in full. Your session has a row in the branch state's Sessions table.
 - Lint passes: `node .claude/skills/writing-specs-lite/scripts/lint.mjs plan <plan.md>` shows no errors.
 - The working tree is clean and `<BUILD>` is green before the first task (record the baseline; a red start is not yours to hide).
@@ -48,7 +48,7 @@ Never silently change scope, weaken a test, or tick a box for work not done.
 2. `<BUILD>` is green; each F/N has a passing test or a recorded manual check (state plainly which checks you could not run).
 3. Run a code review of the branch diff (the `code-review` skill) and fix confirmed findings, or record them as Deviations.
 4. Branch state: workstream `In review`, session rows deleted, Changes lines complete, new Known Gaps, Conventions and Deviations written, Handover items marked, `guide out of date: <what>` if the guide is affected.
-5. Tell the project owner the branch is ready. Never set `Approved`, never merge.
+5. **Ask for review** (`AGENTS.md` § 8, gate 3). Stop and ask one question: what was built, the checks run and not run, open Deviations and Handover items. Do not push, open a PR or merge. On the operator's yes in chat, write `Status: Approved` and `Approved: <name> <date>` in the branch state and commit it, then ask separately whether to push and open the PR (a `GATE:` step). A clean code review or build is not a yes.
 
 ## Resuming a half-done plan
 
