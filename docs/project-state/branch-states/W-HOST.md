@@ -9,7 +9,7 @@ in after the branch merges.
 - **Owner:** project owner
 - **Status:** Draft
 - **Approved:** —
-- **Last updated:** 2026-10-21 by GPT-5 — owner approved plan; T1 implementation started
+- **Last updated:** 2026-10-21 by GPT-5 — owner approved plan; T1 implementation resumed
 
 ---
 
