@@ -1,6 +1,7 @@
 # W-HOST Backend Integration Implementation Plan
 
 - **Status:** Approved (teleifo, 2026-10-22)
+- **Amended 2026-10-22:** Added prerequisite T0 with operator approval C~17; all service-dependent API tasks now depend on T0.
 
 > **For agents:** tick `- [ ]` to `- [x]` as each step is completed, in the same commit as the work. Keep the W-HOST branch state's Progress cell current. Spec: [W-HOST Backend Integration Design](../specs/2026-10-22-w-host-backend-integration-design.md).
 
@@ -8,7 +9,7 @@
 
 **Goal:** Replace Host production fixtures with an authenticated `/api/host/**` API and API-backed pages, preserving the approved UI.
 
-**In scope:** F1-F7; N1-N5. This includes active Host identity/ownership, bounded reads, listing/calendar/booking/message/wallet endpoints, and authenticated frontend state/mutations.
+**In scope:** F1-F7; N1-N6. This includes deterministic activation of existing persistence-backed services, active Host identity/ownership, bounded reads, listing/calendar/booking/message/wallet endpoints, and authenticated frontend state/mutations.
 
 **Non-goals:** Payment-provider integration (C75); AI features (Q6); polling/WebSockets (C78); visual redesign; wallet request idempotency (C~16 / SD12).
 
@@ -18,13 +19,14 @@
 
 | Task | Depends on | Can run concurrently with | Wave | Status |
 |---|---|---|---|---|
-| T1 Add Host identity resolver and stable error boundary | - | - | 1 | Done |
-| T2 Add listing API and detail projection | T1 | T3 | 2 | Blocked |
-| T3 Make calendar mutations atomic and expose calendar API | T1 | T2 | 2 | Not started |
-| T4 Serialize Host booking decisions | T1 | T5,T6 | 2 | Not started |
-| T5 Add distinct Host conversation APIs | T1 | T4,T6 | 2 | Not started |
-| T6 Add Host wallet API | T1 | T4,T5 | 2 | Not started |
-| T7 Add authenticated frontend Host API adapter | T1,T2,T3,T4,T5,T6 | - | 3 | Not started |
+| T0 Activate W-DOMAIN service beans deterministically | - | T1 | 1 | Not started |
+| T1 Add Host identity resolver and stable error boundary | - | T0 | 1 | Done |
+| T2 Add listing API and detail projection | T0,T1 | T3 | 2 | Not started |
+| T3 Make calendar mutations atomic and expose calendar API | T0,T1 | T2 | 2 | Not started |
+| T4 Serialize Host booking decisions | T0,T1 | T5,T6 | 2 | Not started |
+| T5 Add distinct Host conversation APIs | T0,T1 | T4,T6 | 2 | Not started |
+| T6 Add Host wallet API | T0,T1 | T4,T5 | 2 | Not started |
+| T7 Add authenticated frontend Host API adapter | T0,T1,T2,T3,T4,T5,T6 | - | 3 | Not started |
 | T8 Wire listing, calendar, and request screens | T2,T3,T4,T7 | - | 4 | Not started |
 | T9 Wire messages and wallet screens | T5,T6,T7,T8 | - | 5 | Not started |
 | T10 Verify integration and close the phase | T9 | - | 6 | Not started |
@@ -45,6 +47,7 @@
 | N3 | T1-T9 | controller contract tests and frontend API tests |
 | N4 | T1,T5,T6 | safe-error/log capture tests |
 | N5 | T2-T10 | bounded-query tests and browser network verification |
+| N6 | T0,T2 | `DomainServiceActivationTest`, `HostListingsControllerTest`, `ServerPortDefaultTest` |
 | E1,E2,E4,E5,E15,E22 | T1,T2 | `HostSecurityIntegrationTest`, `HostListingsControllerTest` |
 | E3 | T2-T6 | Host listing, calendar, booking, message, and wallet integration tests |
 | E6,E18 | T3 | `HostCalendarIntegrationTest` |
@@ -55,6 +58,8 @@
 | E17 | T2-T6 | paged repository/controller integration tests |
 | E21 | T8,T9 | Host text-rendering tests |
 | E23 | T7-T9 | Host mutation failure/recovery tests |
+| E24 | T0,T2 | `DomainServiceActivationTest`, `HostListingsControllerTest` |
+| E25 | T0 | `ServerPortDefaultTest`, `ServerPortOverrideTest` |
 
 ## Verification gates
 
@@ -63,6 +68,47 @@
 - Before finishing: `cd backend && ./gradlew build`, then `cd frontend && npm test && npm run lint && npm run build` (with the configured `NEXT_PUBLIC_API_BASE_URL`); every F/N acceptance criterion has a passing test or recorded manual check.
 
 ---
+
+### T0: Activate W-DOMAIN service beans deterministically
+
+**Delivers:** Deterministic property-controlled activation of persistence-backed beans, preserving database-free contexts | **Satisfies:** N6,E24,E25 | **Depends on:** - | **Wave:** 1
+
+**Files**
+
+| Action | Path | What changes |
+|---|---|---|
+| Modify | `backend/src/main/resources/application.yml` | Set `snoozeshare.persistence.enabled: true` as the application default. |
+| Modify | `backend/src/main/java/com/snoozeshare/repository/JdbcBookingMessageReadRepository.java` | Replace the repository-bean condition with the explicit property condition from spec `conventions.md`. |
+| Modify | `backend/src/main/java/com/snoozeshare/repository/JdbcLedgerRepository.java` | Replace the repository-bean condition with the explicit property condition from spec `conventions.md`. |
+| Modify | `backend/src/main/java/com/snoozeshare/repository/JdbcMessageReadRepository.java` | Replace the repository-bean condition with the explicit property condition from spec `conventions.md`. |
+| Modify | `backend/src/main/java/com/snoozeshare/service/impl/AccountGovernanceServiceImpl.java` | Replace repository-bean condition with the explicit property condition; preserve service behavior. |
+| Modify | `backend/src/main/java/com/snoozeshare/service/impl/AuditServiceImpl.java` | Replace repository-bean condition with the explicit property condition; preserve service behavior. |
+| Modify | `backend/src/main/java/com/snoozeshare/service/impl/AvailabilityServiceImpl.java` | Replace repository-bean condition with the explicit property condition; preserve service behavior. |
+| Modify | `backend/src/main/java/com/snoozeshare/service/impl/BookingConversationServiceImpl.java` | Replace repository-bean condition with the explicit property condition; preserve service behavior. |
+| Modify | `backend/src/main/java/com/snoozeshare/service/impl/BookingServiceImpl.java` | Replace repository-bean condition with the explicit property condition; preserve service behavior. |
+| Modify | `backend/src/main/java/com/snoozeshare/service/impl/DisputeQueryServiceImpl.java` | Replace repository-bean condition with the explicit property condition; preserve service behavior. |
+| Modify | `backend/src/main/java/com/snoozeshare/service/impl/DisputeSettlementServiceImpl.java` | Replace repository-bean condition with the explicit property condition; preserve service behavior. |
+| Modify | `backend/src/main/java/com/snoozeshare/service/impl/LedgerWriter.java` | Replace repository-bean condition with the explicit property condition; preserve service behavior. |
+| Modify | `backend/src/main/java/com/snoozeshare/service/impl/ListingMetricsServiceImpl.java` | Replace repository-bean condition with the explicit property condition; preserve service behavior. |
+| Modify | `backend/src/main/java/com/snoozeshare/service/impl/ListingServiceImpl.java` | Replace repository-bean condition with the explicit property condition; preserve service behavior. |
+| Modify | `backend/src/main/java/com/snoozeshare/service/impl/MessageServiceImpl.java` | Replace repository-bean condition with the explicit property condition; preserve service behavior. |
+| Modify | `backend/src/main/java/com/snoozeshare/service/impl/ReviewServiceImpl.java` | Replace repository-bean condition with the explicit property condition; preserve service behavior. |
+| Modify | `backend/src/main/java/com/snoozeshare/service/impl/TicketServiceImpl.java` | Replace repository-bean condition with the explicit property condition; preserve service behavior. |
+| Modify | `backend/src/main/java/com/snoozeshare/service/impl/TransactionServiceImpl.java` | Replace repository-bean condition with the explicit property condition; preserve service behavior. |
+| Modify | `backend/src/main/java/com/snoozeshare/service/impl/UserServiceImpl.java` | Replace repository-bean condition with the explicit property condition; preserve service behavior. |
+| Modify | `backend/src/main/java/com/snoozeshare/service/impl/WalletServiceImpl.java` | Replace repository-bean condition with the explicit property condition; preserve service behavior. |
+| Test | `backend/src/test/java/com/snoozeshare/DomainServiceActivationTest.java` | Without overriding the `application.yml` default, assert all 15 named service contracts and three named JDBC adapters register (E24). |
+| Modify | `backend/src/test/java/com/snoozeshare/ServerPortDefaultTest.java` | Disable persistence beans in its JPA-excluded context and assert they are absent (E25). |
+| Modify | `backend/src/test/java/com/snoozeshare/ServerPortOverrideTest.java` | Disable persistence beans in its JPA-excluded context and assert they are absent (E25). |
+
+**Checklist**
+
+- [ ] 1. Add failing E24/E25 context assertions and run `./gradlew test --tests 'com.snoozeshare.DomainServiceActivationTest' --tests 'com.snoozeshare.ServerPortDefaultTest' --tests 'com.snoozeshare.ServerPortOverrideTest'`; verify database-backed service activation fails before the fix.
+- [ ] 2. Set `snoozeshare.persistence.enabled: true` in `application.yml`; replace `@ConditionalOnBean(PropertyRepository.class)` on all 15 service-contract implementations, `LedgerWriter`, and 3 JDBC adapters with `@ConditionalOnProperty(name = "snoozeshare.persistence.enabled", havingValue = "true", matchIfMissing = false)`.
+- [ ] 3. Set the property to `false` in the two database-free server tests; assert excluded service/adapters are absent there.
+- [ ] 4. Run the named context tests; verify default-on E24 service/adapters and explicit-off E25. T2 separately verifies Host controller startup with the activated `ListingService`.
+- [ ] 5. Run `./gradlew checkstyleMain checkstyleTest` and `./gradlew build` from `backend/`.
+- [ ] 6. Update branch-state Progress and Changes; commit `fix: activate W-DOMAIN services deterministically`.
 
 ### T1: Add Host identity resolver and stable error boundary
 
@@ -89,7 +135,7 @@
 
 ### T2: Add listing API and detail projection
 
-**Delivers:** Owned listing collection/detail/create/update/status and metrics composition | **Satisfies:** F1,N1,N3 | **Depends on:** T1 | **Wave:** 2
+**Delivers:** Owned listing collection/detail/create/update/status and metrics composition | **Satisfies:** F1,N1,N3 | **Depends on:** T0,T1 | **Wave:** 2
 
 **Files**
 
@@ -100,21 +146,22 @@
 | Modify | `backend/src/main/java/com/snoozeshare/api/response/PageResponse.java` | Continue the partial shared `{items,page,size,hasMore}` response. |
 | Modify | `backend/src/main/java/com/snoozeshare/api/request/CreateListingRequest.java` and `backend/src/main/java/com/snoozeshare/api/request/UpdateListingRequest.java` | Enforce the approved title maximum of 120 characters and description maximum of 5,000 characters with Bean Validation. |
 | Modify | `backend/src/main/java/com/snoozeshare/repository/PropertyRepository.java` (`findByHostId`) | Add deterministic pageable Host query with `createdAt DESC, id ASC`. |
-| Modify | `backend/src/main/java/com/snoozeshare/service/ListingService.java` and `backend/src/main/java/com/snoozeshare/service/impl/ListingServiceImpl.java` (`findByHostId`) | Expose bounded Host page read; preserve existing create/update/status authorization and audit behavior. |
-| Test | `backend/src/test/java/com/snoozeshare/api/host/HostListingsControllerTest.java` | JSON contracts, create/update/status, validation, owned/not-owned results (E3,E4,E5). |
-| Test | `backend/src/test/java/com/snoozeshare/repository/PropertyRepositoryTest.java` | Host-scoped stable ordering and page-size/`hasMore` bound (E17). |
+| Create | `backend/src/main/java/com/snoozeshare/repository/OffsetLimitPageable.java` | Provide `Pageable` with `getOffset() = (long) page * requestedSize` and `getPageSize() = requestedSize + 1`, preserving zero-based page boundaries while fetching the extra row. |
+| Modify | `backend/src/main/java/com/snoozeshare/service/ListingService.java` and `backend/src/main/java/com/snoozeshare/service/impl/ListingServiceImpl.java` (`findByHostId`) | Expose bounded Host page read using `OffsetLimitPageable(page, size)`; preserve existing create/update/status authorization and audit behavior. |
+| Test | `backend/src/test/java/com/snoozeshare/api/host/HostListingsControllerTest.java` | JSON contracts, create/update/status, validation, owned/not-owned results (E3,E4,E5), page 0/page 1 continuity, and controller startup with activated `ListingService` (E24). |
+| Test | `backend/src/test/java/com/snoozeshare/repository/PropertyRepositoryTest.java` | Host-scoped stable ordering, `size + 1` query bound, and zero-based page offsets without skipped or duplicated rows (E17). |
 
 **Checklist**
 
-- [ ] 1. Write failing repository/controller tests for E3-E5 and E17; verify another Host cannot read or mutate a listing and the repository returns no more than `size + 1` rows.
-- [ ] 2. Add page query, service projection, composite detail response, and controller routes from `api.md`; retain Bean Validation and reject unknown JSON fields.
-- [ ] 3. Run the named tests; verify deterministic `createdAt DESC, id ASC`, exact 404 `NOT_FOUND`, and no entity serialization.
+- [ ] 1. Write failing repository/controller tests for E3-E5, E17, and E24; verify another Host cannot read or mutate a listing, page 1 begins at row `size` with no gap/duplicate, and the bounded query returns at most `size + 1` rows.
+- [ ] 2. Add `OffsetLimitPageable(page, size)` with offset `page * size` and limit `size + 1`; use it in the Host listing query, then add the composite detail response and controller routes from `api.md`; retain Bean Validation and reject unknown JSON fields.
+- [ ] 3. Run the named tests; verify deterministic `createdAt DESC, id ASC`, exact 404 `NOT_FOUND`, no entity serialization, and controller startup with the activated service.
 - [ ] 4. Run backend Checkstyle (`./gradlew checkstyleMain checkstyleTest`) and build.
 - [ ] 5. Update branch state; commit `feat: add Host listing API`.
 
 ### T3: Make calendar mutations atomic and expose calendar API
 
-**Delivers:** Month projection, inclusive date conversion, serializable block writes/removals with one fresh-transaction retry, audit/event behavior | **Satisfies:** F2,N1-N3 | **Depends on:** T1 | **Wave:** 2
+**Delivers:** Month projection, inclusive date conversion, serializable block writes/removals with one fresh-transaction retry, audit/event behavior | **Satisfies:** F2,N1-N3 | **Depends on:** T0,T1 | **Wave:** 2
 
 **Files**
 
@@ -136,7 +183,7 @@
 
 ### T4: Serialize Host booking decisions
 
-**Delivers:** Booking row lock, post-lock state validation, deterministic conflict result | **Satisfies:** F3,N1,N2 | **Depends on:** T1 | **Wave:** 2
+**Delivers:** Booking row lock, post-lock state validation, deterministic conflict result | **Satisfies:** F3,N1,N2 | **Depends on:** T0,T1 | **Wave:** 2
 
 **Files**
 
@@ -158,7 +205,7 @@
 
 ### T5: Add distinct Host conversation APIs
 
-**Delivers:** Separate booking/ticket routes, transactional message/read behavior, after-commit events | **Satisfies:** F4,N1,N3,N4 | **Depends on:** T1 | **Wave:** 2
+**Delivers:** Separate booking/ticket routes, transactional message/read behavior, after-commit events | **Satisfies:** F4,N1,N3,N4 | **Depends on:** T0,T1 | **Wave:** 2
 
 **Files**
 
@@ -181,7 +228,7 @@
 
 ### T6: Add Host wallet API
 
-**Delivers:** Wallet statement/balance projection and mocked operations through existing transaction, row-lock, ledger, and audit behavior; no schema migration | **Satisfies:** F5,N1-N4 | **Depends on:** T1 | **Wave:** 2
+**Delivers:** Wallet statement/balance projection and mocked operations through existing transaction, row-lock, ledger, and audit behavior; no schema migration | **Satisfies:** F5,N1-N4 | **Depends on:** T0,T1 | **Wave:** 2
 
 **Files**
 
@@ -204,7 +251,7 @@
 
 ### T7: Add authenticated frontend Host API adapter
 
-**Delivers:** Typed requests, Firebase token attachment, paging, safe errors, shared provider contract | **Satisfies:** F6,F7,N3-N5 | **Depends on:** T1,T2,T3,T4,T5,T6 | **Wave:** 3
+**Delivers:** Typed requests, Firebase token attachment, paging, safe errors, shared provider contract | **Satisfies:** F6,F7,N3-N5 | **Depends on:** T0,T1,T2,T3,T4,T5,T6 | **Wave:** 3
 
 **Files**
 
