@@ -38,6 +38,8 @@ IDs are permanent: never reuse or renumber. Every F/N requirement and API error 
 | E21 | F1,F4,N4 | Listing text or message contains HTML/script-like content | Store/display as text; React renders escaped text; no raw HTML execution. | Prevent stored script injection. | frontend/integration |
 | E22 | N1,N4 | Auth profile exists but matching domain user is absent or role/status/UID differs | Return 409 `PROFILE_INCONSISTENT`, log request ID and safe code only, no domain operation. | Detect split-profile drift without trusting either client data or mismatched records. | controller |
 | E23 | F5,F6,F7 | A wallet, listing, block, decision, or message mutation returns an API error | Keep prior server state, show the safe mapped message, and do not automatically retry wallet mutations; after an ambiguous wallet failure refresh wallet data before another explicit operation. | Prevent fixture-era optimism and accidental duplicate wallet operations. | frontend |
+| E24 | N6 | Database-backed application starts without an explicit persistence property | `application.yml` supplies `true`; all 15 service contracts and the three named JDBC adapters register. T2's Host listing controller integration test also starts with `ListingService` injected. | Prevent Host APIs from failing at startup despite valid persistence configuration and guard against a changed implicit default. | integration |
+| E25 | N6 | Server-only test excludes datasource and JPA auto-configuration | With `snoozeshare.persistence.enabled=false`, context starts without any of the 15 named service contracts or the three named JDBC adapters. | Preserve intentionally database-free startup tests. | integration |
 
 ## What could corrupt data (High tier)
 

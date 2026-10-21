@@ -2,10 +2,11 @@
 
 - **Status:** Approved (teleifo, 2026-10-22)
 - **Risk tier:** High - this crosses authenticated role authorization, host tenancy, booking state, messaging, and wallet operations.
-- **Workstream:** W-HOST-API | **Plan:** —
+- **Workstream:** W-HOST-API | **Plan:** [implementation plan](../plans/2026-10-22-w-host-backend-integration.md)
 - **Constraints consulted:** C67, C70, C73, C75, C78, C79, C89, C92; § Known Gaps (mocked top-up/withdraw, backend authorization authoritative); § Conventions (audit, money, service authorization, Testcontainers)
 - **Reviewed by lenses:** Implementer, Tester / QA, Maintainer, and Attacker (prior to the C~16 wallet-contract amendment); second-round findings addressed. Review-round cap reached; the amended wallet contract is recorded for operator approval, not independently re-reviewed.
 - **Amended 2026-10-22:** Operator reversed the wallet idempotency default; see branch-state C~16.
+- **Amended and approved 2026-10-22:** Add deterministic persistence-backed service activation prerequisite; operator approval recorded as branch-state C~17.
 
 ## 1. Problem
 
@@ -21,6 +22,7 @@ The complete requirement set is in [requirements](2026-10-22-w-host-backend-inte
 
 - Changes to existing domain tables - W-DOMAIN owns those tables; this phase adds no wallet idempotency table or other persistent retry state.
 - Payment-provider integration - top-up and withdrawal remain mocked by project decision (C75 and § Known Gaps).
+- Changes to W-DOMAIN service semantics, repository contracts, schema, or domain rules - this prerequisite changes only Spring bean activation.
 - Host or Agent AI features - unresolved Q6 blocks those workstreams.
 - Polling, WebSockets, or background synchronization - the first integration is request/response; polling remains the later platform convention (C78).
 - Visual redesign of the completed Host UI - preserve the approved Fall Light contract.
@@ -32,7 +34,7 @@ The complete requirement set is in [requirements](2026-10-22-w-host-backend-inte
 - [UI](2026-10-22-w-host-backend-integration-design/ui.md) - fixture-to-API state and mutation behavior for each Host screen.
 - [Conventions](2026-10-22-w-host-backend-integration-design/conventions.md) - applied security, identity, money, error, and testing rules.
 - [Edge cases](2026-10-22-w-host-backend-integration-design/edge-cases.md) - security, state, concurrency, and failure cases.
-- [Implementation order](2026-10-22-w-host-backend-integration-design/implementation-order.md) - dependency-ordered work.
+- [Implementation order](2026-10-22-w-host-backend-integration-design/implementation-order.md) - dependency-ordered work, including the persistence activation prerequisite.
 - [Data model](2026-10-22-w-host-backend-integration-design/data-model.md) - confirms no schema change and defines exact response value shapes.
 
 ## 5. Open questions
@@ -57,3 +59,4 @@ The complete requirement set is in [requirements](2026-10-22-w-host-backend-inte
 | SD10 | Superseded by SD12: wallet idempotency keys and persistent replay records are not part of this workstream. | The operator reversed this earlier default; retain the ID as history and do not implement it. | Project owner, explicit reversal |
 | SD11 | Every collection, message-history, and wallet-statement page uses owner-scoped database pagination with deterministic ordering and at most `size + 1` rows fetched. | The existing unpaged service lists cannot safely meet a bounded-page contract by slicing in memory; unbounded reads are rejected. | Project owner approved bounded paging default; second-round review identified the missing query contract |
 | SD12 | Do not add wallet request idempotency: no `Idempotency-Key`, key table, payload hash, or replay response. Each accepted request is a separate mocked wallet operation; the UI does not automatically retry and refreshes the wallet after an ambiguous failure. | The operator explicitly said wallet idempotency is unnecessary; persistent deduplication and its schema/API complexity are rejected. Existing transactional ledger writes and wallet row locking remain. | Project owner, explicit reversal of C~15 / SD7 / SD10 |
+| SD13 | Existing W-DOMAIN JDBC adapters and service implementations activate from an explicit `snoozeshare.persistence.enabled` property, defaulting to `true`; database-free contexts set it to `false`. Activation must not depend on Spring Data repository bean-definition ordering. | T2 showed the existing `@ConditionalOnBean(PropertyRepository.class)` checks suppress services before JPA repositories register. A deterministic property condition preserves the no-database test context without bypassing services or changing their behavior. Deferring the prerequisite to another workstream was rejected because every Host API task depends on these services. | Project owner approved amending W-HOST-API and continuing |
