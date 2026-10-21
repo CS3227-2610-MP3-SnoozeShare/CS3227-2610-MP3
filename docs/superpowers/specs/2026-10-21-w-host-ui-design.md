@@ -5,6 +5,7 @@
 - **Workstream:** W-HOST | **Plan:** —
 - **Constraints consulted:** C73 (web DTO boundary), C79 (role namespaces), C93 (existing role navbar and empty shells), C~1 in the W-HOST branch state (Claude artifact is the visual source of truth); W-DOMAIN ownership of domain persistence and wallet operations; client-side route guards are not the backend authorization boundary.
 - **Reviewed by lenses:** Implementer, Tester, Attacker (two rounds; findings resolved)
+- **Amendment (2026-10-21):** Owner-directed visual parity corrections for full-width Host pages, complete calendar, form presentation, and artifact page details; see the W-HOST branch state.
 
 ## 1. Problem
 

@@ -12,6 +12,8 @@ Reference: the supplied [Claude artifact](https://claude.ai/artifact/PWBCxbfv9e9
 
 Navigation: `/host` redirects to `/host/listings`; tab links enter `/host/listings`, `/host/requests`, `/host/messages`, and `/host/wallet`. The active tab has rust underline and emphasized text.
 
+All Host content pages use the full available viewport width with consistent page-edge padding; do not cap the main page frame at a centered maximum width.
+
 `/host` redirects to `/host/listings`. The shell wallet badge reads `Wallet: $3,920.50` in the populated fixture, `Wallet: $0.00` in the empty fixture, `Wallet: —` in loading, and `Wallet: unavailable` in error. The `RoleNavbar` route map is shared, but only the Host route values change in this slice; Guest and Agent route values remain unchanged.
 
 ## Fixture contract
@@ -72,7 +74,7 @@ Rows use the artifact fixture content: Lakeside Cabin, Downtown Loft, Garden Stu
 | Empty | Shell and not-found card | Back to Listings | `Listing not found` | HOST |
 | Loading | Shell, breadcrumb skeleton, hero/card skeletons | None | No fixture values | HOST |
 | Error | Shell and error card | Back, Retry | `Unable to load this listing.` | HOST |
-| Populated | Breadcrumbs; title/status/address; metric strip; description; amenities; reviews; Performance card with Total bookings, Occupancy (30d), Earnings (30d) | Listings breadcrumb, `Open Booking Calendar`, `Edit listing` | `Host workspace`, `AMENITIES`, `REVIEWS`, `Performance` | HOST |
+| Populated | Breadcrumbs; title/type/status/address; metric strip; description; amenities; rating and review excerpts; Performance card with Total bookings, Occupancy (30d), Earnings (30d) | Listings breadcrumb, `Open Booking Calendar`, `Edit listing` | `Host workspace`, `AMENITIES`, `REVIEWS`, `Performance` | HOST |
 
 ## Host — New/Edit Listing (`/host/listings/new`, `/host/listings/:listingId/edit`)
 
@@ -83,7 +85,7 @@ Rows use the artifact fixture content: Lakeside Cabin, Downtown Loft, Garden Stu
 | Error | Form remains visible with inline error summary | Retry, Cancel | `Unable to load this listing.` | HOST |
 | Populated | Two-column layout: left Basic Details + Location; right Capacity & Pricing + Amenities. Breadcrumbs above; Save/Cancel below | Text inputs, text area, Property type dropdown, Status dropdown, numeric/time fields, amenity checkboxes, `Save listing`, `Cancel` | Section labels exactly `BASIC DETAILS`, `LOCATION`, `CAPACITY & PRICING`, `AMENITIES` | HOST |
 
-Until W-DOMAIN exists, Save and status controls are presentation-only. Required fields are Title, Description, Property type, Status, Street address, City, Region, Postal code, Max guests, Bedrooms, Bathrooms, Rate / night, Check-in time, and Check-out time. Numeric validation is: Max guests ≥ 1 integer; Bedrooms ≥ 0 integer; Bathrooms ≥ 0 integer; Rate / night > 0 with at most two decimal places. Exact validation messages are `Title is required`, `Description is required`, `Street address is required`, `City is required`, `Region is required`, `Postal code is required`, `Max guests must be at least 1`, `Bedrooms cannot be negative`, `Bathrooms cannot be negative`, and `Rate / night must be positive with at most 2 decimal places`. Save validates the local form and returns to `/host/listings/lakeside-cabin` for the supplied edit fixture or `/host/listings` for the new-listing form; status changes reset on reload. A missing edit fixture renders only the not-found card and does not render the form.
+Until W-DOMAIN exists, Save and status controls are presentation-only. Edit form amenities reflect the fixture's saved selection; status choices display `Active` / `Inactive` (not lowercase values), and editable values use normal font weight while field labels remain emphasized. Required fields are Title, Description, Property type, Status, Street address, City, Region, Postal code, Max guests, Bedrooms, Bathrooms, Rate / night, Check-in time, and Check-out time. Numeric validation is: Max guests ≥ 1 integer; Bedrooms ≥ 0 integer; Bathrooms ≥ 0 integer; Rate / night > 0 with at most two decimal places. Exact validation messages are `Title is required`, `Description is required`, `Street address is required`, `City is required`, `Region is required`, `Postal code is required`, `Max guests must be at least 1`, `Bedrooms cannot be negative`, `Bathrooms cannot be negative`, and `Rate / night must be positive with at most 2 decimal places`. Save validates the local form and returns to `/host/listings/lakeside-cabin` for the supplied edit fixture or `/host/listings` for the new-listing form; status changes reset on reload. A missing edit fixture renders only the not-found card and does not render the form.
 
 ## Host — Booking Calendar (`/host/listings/:listingId/calendar`)
 
@@ -92,9 +94,9 @@ Until W-DOMAIN exists, Save and status controls are presentation-only. Required 
 | Empty | Month grid with no booked/blocked dates and empty Current overrides | Month navigation, date fields, reason field, block action | `No current overrides` | HOST |
 | Loading | Shell, breadcrumb, legend, grid, and form skeletons | None | No fixture values | HOST |
 | Error | Shell and calendar error card | Retry, Listings | `Unable to load the booking calendar.` | HOST |
-| Populated | Breadcrumbs; September 2026 grid; legend Available/Booked/Blocked/Other month; Block dates form; Current overrides with `Oct 3 – Oct 5` | Previous/next month, From, To, Reason, `Block these dates`, remove presentation control | `Block dates`, `Current overrides`, `FROM`, `TO`, `Reason (optional)` | HOST |
+| Populated | Breadcrumbs; complete five-week September 2026 grid with weekday headings; legend Available/Booked/Blocked/Other month; Block dates form; Current overrides with `Oct 3 – Oct 5` | Previous/next month, From, To, Reason, `Block these dates`, remove presentation control | `Block dates`, `Current overrides`, `FROM`, `TO`, `Reason (optional)` | HOST |
 
-Calendar day states are represented by color plus text/accessible state. The artifact's compact seven-column grid and right-side block panel are preserved.
+Calendar day states are represented by color plus text/accessible state. The artifact's compact seven-column grid and right-side block panel are preserved. The month arrows navigate local calendar presentation only; they do not mutate availability.
 
 ## Host — Requests (`/host/requests`)
 
@@ -103,7 +105,7 @@ Calendar day states are represented by color plus text/accessible state. The art
 | Empty | `Booking requests` heading, zero-pending indicator, empty pending and past sections | None | `No pending requests` and `No past requests` | HOST |
 | Loading | Heading, pending count skeleton, pending and past table skeletons | None | No fixture values | HOST |
 | Error | Heading plus page error card | Retry | `Unable to load booking requests.` | HOST |
-| Populated | `Booking requests`, `3 pending`, pending table, explanatory net-earning note, past requests table | Approve/Reject presentation controls | Columns: `GUEST`, `LISTING`, `DATES`, `NIGHTS`, `GROSS`, `NET EARNING`, `GUEST RATING`, `ACTION`; note `Net earning = gross − 3% platform fee.` | HOST |
+| Populated | `Booking requests`, `3 pending`, pending table, explanatory net-earning note, past requests table | Approve/Reject presentation controls | Pending columns: `GUEST`, `LISTING`, `DATES`, `NIGHTS`, `GROSS`, `NET EARNING`, `GUEST RATING`, `ACTION`; past columns: `GUEST`, `LISTING`, `DATES`, `NIGHTS`, `TOTAL`, `STATUS`; note `Net earning = gross − 3% platform fee.` | HOST |
 
 ## Shared Host — Messages (`/host/messages`)
 
@@ -112,7 +114,7 @@ Calendar day states are represented by color plus text/accessible state. The art
 | Empty | Shell, `Messages` heading, empty list and empty conversation panel | None | `No messages yet.` | HOST |
 | Loading | Conversation-list and thread skeletons | None | No fixture values | HOST |
 | Error | List area error with thread area preserved | Retry | `Unable to load messages.` | HOST |
-| Populated | Left conversation list; right selected thread. Rows distinguish Direct message and Support Agent ticket; thread shows sender, body, composer | Conversation selection, message input, Send presentation control | `Messages`, `Direct message`, `Ticket`, `Send` | HOST |
+| Populated | Left conversation list; right selected thread. Rows distinguish Direct message and Support Agent ticket; thread shows sender, body, composer | Conversation selection, message input, Send presentation control; no New Ticket action for Hosts | `Messages`, `Direct message`, `Ticket`, `Send` | HOST |
 
 ## Shared Host — Wallet (`/host/wallet`)
 
