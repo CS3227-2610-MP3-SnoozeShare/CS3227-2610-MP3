@@ -7,7 +7,9 @@ import { HostListingDetail } from './HostListingDetail';
 import { HostListingForm } from './HostListingForm';
 import HostListingsPage from '@/app/host/listings/page';
 import NewListingPage from '@/app/host/listings/new/page';
+import HostListingPage from '@/app/host/listings/[listingId]/page';
 import EditListingPage from '@/app/host/listings/[listingId]/edit/page';
+import HostCalendarPage from '@/app/host/listings/[listingId]/calendar/page';
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }), useParams: () => ({ listingId: 'lakeside-cabin' }) }));
 
@@ -183,5 +185,19 @@ describe('Host listing components', () => {
     rerender(<HostFixtureProvider><EditListingPage /></HostFixtureProvider>);
     expect(screen.getByRole('navigation', { name: 'Breadcrumb' })).toHaveTextContent(/Listings\s*›\s*Lakeside Cabin\s*›\s*Edit/);
     expect(screen.getByRole('navigation', { name: 'Breadcrumb' })).toHaveClass('gap-2');
+  });
+
+  it('uses the same chevron breadcrumb path and styling on listing detail and calendar pages', () => {
+    const { rerender } = render(<HostFixtureProvider><HostListingPage /></HostFixtureProvider>);
+    let breadcrumb = screen.getByRole('navigation', { name: 'Breadcrumb' });
+    expect(breadcrumb).toHaveTextContent(/Listings\s*›\s*Lakeside Cabin/);
+    expect(breadcrumb).toHaveClass('mb-4', 'gap-2', 'text-xs', 'text-[var(--text-subtle)]');
+    expect(breadcrumb.querySelectorAll('[aria-hidden="true"]')).toHaveLength(1);
+
+    rerender(<HostFixtureProvider><HostCalendarPage /></HostFixtureProvider>);
+    breadcrumb = screen.getByRole('navigation', { name: 'Breadcrumb' });
+    expect(breadcrumb).toHaveTextContent(/Listings\s*›\s*Lakeside Cabin\s*›\s*Booking calendar/);
+    expect(breadcrumb).toHaveClass('mb-4', 'gap-2', 'text-xs', 'text-[var(--text-subtle)]');
+    expect(breadcrumb.querySelectorAll('[aria-hidden="true"]')).toHaveLength(2);
   });
 });
