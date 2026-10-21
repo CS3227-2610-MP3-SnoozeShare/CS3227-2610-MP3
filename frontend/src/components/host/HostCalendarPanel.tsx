@@ -34,8 +34,9 @@ export function HostCalendarPanel({ calendar }: { calendar: CalendarData }) {
     });
   })();
   const rangeText = `${formatDate(from)} – ${formatDate(to)}`;
-  const pickerStart = new Date(pickerMonth.getFullYear(), pickerMonth.getMonth(), 1 - pickerMonth.getDay());
-  const pickerRows = Math.ceil((pickerMonth.getDay() + new Date(pickerMonth.getFullYear(), pickerMonth.getMonth() + 1, 0).getDate()) / 7);
+  const pickerFirst = new Date(pickerMonth.getFullYear(), pickerMonth.getMonth(), 1);
+  const pickerStart = new Date(pickerFirst.getFullYear(), pickerFirst.getMonth(), 1 - pickerFirst.getDay());
+  const pickerRows = Math.ceil((pickerFirst.getDay() + new Date(pickerFirst.getFullYear(), pickerFirst.getMonth() + 1, 0).getDate()) / 7);
   const pickerDays = Array.from({ length: pickerRows * 7 }, (_, index) => {
     const date = new Date(pickerStart.getFullYear(), pickerStart.getMonth(), pickerStart.getDate() + index);
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -62,9 +63,9 @@ export function HostCalendarPanel({ calendar }: { calendar: CalendarData }) {
     <section aria-label="Booking calendar and date blocking" className="grid overflow-hidden rounded-xl border border-border bg-white shadow-sm lg:grid-cols-[minmax(0,2.6fr)_minmax(300px,1fr)]">
       <div className="bg-[var(--canvas)] px-4 py-5 md:px-6">
         <div aria-label="Calendar month and status legend" className="mb-4 flex flex-wrap items-center justify-between gap-4" role="group">
-          <div className="flex items-center gap-3">
+          <div className="grid w-52 shrink-0 grid-cols-[2rem_minmax(0,1fr)_2rem] items-center">
             <button aria-label="Previous month" className="grid h-7 w-7 place-items-center rounded-md border border-border text-base leading-none hover:bg-[var(--surface-inset)]" onClick={() => setMonthOffset((offset) => offset - 1)} type="button">‹</button>
-            <h2 className="text-base font-semibold leading-tight">{monthLabel}</h2>
+            <h2 className="text-center text-base font-semibold leading-tight">{monthLabel}</h2>
             <button aria-label="Next month" className="grid h-7 w-7 place-items-center rounded-md border border-border text-base leading-none hover:bg-[var(--surface-inset)]" onClick={() => setMonthOffset((offset) => offset + 1)} type="button">›</button>
           </div>
           <div aria-label="Calendar status legend" className="flex flex-wrap gap-x-3 gap-y-2 text-xs" role="list">
@@ -84,7 +85,7 @@ export function HostCalendarPanel({ calendar }: { calendar: CalendarData }) {
         <div className="space-y-3">
           <div className="relative space-y-1">
             <label className="text-xs font-semibold" htmlFor="date-range">Date range</label>
-            <button aria-label={`Date range: ${rangeText}`} aria-expanded={datePickerOpen} aria-haspopup="dialog" className="flex h-9 w-full items-center rounded-lg border border-input bg-background px-2 text-left text-sm font-normal hover:bg-[var(--surface-inset)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" id="date-range" onClick={() => { setPickerMonth(new Date(`${from}T12:00:00`)); setDatePickerOpen((value) => !value); }} type="button">{rangeText}</button>
+            <button aria-label={`Date range: ${rangeText}`} aria-expanded={datePickerOpen} aria-haspopup="dialog" className="flex h-9 w-full items-center rounded-lg border border-input bg-background px-2 text-left text-sm font-normal hover:bg-[var(--surface-inset)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" id="date-range" onClick={() => { const selectedStart = new Date(`${from}T12:00:00`); setPickerMonth(new Date(selectedStart.getFullYear(), selectedStart.getMonth(), 1)); setDatePickerOpen((value) => !value); }} type="button">{rangeText}</button>
             {datePickerOpen && <div aria-label="Choose date range" className="absolute left-0 top-full z-20 mt-1 w-[min(20rem,calc(100vw-3rem))] rounded-lg border border-border bg-white p-3 shadow-lg" role="dialog">
               <div className="mb-2 flex items-center justify-between">
                 <button aria-label="Previous date-picker month" className="h-7 w-7 rounded-md hover:bg-[var(--surface-inset)]" onClick={() => setPickerMonth((value) => new Date(value.getFullYear(), value.getMonth() - 1, 1))} type="button">‹</button>

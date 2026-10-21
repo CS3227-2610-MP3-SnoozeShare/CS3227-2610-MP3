@@ -60,6 +60,20 @@ describe('Host calendar and requests', () => {
     expect(screen.queryByRole('dialog', { name: 'Choose date range' })).not.toBeInTheDocument();
   });
 
+  it('reopens the date picker with the selected dates on their correct weekdays', () => {
+    render(<HostCalendarPanel calendar={createHostFixtureAdapter().getCalendar('lakeside-cabin').data!} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Date range: Sep 15 – Sep 17' }));
+    fireEvent.click(screen.getByRole('button', { name: '16' }));
+    fireEvent.click(screen.getByRole('button', { name: '18' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Date range: Sep 16 – Sep 18' }));
+
+    const picker = screen.getByRole('dialog', { name: 'Choose date range' });
+    const dateButtons = within(picker).getAllByRole('button').filter((button) => /^\d+$/.test(button.textContent?.trim() ?? ''));
+    const septemberSixteenth = dateButtons.findIndex((button) => button.textContent?.trim() === '16');
+    expect(septemberSixteenth).toBeGreaterThanOrEqual(0);
+    expect(septemberSixteenth % 7).toBe(3); // September 16, 2026 is Wednesday (Sunday-first grid).
+  });
+
   it('uses the artifact calendar-state colors and taller day cells', () => {
     const calendar = createHostFixtureAdapter().getCalendar('lakeside-cabin').data!;
     render(<HostCalendarPanel calendar={calendar} />);
@@ -79,6 +93,24 @@ describe('Host calendar and requests', () => {
     expect(header).toContainElement(screen.getByText('Available'));
     expect(header.compareDocumentPosition(screen.getByRole('grid')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(screen.getByRole('region', { name: 'Booking calendar and date blocking' })).toHaveClass('lg:grid-cols-[minmax(0,2.6fr)_minmax(300px,1fr)]');
+  });
+
+  it('keeps month navigation arrows fixed around a centered month label', () => {
+    const calendar = createHostFixtureAdapter().getCalendar('lakeside-cabin').data!;
+    render(<HostCalendarPanel calendar={calendar} />);
+
+    const previous = screen.getByRole('button', { name: 'Previous month' });
+    const next = screen.getByRole('button', { name: 'Next month' });
+    const navigation = previous.parentElement!;
+    expect(navigation).toHaveClass('grid', 'w-52', 'grid-cols-[2rem_minmax(0,1fr)_2rem]');
+    expect(navigation.children[0]).toBe(previous);
+    expect(navigation.children[1]).toHaveClass('text-center');
+    expect(navigation.children[2]).toBe(next);
+
+    for (let month = 0; month < 4; month += 1) fireEvent.click(previous);
+    expect(screen.getByRole('heading', { name: 'May 2026' })).toBeInTheDocument();
+    expect(previous.parentElement).toBe(navigation);
+    expect(next.parentElement).toBe(navigation);
   });
 
   it('renders a complete five-week calendar with weekday headings', () => {
