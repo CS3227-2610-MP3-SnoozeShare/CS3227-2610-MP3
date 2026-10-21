@@ -106,6 +106,26 @@ class AuthRegistrationIntegrationTest extends PostgresIntegrationTest {
     }
 
     @Test
+    void registrationCodeLongerThan128CharactersIsRejectedWithoutAnyWrite() throws Exception {
+        mockMvc.perform(post("/api/auth/register")
+                .header("Authorization", "Bearer " + token)
+                .contentType("application/json")
+                .content("{\"role\":\"HOST\",\"registrationCode\":\"" + "x".repeat(129) + "\"}"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+        Integer users = jdbc.queryForObject(
+            "select count(*) from users where firebase_uid = ?", Integer.class, token);
+        org.assertj.core.api.Assertions.assertThat(users).isZero();
+
+        mockMvc.perform(post("/api/auth/register")
+                .header("Authorization", "Bearer " + token)
+                .contentType("application/json")
+                .content("{\"role\":\"HOST\",\"registrationCode\":\"" + "x".repeat(128) + "\"}"))
+            .andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.code").value("INVALID_REGISTRATION_CODE"));
+    }
+
+    @Test
     void publicPreflightCannotBypassFinalAuthenticatedCodeCheck() throws Exception {
         mockMvc.perform(post("/api/auth/registration-code/validate")
                 .contentType("application/json")
