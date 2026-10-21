@@ -29,17 +29,20 @@ describe('Host messages and wallet', () => {
   it('renders the exact conversations and disables resolved composer', () => {
     const conversations = createHostFixtureAdapter().getMessages().data!;
     render(<HostMessagesPanel conversations={conversations} />);
-    expect(screen.getByText(/Question about check-in/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Lakeside Cabin · Oct 3–6/ })).toBeInTheDocument();
     expect(screen.getByPlaceholderText('Write a message…')).not.toBeDisabled();
     fireEvent.click(screen.getByRole('button', { name: /Ticket #1042/ }));
     expect(screen.getByPlaceholderText('Write a message…')).toBeDisabled();
+    const notice = screen.getByText('This conversation is resolved and read-only.');
+    expect(notice).toHaveClass('rounded-md', 'px-3', 'py-2');
+    expect(notice.parentElement).toBe(screen.getByPlaceholderText('Write a message…').parentElement?.parentElement);
   });
 
   it('shows booking context in the thread header and visually separates each sender', () => {
     render(<HostMessagesPanel conversations={createHostFixtureAdapter().getMessages().data!} />);
 
     expect(screen.getByRole('heading', { name: 'Lakeside Cabin · Oct 3–6' })).toBeInTheDocument();
-    expect(screen.getAllByText('Direct message with Jane G. (Guest) · Booking request')).toHaveLength(2);
+    expect(screen.getAllByText('Booking #B-2291 · Direct message with Jane G. (Guest)')).toHaveLength(2);
     const incoming = screen.getAllByRole('group', { name: 'Message from Jane G.' });
     expect(incoming).toHaveLength(2);
     expect(incoming[0].parentElement).toHaveClass('justify-start');
@@ -51,6 +54,21 @@ describe('Host messages and wallet', () => {
 
     expect(screen.getByLabelText('Conversation list')).toHaveClass('min-h-0', 'overflow-y-auto');
     expect(screen.getByLabelText('Message history')).toHaveClass('min-h-0', 'overflow-y-auto');
+  });
+
+  it('uses the artifact’s compact list, chat surface, bubbles, and composer footer', () => {
+    render(<HostMessagesPanel conversations={createHostFixtureAdapter().getMessages().data!} />);
+    const conversationList = screen.getByLabelText('Conversation list');
+    const layout = conversationList.parentElement!;
+    const chat = screen.getByLabelText('Message history').parentElement!;
+    const composer = screen.getByPlaceholderText('Write a message…').parentElement!;
+
+    expect(layout).toHaveClass('gap-0', 'lg:grid-cols-[minmax(280px,27fr)_minmax(0,73fr)]');
+    expect(conversationList).toHaveClass('lg:border-r', 'divide-y');
+    expect(conversationList.querySelector('button')).toHaveClass('rounded-none', 'px-3', 'py-2');
+    expect(chat).toHaveClass('bg-background');
+    expect(screen.getAllByRole('group', { name: 'Message from Jane G.' })[0]).toHaveClass('rounded-lg', 'px-3', 'py-2', 'text-[13px]');
+    expect(composer.parentElement).toHaveClass('flex-col', 'border-t', 'px-4', 'pt-3');
   });
 
   it('scrolls the message history to the newest message after sending', async () => {

@@ -22,7 +22,7 @@ export type RequestData = { pending: BookingRequest[]; past: BookingRequest[] };
 
 export type Message = { sender: string; body: string; timestamp?: string };
 export type Conversation = {
-  id: string; title: string; subtitle: string; subject: string; status: 'open' | 'resolved';
+  id: string; title: string; subtitle: string; status: 'open' | 'resolved';
   messages: Message[];
 };
 

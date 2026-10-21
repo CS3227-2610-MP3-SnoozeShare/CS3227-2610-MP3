@@ -9,7 +9,7 @@ in after the branch merges.
 - **Owner:** project owner
 - **Status:** In review
 - **Approved:** —
-- **Last updated:** 2026-10-21 by GPT-5 — message composer sends on Enter and scrolls to the newest message
+- **Last updated:** 2026-10-21 by GPT-5 — padded the resolved-conversation notice inside the composer footer
 
 ---
 
@@ -42,7 +42,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Messages fill viewport; composer sends on Enter and auto-scrolls after send; 134 tests, lint, isolated build pass | guide out of date: W-HOST Host UI pages and Fall Light details |
+| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Resolved notice padded within composer footer; 135 tests, lint, isolated build pass | guide out of date: W-HOST Host UI pages and Fall Light details |
 
 ## 4. Architecture
 
@@ -122,3 +122,5 @@ None.
 | 2026-10-21 | Built direct-message threads from the three current pending booking requests, added listing/date/guest context and sender-aligned bubbles, retained the existing read-only support ticket without a New Ticket action; 130 tests, lint, and production build pass | W-HOST | Operator follow-up |
 | 2026-10-21 | Messages route now fills the viewport below the navbar; conversation and transcript columns stay within it and scroll internally; 132 tests, lint, isolated production build, and live viewport overflow check pass | W-HOST | Operator follow-up |
 | 2026-10-21 | Message history scrolls to the newest message when a message is sent, and Enter sends the composer draft; 134 tests, lint, and isolated production build pass | W-HOST | Operator follow-up |
+| 2026-10-21 | Refined Messages to use the artifact’s wider compact thread list, divided warm chat surface, smaller message bubbles, and bordered composer footer; 135 tests, lint, and isolated production build pass | W-HOST | Operator follow-up |
+| 2026-10-21 | Padded the resolved/read-only notice inside the composer footer; updated the fixture title expectation to match the current in-progress Messages fixture shape; 135 tests, lint, isolated production build pass | W-HOST | Operator follow-up |

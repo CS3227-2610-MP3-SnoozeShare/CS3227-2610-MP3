@@ -32,9 +32,8 @@ const requests: RequestData = {
   ],
 };
 
-const directMessageDetails: Record<string, Pick<Conversation, 'subject' | 'messages'>> = {
+const directMessageDetails: Record<string, Pick<Conversation, 'messages'>> = {
   'request-jane': {
-    subject: 'Question about check-in',
     messages: [
       { sender: 'Jane G.', body: 'Hi, I submitted a request for Oct 3–6. What time does check-in start?' },
       { sender: 'You', body: 'Check-in starts at 3:00 PM.' },
@@ -42,14 +41,12 @@ const directMessageDetails: Record<string, Pick<Conversation, 'subject' | 'messa
     ],
   },
   'request-marcus': {
-    subject: 'Question about booking request',
     messages: [
       { sender: 'Marcus T.', body: 'Hi, I sent a request for Oct 10–12. Could you let me know when you have reviewed it?' },
       { sender: 'You', body: 'I’ll review your request shortly.' },
     ],
   },
   'request-priya': {
-    subject: 'Question about dates',
     messages: [
       { sender: 'Priya S.', body: 'Hello! I just sent a request for Oct 18–22.' },
       { sender: 'You', body: 'Thanks for reaching out. I’ll get back to you soon.' },
@@ -61,12 +58,11 @@ const messages: Conversation[] = [
   ...requests.pending.map((request) => ({
     id: `direct-${request.id.replace('request-', '')}`,
     title: `${request.listing} · ${request.dates}`,
-    subtitle: `Direct message with ${request.guest} (Guest) · Booking request`,
-    subject: directMessageDetails[request.id]?.subject ?? 'Booking request',
+    subtitle: ` Booking #B-2291 · Direct message with ${request.guest} (Guest)`,
     status: 'open' as const,
     messages: directMessageDetails[request.id]?.messages ?? [],
   })),
-  { id: 'ticket-1042', title: 'Ticket #1042 · Lakeside Cabin · Support Agent', subtitle: 'Support Agent', subject: 'Refund not received', status: 'resolved', messages: [] },
+  { id: 'ticket-1042', title: 'Refund not received', subtitle: 'Ticket #1042 · Lakeside Cabin · Support Agent', status: 'resolved', messages: [] },
 ];
 
 const wallet: WalletSummary = { balance: 3920.5, escrowNote: 'Pending booking funds are held in escrow until the stay is complete.' };
