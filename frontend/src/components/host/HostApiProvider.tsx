@@ -25,8 +25,10 @@ type HostApiContextValue = {
   getResource: <T>(key: string) => HostLoadable<T> | undefined;
   wallet: HostLoadable<HostWalletDto>;
   walletMutationPending: boolean;
+  walletRecoveryRequired: boolean;
   refreshWallet: () => Promise<void>;
   refreshWalletStatement: (page?: number, size?: number) => Promise<void>;
+  retryWalletRecovery: () => Promise<void>;
   mutateWallet: (operation: 'top-up' | 'withdraw', amount: number) => Promise<HostWalletMutationDto>;
 };
 
@@ -36,6 +38,7 @@ export function HostApiProvider({ children }: PropsWithChildren) {
   const [wallet, setWallet] = useState<HostLoadable<HostWalletDto>>({ status: 'loading' });
   const [resources, setResources] = useState<Record<string, HostLoadable<unknown>>>({});
   const [walletMutationPending, setWalletMutationPending] = useState(false);
+  const [walletRecoveryRequired, setWalletRecoveryRequired] = useState(false);
   const walletMutationLock = useRef(false);
 
   const loadResource = useCallback(async <T,>(key: string, loader: () => Promise<T>) => {
@@ -69,7 +72,13 @@ export function HostApiProvider({ children }: PropsWithChildren) {
   const refreshWalletStatement = useCallback(async (page = 0, size = 50) => {
     try {
       const data = await fetchHostWallet(page, size);
-      setWallet({ status: 'ready', data });
+      setWallet((current) => {
+        if (page === 0 || current.status !== 'ready' || current.data.statement.page >= page) return { status: 'ready', data };
+        return { status: 'ready', data: {
+          ...data,
+          statement: { ...data.statement, items: [...current.data.statement.items, ...data.statement.items] },
+        } };
+      });
     } catch {
       setWallet((current) => current.status === 'ready'
         ? { status: 'ready', data: current.data, refreshError: 'Unable to load wallet statement.' }
@@ -77,6 +86,17 @@ export function HostApiProvider({ children }: PropsWithChildren) {
       throw new Error('Unable to load wallet statement.');
     }
   }, []);
+
+  const retryWalletRecovery = useCallback(async () => {
+    setWalletRecoveryRequired(true);
+    try {
+      await Promise.all([refreshWallet(), refreshWalletStatement(0, 50)]);
+      setWalletRecoveryRequired(false);
+    } catch (error) {
+      setWalletRecoveryRequired(true);
+      throw error;
+    }
+  }, [refreshWallet, refreshWalletStatement]);
 
   const mutateWallet = useCallback(async (operation: 'top-up' | 'withdraw', amount: number) => {
     if (walletMutationLock.current) throw new Error('A wallet operation is already in progress.');
@@ -102,8 +122,9 @@ export function HostApiProvider({ children }: PropsWithChildren) {
       return result;
     } catch (error) {
       // The server may have committed before a network failure; refresh before allowing another explicit action.
+      setWalletRecoveryRequired(true);
       try {
-        await Promise.all([refreshWallet(), refreshWalletStatement(0, 50)]);
+        await retryWalletRecovery();
       } catch {
         // The wallet state already contains a safe refresh error.
       }
@@ -112,7 +133,7 @@ export function HostApiProvider({ children }: PropsWithChildren) {
       walletMutationLock.current = false;
       setWalletMutationPending(false);
     }
-  }, [refreshWallet, refreshWalletStatement]);
+  }, [retryWalletRecovery]);
 
   useEffect(() => {
     void refreshWallet().catch(() => undefined);
@@ -125,10 +146,12 @@ export function HostApiProvider({ children }: PropsWithChildren) {
     getResource,
     wallet,
     walletMutationPending,
+    walletRecoveryRequired,
     refreshWallet,
     refreshWalletStatement,
+    retryWalletRecovery,
     mutateWallet,
-  }), [resources, loadResource, getResource, wallet, walletMutationPending, refreshWallet, refreshWalletStatement, mutateWallet]);
+  }), [resources, loadResource, getResource, wallet, walletMutationPending, walletRecoveryRequired, refreshWallet, refreshWalletStatement, retryWalletRecovery, mutateWallet]);
 
   return <HostApiContext.Provider value={value}>{children}</HostApiContext.Provider>;
 }

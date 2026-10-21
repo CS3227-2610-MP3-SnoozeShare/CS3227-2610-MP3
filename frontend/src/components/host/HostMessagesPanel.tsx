@@ -1,17 +1,41 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import type { Conversation } from './hostTypes';
+import type { Conversation, Message } from './hostTypes';
+import { hostSafeErrorMessage } from '@/lib/hostApi';
 
-export function HostMessagesPanel({ conversations }: { conversations: Conversation[] }) {
+type Props = { conversations: Conversation[]; messagesByConversation?: Record<string, Message[]>; onSelect?: (conversation: Conversation) => Promise<void>; onSend?: (conversation: Conversation, body: string) => Promise<void>; onLoadOlder?: (conversation: Conversation) => Promise<void>; historyHasMore?: (conversation: Conversation) => boolean; mutationPending?: boolean; historyErrors?: Record<string, string> };
+export function HostMessagesPanel({ conversations, messagesByConversation, onSelect, onSend, onLoadOlder, historyHasMore, mutationPending = false, historyErrors = {} }: Props) {
   const [selectedId, setSelectedId] = useState(conversations[0]?.id);
   const [draft, setDraft] = useState('');
   const [localMessages, setLocalMessages] = useState<Record<string, string[]>>({});
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState('');
+  const [sending, setSending] = useState(false);
+  const [loadingOlder, setLoadingOlder] = useState(false);
   const messageHistoryRef = useRef<HTMLDivElement>(null);
   const selected = conversations.find((conversation) => conversation.id === selectedId) ?? conversations[0];
+  const selectedMessages = selected ? messagesByConversation?.[selected.id] ?? selected.messages : [];
   const resolved = selected?.status === 'resolved';
-  const messageCount = (selected?.messages.length ?? 0) + (selected ? localMessages[selected.id]?.length ?? 0 : 0);
-  const send = () => { if (!selected || resolved || !draft.trim()) return; setLocalMessages((messages) => ({ ...messages, [selected.id]: [...(messages[selected.id] ?? []), draft.trim()] })); setDraft(''); };
+  const messageCount = selectedMessages.length + (selected ? localMessages[selected.id]?.length ?? 0 : 0);
+  useEffect(() => {
+    if (!selected || !onSelect) return;
+    setHistoryLoading(true);
+    setHistoryError('');
+    void onSelect(selected).catch((caught) => setHistoryError(hostSafeErrorMessage(caught))).finally(() => setHistoryLoading(false));
+  }, [onSelect, selected]);
+  const send = () => {
+    if (!selected || resolved || !draft.trim() || mutationPending || sending) return;
+    if (!onSend) {
+      setLocalMessages((messages) => ({ ...messages, [selected.id]: [...(messages[selected.id] ?? []), draft.trim()] }));
+      setDraft('');
+      return;
+    }
+    const body = draft.trim();
+    setSending(true);
+    setHistoryError('');
+    void onSend(selected, body).then(() => setDraft('')).catch((caught) => setHistoryError(hostSafeErrorMessage(caught))).finally(() => setSending(false));
+  };
 
   useEffect(() => {
     if (messageHistoryRef.current) messageHistoryRef.current.scrollTop = messageHistoryRef.current.scrollHeight;
@@ -42,7 +66,8 @@ export function HostMessagesPanel({ conversations }: { conversations: Conversati
           <p className="mt-0.5 text-xs text-[var(--text-subtle)]">{selected.subtitle}</p>
         </div>
         <div aria-label="Message history" className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4" ref={messageHistoryRef}>
-          {[...selected.messages, ...(localMessages[selected.id] ?? []).map((body) => ({ sender: 'You', body }))].map((message, index) => {
+          {historyHasMore?.(selected) && <button className="mx-auto block rounded-md border px-3 py-1.5 text-xs disabled:opacity-50" disabled={loadingOlder} onClick={() => { setLoadingOlder(true); void onLoadOlder?.(selected).catch((caught) => setHistoryError(hostSafeErrorMessage(caught))).finally(() => setLoadingOlder(false)); }} type="button">{loadingOlder ? 'Loading…' : 'Load older messages'}</button>}
+          {historyLoading ? <p className="text-center text-sm text-[var(--text-subtle)]">Loading messages…</p> : selectedMessages.length === 0 && !localMessages[selected.id]?.length ? <p className="text-center text-sm text-[var(--text-subtle)]">No messages yet.</p> : [...selectedMessages, ...(localMessages[selected.id] ?? []).map((body) => ({ sender: 'You', body }))].map((message, index) => {
             const outgoing = message.sender === 'You';
             return (
               <div className={`flex ${outgoing ? 'justify-end' : 'justify-start'}`} key={`${message.sender}-${index}`}>
@@ -58,10 +83,11 @@ export function HostMessagesPanel({ conversations }: { conversations: Conversati
             );
           })}
         </div>
+        {(historyError || historyErrors[selected.id]) && <p className="px-4 text-sm text-destructive" role="alert">{historyError || historyErrors[selected.id]}</p>}
         <div className="flex flex-col gap-3 border-t border-[var(--border-muted)] px-4 pb-4 pt-3">
           <div className="flex gap-2">
-            <input aria-label="Write a message…" className="min-w-0 flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm" disabled={resolved} onChange={(event) => setDraft(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); send(); } }} placeholder="Write a message…" value={draft} />
-            <button className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50" disabled={resolved} onClick={send} type="button">Send</button>
+            <input aria-label="Write a message…" className="min-w-0 flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm" disabled={resolved || historyLoading || mutationPending || sending} onChange={(event) => setDraft(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); send(); } }} placeholder="Write a message…" value={draft} />
+            <button className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50" disabled={resolved || historyLoading || mutationPending || sending} onClick={send} type="button">{sending ? 'Sending…' : 'Send'}</button>
           </div>
           {resolved && <p className="rounded-md bg-[var(--surface-inset)] px-3 py-2 text-xs text-[var(--text-subtle)]">This conversation is resolved and read-only.</p>}
         </div>

@@ -14,7 +14,9 @@ function WalletProbe() {
     <span>{api.wallet.status === 'ready' ? api.wallet.data.wallet.balance : api.wallet.status}</span>
     <button onClick={() => void api.mutateWallet('top-up', 25).catch(() => undefined)}>Top up</button>
     <button onClick={() => void api.refreshWalletStatement()}>Load statement</button>
+    <button onClick={() => void api.retryWalletRecovery().catch(() => undefined)}>Refresh wallet</button>
     <span>{api.walletMutationPending ? 'pending' : 'idle'}</span>
+    <span>{api.walletRecoveryRequired ? 'recovery-required' : 'wallet-ready'}</span>
   </div>;
 }
 
@@ -68,6 +70,22 @@ describe('HostApiProvider', () => {
     expect(fetchHostWallet).toHaveBeenNthCalledWith(2, 0, 1);
     expect(fetchHostWallet).toHaveBeenNthCalledWith(3, 0, 50);
     expect(withdrawFromHostWallet).not.toHaveBeenCalled();
+  });
+
+  it('keeps wallet recovery locked when refresh fails, then unlocks only after an explicit successful refresh', async () => {
+    topUpHostWallet.mockRejectedValueOnce(new Error('ambiguous network failure'));
+    fetchHostWallet.mockResolvedValueOnce(walletPage(100)).mockRejectedValueOnce(new Error('refresh failed')).mockRejectedValueOnce(new Error('refresh failed'));
+    render(<HostApiProvider><WalletProbe /></HostApiProvider>);
+    await screen.findByText('100');
+
+    act(() => { screen.getByRole('button', { name: 'Top up' }).click(); });
+    await screen.findByText('recovery-required');
+    expect(topUpHostWallet).toHaveBeenCalledTimes(1);
+
+    fetchHostWallet.mockResolvedValue(walletPage(100));
+    act(() => { screen.getByRole('button', { name: 'Refresh wallet' }).click(); });
+    await screen.findByText('wallet-ready');
+    expect(topUpHostWallet).toHaveBeenCalledTimes(1);
   });
 
   it('loads a bounded statement page on demand while retaining the cached wallet', async () => {

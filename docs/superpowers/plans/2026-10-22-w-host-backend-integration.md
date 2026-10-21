@@ -28,8 +28,8 @@
 | T6 Add Host wallet API | T0,T1 | T4,T5 | 2 | Done |
 | T7 Add authenticated frontend Host API adapter | T0,T1,T2,T3,T4,T5,T6 | - | 3 | Done |
 | T8 Wire listing, calendar, and request screens | T2,T3,T4,T7 | - | 4 | Done |
-| T9 Wire messages and wallet screens | T5,T6,T7,T8 | - | 5 | Not started |
-| T10 Verify integration and close the phase | T9 | - | 6 | Not started |
+| T9 Wire messages and wallet screens | T5,T6,T7,T8 | - | 5 | Done |
+| T10 Verify integration and close the phase | T9 | - | 6 | In progress |
 
 ## Traceability
 
@@ -316,11 +316,11 @@
 
 **Checklist**
 
-- [ ] 1. Write failing message/wallet route tests for E8-E13, E16, E20, E21, and E23.
-- [ ] 2. Wire message channels, history paging, read/post behavior, wallet statement and mocked operations through T7; disable controls while mutations are pending.
-- [ ] 3. On ambiguous wallet outcome, refresh balance and statement; keep actions disabled if refresh fails and do not resend the mutation.
-- [ ] 4. Run affected frontend tests, lint, and build; verify no New Ticket action or real-payment-success copy appears.
-- [ ] 5. Update branch state; commit `feat: connect Host messages and wallet`.
+- [x] 1. Write failing message/wallet route tests for E8-E13, E16, E20, E21, and E23.
+- [x] 2. Wire message channels, history paging, read/post behavior, wallet statement and mocked operations through T7; disable controls while mutations are pending.
+- [x] 3. On ambiguous wallet outcome, refresh balance and statement; keep actions disabled if refresh fails and do not resend the mutation.
+- [x] 4. Run affected frontend tests, lint, and build; verify no New Ticket action or real-payment-success copy appears.
+- [x] 5. Update branch state; commit `feat: connect Host messages and wallet`.
 
 ### T10: Verify integration and close the phase
 

@@ -24,6 +24,7 @@ export type Message = { sender: string; body: string; timestamp?: string };
 export type Conversation = {
   id: string; title: string; subtitle: string; status: 'open' | 'resolved';
   messages: Message[];
+  kind?: 'booking' | 'ticket'; sourceId?: string; unreadCount?: number; counterpartName?: string;
 };
 
 export type WalletSummary = { balance: number; escrowNote: string };
@@ -111,6 +112,42 @@ export function mapHostBooking(dto: HostBookingDto): BookingRequest {
     rating: dto.guestAverageRating,
     status,
   };
+}
+
+export function mapBookingConversation(dto: BookingConversationDto): Conversation {
+  const date = (value: string) => new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }).format(new Date(`${value}T12:00:00Z`));
+  return {
+    id: `booking:${dto.bookingId}`,
+    sourceId: dto.bookingId,
+    kind: 'booking',
+    title: `${dto.listingTitle} · ${date(dto.startDate)}–${date(dto.endDate)}`,
+    subtitle: `Booking · Direct message with ${dto.counterpartName} (Guest)`,
+    status: dto.open ? 'open' : 'resolved',
+    unreadCount: dto.unreadCount,
+    counterpartName: dto.counterpartName,
+    messages: [],
+  };
+}
+
+export function mapTicketConversation(dto: TicketConversationDto): Conversation {
+  return {
+    id: `ticket:${dto.ticketId}`,
+    sourceId: dto.ticketId,
+    kind: 'ticket',
+    title: dto.ticketTitle,
+    subtitle: `Ticket #${dto.ticketLabel} · ${dto.listingTitle} · Support Agent`,
+    status: dto.open ? 'open' : 'resolved',
+    unreadCount: dto.unreadCount,
+    counterpartName: dto.counterpartName,
+    messages: [],
+  };
+}
+
+export function mapHostMessages(messages: HostMessageDto[], counterpartName: string): Message[] {
+  return messages
+    .slice()
+    .sort((left, right) => left.sentAt.localeCompare(right.sentAt))
+    .map((message) => ({ sender: message.authorRole === 'HOST' ? 'You' : counterpartName, body: message.body, timestamp: message.sentAt }));
 }
 
 export function mapHostWallet(dto: HostWalletDto): { wallet: WalletSummary; statement: StatementRow[] } {
