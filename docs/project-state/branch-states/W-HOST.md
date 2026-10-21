@@ -9,7 +9,7 @@ in after the branch merges.
 - **Owner:** project owner
 - **Status:** Draft
 - **Approved:** —
-- **Last updated:** 2026-10-21 by GPT-5 — T6 complete; T7 started
+- **Last updated:** 2026-10-21 by GPT-5 — T7 complete; T8 started
 
 ---
 
@@ -32,7 +32,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-21 15:10 | GPT-5 (lead) | W-HOST | Active | T7 in progress: local presentation interactions and no-network coverage | Add cross-screen interaction tests and close remaining local-only behavior gaps | 2026-10-21 18:15 |
+| S1 | 2026-10-21 15:10 | GPT-5 (lead) | W-HOST | Active | T8 in progress: visual and accessibility verification | Add source-level visual contract tests, then inspect required viewports against the Claude artifact | 2026-10-21 18:30 |
 
 **Remaining**
 
@@ -42,7 +42,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | Building | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | T7 in flight: local presentation interactions and no-network coverage | — |
+| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | Building | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | T8 in flight: visual and accessibility verification | — |
 
 ## 4. Architecture
 
@@ -81,3 +81,4 @@ No change.
 | 2026-10-21 | Added fixture-backed listing cards, detail metrics, and local-only new/edit listing forms | W-HOST | T4 |
 | 2026-10-21 | Added calendar precedence, booking block presentation, and pending/history request screens | W-HOST | T5 |
 | 2026-10-21 | Added Host messages, resolved-thread behavior, wallet statement, and mocked wallet controls | W-HOST | T6 |
+| 2026-10-21 | Added cross-screen local-only interaction tests and no-network guarantees | W-HOST | T7 |
