@@ -13,12 +13,13 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
 
 /** Create a new property listing. */
 @JsonIgnoreProperties(ignoreUnknown = false)
 public record CreateListingRequest(
-        @NotBlank String title,
-        @NotBlank String description,
+        @NotBlank @Size(max = 120) String title,
+        @NotBlank @Size(max = 5000) String description,
         @NotNull PropertyType propertyType,
         @NotNull ListingStatus status,
         @NotBlank String streetAddress,
