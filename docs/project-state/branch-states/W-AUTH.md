@@ -5,7 +5,7 @@
 - **Branch:** W-AUTH (from `development` at `a785e75`)
 - **Base:** `a785e75`
 - **Owner:** project owner
-- **Status:** In review
+- **Status:** Building
 - **Approved:** —
 - **Last updated:** 2026-10-21 by Codex — W-AUTH implementation and close-out complete
 
@@ -17,7 +17,7 @@
 
 ## 1. Orientation
 
-Rows added or changed in `PROJECT_STATE.md` § Orientation: W-AUTH specification and implementation files will be added under `docs/superpowers/`, `backend/src/main/java/com/snoozeshare/security`, `backend/src/main/java/com/snoozeshare/controller/auth`, and `frontend/src`.
+Rows added or changed in `PROJECT_STATE.md` § Orientation: W-AUTH specification and implementation files are under `docs/superpowers/`, `backend/src/main/java/com/snoozeshare/auth`, `backend/src/main/java/com/snoozeshare/config`, `backend/src/main/java/com/snoozeshare/ProdEnvironmentGuard.java`, and `frontend/src`.
 
 ## 2. How to Resume
 
@@ -32,23 +32,23 @@ cd ../backend && ./gradlew test
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
+| Codex | 2026-10-21 | — | W-AUTH remediation | Building | Implementing review fixes | Add failing tests for production fail-closed config, limiter ordering/reset, auth races, redirects and Firebase absence | 2026-10-21 |
 
 **Remaining**
 
-- [ ] **Handover:** Owner reviews the W-AUTH branch and decides whether to approve and merge it into `development`.
-- [ ] **Handover:** Owner reviews the complete W-AUTH branch, confirms the final verification evidence, and merges it into `development` when ready.
+- [ ] **Handover:** Owner reviews the W-AUTH remediation and decides whether to approve and merge it into `development`.
 
 ## 3. Workstreams
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AUTH | Firebase authentication and role authorization | In review | [spec](docs/superpowers/specs/2026-10-20-w-auth-design.md); [registration pre-validation spec](docs/superpowers/specs/2026-10-21-w-auth-registration-prevalidation-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-auth-registration-prevalidation.md) | Registration pre-validation complete; backend/frontend builds green; ready for owner review | — |
+| W-AUTH | Firebase authentication and role authorization | Building | [spec](docs/superpowers/specs/2026-10-20-w-auth-design.md); [registration pre-validation spec](docs/superpowers/specs/2026-10-21-w-auth-registration-prevalidation-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-auth-registration-prevalidation.md) | Review remediation implemented; backend/frontend verification green; final diff review remains | — |
 
 ## 4. Architecture
 
 ### 4.9 Web platform skeleton (backend, frontend, hosting)
 
-**Now:** W-AUTH initializes Firebase Admin when `FIREBASE_ENABLED=true`, verifies revocable Firebase ID tokens, establishes a stateless Spring Security principal, resolves the active role from the PostgreSQL `users` row keyed by Firebase UID, applies role-specific URL authorization, and provides transactional profile/wallet registration plus `/api/auth/me`. Email verification status is informational only and does not gate authentication or registration. The frontend validates public Firebase configuration in production, lazily initializes Firebase browser auth, attaches ID tokens to backend requests, maps stable backend errors, exposes auth screens, and protects role routes with client-side guards.
+**Now:** W-AUTH initializes Firebase Admin when `FIREBASE_ENABLED=true`, requires security and Firebase settings in the prod profile, verifies revocable Firebase ID tokens, establishes a stateless Spring Security principal, resolves the active role from the PostgreSQL `users` row keyed by Firebase UID, applies role-specific URL authorization, and provides transactional profile/wallet registration plus `/api/auth/me`. Email verification status is informational only and does not gate authentication or registration. The frontend validates public Firebase configuration in production, lazily initializes Firebase browser auth, attaches ID tokens to backend requests, maps stable backend errors, logs safe correlated auth failures at the backend boundary, exposes auth screens, and protects role routes with client-side guards that ignore stale profile responses.
 
 | Path | Role |
 |---|---|
@@ -67,20 +67,22 @@ cd ../backend && ./gradlew test
 
 ## 5. Conventions
 
-No change: this branch adds the authentication boundary and follows existing Spring Boot, Flyway, Next.js, and environment-variable conventions.
+Authentication failures return a request ID that is logged with status, safe error code and path; credentials, tokens and registration codes are never logged. Production requires explicit security/Firebase enablement and all Firebase/registration/Admin credential settings. Public Firebase browser configuration is deployment metadata, not a secret.
 
 ## 6. Known Gaps
 
-No change: this branch does not settle domain persistence beyond the authentication user/profile and wallet records needed for registration.
+- W-DOMAIN still owns domain persistence and wallet operations beyond registration-time provisioning.
+- Public code pre-validation remains a validity oracle by design; rate limits and secret strength are the compensating controls.
+- Rate limiting is process-local and direct-peer IP based; forwarded-header parsing is deliberately excluded until a trusted proxy contract is decided.
+- Host and Agent codes remain reusable configuration values; rotation requires replacing deployment configuration.
+- Protected frontend routes use client-side guards; backend role authorization remains authoritative.
+- Firebase token revocation is checked on every backend request, coupling request latency and availability to Firebase.
 
 ## 7. Needs a Human
 
 | ID | Question | Why it blocks | Owner |
 |---|---|---|---|
-Resolved: HOST and AGENT use separate reusable server-side configuration secrets; rotation happens by changing the environment/configuration value.
-Resolved: Firebase email verification is not required before backend registration or protected API access.
-Resolved: Keep the Firebase session after backend registration failure; allow retry or explicit sign-out.
-Firebase project, Email/Password provider, and local Admin SDK credentials are configured. Review rounds are complete.
+| Q~1 | Decide whether to keep direct-peer IP limiting or define a trusted Render proxy address contract | Changing this would reverse the pre-validation spec's forwarded-header non-goal | Project owner |
 
 ## 8. Decisions
 
@@ -95,6 +97,8 @@ Firebase project, Email/Password provider, and local Admin SDK credentials are c
 | C~7 | W-AUTH supersedes the older architecture flow that sends `firebaseUid` from the client and relies on Next middleware auth; the W-AUTH API derives UID from the verified bearer token and uses client-side guards | The older design predates the concrete Firebase browser flow; changing it avoids trusting client identity and avoids an unspecified session-cookie system | W-AUTH spec, 2026-10-20 |
 | C~8 | Implement the approved role navbar and empty landing shells directly without a standalone spec or plan | Project owner explicitly approved the inline implementation to keep this UI-only change moving; feature documents are intentionally skipped | Project owner, 2026-10-21 |
 | C~9 | Validate HOST/AGENT registration codes before the website calls Firebase signup, while retaining backend final validation and rate limiting | Project owner observed that an invalid code currently creates a Firebase identity; the website flow must avoid that side effect, while direct or modified clients remain protected by the backend check | Project owner, 2026-10-21 |
+| C~10 | Production must fail startup unless security, Firebase, registration-code and Admin credential settings are explicitly configured; frontend browser Firebase values are deployment metadata and CI uses non-secret repository variables or safe fallbacks | Review found that an unset security toggle would otherwise expose a permit-all production chain and that CI secrets were unnecessary for public browser configuration | Review remediation, 2026-10-21 |
+| C~11 | Auth error responses carry a generated request ID that is logged with status, safe code and path; unexpected failures use `INTERNAL_ERROR` | Review found that returned request IDs had no correlation and database failures were mislabeled as validation errors | Review remediation, 2026-10-21 |
 
 ## 9. Deviations
 
@@ -139,3 +143,4 @@ Firebase project, Email/Password provider, and local Admin SDK credentials are c
 | 2026-10-21 | Full backend build and frontend production build pass with dummy public Firebase/API values; diff clean and branch pushed through T3 | W-AUTH | T4 |
 | 2026-10-21 | Completed registration pre-validation workstream slice; all plan tasks done, branch state is In review, and no merge/approval was performed | W-AUTH | T5 |
 | 2026-10-21 | Added descriptive placeholders to login, registration, and forgot-password form inputs; frontend presentation-only refinement | W-AUTH | auth form UX |
+| 2026-10-21 | Closed review findings for production fail-closed configuration, limiter ordering/reset scope, auth error correlation, stale frontend auth responses, safe return paths, development Firebase absence, CI public config and deployment documentation | W-AUTH | review remediation |
