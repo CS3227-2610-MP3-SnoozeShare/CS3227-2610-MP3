@@ -143,6 +143,15 @@ describe('Host listing components', () => {
     expect(screen.getByLabelText('Bathrooms').closest('div.grid')).toHaveClass('sm:grid-cols-2');
   });
 
+  it('shows both select labels and lets each form card keep its own height', () => {
+    render(<HostFixtureProvider><NewListingPage /></HostFixtureProvider>);
+    const form = screen.getByRole('button', { name: 'Save listing' }).closest('form')!;
+
+    expect(within(form).getByText('Property type')).toBeInTheDocument();
+    expect(within(form).getByText('Status')).toBeInTheDocument();
+    expect(form.firstElementChild).toHaveClass('items-start', 'gap-y-3');
+  });
+
   it('renders artifact amenity rows and orders the primary action before cancel', () => {
     render(<HostFixtureProvider><HostListingForm /></HostFixtureProvider>);
 
@@ -160,9 +169,10 @@ describe('Host listing components', () => {
 
   it('shows the full listing breadcrumb on New and Edit pages', () => {
     const { rerender } = render(<HostFixtureProvider><NewListingPage /></HostFixtureProvider>);
-    expect(screen.getByRole('navigation', { name: 'Breadcrumb' })).toHaveTextContent('Listings › New');
+    expect(screen.getByRole('navigation', { name: 'Breadcrumb' })).toHaveTextContent(/Listings\s*›\s*New/);
 
     rerender(<HostFixtureProvider><EditListingPage /></HostFixtureProvider>);
-    expect(screen.getByRole('navigation', { name: 'Breadcrumb' })).toHaveTextContent('Listings › Lakeside Cabin › Edit');
+    expect(screen.getByRole('navigation', { name: 'Breadcrumb' })).toHaveTextContent(/Listings\s*›\s*Lakeside Cabin\s*›\s*Edit/);
+    expect(screen.getByRole('navigation', { name: 'Breadcrumb' })).toHaveClass('gap-2');
   });
 });

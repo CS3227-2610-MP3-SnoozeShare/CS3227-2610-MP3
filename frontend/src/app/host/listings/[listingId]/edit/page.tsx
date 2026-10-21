@@ -11,5 +11,5 @@ export default function EditListingPage() {
   const result = useHostFixtures().getListing(id);
   if (result.state === 'not-found') return <HostPageFrame title="Listing not found"><div className="ss-card p-8 text-center"><p>Listing not found</p><Link className="mt-4 inline-block text-primary underline" href="/host/listings">Back to Listings</Link></div></HostPageFrame>;
   if (result.state !== 'populated' && result.state !== 'empty') return <HostPageFrame title="Edit listing"><div className="ss-card p-8 text-center">{result.error}</div></HostPageFrame>;
-  return <HostPageFrame title="Edit listing" breadcrumbs={<><Link href="/host/listings" className="text-primary">Listings</Link> › <Link href={`/host/listings/${id}`} className="text-primary">{result.data.title}</Link> › Edit</>}><HostListingForm listing={result.data} /></HostPageFrame>;
+  return <HostPageFrame title="Edit listing" breadcrumbs={<><Link href="/host/listings" className="text-primary">Listings</Link><span aria-hidden="true">›</span><Link href={`/host/listings/${id}`} className="text-primary">{result.data.title}</Link><span aria-hidden="true">›</span><span>Edit</span></>}><HostListingForm listing={result.data} /></HostPageFrame>;
 }
