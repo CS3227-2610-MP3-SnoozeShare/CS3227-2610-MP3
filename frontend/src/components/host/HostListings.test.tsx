@@ -6,8 +6,10 @@ import { HostListingCard } from './HostListingCard';
 import { HostListingDetail } from './HostListingDetail';
 import { HostListingForm } from './HostListingForm';
 import HostListingsPage from '@/app/host/listings/page';
+import NewListingPage from '@/app/host/listings/new/page';
+import EditListingPage from '@/app/host/listings/[listingId]/edit/page';
 
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }));
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }), useParams: () => ({ listingId: 'lakeside-cabin' }) }));
 
 describe('Host listing components', () => {
   it('aligns the New listing action in the page-title row', () => {
@@ -107,5 +109,60 @@ describe('Host listing components', () => {
     expect(screen.getByRole('combobox', { name: 'Status' })).toHaveTextContent('Active');
     expect(screen.getByLabelText('Title')).toHaveClass('font-normal');
     expect(screen.getByLabelText('Description')).toHaveClass('font-normal');
+  });
+
+  it('formats the listing rate and time values in the artifact edit form', () => {
+    const listing = createHostFixtureAdapter().getListing('lakeside-cabin').data!;
+    render(<HostFixtureProvider><HostListingForm listing={listing} /></HostFixtureProvider>);
+
+    expect(screen.getByLabelText('Rate / night')).toHaveValue('120.00');
+    expect(screen.getByText('$', { selector: 'span[aria-hidden="true"]' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Check-in time')).toHaveValue('15:00');
+    expect(screen.getByLabelText('Check-out time')).toHaveValue('11:00');
+  });
+
+  it('arranges full-width form cards in the artifact column order', () => {
+    render(<HostFixtureProvider><NewListingPage /></HostFixtureProvider>);
+    const form = screen.getByRole('button', { name: 'Save listing' }).closest('form')!;
+    const headings = within(form).getAllByRole('heading', { level: 2 });
+
+    expect(headings.map((heading) => heading.textContent)).toEqual([
+      'BASIC DETAILS', 'CAPACITY & PRICING', 'LOCATION', 'AMENITIES',
+    ]);
+    expect(form.firstElementChild).toHaveClass('grid', 'lg:grid-cols-2');
+    expect(form.firstElementChild).toHaveClass('w-full');
+    expect(screen.getByRole('heading', { name: 'BASIC DETAILS' }).closest('section')).toHaveClass('w-full');
+  });
+
+  it('groups related fields into the artifact two- and three-column rows', () => {
+    render(<HostFixtureProvider><HostListingForm /></HostFixtureProvider>);
+
+    expect(screen.getByRole('combobox', { name: 'Property type' }).closest('div.grid')).toHaveClass('sm:grid-cols-2');
+    expect(screen.getByLabelText('City').closest('div.grid')).toHaveClass('sm:grid-cols-3');
+    expect(screen.getByLabelText('Max guests').closest('div.grid')).toHaveClass('sm:grid-cols-2');
+    expect(screen.getByLabelText('Bathrooms').closest('div.grid')).toHaveClass('sm:grid-cols-2');
+  });
+
+  it('renders artifact amenity rows and orders the primary action before cancel', () => {
+    render(<HostFixtureProvider><HostListingForm /></HostFixtureProvider>);
+
+    for (const amenity of ['Wifi', 'Parking', 'Air Conditioning', 'Kitchen', 'Washer', 'Work Desk']) {
+      expect(screen.getByRole('checkbox', { name: amenity })).toBeInTheDocument();
+      expect(screen.getByRole('checkbox', { name: amenity }).closest('label')).toHaveClass('border', 'rounded-lg', 'px-3', 'py-2');
+    }
+    const form = screen.getByRole('button', { name: 'Save listing' }).closest('form')!;
+    const actions = form.lastElementChild!;
+    expect(actions).toHaveClass('justify-start');
+    expect(within(actions).getAllByRole('button').map((button) => button.textContent)).toEqual(['Save listing', 'Cancel']);
+    expect(within(actions).getByRole('button', { name: 'Save listing' })).toHaveClass('bg-primary');
+    expect(within(actions).getByRole('button', { name: 'Cancel' })).toHaveClass('border');
+  });
+
+  it('shows the full listing breadcrumb on New and Edit pages', () => {
+    const { rerender } = render(<HostFixtureProvider><NewListingPage /></HostFixtureProvider>);
+    expect(screen.getByRole('navigation', { name: 'Breadcrumb' })).toHaveTextContent('Listings › New');
+
+    rerender(<HostFixtureProvider><EditListingPage /></HostFixtureProvider>);
+    expect(screen.getByRole('navigation', { name: 'Breadcrumb' })).toHaveTextContent('Listings › Lakeside Cabin › Edit');
   });
 });
