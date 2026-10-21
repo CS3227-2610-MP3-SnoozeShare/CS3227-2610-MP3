@@ -7,9 +7,9 @@ after the branch merges.
 - **Branch:** W-DOMAIN (from `development` at `4cc27c3`)
 - **Base:** `349d55c` (development tip after W-AUTH merge)
 - **Owner:** Nathan
-- **Status:** In review
-- **Approved:** Nathan, 2026-10-21
-- **Last updated:** 2026-10-21 by Claude Opus 4.6 — PR review bugfixes applied
+- **Status:** Approved
+- **Approved:** Nathan, 2026-10-21 (re-approved after PR bugfixes)
+- **Last updated:** 2026-10-21 by Claude Opus 4.6 — re-approved after PR review bugfixes
 
 ---
 
