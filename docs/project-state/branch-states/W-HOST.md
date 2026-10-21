@@ -9,7 +9,7 @@ in after the branch merges.
 - **Owner:** project owner
 - **Status:** Draft
 - **Approved:** —
-- **Last updated:** 2026-10-21 by GPT-5 — T4 complete; T5 started
+- **Last updated:** 2026-10-21 by GPT-5 — T5 complete; T6 started
 
 ---
 
@@ -32,7 +32,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-21 15:10 | GPT-5 (lead) | W-HOST | Active | T5 in progress: calendar and booking requests | Add failing calendar/request tests, then implement deterministic state and local modals | 2026-10-21 17:35 |
+| S1 | 2026-10-21 15:10 | GPT-5 (lead) | W-HOST | Active | T6 in progress: Messages and Wallet | Add failing Messages/Wallet tests, then implement shared Host panels and local controls | 2026-10-21 17:55 |
 
 **Remaining**
 
@@ -42,7 +42,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | Building | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | T5 in flight: calendar and booking requests | — |
+| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | Building | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | T6 in flight: Messages and Wallet | — |
 
 ## 4. Architecture
 
@@ -79,3 +79,4 @@ No change.
 | 2026-10-21 | Added deterministic synthetic Host fixture adapter, typed records, and state-replaceable provider | W-HOST | T2 |
 | 2026-10-21 | Added Host-only fixture shell, explicit route map, active tabs, wallet badge, and `/host` redirect | W-HOST | T3 |
 | 2026-10-21 | Added fixture-backed listing cards, detail metrics, and local-only new/edit listing forms | W-HOST | T4 |
+| 2026-10-21 | Added calendar precedence, booking block presentation, and pending/history request screens | W-HOST | T5 |
