@@ -12,6 +12,12 @@ describe('RoleShell', () => {
     expect(screen.getByTestId('empty-landing')).toBeEmptyDOMElement();
   });
 
+  it('constrains the Host messages workspace to the viewport for internal scrolling', () => {
+    render(<RoleShell role="HOST" activePath="/host/messages"><main /></RoleShell>);
+
+    expect(screen.getByRole('navigation').parentElement).toHaveClass('h-screen', 'overflow-hidden');
+  });
+
   it('signs out from the role navbar', () => {
     render(<RoleShell role="GUEST"><main /></RoleShell>);
     screen.getByRole('button', { name: 'Log out' }).click();

@@ -27,7 +27,8 @@ describe('Host fixture adapter', () => {
     expect(adapter.getWalletSummary().data).toMatchObject({ balance: 3920.5 });
     expect(adapter.getRequests().data?.pending.map((request) => request.guest)).toEqual(['Jane G.', 'Marcus T.', 'Priya S.']);
     expect(adapter.getMessages().data?.map((message) => message.title)).toEqual([
-      'Lakeside Cabin · Oct 3–6', 'Ticket #1042 · Lakeside Cabin · Support Agent',
+      'Lakeside Cabin · Oct 3–6', 'Downtown Loft · Oct 10–12', 'Lakeside Cabin · Oct 18–22',
+      'Ticket #1042 · Lakeside Cabin · Support Agent',
     ]);
     expect(adapter.getStatement().data?.[0]).toMatchObject({ type: 'BOOKING_PAYOUT', amount: 349.2 });
   });

@@ -20,7 +20,7 @@ const workspaceLabels: Partial<Record<WorkspaceRole, string>> = {
 export function RoleNavbar({ role, onLogout, walletLabel, activePath }: { role: WorkspaceRole; onLogout?: () => void; walletLabel?: string; activePath?: string }) {
   const landingPath = role === 'HOST' ? '/host/listings' : `/${role.toLowerCase()}`;
   return (
-    <nav aria-label="Workspace navigation" className="ss-role-navbar border-b border-[var(--border-muted)] bg-card px-6 pb-0 pt-3">
+    <nav aria-label="Workspace navigation" className="ss-role-navbar shrink-0 border-b border-[var(--border-muted)] bg-card px-6 pb-0 pt-3">
       <div className="w-full">
         <div data-testid="workspace-navbar-top" className="flex min-h-7 items-center gap-3">
           <Link href={landingPath} className="text-base font-extrabold tracking-[0.04em] text-primary">SnoozeShare</Link>

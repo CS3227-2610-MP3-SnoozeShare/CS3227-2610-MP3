@@ -9,7 +9,7 @@ in after the branch merges.
 - **Owner:** project owner
 - **Status:** In review
 - **Approved:** —
-- **Last updated:** 2026-10-21 by GPT-5 — pending pill grouped beside booking requests title
+- **Last updated:** 2026-10-21 by GPT-5 — message composer sends on Enter and scrolls to the newest message
 
 ---
 
@@ -42,7 +42,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Pending pill sits beside title; action title rows preserved; 128 frontend tests and lint pass | guide out of date: W-HOST Host UI pages and Fall Light details |
+| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Messages fill viewport; composer sends on Enter and auto-scrolls after send; 134 tests, lint, isolated build pass | guide out of date: W-HOST Host UI pages and Fall Light details |
 
 ## 4. Architecture
 
@@ -119,3 +119,6 @@ None.
 | 2026-10-21 | Matched approval/rejection dialogs to artifact sizing, summary colors, copy order, input and action styling; outside clicks now dismiss modals without dismissing on inside clicks; 128 frontend tests, lint, and production build pass | W-HOST | Operator follow-up |
 | 2026-10-21 | Guarded backdrop dismissal by pointer origin so dragging the rejection textarea resize handle outside the modal no longer closes it; verified 128 tests, lint, production build | W-HOST | Operator follow-up |
 | 2026-10-21 | Grouped the booking-requests pending pill directly beside its title while preserving the New listing title/action row; 128 tests and lint pass | W-HOST | Operator follow-up |
+| 2026-10-21 | Built direct-message threads from the three current pending booking requests, added listing/date/guest context and sender-aligned bubbles, retained the existing read-only support ticket without a New Ticket action; 130 tests, lint, and production build pass | W-HOST | Operator follow-up |
+| 2026-10-21 | Messages route now fills the viewport below the navbar; conversation and transcript columns stay within it and scroll internally; 132 tests, lint, isolated production build, and live viewport overflow check pass | W-HOST | Operator follow-up |
+| 2026-10-21 | Message history scrolls to the newest message when a message is sent, and Enter sends the composer draft; 134 tests, lint, and isolated production build pass | W-HOST | Operator follow-up |
