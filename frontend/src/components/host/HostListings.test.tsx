@@ -34,6 +34,21 @@ describe('Host listing components', () => {
     expect(screen.getByRole('article').querySelector('.ss-pill')).toBeNull();
   });
 
+  it('makes the listing title a stretched detail link while keeping card controls above it', () => {
+    const listing = createHostFixtureAdapter().getListings().data![0];
+    render(<HostListingCard listing={listing} />);
+
+    const detailLink = screen.getByRole('link', { name: 'Lakeside Cabin' });
+    expect(detailLink).toHaveAttribute('href', '/host/listings/lakeside-cabin');
+    expect(detailLink).toHaveClass('after:absolute', 'after:inset-0');
+    expect(screen.getByRole('article')).toHaveClass('relative');
+    expect(screen.getByRole('group', { name: 'Availability' }).parentElement).toHaveClass('relative', 'z-10');
+    expect(screen.getByRole('group', { name: 'Booking calendar' }).parentElement).toHaveClass('relative', 'z-10');
+    expect(screen.getByRole('group', { name: 'Edit listing' }).parentElement).toHaveClass('relative', 'z-10');
+    expect(screen.getByRole('link', { name: 'Open Booking Calendar' })).toHaveAttribute('href', '/host/listings/lakeside-cabin/calendar');
+    expect(screen.getByRole('link', { name: 'Edit' })).toHaveAttribute('href', '/host/listings/lakeside-cabin/edit');
+  });
+
   it('centers the five card sections and keeps availability width stable when toggled', () => {
     render(<HostFixtureProvider><HostListingsPage /></HostFixtureProvider>);
     const card = screen.getAllByRole('article')[0];

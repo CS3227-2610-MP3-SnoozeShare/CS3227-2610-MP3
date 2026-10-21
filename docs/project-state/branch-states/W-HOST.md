@@ -9,7 +9,7 @@ in after the branch merges.
 - **Owner:** project owner
 - **Status:** In review
 - **Approved:** —
-- **Last updated:** 2026-10-21 by GPT-5 — listing action/title styling refinements recorded; awaiting owner review
+- **Last updated:** 2026-10-21 by GPT-5 — listing cards link to their detail pages; awaiting owner review
 
 ---
 
@@ -42,7 +42,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | T1 interaction follow-up complete: global pointer cursors and outlined hover feedback; 108 tests, lint, build pass | guide out of date: W-HOST Host UI pages and Fall Light details |
+| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Listing cards now link to details with nested controls preserved; 109 tests, lint, build pass | guide out of date: W-HOST Host UI pages and Fall Light details |
 
 ## 4. Architecture
 
@@ -99,3 +99,4 @@ None.
 | 2026-10-21 | Added entry-example placeholders to New/Edit title, description, address, location, capacity, and rate inputs; 107 tests, lint, and production build pass | W-HOST | T4 follow-up |
 | 2026-10-21 | Added pointer cursors for enabled buttons and hover feedback for outlined buttons and links | W-HOST | T1 follow-up |
 | 2026-10-21 | Refined listing action link colors and listing-detail actions; restored page-title tracking style | W-HOST | Operator follow-up |
+| 2026-10-21 | Made each listing card surface navigate to its detail page while preserving independent availability, calendar, and edit controls; 109 tests, lint, and build pass | W-HOST | Operator follow-up |
