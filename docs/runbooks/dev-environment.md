@@ -26,7 +26,7 @@ Render first, then Vercel, then Render again: the frontend needs the backend URL
 | `SPRING_DATASOURCE_PASSWORD` | Render | Neon password (set in Render, never committed) |
 | `SNOOZESHARE_CORS_ALLOWED_ORIGIN` | Render | Vercel production domain, one origin |
 | `SNOOZESHARE_SECURITY_ENABLED` | Render | `true` |
-| `SNOOZESHARE_TRUST_FORWARD_HEADERS` | Render | `true`; Render proxy supplies the client address in `X-Forwarded-For` |
+| `SNOOZESHARE_TRUST_FORWARD_HEADERS` | Render | `true`; the backend then reads the client address from `CF-Connecting-IP` (set by Cloudflare in front of Render) and never from `X-Forwarded-For` |
 | `FIREBASE_ENABLED` | Render | `true` |
 | `FIREBASE_PROJECT_ID` | Render | Firebase project ID |
 | `SNOOZESHARE_HOST_REGISTRATION_CODE` | Render | Privileged registration code, never committed |

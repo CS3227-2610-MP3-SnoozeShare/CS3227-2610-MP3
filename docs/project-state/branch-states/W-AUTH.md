@@ -3,11 +3,11 @@
 **What this branch has changed, and how to pick it up.** `PROJECT_STATE.md` describes `development`; read it for context and write here instead of editing it.
 
 - **Branch:** W-AUTH (from `development` at `a785e75`)
-- **Base:** `a785e75`
+- **Base:** `0bfd04d`
 - **Owner:** project owner
 - **Status:** In review
 - **Approved:** —
-- **Last updated:** 2026-10-21 by Codex — W-AUTH implementation and close-out complete
+- **Last updated:** 2026-10-21 by Claude Sonnet 5.5 — review fixes: client IP from `CF-Connecting-IP`, `returnTo` parsing, register-failure state
 
 ---
 
@@ -47,7 +47,7 @@ cd ../backend && ./gradlew test
 
 ### 4.9 Web platform skeleton (backend, frontend, hosting)
 
-**Now:** W-AUTH initializes Firebase Admin when `FIREBASE_ENABLED=true`, requires security, proxy, and Firebase settings in the prod profile, verifies revocable Firebase ID tokens, establishes a stateless Spring Security principal, resolves the active role from the PostgreSQL `users` row keyed by Firebase UID, applies role-specific URL authorization, and provides transactional profile/wallet registration plus `/api/auth/me`. Registration abuse limits use the direct peer locally and the first valid `X-Forwarded-For` address only when explicitly enabled for the trusted production proxy. Email verification status is informational only and does not gate authentication or registration. The frontend validates public Firebase configuration in production, lazily initializes Firebase browser auth, attaches ID tokens to backend requests, maps stable backend errors, logs safe correlated auth failures at the backend boundary, exposes auth screens, and protects role routes with client-side guards that ignore stale profile responses.
+**Now:** W-AUTH initializes Firebase Admin when `FIREBASE_ENABLED=true`, requires security, proxy, and Firebase settings in the prod profile, verifies revocable Firebase ID tokens, establishes a stateless Spring Security principal, resolves the active role from the PostgreSQL `users` row keyed by Firebase UID, applies role-specific URL authorization, and provides transactional profile/wallet registration plus `/api/auth/me`. Registration abuse limits use the direct peer locally and, only when explicitly enabled for the production proxy, the `CF-Connecting-IP` address that Cloudflare overwrites on every request; `X-Forwarded-For` is never read. Email verification status is informational only and does not gate authentication or registration. The frontend validates public Firebase configuration in production, lazily initializes Firebase browser auth, attaches ID tokens to backend requests, maps stable backend errors, logs safe correlated auth failures at the backend boundary, exposes auth screens, and protects role routes with client-side guards that ignore stale profile responses.
 
 | Path | Role |
 |---|---|
@@ -72,7 +72,7 @@ Authentication failures return a request ID that is logged with status, safe err
 
 - W-DOMAIN still owns domain persistence and wallet operations beyond registration-time provisioning.
 - Public code pre-validation remains a validity oracle by design; rate limits and secret strength are the compensating controls.
-- Rate limiting is process-local; forwarded-header parsing is explicitly disabled in local development and enabled only by the production proxy configuration.
+- Rate limiting is process-local. Forwarded-header trust is off locally and on in production, where the client address comes from `CF-Connecting-IP`; that is only sound while all traffic reaches Render through Cloudflare, so re-check it if the hosting or proxy changes (including W-DEPLOY).
 - Host and Agent codes remain reusable configuration values; rotation requires replacing deployment configuration.
 - Protected frontend routes use client-side guards; backend role authorization remains authoritative.
 - Firebase token revocation is checked on every backend request, coupling request latency and availability to Firebase.
@@ -98,7 +98,7 @@ Authentication failures return a request ID that is logged with status, safe err
 | C~9 | Validate HOST/AGENT registration codes before the website calls Firebase signup, while retaining backend final validation and rate limiting | Project owner observed that an invalid code currently creates a Firebase identity; the website flow must avoid that side effect, while direct or modified clients remain protected by the backend check | Project owner, 2026-10-21 |
 | C~10 | Production must fail startup unless security, Firebase, registration-code and Admin credential settings are explicitly configured; frontend browser Firebase values are deployment metadata and CI uses non-secret repository variables or safe fallbacks | Review found that an unset security toggle would otherwise expose a permit-all production chain and that CI secrets were unnecessary for public browser configuration | Review remediation, 2026-10-21 |
 | C~11 | Auth error responses carry a generated request ID that is logged with status, safe code and path; unexpected failures use `INTERNAL_ERROR` | Review found that returned request IDs had no correlation and database failures were mislabeled as validation errors | Review remediation, 2026-10-21 |
-| C~12 | Use the first valid `X-Forwarded-For` address only when `SNOOZESHARE_TRUST_FORWARD_HEADERS=true`; local development ignores forwarded headers and falls back to `getRemoteAddr()` | The operator requested per-client Render rate limiting while preserving safe local testing and preventing arbitrary local header spoofing | Project owner, 2026-10-21 |
+| C~12 | Use the proxy-set `CF-Connecting-IP` address only when `SNOOZESHARE_TRUST_FORWARD_HEADERS=true`; never read `X-Forwarded-For`; local development ignores proxy headers and falls back to `getRemoteAddr()`. Amends the first version of this decision, which took the first `X-Forwarded-For` entry | The operator requested per-client Render rate limiting while preserving safe local testing. Review found the leftmost `X-Forwarded-For` entry is client-forgeable (Render's proxy appends to it), which let an attacker rotate fake IPs past every limiter; Render's guidance is to use `CF-Connecting-IP` | Project owner, 2026-10-21; review remediation |
 
 ## 9. Deviations
 
@@ -145,3 +145,5 @@ Authentication failures return a request ID that is logged with status, safe err
 | 2026-10-21 | Added descriptive placeholders to login, registration, and forgot-password form inputs; frontend presentation-only refinement | W-AUTH | auth form UX |
 | 2026-10-21 | Closed review findings for production fail-closed configuration, limiter ordering/reset scope, auth error correlation, stale frontend auth responses, safe return paths, development Firebase absence, CI public config and deployment documentation | W-AUTH | review remediation |
 | 2026-10-21 | Added opt-in trusted-proxy client IP resolution with local fallback, production configuration and unit coverage | W-AUTH | C~12 |
+| 2026-10-21 | Replaced first-entry `X-Forwarded-For` client IP with `CF-Connecting-IP` (forwarded-for ignored; direct-peer fallback) so rate limits cannot be bypassed by a forged header; resolver test covers forged `X-Forwarded-For`, malformed header and local mode | W-AUTH | C~12 amended |
+| 2026-10-21 | `returnTo` is parsed as a same-origin URL (closes the tab/newline protocol-relative bypass); a failed `register()` now leaves the state at `registering`; added tests that fail on the old code; merged `development` and moved `Base` | W-AUTH | review remediation |
