@@ -7,9 +7,9 @@ in after the branch merges.
 - **Branch:** W-HOST (from `development` at `8702e88`)
 - **Base:** `8702e88`
 - **Owner:** project owner
-- **Status:** Building
+- **Status:** In review
 - **Approved:** —
-- **Last updated:** 2026-10-21 by GPT-5 — owner requested final Listings-page layout refinements
+- **Last updated:** 2026-10-21 by GPT-5 — T9 verified, documented, committed, and pushed; awaiting owner review
 
 ---
 
@@ -32,17 +32,16 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-21 18:10 | GPT-5 (lead) | W-HOST | Building | T9: verify and record Listings refinements | Commit code and documentation separately, push W-HOST, then remove this session row for owner review | 2026-10-21 18:20 |
 
 **Remaining**
 
-- [ ] Finish T9 Listings-page refinements, verify, commit, and push; then owner review and approval. Only after approval can W-HOST be integrated. Keep domain-dependent contracts provisional until W-DOMAIN settles them.
+- [ ] Owner review and approval. Only after approval can W-HOST be integrated. Keep domain-dependent contracts provisional until W-DOMAIN settles them.
 
 ## 3. Workstreams
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | Building | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | T9 verified: aligned header and five centered, width-stable card groups | guide out of date: W-HOST Host UI pages and Fall Light details |
+| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | T9 verified: aligned header and five centered, width-stable card groups | guide out of date: W-HOST Host UI pages and Fall Light details |
 
 ## 4. Architecture
 
