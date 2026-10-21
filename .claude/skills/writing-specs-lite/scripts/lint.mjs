@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Deterministic checks for writing-specs-lite specs and writing-plans-lite plans.
 //   node lint.mjs spec <index.md> [--approved] [--max-lines N]
-//   node lint.mjs plan <plan.md>  [--closeout] [--root <repo root>]
+//   node lint.mjs plan <plan.md>  [--approved] [--closeout] [--root <repo root>]
 // Exit code 1 if any error. Warnings never fail.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -15,6 +15,8 @@ if (!['spec', 'plan'].includes(mode) || !target) {
   console.error('usage: lint.mjs spec|plan <file> [--approved] [--closeout] [--max-lines N] [--root dir]');
   process.exit(2);
 }
+
+const APPROVED_STATUS = /^- \*\*Status:\*\*\s*Approved \([^,)]+,[^)]+\)/m;
 
 const errors = [];
 const warnings = [];
@@ -195,6 +197,7 @@ function lintSpec(indexFile) {
     const q = section(index, /^## 5\. Open questions/m) || '';
     const open = tableRows(q).filter((r) => /^Q\d+/.test(r[0]));
     if (open.length) err(f, `${open.length} open question(s) on an approved spec: ${open.map((r) => r[0]).join(', ')}`);
+    if (!APPROVED_STATUS.test(index)) err(f, 'Status must read "Approved (<operator name>, <date>)": write it only after the operator says yes (AGENTS.md § 8)');
   }
 }
 
@@ -210,6 +213,13 @@ function lintPlan(planFile) {
   const specFile = path.resolve(path.dirname(planFile), decodeURI(link[1]));
   if (!fs.existsSync(specFile)) { err(f, `linked spec not found: ${link[1]}`); return; }
   const spec = specIds(specFile);
+
+  // approval marker (AGENTS.md § 8, gate 2): older plans lack the line, so only --approved makes it an error
+  if (flag('--approved')) {
+    if (!APPROVED_STATUS.test(text)) err(f, 'plan Status must read "Approved (<operator name>, <date>)": write it only after the operator says yes (AGENTS.md § 8)');
+  } else if (!/^- \*\*Status:\*\*/m.test(text)) {
+    warn(f, 'plan has no "- **Status:**" line; add it under the title (Draft | In review | Approved (operator name, date))');
+  }
 
   for (const h of [/^## Scope/m, /^## Task order/m, /^## Traceability/m])
     if (!h.test(text)) err(f, `missing section ${h}`);

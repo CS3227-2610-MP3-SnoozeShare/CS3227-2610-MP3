@@ -14,7 +14,7 @@ approval**.
 
 **It is written only on `INT`.** A branch never edits `docs/DeveloperGuide.md`: it is a shared file, and
 merged work is what "confirmed" means. A workstream finished on a branch reaches the guide only after
-the project owner runs `sync-project-state`, which sets its Guide value. The checkpoint below then
+`sync-project-state` has run (on the owner's yes), which sets its Guide value; the agent proposes the update itself once the owner confirms the workstream (`AGENTS.md` § 8, gate 6). The checkpoint below then
 runs on `INT` or on the sync branch, or on its own branch and PR if the owner wants the guide change
 separate from the fold.
 

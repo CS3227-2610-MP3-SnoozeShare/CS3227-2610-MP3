@@ -35,7 +35,7 @@ node .claude/skills/writing-specs-lite/scripts/lint.mjs spec docs/superpowers/sp
 ```
 
 Fix every error it prints before asking for approval (add `--approved` once the operator approves, to enforce 'no open Q'). Do this before the review pass so reviewers spend effort on judgement.
-9. **Operator approves** the spec. Then record it (Recording) and hand off to `writing-plans-lite`.
+9. **Ask the operator to approve** (`AGENTS.md` § 8, gate 1). Stop and ask one question naming the index path, risk tier, lenses run, decisions and rejected options; start no plan on silence or a partial yes. On a yes, write `Status: Approved (<operator name>, <date>)` in the index, run `lint.mjs spec <index> --approved`, record it (Recording) and start `writing-plans-lite`. On changes, fix the files and ask again.
 
 ## Layout
 

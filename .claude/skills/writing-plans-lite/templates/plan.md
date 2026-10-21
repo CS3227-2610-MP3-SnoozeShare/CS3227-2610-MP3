@@ -1,5 +1,7 @@
 # <Topic> Implementation Plan
 
+- **Status:** Draft | In review | Approved (operator name, date)
+
 > **For agents:** tick `- [ ]` -> `- [x]` as you finish each step, in this file, in the same commit as the work. Keep the branch state's Progress cell current. Spec: [<topic> design](../specs/YYYY-MM-DD-<topic>-design.md).
 
 ## Scope
@@ -48,4 +50,4 @@
 - [ ] Every Traceability row verified; `<BUILD>` green.
 - [ ] Spec index status and plan Task order reflect reality; amendments recorded in the branch state.
 - [ ] Branch state: workstream `In review`, session rows removed, Changes lines complete, new Known Gaps / Conventions / Deviations written, `guide out of date: <what>` noted if affected.
-- [ ] Tell the project owner the branch is ready for review. Never set `Approved`.
+- [ ] Ask the operator to review the branch (`AGENTS.md` § 8, gate 3); write `Approved` only on their yes, and never push, open a PR or merge before it.

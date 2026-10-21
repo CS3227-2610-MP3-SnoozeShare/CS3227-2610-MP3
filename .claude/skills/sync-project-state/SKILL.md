@@ -1,6 +1,6 @@
 ---
 name: sync-project-state
-description: Use when folding a merged, approved branch state into PROJECT_STATE.md - after a branch that has a docs/project-state/branch-states/<slug>.md file has been merged to the integration branch (INT), when reconciliation reports a pending fold, or when the project owner says sync, fold, land or archive a branch state. Run by hand by the project owner; never automatic. Keywords - sync-project-state, branch state, fold, provisional IDs, archive branch state, PROJECT_STATE.md, handover, Upcoming.
+description: Use when folding a merged, approved branch state into PROJECT_STATE.md - after a branch that has a docs/project-state/branch-states/<slug>.md file has been merged to the integration branch (INT), when reconciliation reports a pending fold, or when the project owner says sync, fold, land or archive a branch state. Started on the project owner's yes in chat: the agent asks after the merge (AGENTS.md § 8), never runs it unasked. Keywords - sync-project-state, branch state, fold, provisional IDs, archive branch state, PROJECT_STATE.md, handover, Upcoming.
 ---
 
 # Sync Project State
@@ -13,8 +13,8 @@ branch state, `docs/project-state/branch-states/<slug>.md`
 `PROJECT_STATE.md` and the Done ledger, then archives the branch state.** It is the only thing that
 writes `PROJECT_STATE.md`, apart from the owner's hand-edited hotfixes.
 
-It is **manual**. The project owner invokes it after the merge, naming a branch state — or asking
-for the list of pending ones. Nothing runs it for them: no CI, no hook. That makes the fold
+It is **owner-gated**. After the merge the agent asks the owner (`AGENTS.md` § 8, gate 4) and runs it on their yes, or the owner invokes it, naming a branch state — or asking
+for the list of pending ones. Nothing runs it without that yes: no CI, no hook. That makes the fold
 serial, so IDs and counters never collide. It also means it can be forgotten, which is why a
 branch state left in `branch-states/` on `INT` is the pending-fold signal.
 
@@ -112,13 +112,13 @@ Sessions discarded at fold: <none | list, with the owner's yes>
 
 **8. Commit** with `docs: sync <slug> branch state into PROJECT_STATE`. Do not push.
 
-**9. Developer guide.** Only if the project keeps one (`docs/DeveloperGuide.md`, or `AGENTS.md`
+**9. Developer guide.** Ask this after the owner confirms the fold (step 10). Only if the project keeps one (`docs/DeveloperGuide.md`, or `AGENTS.md`
 § 5): for each folded workstream that is now `Done`, set Guide to `Awaiting confirmation` and ask
 the owner **"Is W<n> confirmed for the developer guide?"** A yes becomes `Pending`; the
 `update-documentation` skill takes it from there — on `INT`, on this sync branch, or on its own
 branch and PR, at the owner's choice.
 
-**10. Report** briefly: the ID map, the sections touched, any stale-base decision, the Handover
+**10. Report and ask** (`AGENTS.md` § 8, gate 5): ask the owner to confirm the fold, then ask the step 9 guide question. Report briefly: the ID map, the sections touched, any stale-base decision, the Handover
 items now in Upcoming, the Guide questions asked, and any further pending folds.
 
 ## Red Flags — Stop

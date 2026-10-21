@@ -89,7 +89,7 @@ Every F, N and E ID from the spec appears (the lint script checks this); a row w
 - [ ] Every Traceability row verified; `<BUILD>` green.
 - [ ] Spec index status and plan Task order all reflect reality; amendments recorded in the branch state.
 - [ ] Branch state: workstream `In review`, Progress cleared of session rows, Changes lines complete, new Known Gaps / Conventions / Deviations written, `guide out of date: <what>` noted if the guide is affected (the guide is not edited on a branch, `AGENTS.md` § 5).
-- [ ] Tell the project owner the branch is ready for review. Never set `Approved`.
+- [ ] Ask the operator to review the branch (`AGENTS.md` § 8, gate 3); write `Approved` only on their yes, and never push, open a PR or merge before it.
 ```
 
 ## Process
@@ -98,9 +98,9 @@ Every F, N and E ID from the spec appears (the lint script checks this); a row w
 2. **Verify against the repo**: open each file you will list; confirm names, signatures, package layering, and whether a file already exists. Fix the plan, not the guess.
 3. Write the plan file task by task. Add steps for anything the spec's *Conventions* require (each rule listed in the spec's `conventions.md` and in `PROJECT_STATE.md` § Conventions, such as audit rows, money-writing paths, test-support helpers, date handling, regenerating committed seed data).
 4. **Lint, then self-review** (below). Run `node .claude/skills/writing-specs-lite/scripts/lint.mjs plan <plan.md>` and fix every error (it checks task parity with the spec, traceability, file paths against the repo, checklist length). Then dispatch one read-only `lite-reviewer` subagent on the plan (Medium and High tier; optional for Low). It checks logic, then file/seam correctness against the repo. Fix blocking findings. At most two review rounds; after that unresolved blocking findings become open questions for the operator.
-5. **Operator reviews the plan** before any code is written; fold in their changes.
+5. **Ask the operator to approve the plan** (`AGENTS.md` § 8, gate 2) before any code is written. Stop and ask one question naming the plan path, task count and waves, and the `GATE:` and `Post-merge` tasks; fold in their changes and ask again. On a yes, write `Status: Approved (<operator name>, <date>)` under the plan's title and run `lint.mjs plan <plan.md> --approved`.
 6. Record in the branch state (workstream -> `Planned`, plan link, Changes line) and commit the plan alone (`docs: plan for <topic>`).
-7. Hand off to `executing-plans-lite`: offer execution (inline task-by-task, or one subagent per task within a wave - only for tasks the dependency table marks concurrent and that share no files). The executor ticks the checklist and updates Status.
+7. Start `executing-plans-lite` without a further approval question (the plan approval covers it), saying how you run it (inline task-by-task, or one subagent per task within a wave - only for tasks the dependency table marks concurrent and that share no files). The executor ticks the checklist and updates Status.
 
 ## Parallel execution
 
