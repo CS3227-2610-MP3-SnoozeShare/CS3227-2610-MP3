@@ -95,6 +95,13 @@
   --space-5: 1.25rem;
   --space-6: 1.5rem;
 
+  /* Artifact type scale: 28 / 20 / 15 / 13 / 11px. */
+  --text-display: 1.75rem;
+  --text-heading: 1.25rem;
+  --text-body: 0.9375rem;
+  --text-caption: 0.8125rem;
+  --text-label: 0.6875rem;
+
   /* Artifact radii: controls, cards/dialogs, pills */
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
@@ -137,6 +144,11 @@
   textarea,
   select {
     font: inherit;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
   }
 }
 
