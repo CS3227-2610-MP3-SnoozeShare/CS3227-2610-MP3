@@ -279,7 +279,7 @@
 - [x] 2. Implement typed API calls and provider state; preserve fixture adapter test usage and stable user-safe error mapping. Keep wallet summary shared in provider memory so the navbar and Wallet page do not fetch balance twice.
 - [x] 3. Add wallet mutation in-flight lock and ambiguous-failure refresh; do not automatically resend top-up/withdraw requests.
 - [x] 4. Run focused frontend tests and `npm run lint`.
-- [x] 5. Update branch state; commit `feat: add authenticated Host API adapter`.
+- [x] 5. Update branch state; commit `feat: add authenticated Host API adapter` (`1d0adda`).
 
 ### T8: Wire listing, calendar, and request screens
 

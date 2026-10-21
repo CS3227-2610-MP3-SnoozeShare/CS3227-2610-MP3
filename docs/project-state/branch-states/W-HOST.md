@@ -203,3 +203,4 @@ No open questions.
 | 2026-10-22 | Added authenticated wallet balance, bounded newest-first statement and separate mocked top-up/withdraw operations; fixed stale-row locking, PostgreSQL timestamp mapping and after-commit event dispatch; five wallet integration tests, Checkstyle and backend build pass | W-HOST-API | T6 |
 | 2026-10-22 | Committed T6 wallet API as `ba67ad4`; beginning T7 authenticated frontend API adapter | W-HOST-API | T6/T7 |
 | 2026-10-22 | Added authenticated typed Host API route wrappers, bounded page validation, DTO mapping, shared async resource states, safe errors and token-rejection sign-out; cached wallet summary, lazy statement paging and no-retry ambiguous-failure refresh; 154 frontend tests, lint and production build pass | W-HOST-API | T7 |
+| 2026-10-22 | Committed T7 authenticated Host API adapter as `1d0adda`; starting T8 listing, calendar and request route tests | W-HOST-API | T7/T8 |
