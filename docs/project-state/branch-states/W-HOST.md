@@ -9,7 +9,7 @@ in after the branch merges.
 - **Owner:** project owner
 - **Status:** In review
 - **Approved:** —
-- **Last updated:** 2026-10-21 by GPT-5 — listing form parity verified; committing and pushing; awaiting owner review
+- **Last updated:** 2026-10-21 by GPT-5 — listing form parity verified, committed, and pushed; awaiting owner review
 
 ---
 
