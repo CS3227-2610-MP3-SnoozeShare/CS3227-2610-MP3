@@ -109,7 +109,7 @@
 - [x] 3. Set the property to `false` in the two database-free server tests; assert excluded service/adapters are absent there.
 - [x] 4. Run the named context tests; verify default-on E24 service/adapters and explicit-off E25. T2 separately verifies Host controller startup with the activated `ListingService`.
 - [x] 5. Run `./gradlew checkstyleMain checkstyleTest` and `./gradlew build` from `backend/`.
-- [ ] 6. Update branch-state Progress and Changes; commit `fix: activate W-DOMAIN services deterministically`.
+- [x] 6. Update branch-state Progress and Changes; commit `fix: activate W-DOMAIN services deterministically` (`9ba4ce2`).
 
 ### T1: Add Host identity resolver and stable error boundary
 
@@ -158,7 +158,7 @@
 - [x] 2. Add `OffsetLimitPageable(page, size)` with offset `page * size` and limit `size + 1`; use it in the Host listing query, then add the composite detail response and controller routes from `api.md`; gate the controller on `snoozeshare.security.enabled=true`; retain Bean Validation and reject unknown JSON fields.
 - [x] 3. Run the named tests; verify deterministic `createdAt DESC, id ASC`, exact 404 `NOT_FOUND`, no entity serialization, and controller startup with the activated service.
 - [x] 4. Run backend Checkstyle (`./gradlew checkstyleMain checkstyleTest`) and build.
-- [ ] 5. Update branch state; commit `feat: add Host listing API`.
+- [x] 5. Update branch state; commit `feat: add Host listing API` (`b57b096`).
 
 ### T3: Make calendar mutations atomic and expose calendar API
 

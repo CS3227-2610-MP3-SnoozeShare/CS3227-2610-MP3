@@ -9,7 +9,7 @@ in after the branch merges.
 - **Owner:** project owner
 - **Status:** Draft
 - **Approved:** —
-- **Last updated:** 2026-10-22 by GPT-5 — completed T0 and resolved T2 listing paging/update validation failures
+- **Last updated:** 2026-10-22 by GPT-5 — committed and verified T0/T2; next T3 calendar API
 
 ---
 
@@ -32,19 +32,19 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| 2026-10-22 backend phase | 2026-10-22 | GPT-5 | W-HOST-API | Active | T0 activation is implemented and backend checks pass; T2 listings pass focused integration tests | Complete T2 contract coverage, then proceed to T3-T6 backend endpoints | 2026-10-22 |
+| 2026-10-22 backend phase | 2026-10-22 | GPT-5 | W-HOST-API | Active | T0 and T2 are committed; post-commit Checkstyle/build pass | Begin T3 calendar API with failing overlap, ownership, and inclusive-date tests | 2026-10-22 |
 
 **Remaining**
 
 - [ ] Owner review and approval remain for the completed fixture-backed UI phase.
-- [ ] Finish T2 listing API contract coverage and commit T0/T2 in plan-sized green commits; then implement T3-T6.
+- [ ] Implement T3 calendar API and atomic availability-block mutations; T4-T6 backend endpoints remain after it.
 
 ## 3. Workstreams
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
 | W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Listings, requests, and wallet scroll within viewport; 143 tests, lint and build pass | guide out of date: W-HOST Host UI pages and Fall Light details |
-| W-HOST-API | Replace Host fixtures with authenticated backend integration | Building | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T0 complete; T2 listing routes, owner checks, and page continuity pass; finish contract coverage | — |
+| W-HOST-API | Replace Host fixtures with authenticated backend integration | Building | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T0/T2 committed and green; T3 calendar API next | — |
 
 ## 4. Architecture
 
@@ -164,3 +164,4 @@ No open questions.
 | 2026-10-22 | Clarified T2's zero-based page offset and bounded `size + 1` query mechanism after review exposed a skip on later listing pages | W-HOST-API | D~7 |
 | 2026-10-22 | Activated W-DOMAIN persistence beans with the approved property gate; T0 context tests, Checkstyle, and backend build pass | W-HOST-API | C~17 |
 | 2026-10-22 | Implemented Host listing collection/detail/create/update/status routes and metrics projection; fixed status-omitting update validation and verified page continuity | W-HOST-API | T2 |
+| 2026-10-22 | Committed T0 deterministic service activation as `9ba4ce2` and T2 Host listing API as `b57b096`; post-commit backend Checkstyle and build pass | W-HOST-API | T0/T2 |
