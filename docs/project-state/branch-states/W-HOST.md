@@ -9,7 +9,7 @@ in after the branch merges.
 - **Owner:** project owner
 - **Status:** In review
 - **Approved:** —
-- **Last updated:** 2026-10-21 by GPT-5 — date-picker weekday alignment verified; awaiting owner review
+- **Last updated:** 2026-10-21 by GPT-5 — six-row calendar and date-range behavior verified; awaiting owner review
 
 ---
 
@@ -42,7 +42,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Normalized reopened date-picker grid; 119 tests, lint, and production build pass | guide out of date: W-HOST Host UI pages and Fall Light details |
+| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Implemented six-row calendar, staged date picker, dismissal rules, and shared year-aware date-range formatting | guide out of date: W-HOST Host UI pages and Fall Light details |
 
 ## 4. Architecture
 
@@ -72,6 +72,7 @@ None.
 | C~6 | 2026-10-21 | Booking calendar shows as many complete week rows as its month requires; blocking uses one artifact-style date-range picker and a required reason; current blocked dates list bold reasons above ranges with aligned remove actions, using Maintenance as the fixture reason | Project owner specified calendar coverage and the date-blocking presentation; separate start/end fields, optional reasons, and unlabeled override ranges are rejected | Operator conversation |
 | C~7 | 2026-10-21 | Booking-calendar month navigation uses fixed arrow columns with the month/year centered in a fixed-width track, so varying title length does not move the arrows | Project owner requested stable arrow placement and a centered month/year label when navigating across month names of different lengths | Operator conversation |
 | C~8 | 2026-10-21 | Reopened date picker must calculate its Sunday-first grid from the first of the selected month, not the selected date itself | Project owner reported selected dates shifted to incorrect weekdays after closing and reopening the picker | Operator conversation |
+| C~9 | 2026-10-21 | The booking calendar always renders six week rows; the date-range picker stages edits until Apply, Clear resets the draft without closing, outside click closes without applying, and picker/current-blocked ranges include the end year (both years across year boundaries) | Project owner specified the calendar layout, artifact-style picker controls, dismissal behavior, and range-year presentation | Operator conversation |
 
 ## 9. Deviations
 
@@ -111,3 +112,4 @@ None.
 | 2026-10-21 | Added month-sized calendar week rows; artifact-style single range picker; required reason; and reason-first blocked-date entries with Maintenance fixture. 117 tests, lint, production build, and browser checks pass | W-HOST | Operator follow-up |
 | 2026-10-21 | Fixed calendar month navigation to fixed arrow columns around the centered label; verified May and September alignment, 118 tests, lint, and production build | W-HOST | Operator follow-up |
 | 2026-10-21 | Fixed date-picker weekday drift by anchoring reopened grids to the selected month’s first day; Sep 16 stays Wednesday after reopening. 119 tests, lint, and production build pass | W-HOST | Operator follow-up |
+| 2026-10-21 | Booking calendar now always renders six weeks; date picker stages edits for Apply, Clear leaves it open, outside click dismisses without applying, and picker/blocked-date ranges share year-aware formatting. 124 tests, lint, production build pass | W-HOST | Operator follow-up |

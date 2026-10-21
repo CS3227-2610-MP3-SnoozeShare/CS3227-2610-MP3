@@ -23,9 +23,10 @@ describe('W-HOST local-only interactions', () => {
   it('rejects an invalid calendar range and leaves the fixture unchanged', () => {
     render(<HostCalendarPanel calendar={createHostFixtureAdapter().getCalendar('lakeside-cabin').data!} />);
     fireEvent.change(screen.getByLabelText('Reason'), { target: { value: 'Maintenance' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Date range: Sep 15 – Sep 17' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Date range: Sep 15 – Sep 17, 2026' }));
     fireEvent.click(screen.getByRole('button', { name: '17' }));
     fireEvent.click(screen.getByRole('button', { name: '15' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
     fireEvent.click(screen.getByRole('button', { name: 'Block these dates' }));
     expect(screen.getByText('End date must be on or after start date')).toBeInTheDocument();
     expect(screen.queryByRole('dialog', { name: 'Block these dates?' })).not.toBeInTheDocument();

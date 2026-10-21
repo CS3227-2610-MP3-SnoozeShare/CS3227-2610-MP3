@@ -59,7 +59,7 @@ const calendar: CalendarData = {
       blocked: inCurrentMonth && day >= 15 && day <= 17,
     };
   }),
-  blockedDates: [{ reason: 'Maintenance', range: 'Oct 3 – Oct 5' }],
+  blockedDates: [{ reason: 'Maintenance', startDate: '2026-10-03', endDate: '2026-10-05' }],
 };
 
 export type HostFixtureAdapter = {
