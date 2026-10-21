@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { ListingDetail } from './hostTypes';
 import { validateListing, type ListingFormValues } from './hostListingValidation';
+import { useOptionalHostApi } from './HostApiProvider';
+import { hostSafeErrorMessage } from '@/lib/hostApi';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Field } from '@/components/ui/input';
 import { SelectField } from '@/components/ui/select';
@@ -34,10 +36,50 @@ function valuesFrom(listing?: ListingDetail): ListingFormValues { return listing
 
 export function HostListingForm({ listing }: { listing?: ListingDetail }) {
   const router = useRouter();
+  const api = useOptionalHostApi();
   const [values, setValues] = useState(() => valuesFrom(listing));
   const [errors, setErrors] = useState<Partial<Record<keyof ListingFormValues, string>>>({});
+  const [requestError, setRequestError] = useState('');
+  const [saving, setSaving] = useState(false);
   const update = (key: keyof ListingFormValues, value: string) => setValues((current) => ({ ...current, [key]: value }));
-  const submit = (event: React.FormEvent) => { event.preventDefault(); const nextErrors = validateListing(values); setErrors(nextErrors); if (!Object.keys(nextErrors).length) router.push(listing ? `/host/listings/${listing.id}` : '/host/listings'); };
+  const submit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const nextErrors = validateListing(values);
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length) return;
+    const form = new FormData(event.currentTarget);
+    const propertyType = values.propertyType.toUpperCase().replaceAll(' ', '_');
+    const payload = {
+      title: values.title.trim(), description: values.description.trim(), propertyType,
+      streetAddress: values.streetAddress.trim(), city: values.city.trim(), region: values.region.trim(),
+      postalCode: Number(values.postalCode), maxGuests: Number(values.maxGuests), bedrooms: Number(values.bedrooms),
+      bathrooms: Number(values.bathrooms), baseNightlyRate: Number(values.rate), checkInTime: values.checkIn,
+      checkOutTime: values.checkOut, amenities: form.getAll('amenities').map(String),
+    };
+    setRequestError('');
+    if (!api) {
+      router.push(listing ? `/host/listings/${listing.id}` : '/host/listings');
+      return;
+    }
+    setSaving(true);
+    void (async () => {
+      try {
+        if (listing) {
+          await api.api.updateHostListing(listing.id, payload);
+          const nextStatus = values.status.toUpperCase() as 'ACTIVE' | 'INACTIVE';
+          if (nextStatus !== (listing.status === 'active' ? 'ACTIVE' : 'INACTIVE')) await api.api.updateHostListingStatus(listing.id, nextStatus);
+          router.push(`/host/listings/${listing.id}`);
+        } else {
+          await api.api.createHostListing({ ...payload, status: values.status.toUpperCase() as 'ACTIVE' | 'INACTIVE' });
+          router.push('/host/listings');
+        }
+      } catch (caught) {
+        setRequestError(hostSafeErrorMessage(caught));
+      } finally {
+        setSaving(false);
+      }
+    })();
+  };
   const field = (key: keyof ListingFormValues, label: string, type = 'text') => <div><Field label={label} name={key} type={type} value={values[key]} placeholder={fieldPlaceholders[key]} onChange={(event) => update(key, event.target.value)} aria-invalid={Boolean(errors[key])} /><p aria-live="polite" className="mt-1 min-h-4 text-xs text-destructive">{errors[key]}</p></div>;
   const rateField = <div><label className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--text-muted)]" htmlFor="rate"><span>Rate / night</span><span className="relative"><span aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-normal text-foreground">$</span><input aria-label="Rate / night" aria-invalid={Boolean(errors.rate)} className="h-9 w-full rounded-lg border border-input bg-background pl-5 pr-3 text-sm font-normal outline-none transition-colors focus:border-ring focus:ring-3 focus:ring-ring/20" id="rate" inputMode="decimal" name="rate" placeholder={fieldPlaceholders.rate} onChange={(event) => update('rate', event.target.value)} type="text" value={values.rate} /></span></label><p aria-live="polite" className="mt-1 min-h-4 text-xs text-destructive">{errors.rate}</p></div>;
   return (
@@ -76,13 +118,14 @@ export function HostListingForm({ listing }: { listing?: ListingDetail }) {
           <Card className="order-4 w-full">
             <CardHeader><CardTitle className="text-sm font-bold leading-tight text-primary">AMENITIES</CardTitle></CardHeader>
             <CardContent className="grid gap-2 sm:grid-cols-2">
-              {amenities.map((amenity) => <label className="flex min-h-9 items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm" key={amenity}><input type="checkbox" name={amenity} defaultChecked={listing?.amenities.includes(amenity) ?? false} />{amenity}</label>)}
+              {amenities.map((amenity) => <label className="flex min-h-9 items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm" key={amenity}><input type="checkbox" name="amenities" value={amenity.toUpperCase().replaceAll(' ', '_')} defaultChecked={listing?.amenities.includes(amenity) ?? false} />{amenity}</label>)}
             </CardContent>
           </Card>
         </div>
       </div>
       <div className="flex justify-start gap-2">
-        <button className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground" type="submit">Save listing</button>
+        {requestError && <p className="self-center text-sm text-destructive" role="alert">{requestError}</p>}
+        <button className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground" disabled={saving} type="submit">{saving ? 'Saving…' : 'Save listing'}</button>
         <button className="rounded-lg border border-border px-4 py-2 text-sm" onClick={() => router.push(listing ? `/host/listings/${listing.id}` : '/host/listings')} type="button">Cancel</button>
       </div>
     </form>

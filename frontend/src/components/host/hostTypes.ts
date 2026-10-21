@@ -12,7 +12,7 @@ export type ListingDetail = HostListing & {
 };
 
 export type CalendarDay = { date: string; month: 'current' | 'other'; booked: boolean; blocked: boolean };
-export type CalendarData = { monthLabel: string; days: CalendarDay[]; blockedDates: { reason: string; startDate: string; endDate: string }[] };
+export type CalendarData = { monthLabel: string; days: CalendarDay[]; blockedDates: { id?: string; reason: string; startDate: string; endDate: string }[] };
 
 export type BookingRequest = {
   id: string; guest: string; listing: string; dates: string; nights: number; gross: number;
@@ -38,10 +38,10 @@ export type HostListingDto = {
 };
 export type HostListingDetailDto = { listing: HostListingDto; metrics: { bookingCount: number; averageRating: number; reviews: { guestName: string; rating: number; comment: string }[]; occupancyPercentage: number; earnings: number } };
 export type CreateHostListingPayload = Omit<HostListingDto, 'id' | 'hostId' | 'createdAt'>;
-export type UpdateHostListingPayload = Omit<CreateHostListingPayload, 'propertyType'> & { propertyType?: string };
-export type HostCalendarDto = { year: number; month: number; days: { date: string; booked: boolean; blocked: boolean }[]; blocks: { id: string; reason: string; startDate: string; endDate: string }[] };
+export type UpdateHostListingPayload = Omit<CreateHostListingPayload, 'status'>;
+export type HostCalendarDto = { year: number; month: number; days: { date: string; booked: boolean; blocked: boolean }[]; blocks: { id: string; reason: string | null; startDate: string; endDate: string }[] };
 export type HostBlockDto = { id: string; propertyId: string; startDate: string; endDate: string; source: string; bookingId: string | null; reason: string | null };
-export type HostBookingDto = { booking: Record<string, unknown>; guestDisplayName: string; listingTitle: string; nights: number; grossAmount: number; projectedNetAmount: number; guestAverageRating: number | null };
+export type HostBookingDto = { booking: { id: string; status: string; startDate: string; endDate: string }; guestDisplayName: string; listingTitle: string; nights: number; grossAmount: number; projectedNetAmount: number; guestAverageRating: number | null };
 export type HostMessageDto = { id: string; authorId: string; authorRole: string; body: string; sentAt: string };
 export type BookingConversationDto = { bookingId: string; listingTitle: string; startDate: string; endDate: string; counterpartName: string; lastMessage: HostMessageDto | null; unreadCount: number; open: boolean };
 export type TicketConversationDto = { ticketId: string; channel: 'HOST'; ticketLabel: string; ticketTitle: string; listingTitle: string; counterpartName: string; lastMessage: HostMessageDto | null; unreadCount: number; open: boolean };
@@ -74,8 +74,8 @@ export function mapHostListingDetail(dto: HostListingDetailDto): ListingDetail {
     maxGuests: dto.listing.maxGuests,
     bedrooms: dto.listing.bedrooms,
     bathrooms: dto.listing.bathrooms,
-    checkIn: dto.listing.checkInTime,
-    checkOut: dto.listing.checkOutTime,
+    checkIn: formatTime(dto.listing.checkInTime),
+    checkOut: formatTime(dto.listing.checkOutTime),
     amenities: dto.listing.amenities.map(humanize),
     reviewCount: dto.metrics.reviews.length,
     occupancy30d: dto.metrics.occupancyPercentage,
@@ -83,6 +83,33 @@ export function mapHostListingDetail(dto: HostListingDetailDto): ListingDetail {
     bookings: dto.metrics.bookingCount,
     rating: dto.metrics.averageRating,
     reviews: dto.metrics.reviews.map((review) => ({ author: review.guestName, rating: review.rating, text: review.comment })),
+  };
+}
+
+export function mapHostCalendar(dto: HostCalendarDto): CalendarData {
+  const monthKey = `${dto.year}-${String(dto.month).padStart(2, '0')}`;
+  return {
+    monthLabel: new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(Date.UTC(dto.year, dto.month - 1, 1))),
+    days: dto.days.map((day) => ({ date: day.date, month: day.date.startsWith(monthKey) ? 'current' : 'other', booked: day.booked, blocked: day.blocked })),
+    blockedDates: dto.blocks.filter((block) => block.reason !== null).map((block) => ({ id: block.id, reason: block.reason ?? '', startDate: block.startDate, endDate: block.endDate })),
+  };
+}
+
+export function mapHostBooking(dto: HostBookingDto): BookingRequest {
+  const status = dto.booking.status === 'PENDING' ? 'pending' : dto.booking.status === 'REJECTED' ? 'rejected' : 'confirmed';
+  const start = new Date(`${dto.booking.startDate}T12:00:00Z`);
+  const end = new Date(`${dto.booking.endDate}T12:00:00Z`);
+  const format = (value: Date) => new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }).format(value);
+  return {
+    id: dto.booking.id,
+    guest: dto.guestDisplayName,
+    listing: dto.listingTitle,
+    dates: `${format(start)}–${format(end)}`,
+    nights: dto.nights,
+    gross: Number(dto.grossAmount),
+    net: Number(dto.projectedNetAmount),
+    rating: dto.guestAverageRating,
+    status,
   };
 }
 
@@ -101,4 +128,10 @@ export function mapHostWallet(dto: HostWalletDto): { wallet: WalletSummary; stat
 
 function humanize(value: string) {
   return value.toLowerCase().replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function formatTime(value: string) {
+  const match = /^(\d{2}):(\d{2})/.exec(value);
+  if (!match) return value;
+  return new Date(`2000-01-01T${match[1]}:${match[2]}:00`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'UTC' });
 }

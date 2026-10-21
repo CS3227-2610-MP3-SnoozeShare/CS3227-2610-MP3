@@ -296,7 +296,7 @@
 
 **Checklist**
 
-- [ ] 1. Write failing route tests for E3-E7, E11, E17, E21, and E23 against the API provider.
+- [x] 1. Write failing route tests for E3-E7, E11, E17, E21, and E23 against the API provider.
 - [ ] 2. Wire list/detail/forms, month calendar, and pending/history screens to T7 provider calls; send no host ID and keep mutation results server-authoritative.
 - [ ] 3. Run affected route/component tests; verify existing visual checks and keyboard flows remain intact.
 - [ ] 4. Run frontend lint and production build.
