@@ -48,5 +48,5 @@ export default function LoginPage() {
 }
 
 function safeReturnTo(value: string | null) {
-  return value && value.startsWith('/') && !value.startsWith('//') ? value : null;
+  return value && value.startsWith('/') && !value.startsWith('//') && !value.includes('\\') ? value : null;
 }

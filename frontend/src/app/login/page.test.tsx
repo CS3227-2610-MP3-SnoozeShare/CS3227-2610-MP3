@@ -44,4 +44,17 @@ describe('login page', () => {
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Unable to sign in with those details.'));
     expect(screen.queryByText('provider detail')).not.toBeInTheDocument();
   });
+
+  it('rejects backslash-based external return paths', async () => {
+    window.history.pushState({}, '', '/login?returnTo=/%5Cevil.example');
+    const view = render(<LoginPage />);
+    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'user@example.com' } });
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'password' } });
+    fireEvent.submit(screen.getByRole('button', { name: 'Sign in' }));
+    await waitFor(() => expect(signIn).toHaveBeenCalled());
+    auth.state = 'authenticated';
+    auth.profile = { role: 'GUEST' };
+    view.rerender(<LoginPage />);
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/guest'));
+  });
 });

@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { User } from 'firebase/auth';
 import { BackendApiError, fetchCurrentProfile, registerProfile, type AuthProfile } from '@/lib/api';
 import { observeAuth, signOutUser } from '@/lib/firebase';
@@ -24,8 +24,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<AuthProfile | null>(null);
   const [error, setError] = useState<BackendApiError | Error | null>(null);
+  const requestGeneration = useRef(0);
 
   async function loadUser(nextUser: User | null) {
+    const generation = ++requestGeneration.current;
     setUser(nextUser);
     setProfile(null);
     setError(null);
@@ -34,9 +36,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     try {
-      setProfile(await fetchCurrentProfile());
+      const nextProfile = await fetchCurrentProfile();
+      if (generation !== requestGeneration.current) return;
+      setProfile(nextProfile);
       setState('authenticated');
     } catch (caught) {
+      if (generation !== requestGeneration.current) return;
       if (caught instanceof BackendApiError && caught.code === 'PROFILE_NOT_REGISTERED') {
         setState('registering');
       } else if (caught instanceof BackendApiError && caught.code === 'PROFILE_INACTIVE') {
@@ -49,7 +54,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  useEffect(() => observeAuth((nextUser) => void loadUser(nextUser)), []);
+  useEffect(() => {
+    try {
+      return observeAuth((nextUser) => void loadUser(nextUser));
+    } catch (caught) {
+      setState('error');
+      setError(caught instanceof Error ? caught : new Error('Unable to initialize authentication'));
+      return undefined;
+    }
+  }, []);
 
   const value = useMemo<AuthContextValue>(() => ({
     state,
@@ -57,14 +70,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     profile,
     error,
     async register(payload) {
+      const generation = ++requestGeneration.current;
       setError(null);
-      setProfile(await registerProfile(payload));
+      const nextProfile = await registerProfile(payload);
+      if (generation !== requestGeneration.current) return;
+      setProfile(nextProfile);
       setState('authenticated');
     },
     async retry() {
       await loadUser(user);
     },
     async signOut() {
+      ++requestGeneration.current;
       await signOutUser();
       setProfile(null);
       setUser(null);

@@ -21,6 +21,9 @@ export function RouteGuard({ role, children }: { role: 'GUEST' | 'HOST' | 'AGENT
   return children;
 }
 
-export function AuthOnly({ children }: { children: React.ReactNode }) {
-  return <RouteGuard role="GUEST">{children}</RouteGuard>;
+export function AuthOnly({
+  role = 'GUEST',
+  children,
+}: { role?: 'GUEST' | 'HOST' | 'AGENT'; children: React.ReactNode }) {
+  return <RouteGuard role={role}>{children}</RouteGuard>;
 }
