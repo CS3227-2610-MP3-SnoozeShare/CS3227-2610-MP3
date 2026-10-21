@@ -1495,11 +1495,11 @@ sequenceDiagram
 | Endpoint | Caller | Result |
 |---|---|---|
 | `POST /api/auth/registration-code/validate` | Anyone; body `{role: HOST or AGENT, registrationCode (1-128 characters)}` | `204` for a correct code; `400 VALIDATION_ERROR`, `403 INVALID_REGISTRATION_CODE`, `429 REGISTRATION_RATE_LIMITED` |
-| `POST /api/auth/register` | Bearer ID token; body `{role, registrationCode?, displayName? (at most 80 characters)}` | `201` with the new profile, `200` for a same-role retry; `400`, `403 INVALID_REGISTRATION_CODE` or `PROFILE_INACTIVE`, `409 ROLE_ALREADY_ASSIGNED`, `429` |
+| `POST /api/auth/register` | Bearer ID token; body `{role, registrationCode? (at most 128 characters), displayName? (at most 80 characters)}` | `201` with the new profile, `200` for a same-role retry; `400`, `403 INVALID_REGISTRATION_CODE` or `PROFILE_INACTIVE`, `409 ROLE_ALREADY_ASSIGNED`, `429` |
 | `GET /api/auth/me` | Bearer ID token | The profile `{id, email, role, displayName, walletId}`; `404 PROFILE_NOT_REGISTERED`, `403 PROFILE_INACTIVE` |
 | `/api/guest/**`, `/api/host/**`, `/api/agent/**` | Bearer ID token and the matching active role | `403 ROLE_MISMATCH` otherwise; no endpoints exist under these yet |
 
-At the security boundary a missing or invalid token is `401 INVALID_TOKEN` and an unreachable Firebase is `503 AUTH_PROVIDER_UNAVAILABLE`; an unexpected failure under `/api/auth` is `500 INTERNAL_ERROR`. Request bodies reject unknown fields and a Guest request that carries a code.
+At the security boundary a missing or invalid token is `401 INVALID_TOKEN` and an unreachable Firebase is `503 AUTH_PROVIDER_UNAVAILABLE`; an unexpected failure under `/api/auth` is `500 INTERNAL_ERROR`. Request bodies reject unknown fields, a code longer than 128 characters and a Guest request that carries a code.
 
 - Backend (`backend/src/main/java/com/snoozeshare/auth/`): `config/SecurityConfig`, `config/FirebaseConfig`; `security/FirebaseAuthFilter`, `security/RoleAuthorizationFilter`, `security/RoleAuthorizationService`, `security/FirebaseTokenVerifier` and `FirebaseAdminTokenVerifier`, `security/ClientIpResolver`, `security/AuthErrorWriter`; `controller/AuthController`; `service/AuthRegistrationService`, `AuthRegistrationWriter`, `RegistrationCodeValidationService`, `RegistrationRateLimiter`, `PublicRegistrationRateLimiter`; `repository/AuthUserRepository` and `WalletRepository` with their JDBC implementations; the request and response records in `api/`.
 - Frontend (`frontend/src/`): `lib/firebase.ts` (`signIn`, `registerWithEmail`, `signOutUser`, `observeAuth`, `resetPassword`), `lib/api.ts` (`authenticatedFetch`, `validateRegistrationCode`, `registerProfile`, `fetchCurrentProfile`, `BackendApiError`), `providers/AuthProvider.tsx` (`useAuth`), `components/auth/RouteGuard.tsx` (`RouteGuard`, `AuthOnly`), `components/auth/useRedirectAuthenticated.ts`, `components/role/RoleShell.tsx` and `RoleNavbar.tsx`. Pages: `/login`, `/register`, `/forgot-password`; layouts `/guest`, `/host`, `/agent` wrap their landing page in `RouteGuard` and `RoleShell`.
@@ -1566,11 +1566,11 @@ sequenceDiagram
 | State | Meaning | `RouteGuard` result |
 |---|---|---|
 | `loading` | Firebase or `/me` not resolved | "Loading…", no redirect |
-| `signed_out` | No Firebase user | Redirect to `/login?returnTo=<path>` |
+| `signed_out` | No Firebase user, or the backend rejected the token (`401` from `/me`), in which case the provider also ends the Firebase session | Redirect to `/login?returnTo=<path>` |
 | `registering` | Signed in, `PROFILE_NOT_REGISTERED` | Redirect to `/register` |
 | `authenticated` | Profile loaded | Render the page if the role matches; otherwise redirect to the person's own role page |
 | `inactive` | `PROFILE_INACTIVE` | "Profile unavailable" |
-| `error` | Any other failure, including a `401` from `/me`, or incomplete Firebase configuration | Retry and Sign out buttons |
+| `error` | Any other failure, or incomplete Firebase configuration | Retry and Sign out buttons |
 
 **Invariants.**
 - The role is the `users.role` column, never a Firebase claim (C86), and one account has one role (`409 ROLE_ALREADY_ASSIGNED`). `RoleAuthorizationFilter` reads it from the database on every request and requires `ACTIVE`.
