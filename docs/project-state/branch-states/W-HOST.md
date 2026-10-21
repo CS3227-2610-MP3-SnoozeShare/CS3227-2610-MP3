@@ -9,7 +9,7 @@ in after the branch merges.
 - **Owner:** project owner
 - **Status:** Draft
 - **Approved:** —
-- **Last updated:** 2026-10-21 by GPT-5 — recorded W-HOST UI spec commit
+- **Last updated:** 2026-10-21 by GPT-5 — owner approved plan; T1 implementation started
 
 ---
 
@@ -32,17 +32,17 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-21 15:10 | GPT-5 (lead) | W-HOST | Active | Spec complete: exact Fall Light Host UI | Commit the spec, then ask the project owner to review it before writing the implementation plan | 2026-10-21 15:45 |
+| S1 | 2026-10-21 15:10 | GPT-5 (lead) | W-HOST | Active | T1 in progress: Fall Light primitives | Add failing primitive tests, then implement tokens and shared UI primitives | 2026-10-21 16:20 |
 
 **Remaining**
 
-- [ ] **Handover:** After the project owner approves the spec, write the implementation plan; keep domain-dependent contracts provisional until W-DOMAIN settles them.
+- [ ] **Handover:** Continue T1–T8 in order; keep domain-dependent contracts provisional until W-DOMAIN settles them.
 
 ## 3. Workstreams
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | Spec'd | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | — | Exact Fall Light Host UI specified and reviewed; plan waits for owner review | — |
+| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | Building | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | T1 in flight: shared Fall Light primitives | — |
 
 ## 4. Architecture
 
