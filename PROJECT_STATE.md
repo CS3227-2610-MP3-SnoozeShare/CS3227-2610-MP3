@@ -14,7 +14,7 @@ the branch state instead.
 - **Method:** TDD-first vertical slices; spec then plan for big changes (`AGENTS.md` § 3); small commits (`AGENTS.md` § 6)
 - **Last updated:** 2026-10-22 by Claude Opus 4.6 — folded W-DOMAIN
 - **Last verified against repo:** 2026-10-22
-- **Developer guide:** `docs/DeveloperGuide.md` documents W1–W16 and the MP3-0 fixes (last full update 2026-10-19) and, since 2026-10-20, the W-INFRA web skeletons and dev deployment (§ 3.2, § 4.17) and, since 2026-10-21, the W-AUTH web authentication (§ 4.18, with the auth parts of § 2, § 3.2, § 5–§ 7). W-DOMAIN is awaiting guide confirmation. Residual limitations stay in the guide's Known Limitations and § Known Gaps.
+- **Developer guide:** `docs/DeveloperGuide.md` documents W1–W16 and the MP3-0 fixes (last full update 2026-10-19) and, since 2026-10-20, the W-INFRA web skeletons and dev deployment (§ 3.2, § 4.17), since 2026-10-21, the W-AUTH web authentication (§ 4.18, with the auth parts of § 2, § 3.2, § 5–§ 7), and since 2026-10-22, the W-DOMAIN ported domain layer (§ 4.19, with updates to § 1, § 3.2, § 4.17, § 5–§ 7). Residual limitations stay in the guide's Known Limitations and § Known Gaps.
 
 Sections are ordered by how often they are needed: **1–3 say where we are, 4–5 say what the
 system is, 6–7 say what not to touch and what is stuck, 8–10 are the record.** Cite sections by
@@ -87,7 +87,7 @@ rows are in the [iteration 1 archive](docs/project-history/iteration-1/PROJECT_S
 | MP3-0 | MP2 feedback fixes before new MP3 features (bugs B1–B7, design D1–D6, CI/skills/docs) | Done | [correctness-cluster design](docs/superpowers/specs/2026-10-18-mp3-correctness-cluster-design.md) | [correctness-cluster plan](docs/superpowers/plans/2026-10-18-mp3-correctness-cluster.md) | Merged (PRs #1–#3); CI and Pages verified; required checks set; operator-confirmed 2026-10-19 | Documented 2026-10-19 |
 | W-INFRA | Mono-repo skeletons (`desktop/`, `backend/`, `frontend/`), local Postgres, CI for all three, Render/Vercel/Neon dev deployment | Done | [spec](docs/superpowers/specs/2026-10-20-w-infra-design.md) | [plan](docs/superpowers/plans/2026-10-20-w-infra.md) | Merged (PRs #11, #12); dev live on Render + Vercel + Neon; guide confirmed 2026-10-20 | Documented 2026-10-20 |
 | W-AUTH | Firebase authentication and role authorization | Done | [spec](docs/superpowers/specs/2026-10-20-w-auth-design.md); [registration pre-validation spec](docs/superpowers/specs/2026-10-21-w-auth-registration-prevalidation-design.md) | [plan](docs/superpowers/plans/2026-10-20-w-auth.md); [registration pre-validation plan](docs/superpowers/plans/2026-10-21-w-auth-registration-prevalidation.md) | Merged (PR #14); owner approval recorded 2026-10-21, after the merge; confirmed 2026-10-21 | Documented 2026-10-21 |
-| W-DOMAIN | Port domain model, repositories and core services to Spring Boot with Spring Data JPA | Done | — | [plan](docs/superpowers/plans/2026-10-21-w-domain.md) | Merged (PR #15); approved 2026-10-21 (re-approved after PR bugfixes) | Awaiting confirmation |
+| W-DOMAIN | Port domain model, repositories and core services to Spring Boot with Spring Data JPA | Done | — | [plan](docs/superpowers/plans/2026-10-21-w-domain.md) | Merged (PR #15); approved 2026-10-21 (re-approved after PR bugfixes); guide confirmed 2026-10-22 | Documented 2026-10-22 |
 
 Status vocabulary, used verbatim: `Not started` · `Spec'd` · `Planned` · `Building` ·
 `Blocked — needs human` · `In review` · `Done` · `Abandoned`. Guide vocabulary (owned by
@@ -399,4 +399,4 @@ Live traps only; resolved ones are in the archive. Each is what, the consequence
 The Done ledger lives in **[`docs/project-state/done-ledger.md`](docs/project-state/done-ledger.md)** — every change, big or small, newest first.
 
 - **Latest entry:** 2026-10-22
-- **Entries:** 87 (iteration 2 started; earlier entries in the archive)
+- **Entries:** 88 (iteration 2 started; earlier entries in the archive)

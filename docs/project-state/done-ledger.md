@@ -7,7 +7,8 @@ Iteration 2 started; earlier entries: [docs/project-history/iteration-1/done-led
 
 | Date | What changed | Workstream | Ref |
 |---|---|---|---|
-| 2026-10-22 | Folded the W-DOMAIN branch state into `PROJECT_STATE.md` (decisions C99–C100, deviations D45–D46); W-DOMAIN is `Done`, awaiting guide confirmation | W-DOMAIN | [archive](branch-states/archive/2026-10-22-W-DOMAIN.md) |
+| 2026-10-22 | Developer guide checkpoint for W-DOMAIN (owner-confirmed): new § 4.19 (domain model, repositories, services — packages, ER diagram, invariants, deviations), updated § 1 (delivered features, out of scope), § 3.2 (domain ported, Flyway V003–V005, C99 decision), § 4.17 (Flyway list), § 5 Known Limitations (landing shells note), § 6 Glossary (JPA terms), § 7 Testing (6 unit + 5 repository suites), § 8 Acknowledgements. Part of the rolling web rewrite of the guide | W-DOMAIN | `docs/DeveloperGuide.md` |
+| 2026-10-22 | Folded the W-DOMAIN branch state into `PROJECT_STATE.md` (decisions C99–C100, deviations D45–D46); W-DOMAIN is `Done`, guide confirmed | W-DOMAIN | [archive](branch-states/archive/2026-10-22-W-DOMAIN.md) |
 | 2026-10-21 | Fix 6 PR review bugs: SERIALIZABLE isolation on `submitRequest`; pessimistic wallet locking via `findByIdForUpdate`; role/status authorization in `submitRequest` and `createHostBlock`; force-cancel audit captures before-state; `@NotNull` on `FileTicketRequest.requestedRemedy`; V005 tightens nightly-rate CHECK to reject zero and enforce two-decimal precision | W-DOMAIN | `7516b64` |
 | 2026-10-21 | Add T9 tests: 6 unit test classes (BookingStateMachine, TicketStateMachine, StayDatePolicy, DisputeWindowPolicy, SettlementCalculator, DomainValidation) and 5 repository integration tests (`@DataJpaTest` + Testcontainers); all 163 tests green | W-DOMAIN | `8514c68` |
 | 2026-10-21 | Create DTO layer (T8): 16 request DTOs with Jakarta validation, 21 response DTOs with `from()` factories, 3 mappers | W-DOMAIN | `50160ca` |
