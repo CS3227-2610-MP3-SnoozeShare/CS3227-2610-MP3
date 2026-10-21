@@ -33,7 +33,7 @@ Navigation: listing detail calendar and Host Requests tab. Successful mutations 
 | Error | Existing retryable error card | Retry | Existing error copy | HOST |
 | Populated | API booking conversations and ticket threads, messages, balance, and statement | Send/read, mocked top-up/withdraw confirmation | Existing resolved/read-only and mocked-wallet copy | HOST |
 
-Navigation: Host Messages and Wallet tabs. Booking messages and ticket messages are separate API resources; the UI preserves the current thread context and Host cannot start a support ticket. Resolved threads remain read-only; wallet controls create a new idempotency key per explicit confirmation and never display real payment-success language. A failed response may be retried with the same key for that confirmation.
+Navigation: Host Messages and Wallet tabs. Booking messages and ticket messages are separate API resources; the UI preserves the current thread context and Host cannot start a support ticket. Resolved threads remain read-only; wallet controls disable while a request is in flight and never display real payment-success language. Wallet mutations are not automatically retried or deduplicated. After an ambiguous failure, refresh balance and statement before enabling another explicit operation; a new confirmation is a new wallet operation.
 
 ## Authentication and API errors
 

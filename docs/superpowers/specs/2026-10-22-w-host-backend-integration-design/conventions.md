@@ -11,7 +11,7 @@
 | Error JSON is `code`, `message`, `requestId`; logs contain request ID/status/safe code/path only. | All failures | C96 |
 | Frontend API calls use one authenticated client and retain fixture adapters for deterministic tests. | Frontend Host provider | C78, SD3 |
 | All paged collections default to 50, cap at 100, use stable ordering, and return `{items,page,size,hasMore}`. | Host collection endpoints | SD6 |
-| Wallet mutation idempotency keys are retained alongside the ledger transaction for its lifetime; replays with changed payloads fail with 409. | Wallet endpoints and ledger | SD7 |
+| Wallet mutations have no request idempotency key or replay store; each accepted request is a distinct mocked operation, and the client never retries automatically. | Wallet endpoints and ledger | SD12 |
 | Booking decisions lock the booking row and re-check its state after acquiring the lock; overlapping block check/write is SERIALIZABLE. | Booking and availability service mutations | SD7 |
 | Message and wallet event publication happens after the enclosing transaction commits. | Message and wallet services | SD7; C78 |
 | Host API exceptions map to the single exact status/code matrix in `api.md`; controllers do not infer codes from exception message text. | REST error boundary | SD4, SD6, C96 |

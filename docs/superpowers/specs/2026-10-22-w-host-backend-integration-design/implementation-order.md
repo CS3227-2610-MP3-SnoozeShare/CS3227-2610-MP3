@@ -7,7 +7,7 @@
 | T3 | Make calendar mutations atomic and expose calendar API | Month projection, inclusive date conversion, SERIALIZABLE block writes/removals with one fresh-transaction retry, audit/event behavior | F2,N1-N3 |
 | T4 | Serialize Host booking decisions | Booking row lock, post-lock state validation, deterministic conflict result | F3,N1,N2 |
 | T5 | Add distinct Host conversation APIs | Booking/ticket routes, transactional message/read behavior, after-commit events | F4,N1,N3,N4 |
-| T6 | Add idempotent Host wallet API | Wallet statement/balance projection, idempotency migration/repository/service, mocked operation response | F5,N1-N4 |
+| T6 | Add Host wallet API | Wallet statement/balance projection and mocked operations through existing wallet transaction, row-lock, ledger, and audit behavior; no schema migration | F5,N1-N4 |
 | T7 | Add authenticated frontend Host API adapter | Typed requests, Firebase token attachment, paging, safe errors, shared provider contract | F6,F7,N3-N5 |
 | T8 | Wire listing, calendar, and request screens | Replace fixtures for first three Host domains with real API data and mutations | F6,F7,N3,N5 |
 | T9 | Wire messages and wallet screens | Replace remaining fixtures and local-only results with API behavior | F6,F7,N2-N5 |
@@ -22,9 +22,9 @@
 | T3 Make calendar mutations atomic and expose calendar API | T1 | T2 | 2 |
 | T4 Serialize Host booking decisions | T1 | T5,T6 | 2 |
 | T5 Add distinct Host conversation APIs | T1 | T4,T6 | 2 |
-| T6 Add idempotent Host wallet API | T1 | T4,T5 | 2 |
+| T6 Add Host wallet API | T1 | T4,T5 | 2 |
 | T7 Add authenticated frontend Host API adapter | T1,T2,T3,T4,T5,T6 | - | 3 |
-| T8 Wire listing, calendar, and request screens | T2,T3,T4,T7 | T9 | 4 |
+| T8 Wire listing, calendar, and request screens | T2,T3,T4,T7 | - | 4 |
 | T9 Wire messages and wallet screens | T5,T6,T7,T8 | - | 5 |
 | T10 Verify integration and close the phase | T9 | - | 6 |
 

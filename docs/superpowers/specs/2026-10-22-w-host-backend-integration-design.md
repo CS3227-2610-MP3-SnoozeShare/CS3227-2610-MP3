@@ -4,7 +4,8 @@
 - **Risk tier:** High - this crosses authenticated role authorization, host tenancy, booking state, messaging, and wallet operations.
 - **Workstream:** W-HOST-API | **Plan:** —
 - **Constraints consulted:** C67, C70, C73, C75, C78, C79, C89, C92; § Known Gaps (mocked top-up/withdraw, backend authorization authoritative); § Conventions (audit, money, service authorization, Testcontainers)
-- **Reviewed by lenses:** Implementer, Tester / QA, Maintainer, and Attacker; second-round contract findings addressed (idempotency scope and bounded paging)
+- **Reviewed by lenses:** Implementer, Tester / QA, Maintainer, and Attacker (prior to the C~16 wallet-contract amendment); second-round findings addressed. Review-round cap reached; the amended wallet contract is recorded for operator approval, not independently re-reviewed.
+- **Amended 2026-10-22:** Operator reversed the wallet idempotency default; see branch-state C~16.
 
 ## 1. Problem
 
@@ -18,7 +19,7 @@ The complete requirement set is in [requirements](2026-10-22-w-host-backend-inte
 
 ## 3. Non-goals
 
-- Changes to existing domain tables - W-DOMAIN owns those tables; one dedicated wallet idempotency table is added by this phase.
+- Changes to existing domain tables - W-DOMAIN owns those tables; this phase adds no wallet idempotency table or other persistent retry state.
 - Payment-provider integration - top-up and withdrawal remain mocked by project decision (C75 and § Known Gaps).
 - Host or Agent AI features - unresolved Q6 blocks those workstreams.
 - Polling, WebSockets, or background synchronization - the first integration is request/response; polling remains the later platform convention (C78).
@@ -32,7 +33,7 @@ The complete requirement set is in [requirements](2026-10-22-w-host-backend-inte
 - [Conventions](2026-10-22-w-host-backend-integration-design/conventions.md) - applied security, identity, money, error, and testing rules.
 - [Edge cases](2026-10-22-w-host-backend-integration-design/edge-cases.md) - security, state, concurrency, and failure cases.
 - [Implementation order](2026-10-22-w-host-backend-integration-design/implementation-order.md) - dependency-ordered work.
-- [Data model](2026-10-22-w-host-backend-integration-design/data-model.md) - durable wallet idempotency table and exact response value shapes.
+- [Data model](2026-10-22-w-host-backend-integration-design/data-model.md) - confirms no schema change and defines exact response value shapes.
 
 ## 5. Open questions
 
@@ -50,8 +51,9 @@ The complete requirement set is in [requirements](2026-10-22-w-host-backend-inte
 | SD4 | Use one safe error envelope, `code`, `message`, `requestId`, matching `AuthErrorResponse`. | Gives frontend stable codes and correlation without leaking credentials, tokens, SQL, or entity internals; ad-hoc strings are rejected. | Existing C96 convention |
 | SD5 | Use separate `/messages/bookings/**` and `/messages/tickets/**` routes and DTOs; return 404 for absent and non-owned resources. | Their services take different identifiers/channels; a discriminator route can call the wrong authorization path. Concealing other tenants' resource existence follows least disclosure. | Project owner approved recommended defaults |
 | SD6 | Use month-based inclusive calendar JSON, page size default 50/max 100, and the exact stable error matrix in `api.md`. | Makes backend/client contract deterministic and bounds response sizes; unbounded arrays and alternate status outcomes are rejected. | Project owner approved recommended defaults |
-| SD7 | Wallet mutations require persistent idempotency keys; booking decisions lock the booking row; availability mutations use SERIALIZABLE transactions; message events publish after transaction commit. | Prevents duplicate ledger entries, competing decisions, availability races, and events for rolled-back writes. UI-only retry protection is insufficient. | Project owner approved recommended defaults |
+| SD7 | Booking decisions lock the booking row; availability mutations use SERIALIZABLE transactions; message events publish after transaction commit. Wallet mutations retain the existing service transaction and ledger/audit invariants. | Prevents competing decisions, availability races, and events for rolled-back writes while keeping wallet accounting inside its established transaction boundary. | Project owner approved recommended defaults; wallet idempotency was later reversed by SD12 |
 | SD8 | Resolve the Firebase UID through `AuthUserRepository`, then verify the same ID/UID/role/status in the domain `User`; return 409 on inconsistent rows. | Auth and domain models share the users table but separate repositories; checking both detects drift without trusting client identity. | Project owner approved recommended defaults |
 | SD9 | Keep established route style from this spec, with `PUT .../status` and `/wallet/top-up`; this Host API spec supersedes earlier illustrative route spellings in the architecture design. | A single canonical path set avoids client ambiguity; the architecture document is an outline and its legacy spelling is superseded for this workstream. | Project owner approved recommended defaults |
-| SD10 | Scope wallet idempotency keys per host across all wallet operations; hash operation and canonical amount together. | Cross-operation reuse must conflict, not create a second ledger entry; per-operation uniqueness is rejected. | Project owner approved defaults; second-round review exposed the schema mismatch |
+| SD10 | Superseded by SD12: wallet idempotency keys and persistent replay records are not part of this workstream. | The operator reversed this earlier default; retain the ID as history and do not implement it. | Project owner, explicit reversal |
 | SD11 | Every collection, message-history, and wallet-statement page uses owner-scoped database pagination with deterministic ordering and at most `size + 1` rows fetched. | The existing unpaged service lists cannot safely meet a bounded-page contract by slicing in memory; unbounded reads are rejected. | Project owner approved bounded paging default; second-round review identified the missing query contract |
+| SD12 | Do not add wallet request idempotency: no `Idempotency-Key`, key table, payload hash, or replay response. Each accepted request is a separate mocked wallet operation; the UI does not automatically retry and refreshes the wallet after an ambiguous failure. | The operator explicitly said wallet idempotency is unnecessary; persistent deduplication and its schema/API complexity are rejected. Existing transactional ledger writes and wallet row locking remain. | Project owner, explicit reversal of C~15 / SD7 / SD10 |

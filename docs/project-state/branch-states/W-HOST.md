@@ -32,7 +32,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| 2026-10-22 backend phase | 2026-10-22 | GPT-5 | W-HOST-API | Building | Merged local development's W-DOMAIN state/guide fold at `af32e3f`; no conflicts; base advanced to `6b242b2` | Continue at the W-HOST-API Gate 1 spec approval; do not write the plan until approval | 2026-10-22 |
+| 2026-10-22 backend phase | 2026-10-22 | GPT-5 | W-HOST-API | Building | Operator reversed wallet-idempotency default; spec now treats each accepted wallet mutation as a distinct operation and removes key/table/replay contract | Run spec lint and self-check, then request Gate 1 spec approval before writing the plan | 2026-10-22 |
 
 **Remaining**
 
@@ -44,7 +44,7 @@ No change.
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
 | W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Listings, requests, and wallet scroll within viewport; 143 tests, lint and build pass | guide out of date: W-HOST Host UI pages and Fall Light details |
-| W-HOST-API | Replace Host fixtures with authenticated backend integration | Spec'd | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | — | High-risk contracts selected; second-round findings fixed: cross-operation idempotency key scope and bounded DB paging | — |
+| W-HOST-API | Replace Host fixtures with authenticated backend integration | Spec'd | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | — | High-risk contracts selected; wallet idempotency removed by C~16; bounded database paging specified | — |
 
 ## 4. Architecture
 
@@ -82,7 +82,8 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | C~12 | 2026-10-22 | Vertically center the stacked Top up and Withdraw actions against the available-balance panel without changing their width or stack order | Project owner requested and approved the Wallet action alignment adjustment | Operator conversation |
 | C~13 | 2026-10-22 | Keep Host listings, booking requests, and wallet within the viewport below the navbar; scroll listing results, cap pending requests at four rows, and let past requests and wallet statement use the remaining height | Project owner requested the three page-specific scrolling behaviors to avoid long content pushing pages beyond the screen | Operator conversation |
 | C~14 | 2026-10-22 | Populate enough sample data to exercise each scroll region (12 listings, 8 pending requests, 10 past requests, 31 wallet transactions) and keep table headers visible while scrolling | Project owner requested overflow-ready sample data and sticky headers after reviewing the initial scroll behavior | Operator conversation |
-| C~15 | 2026-10-22 | W-HOST-API uses the operator-approved composite responses, inclusive month calendar, distinct message routes, stable errors, Firebase/domain identity check, persistent wallet idempotency, booking row locking, and transactional availability/message behavior; idempotency keys are unique per host across operations and all histories/statements use bounded database pagination | Project owner approved the recommended defaults to proceed; second-round review required globally unique per-host keys and explicit bounded query semantics. Per-operation keys and in-memory slicing were rejected | Operator conversation and second-round spec review |
+| C~15 | 2026-10-22 | W-HOST-API uses the operator-approved composite responses, inclusive month calendar, distinct message routes, stable errors, Firebase/domain identity check, booking row locking, transactional availability/message behavior, and bounded database pagination; it does not add wallet request idempotency after C~16 | Project owner approved the recommended defaults to proceed; second-round review required exact bounded query semantics. In-memory slicing was rejected. Wallet idempotency was later explicitly reversed | Operator conversation and second-round spec review |
+| C~16 | 2026-10-22 | Remove wallet request idempotency from W-HOST-API: no key header, durable key table, hash, replay response, or request deduplication; each accepted mocked wallet mutation is a separate operation, with no automatic client retry and wallet refresh after ambiguous failure | Project owner said it was unnecessary, then explicitly directed removal after the existing decision C~15 / spec SD7 and SD10 was surfaced. Existing wallet transaction, row lock, ledger, and audit behavior remain | Operator conversation |
 
 ## 9. Deviations
 
@@ -144,3 +145,4 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | 2026-10-22 | Marked the fixture-backed W-HOST UI plan complete as scoped and opened W-HOST-API for authenticated backend integration | W-HOST / W-HOST-API | `2026-10-22` |
 | 2026-10-22 | Drafted W-HOST-API spec; lint passed, but Implementer/Tester/Maintainer/Attacker review found unresolved High-risk contract blockers recorded under Q~1 | W-HOST-API | `2026-10-22` |
 | 2026-10-22 | Resolved user-approved W-HOST-API defaults; fixed second-round findings by aligning idempotency uniqueness/hash scope and defining bounded database paging for summaries, histories, and wallet statements | W-HOST-API | `2026-10-22` |
+| 2026-10-22 | Removed wallet idempotency table, key/replay API, and deduplication requirements per C~16; retained atomic wallet ledger/audit behavior and specified refresh instead of automatic retry | W-HOST-API | `2026-10-22` |
