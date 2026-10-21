@@ -35,14 +35,14 @@ cd backend; ./gradlew build   # needs Docker (Testcontainers)
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-21 10:00 | Claude Opus 4.6 | W~DOMAIN | Active | T7 done; T8 next | Port DTO layer per plan T8 (request/response records, mappers) | 2026-10-21 14:05 |
+| S1 | 2026-10-21 10:00 | Claude Opus 4.6 | W~DOMAIN | Active | T8 done; T9 next | Port tests per plan T9 (unit + integration) | 2026-10-21 14:30 |
 
 **Remaining**
 
 - [x] T5: Spring Data JPA repository interfaces (12 repos)
 - [x] T6: Port infrastructure (@Transactional, ApplicationEventPublisher, LedgerWriter, Clock bean, AuditServiceImpl)
 - [x] T7: Port 15 service implementations (13 interfaces, 14 value objects, 15 impls, 1 utility class, 2 request types)
-- [ ] T8: DTO layer (request/response records, mappers)
+- [x] T8: DTO layer (16 request DTOs, 21 response DTOs, 3 mappers)
 - [ ] T9: Tests (unit + integration)
 - [ ] **Handover:** Update Developer Guide for W-DOMAIN (entities, repositories, services, JPA conventions)
 
@@ -52,7 +52,7 @@ cd backend; ./gradlew build   # needs Docker (Testcontainers)
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W~DOMAIN | Port domain model + core services to Spring Boot | Building | — | [plan](docs/superpowers/plans/2026-10-21-w-domain.md) | T7/9 done; T8 next | — |
+| W~DOMAIN | Port domain model + core services to Spring Boot | Building | — | [plan](docs/superpowers/plans/2026-10-21-w-domain.md) | T8/9 done; T9 next | — |
 
 ---
 
@@ -72,6 +72,9 @@ cd backend; ./gradlew build   # needs Docker (Testcontainers)
 | `backend/src/main/java/com/snoozeshare/domain/validation/` | `DomainValidation` (copied) |
 | `backend/src/main/java/com/snoozeshare/service/` | 13 service interfaces, 14 value-object records, 2 request types |
 | `backend/src/main/java/com/snoozeshare/service/impl/` | 15 service implementations + `AuthorizationService` utility |
+| `backend/src/main/java/com/snoozeshare/api/request/` | 16 request DTOs (records with `@Valid` + `@JsonIgnoreProperties`) |
+| `backend/src/main/java/com/snoozeshare/api/response/` | 21 response DTOs (records with `static from()` factory methods) |
+| `backend/src/main/java/com/snoozeshare/api/mapper/` | 3 mapper utilities (`ListingMapper`, `TicketMapper`, `SearchMapper`) |
 | `backend/src/main/resources/db/migration/V003__domain_tables.sql` | ALTERs W-AUTH's users/wallets + creates 11 domain tables |
 | `backend/src/main/resources/db/migration/V004__seed_system_user.sql` | SYSTEM user + platform wallet seed |
 
@@ -132,3 +135,4 @@ No change.
 | 2026-10-21 | Create 12 JPA entity classes + `AmenitySetConverter` + `WalletTransaction` record | W~DOMAIN | `d96caca` |
 | 2026-10-21 | Merge W-AUTH from development: resolve Flyway V002 conflict (restructure to V003/V004), reconcile all entity PK columns to `id`, add `firebaseUid`/`updatedAt` to User, fix wallet balance scale to match V002 | W~DOMAIN | `3eeff49` |
 | 2026-10-21 | Port 15 service implementations (T7): 13 interfaces, 14 value objects, 2 request types, 15 impls, 1 utility; adapted desktop record patterns to JPA entity patterns; changed T6 JDBC repos and service impls from `@ConditionalOnBean(JdbcTemplate/WalletRepo/AuditLogRepo)` to `@ConditionalOnBean(PropertyRepository.class)` for reliable no-DB test support | W~DOMAIN | `7ecc9a1` |
+| 2026-10-21 | Create DTO layer (T8): 16 request DTOs with Jakarta validation, 21 response DTOs with `from()` factories, 3 mappers; follows auth module pattern (`@JsonIgnoreProperties(ignoreUnknown = false)`, records) | W~DOMAIN | — |
