@@ -1,99 +1,100 @@
 # API
 
-All operations require a verified Firebase bearer token and an active database profile with role `HOST`. The controller resolves the domain `User` UUID from the token UID and passes that UUID to W-DOMAIN services. The client never supplies an acting host ID.
+## Shared identity, paging, and errors
+
+Every route requires a verified Firebase bearer token. `RoleAuthorizationFilter` already resolves the active HOST auth profile. A `HostIdentityResolver` uses that same token UID with `AuthUserRepository.findByFirebaseUid`; it confirms the matching domain `User` exists, has the same UUID, `firebaseUid`, HOST role, and ACTIVE status. Missing auth profile remains the filter's 404 `PROFILE_NOT_REGISTERED`; missing or inconsistent domain profile returns 409 `PROFILE_INCONSISTENT`. The browser never sends an acting host ID.
+
+All collection endpoints accept `page` default 0 and `size` default 50, with `1 <= size <= 100`; ordering is deterministic and newest/most-recent first unless stated otherwise. Responses use `PageResponse<T> = {items, page, size, hasMore}`. Each collection query applies owner/conversation scope and ordering in the database and reads at most `size + 1` rows; it must not load an unpaged list and slice it in application memory. Listing rows order by `createdAt DESC, id ASC`; booking rows by `createdAt DESC, id ASC`; conversation summaries by `lastMessageAt DESC, conversationId ASC`; message history by `createdAt DESC, id DESC`; wallet statement by `timestamp DESC, id DESC`. Calendar is one month (at most 42 day cells). Request validation errors use 400 `VALIDATION_ERROR`; domain rules use 422 `DOMAIN_RULE_VIOLATION`; stale state uses 409 `STATE_CONFLICT`; idempotency-key payload mismatch uses 409 `IDEMPOTENCY_KEY_REUSED`; inaccessible or absent owned resources use 404 `NOT_FOUND`; wrong role/inactive profile use 403 `ROLE_MISMATCH`/`PROFILE_INACTIVE`; unexpected errors use 500 `INTERNAL_ERROR`. Every error body is `AuthErrorResponse(code,message,requestId)`; messages are safe fixed text.
+
+For every endpoint, logs include request ID, status, safe code, and route only. Never log bearer tokens, message bodies, listing descriptions, registration codes, or full wallet payloads.
 
 ## GET /api/host/listings
 
 | Field | Definition |
 |---|---|
-| Caller and principal | Authenticated Firebase principal; HOST role. |
-| Authorization rule | Active profile and HOST role in the security boundary; result is `ListingService.findByHostId(domainHostId)`. |
-| Tenancy scope | Only properties whose `hostId` equals the resolved domain host UUID. |
-| Inputs | None. |
-| Outputs | Array of `PropertyResponse`; host ID is the resolved owner, never client input. |
-| Errors | Missing/invalid token → 401; inactive/wrong role → 403; domain lookup failure → 404; unexpected failure → 500 `INTERNAL_ERROR`. |
-| Idempotency | Read-only. |
-| Transaction boundary | Read transaction. |
+| Caller and principal | Verified Firebase principal; active HOST. |
+| Authorization / tenancy | Resolve domain host UUID server-side; `ListingService.findByHostId(hostId)` scopes results. |
+| Inputs | `page`, `size` per shared paging rules. |
+| Output | Page of `PropertyResponse`. |
+| Errors | Shared error matrix; no per-item ownership errors. |
+| Idempotency / transaction | Read-only, read-only transaction. |
 | Events / audit | None. |
-| Logging | Request ID, status, safe code, path; never token or entity internals. |
-| Compatibility | New endpoint; fixture adapter remains test-only. |
+| Compatibility | Replaces fixture list; stable fixture IDs become backend UUIDs. |
 
-## POST /api/host/listings; PUT /api/host/listings/{listingId}; PATCH /api/host/listings/{listingId}/status
-
-| Field | Definition |
-|---|---|
-| Caller and principal | Authenticated Firebase principal; HOST role. |
-| Authorization rule | Resolve host UUID; load/validate ownership; call `ListingService.create`, `update`, or `updateStatus`. |
-| Tenancy scope | Create uses the resolved host; update/status may affect only an owned listing. |
-| Inputs | Existing `CreateListingRequest`, `UpdateListingRequest`, and `UpdateListingStatusRequest`; Bean Validation plus domain validation; UUID path for existing listing. |
-| Outputs | `PropertyResponse`; no credentials or unrelated users. |
-| Errors | Invalid JSON/validation → 400 `VALIDATION_ERROR`; missing listing → 404 `NOT_FOUND`; non-owner → 403 `FORBIDDEN`; illegal status/rate/date/domain rule → 422 `DOMAIN_RULE_VIOLATION`; unexpected → 500. |
-| Idempotency | Create is not idempotent; repeated update/status with the same representation is a no-op at the domain state level and returns current state. |
-| Transaction boundary | Existing service transaction covers property mutation and required audit rows. |
-| Events / audit | Existing service audit/events only; controller does not write ledger or audit rows directly. |
-| Logging | Safe request metadata only; never full descriptions, tokens, or monetary secrets. |
-| Compatibility | Uses W-DOMAIN DTOs and `ListingService`; no schema change. |
-
-## GET /api/host/listings/{listingId}/calendar; POST /api/host/listings/{listingId}/blocks; DELETE /api/host/blocks/{blockId}
+## GET /api/host/listings/{listingId}; POST /api/host/listings; PUT /api/host/listings/{listingId}; PUT /api/host/listings/{listingId}/status
 
 | Field | Definition |
 |---|---|
-| Caller and principal | Authenticated active HOST. |
-| Authorization rule | Verify listing/block ownership before calling `AvailabilityService.blocksFor`, `createHostBlock`, or `removeHostBlock`; booked dates come from the existing booking query used by the calendar response. |
-| Tenancy scope | Only the selected Host's listing and blocks. |
-| Inputs | UUID path values; `CreateHostBlockRequest` with non-null dates, inclusive UI range converted per D5, optional reason limited to 240 UTF-8 characters. |
-| Outputs | Calendar response containing listing ID, booked ranges, blocked ranges, and `AvailabilityBlockResponse`; deletion returns 204. |
-| Errors | Invalid UUID/body → 400; unknown/non-owned listing or block → 404/403; past, reversed, overlapping, or illegal range → 422 `DOMAIN_RULE_VIOLATION`; unexpected → 500. |
-| Idempotency | Repeating a delete after removal returns 404; creating an identical block twice is rejected by the domain rule rather than silently duplicated. |
-| Transaction boundary | Existing availability service transaction and audit rules. |
-| Events / audit | Existing domain events/audit only. |
-| Logging | Request ID and safe range metadata; never message bodies or tokens. |
-| Compatibility | Calendar remains visually six rows; API supplies real date state. |
+| Caller and principal | Verified active HOST. |
+| Authorization / tenancy | Resolve host UUID; detail/update/status require owned property; create assigns resolved UUID. No client `hostId` accepted. |
+| Inputs | `CreateListingRequest`, `UpdateListingRequest`, `UpdateListingStatusRequest`; listing UUID; create/update validate existing DTO constraints plus description <= 5,000 chars and title <= 120 chars. |
+| Output | Detail returns `HostListingDetailResponse` combining `PropertyResponse` and `ListingMetricsResponse`; writes return `PropertyResponse`. |
+| Errors | Invalid fields/unknown JSON → 400 `VALIDATION_ERROR`; absent/non-owned UUID → 404 `NOT_FOUND`; valid payload rejected by domain rule → 422 `DOMAIN_RULE_VIOLATION`; unexpected → 500 `INTERNAL_ERROR`. |
+| Idempotency / transaction | Create is non-idempotent. Update/status are replace operations; identical state returns current representation. Each mutation uses its existing service transaction and audit/event behavior. |
+| Events / audit | Existing listing events and audit rows; controller does not write repositories or ledger directly. |
+| Compatibility | Detail data includes booking count, average rating, reviews, occupancy, and earnings already shown by the UI. |
 
-## GET /api/host/requests?view=pending|history; POST /api/host/requests/{bookingId}/decision
+## GET /api/host/listings/{listingId}/calendar?year={year}&month={month}; POST /api/host/listings/{listingId}/blocks; DELETE /api/host/blocks/{blockId}
 
 | Field | Definition |
 |---|---|
-| Caller and principal | Authenticated active HOST. |
-| Authorization rule | Use `BookingService.pendingRequestRowsFor` or `historyRowsFor`; decision passes resolved host UUID to `BookingService.decide`. |
-| Tenancy scope | Only bookings for properties owned by the resolved Host. |
-| Inputs | `view` is exactly `pending` or `history`; decision uses `BookingDecisionRequest` with non-null `approve` and optional message limited to 500 UTF-8 characters. |
-| Outputs | Arrays of `HostBookingRowResponse`; decision returns `BookingResponse`. |
-| Errors | Invalid view/body → 400; unknown/non-owned booking → 404/403; stale/non-pending/legal-state failure → 409 `STATE_CONFLICT`; validation/domain failure → 422; unexpected → 500. |
-| Idempotency | A decision is accepted once; repeat after transition returns 409 and does not notify or move money twice. |
-| Transaction boundary | Existing booking decision transaction includes state, escrow/ledger effects, audit, and event publication. |
-| Events / audit | Existing booking, wallet, and audit events only. |
-| Logging | Request ID, booking ID, safe status; never guest message content or tokens. |
-| Compatibility | Preserves the existing pending/history table and four-row viewport behavior. |
+| Caller and principal | Verified active HOST. |
+| Authorization / tenancy | Listing and block must belong to resolved host; inaccessible resources return 404 `NOT_FOUND`. |
+| Inputs | Calendar year 2000–2100 and month 1–12. Create uses `CreateHostBlockRequest`; API dates are inclusive. Reason is optional, trimmed, max 240 Unicode code points. |
+| Output | `HostCalendarResponse`; month days are date-ascending, `booked` and `blocked` booleans, BOOKING state takes visual precedence, manual blocked reason is returned only for HOST_BLOCK; ranges are date/id ascending and inclusive. Delete returns 204. |
+| Errors | Invalid month/date/UUID/body → 400 `VALIDATION_ERROR`; past, reversed, or overlapping range → 422 `DOMAIN_RULE_VIOLATION`; absent/non-owned listing/block → 404 `NOT_FOUND`; unexpected → 500. |
+| Idempotency / transaction | Create is non-idempotent; delete repeat returns 404. Create/remove use one SERIALIZABLE transaction; overlapping range check and write/delete are atomic. On SQLSTATE `40001`, retry the complete operation once in a fresh transaction; if the retry also serializes unsuccessfully, return 409 `STATE_CONFLICT`. A manual block mutation writes the required audit record. |
+| Events / audit | Availability event publishes only after commit; audit row records create/remove with actor and inclusive range. |
+| Compatibility | Persisted ranges are half-open; response and request convert to/from inclusive dates exactly once. |
 
-## GET /api/host/messages; GET /api/host/messages/{threadId}; POST /api/host/messages/{threadId}; POST /api/host/messages/{threadId}/read
+## GET /api/host/requests?view=pending|history&page={page}&size={size}; POST /api/host/requests/{bookingId}/decision
 
 | Field | Definition |
 |---|---|
-| Caller and principal | Authenticated active HOST. |
-| Authorization rule | Resolve role HOST and pass resolved user UUID/role to `BookingConversationService` or `MessageService`; service enforces thread visibility. |
-| Tenancy scope | Booking conversations only for bookings involving the Host; ticket messages only in the Host channel for tickets visible to that Host. |
-| Inputs | Thread UUID and `PostMessageRequest.body`, non-blank and max 2,000 UTF-8 characters. |
-| Outputs | Conversation summaries, `MessageResponse`/`BookingConversationSummaryResponse`, or 204 for read marking. |
-| Errors | Invalid body/path → 400; inaccessible thread → 404/403; resolved/read-only thread or invalid booking state → 409; unexpected → 500. |
-| Idempotency | Posting is not idempotent; read marking is idempotent. |
-| Transaction boundary | Existing message insert/read transaction; publication after commit. |
-| Events / audit | Existing message events; no ticket creation from Host messaging. |
-| Logging | Request ID, thread ID, status; never message body, token, or personal content. |
-| Compatibility | Retains the UI decision that Host messaging has no New Ticket action. |
+| Caller and principal | Verified active HOST. |
+| Authorization / tenancy | Existing `BookingService` host-scoped queries; decision supplies resolved host UUID to `decide`. |
+| Inputs | `view` exactly `pending` or `history`; decision uses `BookingDecisionRequest`; message <= 500 Unicode code points. |
+| Output | Paged `HostBookingRowResponse`; decision returns `BookingResponse`. |
+| Errors | Invalid query/body → 400 `VALIDATION_ERROR`; absent/non-owned booking → 404 `NOT_FOUND`; no longer pending/concurrent loser → 409 `STATE_CONFLICT`; domain rejection → 422 `DOMAIN_RULE_VIOLATION`; unexpected → 500. |
+| Idempotency / transaction | Decision is one-shot. Service locks the booking row `PESSIMISTIC_WRITE`, checks PENDING after lock, and commits state, escrow/ledger, audit, and event intent atomically. Repeat returns 409. |
+| Events / audit | Existing booking/wallet/audit behavior; events publish after successful commit. |
+| Compatibility | Preserves pending/history presentation and deterministic newest-first ordering. |
+
+## GET /api/host/messages/bookings; GET /api/host/messages/bookings/{bookingId}; POST /api/host/messages/bookings/{bookingId}; POST /api/host/messages/bookings/{bookingId}/read
+
+| Field | Definition |
+|---|---|
+| Caller and principal | Verified active HOST. |
+| Authorization / tenancy | `BookingConversationService` receives resolved host UUID and `Role.HOST`; it verifies booking participation. |
+| Inputs | Summary route accepts `page`,`size`; history route accepts `page`,`size`; booking UUID; `PostMessageRequest.body` 1–2,000 Unicode code points. |
+| Output | Summary route returns `PageResponse<BookingConversationSummaryResponse>`; history route returns `PageResponse<MessageResponse>`; post returns `MessageResponse`; read returns 204. Page 0 history is newest-first. |
+| Errors | Invalid body/path → 400; inaccessible booking → 404; closed posting window → 409 `STATE_CONFLICT`; unexpected → 500. |
+| Idempotency / transaction | Posting is non-idempotent; read marking is idempotent. Insert/read is transactional; message event publishes after commit. |
+| Events / audit | Existing booking-message event, after commit. |
+| Compatibility | Booking direct messages remain distinct from agent-managed support tickets. |
+
+## GET /api/host/messages/tickets; GET /api/host/messages/tickets/{ticketId}?channel=HOST; POST /api/host/messages/tickets/{ticketId}?channel=HOST; POST /api/host/messages/tickets/{ticketId}/read?channel=HOST
+
+| Field | Definition |
+|---|---|
+| Caller and principal | Verified active HOST. |
+| Authorization / tenancy | `MessageService` receives resolved host UUID, `Role.HOST`, and required `ThreadChannel.HOST`; service enforces visibility. |
+| Inputs | Summary route accepts `page`,`size`; history route accepts `page`,`size`; `channel` exactly `HOST`; ticket UUID; message body 1–2,000 Unicode code points. |
+| Output | Summary route returns `PageResponse<ConversationSummaryResponse>`; history route returns `PageResponse<MessageResponse>`; post returns `MessageResponse`; read returns 204. Page 0 history is newest-first. |
+| Errors | Invalid channel/body/path → 400; inaccessible ticket → 404; resolved ticket read-only → 409 `STATE_CONFLICT`; unexpected → 500. |
+| Idempotency / transaction | Posting is non-idempotent; read marking is idempotent. Insert/read is transactional; event publishes after commit. |
+| Events / audit | Existing ticket-message event, after commit. Host cannot create tickets. |
+| Compatibility | Distinct route/type prevents booking IDs from being interpreted as ticket IDs. |
 
 ## GET /api/host/wallet; POST /api/host/wallet/top-up; POST /api/host/wallet/withdraw
 
 | Field | Definition |
 |---|---|
-| Caller and principal | Authenticated active HOST. |
-| Authorization rule | Resolve user UUID; call `WalletService` for that user only. |
-| Tenancy scope | Only the resolved Host wallet and its statement. |
-| Inputs | `WalletAmountRequest.amount`, positive `BigDecimal`, maximum 2 decimal places, maximum 100,000.00 SGD per operation. |
-| Outputs | `WalletResponse`, `TransactionResponse`, and statement rows; response says `MOCKED` where the UI needs to distinguish simulation from payment. |
-| Errors | Invalid amount → 400; wallet missing → 404; insufficient funds/invalid operation → 422; unexpected → 500. |
-| Idempotency | Operations are mocked and not idempotent; the UI must require explicit confirmation and never retry automatically. |
-| Transaction boundary | Existing wallet/ledger transaction writes balance, transaction/audit row, and post-commit event together. |
-| Events / audit | Existing ledger and audit events; no payment provider call. |
-| Logging | Request ID, operation type, amount band/status; never token, credentials, or full wallet response in logs. |
-| Compatibility | Preserves the accepted mocked top-up/withdraw limitation (C75). |
+| Caller and principal | Verified active HOST. |
+| Authorization / tenancy | Resolve host UUID; wallet service receives only that UUID. |
+| Inputs | Read accepts `page`, `size` for statement. Mutations require `Idempotency-Key` (1–128 visible ASCII characters) and `WalletAmountRequest.amount` from 0.01 to 100000.00 with at most two decimals. |
+| Output | Read returns `HostWalletResponse` with current balance and a paged newest-first statement. Mutation returns `HostWalletMutationResponse` with `mocked=true`, resulting wallet, transaction, and replay flag. |
+| Errors | Missing/malformed key or amount → 400 `VALIDATION_ERROR`; same key with different operation/amount → 409 `IDEMPOTENCY_KEY_REUSED`; insufficient funds → 422 `DOMAIN_RULE_VIOLATION`; missing wallet → 404 `NOT_FOUND`; unexpected → 500. |
+| Idempotency / transaction | Same user + key + operation + canonical amount returns the original transaction and `replayed=true`; a different operation or amount with that key returns 409 `IDEMPOTENCY_KEY_REUSED`. Key uniqueness is per user across operations. Concurrent same-key requests converge on the committed idempotency row and return its original transaction or mismatch error. Idempotency row and wallet ledger mutation share one transaction; any failure rolls both back. |
+| Events / audit | Existing ledger and audit write; event is dispatched only after commit. No payment provider call. |
+| Compatibility | Preserves C75 mocked operations and never represents them as real payments. |

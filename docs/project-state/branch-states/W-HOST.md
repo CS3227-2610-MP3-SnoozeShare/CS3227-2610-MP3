@@ -32,7 +32,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| 2026-10-22 backend phase | 2026-10-22 | GPT-5 | W-HOST-API | Blocked — needs human | High-risk spec review found unresolved API, identity, concurrency, and wallet-contract decisions | Resolve Q~1, amend and re-review the spec, then request spec approval before writing the plan | 2026-10-22 |
+| 2026-10-22 backend phase | 2026-10-22 | GPT-5 | W-HOST-API | Building | User approved recommended API, identity, transaction, and wallet defaults; second-round review findings on key scope and bounded paging are incorporated | Run final spec lint/self-check, then request Gate 1 spec approval before writing the plan | 2026-10-22 |
 
 **Remaining**
 
@@ -44,7 +44,7 @@ No change.
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
 | W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Listings, requests, and wallet scroll within viewport; 143 tests, lint and build pass | guide out of date: W-HOST Host UI pages and Fall Light details |
-| W-HOST-API | Replace Host fixtures with authenticated backend integration | Spec'd | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | — | Draft lint passes; reviewer blockers require exact contract decisions before approval | — |
+| W-HOST-API | Replace Host fixtures with authenticated backend integration | Spec'd | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | — | High-risk contracts selected; second-round findings fixed: cross-operation idempotency key scope and bounded DB paging | — |
 
 ## 4. Architecture
 
@@ -62,7 +62,7 @@ No change: existing W-DOMAIN dependency and accepted gaps remain in force.
 
 | ID | What is needed | What it blocks | Raised |
 |---|---|---|---|
-| Q~1 | Resolve the backend contract choices: listing detail/metrics shape; calendar month/range JSON and inclusivity; separate booking/ticket message routes; exact error-code matrix; Firebase-to-domain-user resolver; server-side wallet idempotency; and booking/availability/message transaction guarantees | W-HOST-API spec approval and all backend implementation | 2026-10-22 |
+| — | None. The selected contract defaults and second-round fixes are recorded in the W-HOST-API spec. | — | — |
 
 ## 8. Decisions
 
@@ -82,6 +82,7 @@ No change: existing W-DOMAIN dependency and accepted gaps remain in force.
 | C~12 | 2026-10-22 | Vertically center the stacked Top up and Withdraw actions against the available-balance panel without changing their width or stack order | Project owner requested and approved the Wallet action alignment adjustment | Operator conversation |
 | C~13 | 2026-10-22 | Keep Host listings, booking requests, and wallet within the viewport below the navbar; scroll listing results, cap pending requests at four rows, and let past requests and wallet statement use the remaining height | Project owner requested the three page-specific scrolling behaviors to avoid long content pushing pages beyond the screen | Operator conversation |
 | C~14 | 2026-10-22 | Populate enough sample data to exercise each scroll region (12 listings, 8 pending requests, 10 past requests, 31 wallet transactions) and keep table headers visible while scrolling | Project owner requested overflow-ready sample data and sticky headers after reviewing the initial scroll behavior | Operator conversation |
+| C~15 | 2026-10-22 | W-HOST-API uses the operator-approved composite responses, inclusive month calendar, distinct message routes, stable errors, Firebase/domain identity check, persistent wallet idempotency, booking row locking, and transactional availability/message behavior; idempotency keys are unique per host across operations and all histories/statements use bounded database pagination | Project owner approved the recommended defaults to proceed; second-round review required globally unique per-host keys and explicit bounded query semantics. Per-operation keys and in-memory slicing were rejected | Operator conversation and second-round spec review |
 
 ## 9. Deviations
 
@@ -141,3 +142,4 @@ No change: existing W-DOMAIN dependency and accepted gaps remain in force.
 | 2026-10-22 | Merged current `development` into W-HOST with the `ort` strategy; no conflicts or conflict markers; branch state base advanced to `4257d4b` | W-HOST | `6709cc8` |
 | 2026-10-22 | Marked the fixture-backed W-HOST UI plan complete as scoped and opened W-HOST-API for authenticated backend integration | W-HOST / W-HOST-API | `2026-10-22` |
 | 2026-10-22 | Drafted W-HOST-API spec; lint passed, but Implementer/Tester/Maintainer/Attacker review found unresolved High-risk contract blockers recorded under Q~1 | W-HOST-API | `2026-10-22` |
+| 2026-10-22 | Resolved user-approved W-HOST-API defaults; fixed second-round findings by aligning idempotency uniqueness/hash scope and defining bounded database paging for summaries, histories, and wallet statements | W-HOST-API | `2026-10-22` |

@@ -1,6 +1,6 @@
 # UI
 
-The visual contract remains the approved W-HOST Fall Light UI. `HostFixtureProvider` remains available to unit and visual tests; authenticated production routes use an API-backed provider with the same state shapes.
+The visual contract remains the approved W-HOST Fall Light UI. `HostFixtureProvider` remains available to unit and visual tests; authenticated production routes use an API-backed provider with the same state shapes. Collection pages request `page=0&size=50` initially, show a next-page control when `hasMore=true`, and never request more than 100 rows. The navbar wallet badge and Wallet screen share one in-memory wallet query; navigating to Wallet adds only the statement page request.
 
 ## Listings, detail, and new/edit listing
 
@@ -22,7 +22,7 @@ Navigation: `/host/listings` → `/host/listings/{id}`, `/new`, `/edit`; unknown
 | Error | Existing retryable error card | Retry | Existing error copy | HOST |
 | Populated | API booked/blocked ranges and pending/history rows | Apply/clear block; approve/reject decision | Existing confirmation copy | HOST |
 
-Navigation: listing detail calendar and Host Requests tab. Successful mutations refetch the affected page data; failed mutations leave the prior state unchanged.
+Navigation: listing detail calendar and Host Requests tab. Successful mutations refetch the affected page data; failed mutations leave the prior state unchanged. Calendar requests the selected month and constructs its six-week client grid from the inclusive API date records.
 
 ## Messages and wallet
 
@@ -31,9 +31,9 @@ Navigation: listing detail calendar and Host Requests tab. Successful mutations 
 | Empty | Existing empty thread/statement state | No unsupported action | Existing copy | HOST |
 | Loading | Existing loading treatment | Disabled composer/actions | Existing loading semantics | HOST |
 | Error | Existing retryable error card | Retry | Existing error copy | HOST |
-| Populated | API conversations, messages, balance, and statement | Send/read, mocked top-up/withdraw confirmation | Existing resolved/read-only and mocked-wallet copy | HOST |
+| Populated | API booking conversations and ticket threads, messages, balance, and statement | Send/read, mocked top-up/withdraw confirmation | Existing resolved/read-only and mocked-wallet copy | HOST |
 
-Navigation: Host Messages and Wallet tabs. Resolved threads remain read-only; wallet controls never display real payment-success language.
+Navigation: Host Messages and Wallet tabs. Booking messages and ticket messages are separate API resources; the UI preserves the current thread context and Host cannot start a support ticket. Resolved threads remain read-only; wallet controls create a new idempotency key per explicit confirmation and never display real payment-success language. A failed response may be retried with the same key for that confirmation.
 
 ## Authentication and API errors
 

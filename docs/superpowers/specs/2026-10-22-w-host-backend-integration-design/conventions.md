@@ -10,4 +10,9 @@
 | Dates are ISO `yyyy-MM-dd`; UI inclusive block ends are converted using the existing half-open persistence convention. | Calendar endpoints | D5, W-DOMAIN `AvailabilityService` |
 | Error JSON is `code`, `message`, `requestId`; logs contain request ID/status/safe code/path only. | All failures | C96 |
 | Frontend API calls use one authenticated client and retain fixture adapters for deterministic tests. | Frontend Host provider | C78, SD3 |
+| All paged collections default to 50, cap at 100, use stable ordering, and return `{items,page,size,hasMore}`. | Host collection endpoints | SD6 |
+| Wallet mutation idempotency keys are retained alongside the ledger transaction for its lifetime; replays with changed payloads fail with 409. | Wallet endpoints and ledger | SD7 |
+| Booking decisions lock the booking row and re-check its state after acquiring the lock; overlapping block check/write is SERIALIZABLE. | Booking and availability service mutations | SD7 |
+| Message and wallet event publication happens after the enclosing transaction commits. | Message and wallet services | SD7; C78 |
+| Host API exceptions map to the single exact status/code matrix in `api.md`; controllers do not infer codes from exception message text. | REST error boundary | SD4, SD6, C96 |
 | Backend controller tests use Spring security principal fixtures and Testcontainers where persistence is exercised; frontend tests assert request paths, payloads, state transitions, and no secret/host-ID spoofing. | Verification | § Conventions, C83 |

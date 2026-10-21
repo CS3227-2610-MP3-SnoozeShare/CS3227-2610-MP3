@@ -4,7 +4,7 @@
 - **Risk tier:** High - this crosses authenticated role authorization, host tenancy, booking state, messaging, and wallet operations.
 - **Workstream:** W-HOST-API | **Plan:** —
 - **Constraints consulted:** C67, C70, C73, C75, C78, C79, C89, C92; § Known Gaps (mocked top-up/withdraw, backend authorization authoritative); § Conventions (audit, money, service authorization, Testcontainers)
-- **Reviewed by lenses:** none yet
+- **Reviewed by lenses:** Implementer, Tester / QA, Maintainer, and Attacker; second-round contract findings addressed (idempotency scope and bounded paging)
 
 ## 1. Problem
 
@@ -18,7 +18,7 @@ The complete requirement set is in [requirements](2026-10-22-w-host-backend-inte
 
 ## 3. Non-goals
 
-- New persistence tables or migrations - W-DOMAIN already owns the domain schema (C73, C74 decision resolved by W-DOMAIN).
+- Changes to existing domain tables - W-DOMAIN owns those tables; one dedicated wallet idempotency table is added by this phase.
 - Payment-provider integration - top-up and withdrawal remain mocked by project decision (C75 and § Known Gaps).
 - Host or Agent AI features - unresolved Q6 blocks those workstreams.
 - Polling, WebSockets, or background synchronization - the first integration is request/response; polling remains the later platform convention (C78).
@@ -32,13 +32,13 @@ The complete requirement set is in [requirements](2026-10-22-w-host-backend-inte
 - [Conventions](2026-10-22-w-host-backend-integration-design/conventions.md) - applied security, identity, money, error, and testing rules.
 - [Edge cases](2026-10-22-w-host-backend-integration-design/edge-cases.md) - security, state, concurrency, and failure cases.
 - [Implementation order](2026-10-22-w-host-backend-integration-design/implementation-order.md) - dependency-ordered work.
-- No data-model component: this phase adds no tables, columns, migrations, or seed changes.
+- [Data model](2026-10-22-w-host-backend-integration-design/data-model.md) - durable wallet idempotency table and exact response value shapes.
 
 ## 5. Open questions
 
 | ID | Question | Blocks | Owner |
 |---|---|---|---|
-| — | None; endpoint grouping and response/error conventions are selected below. | — | — |
+| — | None; endpoint paths, limits, error mappings, identity resolution, and mutation guarantees are selected below. | — | — |
 
 ## 6. Decisions made in this spec
 
@@ -48,3 +48,10 @@ The complete requirement set is in [requirements](2026-10-22-w-host-backend-inte
 | SD2 | Resolve the domain `User` UUID from the verified Firebase UID at the controller boundary; clients never send an acting host ID. | Prevents identity spoofing and follows C79/C92; accepting a client host ID is rejected. | Project owner request; existing W-AUTH contract |
 | SD3 | Keep the current fixture adapter as a test adapter, while production Host providers use the API client. | Preserves deterministic empty/loading/error and visual tests while removing fixture data from authenticated production routes. | Project owner request; current W-HOST design |
 | SD4 | Use one safe error envelope, `code`, `message`, `requestId`, matching `AuthErrorResponse`. | Gives frontend stable codes and correlation without leaking credentials, tokens, SQL, or entity internals; ad-hoc strings are rejected. | Existing C96 convention |
+| SD5 | Use separate `/messages/bookings/**` and `/messages/tickets/**` routes and DTOs; return 404 for absent and non-owned resources. | Their services take different identifiers/channels; a discriminator route can call the wrong authorization path. Concealing other tenants' resource existence follows least disclosure. | Project owner approved recommended defaults |
+| SD6 | Use month-based inclusive calendar JSON, page size default 50/max 100, and the exact stable error matrix in `api.md`. | Makes backend/client contract deterministic and bounds response sizes; unbounded arrays and alternate status outcomes are rejected. | Project owner approved recommended defaults |
+| SD7 | Wallet mutations require persistent idempotency keys; booking decisions lock the booking row; availability mutations use SERIALIZABLE transactions; message events publish after transaction commit. | Prevents duplicate ledger entries, competing decisions, availability races, and events for rolled-back writes. UI-only retry protection is insufficient. | Project owner approved recommended defaults |
+| SD8 | Resolve the Firebase UID through `AuthUserRepository`, then verify the same ID/UID/role/status in the domain `User`; return 409 on inconsistent rows. | Auth and domain models share the users table but separate repositories; checking both detects drift without trusting client identity. | Project owner approved recommended defaults |
+| SD9 | Keep established route style from this spec, with `PUT .../status` and `/wallet/top-up`; this Host API spec supersedes earlier illustrative route spellings in the architecture design. | A single canonical path set avoids client ambiguity; the architecture document is an outline and its legacy spelling is superseded for this workstream. | Project owner approved recommended defaults |
+| SD10 | Scope wallet idempotency keys per host across all wallet operations; hash operation and canonical amount together. | Cross-operation reuse must conflict, not create a second ledger entry; per-operation uniqueness is rejected. | Project owner approved defaults; second-round review exposed the schema mismatch |
+| SD11 | Every collection, message-history, and wallet-statement page uses owner-scoped database pagination with deterministic ordering and at most `size + 1` rows fetched. | The existing unpaged service lists cannot safely meet a bounded-page contract by slicing in memory; unbounded reads are rejected. | Project owner approved bounded paging default; second-round review identified the missing query contract |
