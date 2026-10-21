@@ -9,7 +9,7 @@ in after the branch merges.
 - **Owner:** project owner
 - **Status:** Draft
 - **Approved:** —
-- **Last updated:** 2026-10-21 by GPT-5 — T3 complete; T4 started
+- **Last updated:** 2026-10-21 by GPT-5 — T4 complete; T5 started
 
 ---
 
@@ -32,7 +32,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-21 15:10 | GPT-5 (lead) | W-HOST | Active | T4 in progress: listings, detail, and listing forms | Add failing listings/detail/form tests, then implement fixture-backed screens | 2026-10-21 17:15 |
+| S1 | 2026-10-21 15:10 | GPT-5 (lead) | W-HOST | Active | T5 in progress: calendar and booking requests | Add failing calendar/request tests, then implement deterministic state and local modals | 2026-10-21 17:35 |
 
 **Remaining**
 
@@ -42,7 +42,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | Building | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | T4 in flight: listings, detail, and listing forms | — |
+| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | Building | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | T5 in flight: calendar and booking requests | — |
 
 ## 4. Architecture
 
@@ -78,3 +78,4 @@ No change.
 | 2026-10-21 | Added shared Fall Light tokens and UI primitives with accessible focus and status presentation | W-HOST | T1 |
 | 2026-10-21 | Added deterministic synthetic Host fixture adapter, typed records, and state-replaceable provider | W-HOST | T2 |
 | 2026-10-21 | Added Host-only fixture shell, explicit route map, active tabs, wallet badge, and `/host` redirect | W-HOST | T3 |
+| 2026-10-21 | Added fixture-backed listing cards, detail metrics, and local-only new/edit listing forms | W-HOST | T4 |
