@@ -19,8 +19,8 @@ import jakarta.persistence.Table;
 public class Message {
 
     @Id
-    @Column(name = "message_id")
-    private UUID messageId;
+    @Column(name = "id")
+    private UUID id;
 
     @Column(name = "ticket_id", nullable = false)
     private UUID ticketId;
@@ -46,11 +46,11 @@ public class Message {
     protected Message() {}
 
     /** Creates a new message. */
-    public Message(UUID messageId, UUID ticketId,
+    public Message(UUID id, UUID ticketId,
                    ThreadChannel channel, UUID authorId,
                    Role authorRole, String body,
                    Instant sentAt) {
-        this.messageId = messageId;
+        this.id = id;
         this.ticketId = ticketId;
         this.channel = channel;
         this.authorId = authorId;
@@ -59,8 +59,8 @@ public class Message {
         this.sentAt = sentAt;
     }
 
-    public UUID getMessageId() {
-        return messageId;
+    public UUID getId() {
+        return id;
     }
 
     public UUID getTicketId() {

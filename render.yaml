@@ -27,3 +27,17 @@ services:
         sync: false
       - key: SNOOZESHARE_CORS_ALLOWED_ORIGIN
         sync: false
+      - key: SNOOZESHARE_SECURITY_ENABLED
+        value: "true"
+      - key: SNOOZESHARE_TRUST_FORWARD_HEADERS
+        value: "true"
+      - key: FIREBASE_ENABLED
+        value: "true"
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      - key: SNOOZESHARE_HOST_REGISTRATION_CODE
+        sync: false
+      - key: SNOOZESHARE_AGENT_REGISTRATION_CODE
+        sync: false
+      - key: GOOGLE_APPLICATION_CREDENTIALS
+        sync: false

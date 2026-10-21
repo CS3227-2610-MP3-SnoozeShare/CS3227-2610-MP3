@@ -18,8 +18,8 @@ import jakarta.persistence.Table;
 public class BookingMessage {
 
     @Id
-    @Column(name = "message_id")
-    private UUID messageId;
+    @Column(name = "id")
+    private UUID id;
 
     @Column(name = "booking_id", nullable = false)
     private UUID bookingId;
@@ -41,10 +41,10 @@ public class BookingMessage {
     protected BookingMessage() {}
 
     /** Creates a new booking message. */
-    public BookingMessage(UUID messageId, UUID bookingId,
+    public BookingMessage(UUID id, UUID bookingId,
                           UUID authorId, Role authorRole,
                           String body, Instant sentAt) {
-        this.messageId = messageId;
+        this.id = id;
         this.bookingId = bookingId;
         this.authorId = authorId;
         this.authorRole = authorRole;
@@ -52,8 +52,8 @@ public class BookingMessage {
         this.sentAt = sentAt;
     }
 
-    public UUID getMessageId() {
-        return messageId;
+    public UUID getId() {
+        return id;
     }
 
     public UUID getBookingId() {

@@ -15,8 +15,8 @@ import jakarta.persistence.Table;
 public class AuditLogEntry {
 
     @Id
-    @Column(name = "log_id")
-    private UUID logId;
+    @Column(name = "id")
+    private UUID id;
 
     @Column(name = "actor_user_id", nullable = false)
     private UUID actorUserId;
@@ -68,7 +68,7 @@ public class AuditLogEntry {
 
     /** Creates a new audit log entry. */
     @SuppressWarnings("checkstyle:ParameterNumber")
-    public AuditLogEntry(UUID logId, UUID actorUserId,
+    public AuditLogEntry(UUID id, UUID actorUserId,
                          String actorName, String actionType,
                          String entityType, UUID entityId,
                          String beforeState, String afterState,
@@ -77,7 +77,7 @@ public class AuditLogEntry {
                          UUID bookingId, UUID ticketId,
                          Instant timestamp,
                          BigDecimal balanceAfter) {
-        this.logId = logId;
+        this.id = id;
         this.actorUserId = actorUserId;
         this.actorName = actorName;
         this.actionType = actionType;
@@ -95,8 +95,8 @@ public class AuditLogEntry {
         this.balanceAfter = balanceAfter;
     }
 
-    public UUID getLogId() {
-        return logId;
+    public UUID getId() {
+        return id;
     }
 
     public UUID getActorUserId() {

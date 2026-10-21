@@ -20,8 +20,8 @@ import jakarta.persistence.Table;
 public class Booking {
 
     @Id
-    @Column(name = "booking_id")
-    private UUID bookingId;
+    @Column(name = "id")
+    private UUID id;
 
     @Column(name = "listing_id", nullable = false)
     private UUID listingId;
@@ -64,14 +64,14 @@ public class Booking {
 
     /** Creates a new booking. */
     @SuppressWarnings("checkstyle:ParameterNumber")
-    public Booking(UUID bookingId, UUID listingId, UUID guestId,
+    public Booking(UUID id, UUID listingId, UUID guestId,
                    LocalDate startDate, LocalDate endDate,
                    BookingStatus status,
                    BigDecimal nightlyRateSnapshot,
                    BigDecimal totalAmount, Instant createdAt,
                    Instant decidedAt, Instant completedAt,
                    String hostDecisionMessage) {
-        this.bookingId = bookingId;
+        this.id = id;
         this.listingId = listingId;
         this.guestId = guestId;
         this.startDate = startDate;
@@ -85,8 +85,8 @@ public class Booking {
         this.hostDecisionMessage = hostDecisionMessage;
     }
 
-    public UUID getBookingId() {
-        return bookingId;
+    public UUID getId() {
+        return id;
     }
 
     public UUID getListingId() {

@@ -24,8 +24,8 @@ import jakarta.persistence.Table;
 public class Property {
 
     @Id
-    @Column(name = "property_id")
-    private UUID propertyId;
+    @Column(name = "id")
+    private UUID id;
 
     @Column(name = "host_id", nullable = false)
     private UUID hostId;
@@ -87,7 +87,7 @@ public class Property {
 
     /** Creates a new property. */
     @SuppressWarnings("checkstyle:ParameterNumber")
-    public Property(UUID propertyId, UUID hostId,
+    public Property(UUID id, UUID hostId,
                     ListingStatus status, String title,
                     String description, PropertyType propertyType,
                     String streetAddress, String city, String region,
@@ -95,7 +95,7 @@ public class Property {
                     int bathrooms, BigDecimal baseNightlyRate,
                     LocalTime checkInTime, LocalTime checkOutTime,
                     Set<AmenityType> amenities, Instant createdAt) {
-        this.propertyId = propertyId;
+        this.id = id;
         this.hostId = hostId;
         this.status = status;
         this.title = title;
@@ -115,8 +115,8 @@ public class Property {
         this.createdAt = createdAt;
     }
 
-    public UUID getPropertyId() {
-        return propertyId;
+    public UUID getId() {
+        return id;
     }
 
     public UUID getHostId() {

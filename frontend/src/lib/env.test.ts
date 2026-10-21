@@ -20,12 +20,39 @@ describe('validateEnv (E27)', () => {
 
   it('accepts a valid production value', () => {
     expect(() =>
-      validateEnv({ NODE_ENV: 'production', NEXT_PUBLIC_API_BASE_URL: 'https://api.example.com' }),
+      validateEnv({
+        NODE_ENV: 'production',
+        NEXT_PUBLIC_API_BASE_URL: 'https://api.example.com',
+        NEXT_PUBLIC_FIREBASE_API_KEY: 'key',
+        NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: 'project.firebaseapp.com',
+        NEXT_PUBLIC_FIREBASE_PROJECT_ID: 'project',
+        NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: 'project.firebasestorage.app',
+        NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: '123',
+        NEXT_PUBLIC_FIREBASE_APP_ID: 'app-id',
+      }),
     ).not.toThrow();
   });
 
   it('does not throw outside production', () => {
     expect(() => validateEnv({ NODE_ENV: 'development' })).not.toThrow();
+  });
+
+  it('requires the Firebase browser configuration in production', () => {
+    expect(() => validateEnv({ NODE_ENV: 'production', NEXT_PUBLIC_API_BASE_URL: 'https://api.example.com' }))
+      .toThrow('NEXT_PUBLIC_FIREBASE_API_KEY is required');
+  });
+
+  it('accepts the complete Firebase browser configuration', () => {
+    expect(() => validateEnv({
+      NODE_ENV: 'production',
+      NEXT_PUBLIC_API_BASE_URL: 'https://api.example.com',
+      NEXT_PUBLIC_FIREBASE_API_KEY: 'key',
+      NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: 'project.firebaseapp.com',
+      NEXT_PUBLIC_FIREBASE_PROJECT_ID: 'project',
+      NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: 'project.firebasestorage.app',
+      NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: '123',
+      NEXT_PUBLIC_FIREBASE_APP_ID: 'app-id',
+    })).not.toThrow();
   });
 });
 

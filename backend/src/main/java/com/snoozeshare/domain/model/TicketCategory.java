@@ -13,8 +13,8 @@ import jakarta.persistence.Table;
 public class TicketCategory {
 
     @Id
-    @Column(name = "category_id")
-    private UUID categoryId;
+    @Column(name = "id")
+    private UUID id;
 
     @Column(nullable = false)
     private String label;
@@ -26,15 +26,15 @@ public class TicketCategory {
     protected TicketCategory() {}
 
     /** Creates a new ticket category. */
-    public TicketCategory(UUID categoryId, String label,
+    public TicketCategory(UUID id, String label,
                           boolean active) {
-        this.categoryId = categoryId;
+        this.id = id;
         this.label = label;
         this.active = active;
     }
 
-    public UUID getCategoryId() {
-        return categoryId;
+    public UUID getId() {
+        return id;
     }
 
     public String getLabel() {

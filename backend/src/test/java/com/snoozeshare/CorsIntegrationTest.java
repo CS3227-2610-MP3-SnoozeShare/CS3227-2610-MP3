@@ -68,4 +68,16 @@ class CorsIntegrationTest extends PostgresIntegrationTest {
             assertThat(response.statusCode()).isEqualTo(403);
         }
     }
+
+    @org.junit.jupiter.api.Test
+    void allowedOriginIsReturnedOnActualApplicationResponse() throws Exception {
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/test/cors"))
+            .header("Origin", ALLOWED)
+            .timeout(Duration.ofSeconds(8))
+            .build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        assertThat(response.statusCode()).isEqualTo(200);
+        assertThat(response.body()).isEqualTo("ok");
+        assertThat(response.headers().firstValue(ALLOW_ORIGIN)).contains(ALLOWED);
+    }
 }

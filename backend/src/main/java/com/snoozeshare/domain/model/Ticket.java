@@ -20,8 +20,8 @@ import jakarta.persistence.Table;
 public class Ticket {
 
     @Id
-    @Column(name = "ticket_id")
-    private UUID ticketId;
+    @Column(name = "id")
+    private UUID id;
 
     @Column(name = "booking_id", nullable = false)
     private UUID bookingId;
@@ -73,7 +73,7 @@ public class Ticket {
 
     /** Creates a new ticket. */
     @SuppressWarnings("checkstyle:ParameterNumber")
-    public Ticket(UUID ticketId, UUID bookingId,
+    public Ticket(UUID id, UUID bookingId,
                   UUID raisedByUserId, Role raisedByRole,
                   String category, String title,
                   String description, RemedyType requestedRemedy,
@@ -81,7 +81,7 @@ public class Ticket {
                   UUID assignedAgentId, String agentNotes,
                   String resolutionReason, Instant createdAt,
                   Instant resolvedAt) {
-        this.ticketId = ticketId;
+        this.id = id;
         this.bookingId = bookingId;
         this.raisedByUserId = raisedByUserId;
         this.raisedByRole = raisedByRole;
@@ -98,8 +98,8 @@ public class Ticket {
         this.resolvedAt = resolvedAt;
     }
 
-    public UUID getTicketId() {
-        return ticketId;
+    public UUID getId() {
+        return id;
     }
 
     public UUID getBookingId() {

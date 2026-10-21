@@ -1,30 +1,23 @@
--- Domain tables for SnoozeShare, translated from the desktop SQLite schema (V001-V008).
--- The wallet_transactions table is intentionally absent: the unified ledger lives in audit_log.
+-- Extends the auth tables (V002) with domain columns and creates the remaining domain tables.
 
-CREATE TABLE users (
-    user_id       UUID PRIMARY KEY,
-    role          VARCHAR(10) NOT NULL
-                      CHECK (role IN ('GUEST', 'HOST', 'AGENT', 'SYSTEM')),
-    display_name  VARCHAR(255) NOT NULL,
-    email         VARCHAR(255) NOT NULL UNIQUE,
-    account_status VARCHAR(10) NOT NULL
-                      CHECK (account_status IN ('ACTIVE', 'SUSPENDED')),
-    registration_code VARCHAR(255),
-    created_at    TIMESTAMPTZ NOT NULL,
-    suspension_reason TEXT
-);
+-- users: add columns needed by the domain layer
+ALTER TABLE users ADD COLUMN registration_code VARCHAR(255);
+ALTER TABLE users ADD COLUMN suspension_reason TEXT;
+-- Widen the role CHECK to include SYSTEM (platform account)
+ALTER TABLE users DROP CONSTRAINT users_role_check;
+ALTER TABLE users ADD CONSTRAINT users_role_check
+    CHECK (role IN ('GUEST', 'HOST', 'AGENT', 'SYSTEM'));
+-- Widen the status CHECK to include SUSPENDED
+ALTER TABLE users DROP CONSTRAINT users_status_check;
+ALTER TABLE users ADD CONSTRAINT users_status_check
+    CHECK (status IN ('ACTIVE', 'INACTIVE', 'SUSPENDED'));
 
-CREATE TABLE wallets (
-    wallet_id  UUID PRIMARY KEY,
-    user_id    UUID NOT NULL UNIQUE REFERENCES users(user_id),
-    balance    NUMERIC(19, 4) NOT NULL CHECK (balance >= 0),
-    currency   VARCHAR(3) NOT NULL DEFAULT 'SGD' CHECK (currency = 'SGD'),
-    updated_at TIMESTAMPTZ NOT NULL
-);
+-- wallets: add precision and constraints needed by the domain layer
+ALTER TABLE wallets ADD COLUMN updated_at TIMESTAMPTZ NOT NULL DEFAULT now();
 
 CREATE TABLE properties (
-    property_id        UUID PRIMARY KEY,
-    host_id            UUID NOT NULL REFERENCES users(user_id),
+    id                 UUID PRIMARY KEY,
+    host_id            UUID NOT NULL REFERENCES users(id),
     status             VARCHAR(10) NOT NULL
                            CHECK (status IN ('ACTIVE', 'INACTIVE')),
     title              VARCHAR(255) NOT NULL,
@@ -47,9 +40,9 @@ CREATE TABLE properties (
 );
 
 CREATE TABLE bookings (
-    booking_id             UUID PRIMARY KEY,
-    listing_id             UUID NOT NULL REFERENCES properties(property_id),
-    guest_id               UUID NOT NULL REFERENCES users(user_id),
+    id                     UUID PRIMARY KEY,
+    listing_id             UUID NOT NULL REFERENCES properties(id),
+    guest_id               UUID NOT NULL REFERENCES users(id),
     start_date             DATE NOT NULL,
     end_date               DATE NOT NULL,
     status                 VARCHAR(25) NOT NULL
@@ -67,26 +60,26 @@ CREATE TABLE bookings (
 );
 
 CREATE TABLE availability_blocks (
-    block_id     UUID PRIMARY KEY,
-    property_id  UUID NOT NULL REFERENCES properties(property_id),
+    id           UUID PRIMARY KEY,
+    property_id  UUID NOT NULL REFERENCES properties(id),
     start_date   DATE NOT NULL,
     end_date     DATE NOT NULL,
     source       VARCHAR(15) NOT NULL
                      CHECK (source IN ('HOST_BLOCK', 'BOOKING')),
-    booking_id   UUID REFERENCES bookings(booking_id),
+    booking_id   UUID REFERENCES bookings(id),
     reason       TEXT
 );
 
 CREATE TABLE ticket_categories (
-    category_id UUID PRIMARY KEY,
-    label       VARCHAR(255) NOT NULL,
-    active      BOOLEAN NOT NULL DEFAULT TRUE
+    id     UUID PRIMARY KEY,
+    label  VARCHAR(255) NOT NULL,
+    active BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 CREATE TABLE tickets (
-    ticket_id         UUID PRIMARY KEY,
-    booking_id        UUID NOT NULL REFERENCES bookings(booking_id),
-    raised_by_user_id UUID NOT NULL REFERENCES users(user_id),
+    id                UUID PRIMARY KEY,
+    booking_id        UUID NOT NULL REFERENCES bookings(id),
+    raised_by_user_id UUID NOT NULL REFERENCES users(id),
     raised_by_role    VARCHAR(10) NOT NULL
                           CHECK (raised_by_role IN ('GUEST', 'HOST')),
     category          VARCHAR(255) NOT NULL,
@@ -101,7 +94,7 @@ CREATE TABLE tickets (
                           CHECK (status IN (
                               'OPEN', 'IN_REVIEW',
                               'RESOLVED_APPROVED', 'RESOLVED_REJECTED')),
-    assigned_agent_id UUID REFERENCES users(user_id),
+    assigned_agent_id UUID REFERENCES users(id),
     agent_notes       TEXT,
     resolution_reason TEXT,
     created_at        TIMESTAMPTZ NOT NULL,
@@ -109,17 +102,17 @@ CREATE TABLE tickets (
 );
 
 CREATE TABLE reviews (
-    review_id  UUID PRIMARY KEY,
-    booking_id UUID NOT NULL REFERENCES bookings(booking_id),
-    guest_id   UUID NOT NULL REFERENCES users(user_id),
+    id         UUID PRIMARY KEY,
+    booking_id UUID NOT NULL REFERENCES bookings(id),
+    guest_id   UUID NOT NULL REFERENCES users(id),
     rating     INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
     comment    TEXT,
     created_at TIMESTAMPTZ NOT NULL
 );
 
 CREATE TABLE audit_log (
-    log_id            UUID PRIMARY KEY,
-    actor_user_id     UUID NOT NULL REFERENCES users(user_id),
+    id                UUID PRIMARY KEY,
+    actor_user_id     UUID NOT NULL REFERENCES users(id),
     actor_name        TEXT,
     action_type       VARCHAR(50) NOT NULL,
     entity_type       VARCHAR(50) NOT NULL,
@@ -128,10 +121,10 @@ CREATE TABLE audit_log (
     after_state       TEXT,
     wallet_adjustment NUMERIC(19, 4),
     reason            TEXT,
-    subject_user_id   UUID REFERENCES users(user_id),
+    subject_user_id   UUID REFERENCES users(id),
     subject_name      TEXT,
-    booking_id        UUID REFERENCES bookings(booking_id),
-    ticket_id         UUID REFERENCES tickets(ticket_id),
+    booking_id        UUID REFERENCES bookings(id),
+    ticket_id         UUID REFERENCES tickets(id),
     timestamp         TIMESTAMPTZ NOT NULL,
     balance_after     NUMERIC(19, 4)
 );
@@ -144,10 +137,10 @@ CREATE INDEX idx_audit_ticket   ON audit_log(ticket_id);
 CREATE INDEX idx_audit_money    ON audit_log(subject_user_id, wallet_adjustment);
 
 CREATE TABLE messages (
-    message_id  UUID PRIMARY KEY,
-    ticket_id   UUID NOT NULL REFERENCES tickets(ticket_id),
+    id          UUID PRIMARY KEY,
+    ticket_id   UUID NOT NULL REFERENCES tickets(id),
     channel     VARCHAR(5) NOT NULL CHECK (channel IN ('GUEST', 'HOST')),
-    author_id   UUID NOT NULL REFERENCES users(user_id),
+    author_id   UUID NOT NULL REFERENCES users(id),
     author_role VARCHAR(10) NOT NULL
                     CHECK (author_role IN ('GUEST', 'HOST', 'AGENT')),
     body        TEXT NOT NULL,
@@ -157,17 +150,17 @@ CREATE TABLE messages (
 CREATE INDEX idx_messages_thread ON messages(ticket_id, channel);
 
 CREATE TABLE message_reads (
-    ticket_id           UUID NOT NULL REFERENCES tickets(ticket_id),
-    channel             VARCHAR(5) NOT NULL CHECK (channel IN ('GUEST', 'HOST')),
-    user_id             UUID NOT NULL REFERENCES users(user_id),
-    last_read_message_id UUID NOT NULL REFERENCES messages(message_id),
+    ticket_id            UUID NOT NULL REFERENCES tickets(id),
+    channel              VARCHAR(5) NOT NULL CHECK (channel IN ('GUEST', 'HOST')),
+    user_id              UUID NOT NULL REFERENCES users(id),
+    last_read_message_id UUID NOT NULL REFERENCES messages(id),
     PRIMARY KEY (ticket_id, channel, user_id)
 );
 
 CREATE TABLE booking_messages (
-    message_id  UUID PRIMARY KEY,
-    booking_id  UUID NOT NULL REFERENCES bookings(booking_id),
-    author_id   UUID NOT NULL REFERENCES users(user_id),
+    id          UUID PRIMARY KEY,
+    booking_id  UUID NOT NULL REFERENCES bookings(id),
+    author_id   UUID NOT NULL REFERENCES users(id),
     author_role VARCHAR(10) NOT NULL
                     CHECK (author_role IN ('GUEST', 'HOST')),
     body        TEXT NOT NULL,
@@ -177,8 +170,8 @@ CREATE TABLE booking_messages (
 CREATE INDEX idx_booking_messages_booking ON booking_messages(booking_id);
 
 CREATE TABLE booking_message_reads (
-    booking_id           UUID NOT NULL REFERENCES bookings(booking_id),
-    user_id              UUID NOT NULL REFERENCES users(user_id),
-    last_read_message_id UUID NOT NULL REFERENCES booking_messages(message_id),
+    booking_id           UUID NOT NULL REFERENCES bookings(id),
+    user_id              UUID NOT NULL REFERENCES users(id),
+    last_read_message_id UUID NOT NULL REFERENCES booking_messages(id),
     PRIMARY KEY (booking_id, user_id)
 );

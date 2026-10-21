@@ -25,7 +25,14 @@ public class ProdEnvironmentGuard implements BeanFactoryPostProcessor, Environme
         "spring.datasource.url",
         "spring.datasource.username",
         "spring.datasource.password",
-        "snoozeshare.cors.allowed-origin");
+        "snoozeshare.cors.allowed-origin",
+        "snoozeshare.security.enabled",
+        "snoozeshare.proxy.trust-forwarded-headers",
+        "snoozeshare.firebase.enabled",
+        "snoozeshare.firebase.project-id",
+        "snoozeshare.registration.host-code",
+        "snoozeshare.registration.agent-code",
+        "GOOGLE_APPLICATION_CREDENTIALS");
 
     private Environment environment;
 
@@ -38,6 +45,14 @@ public class ProdEnvironmentGuard implements BeanFactoryPostProcessor, Environme
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
         for (String key : REQUIRED_KEYS) {
             environment.getRequiredProperty(key);
+        }
+        requireTrue("snoozeshare.security.enabled");
+        requireTrue("snoozeshare.firebase.enabled");
+    }
+
+    private void requireTrue(String key) {
+        if (!Boolean.parseBoolean(environment.getRequiredProperty(key))) {
+            throw new IllegalStateException(key + " must be true in the prod profile");
         }
     }
 }

@@ -15,8 +15,8 @@ import jakarta.persistence.Table;
 public class AvailabilityBlock {
 
     @Id
-    @Column(name = "block_id")
-    private UUID blockId;
+    @Column(name = "id")
+    private UUID id;
 
     @Column(name = "property_id", nullable = false)
     private UUID propertyId;
@@ -39,11 +39,11 @@ public class AvailabilityBlock {
     protected AvailabilityBlock() {}
 
     /** Creates a new availability block. */
-    public AvailabilityBlock(UUID blockId, UUID propertyId,
+    public AvailabilityBlock(UUID id, UUID propertyId,
                              LocalDate startDate, LocalDate endDate,
                              String source, UUID bookingId,
                              String reason) {
-        this.blockId = blockId;
+        this.id = id;
         this.propertyId = propertyId;
         this.startDate = startDate;
         this.endDate = endDate;
@@ -52,8 +52,8 @@ public class AvailabilityBlock {
         this.reason = reason;
     }
 
-    public UUID getBlockId() {
-        return blockId;
+    public UUID getId() {
+        return id;
     }
 
     public UUID getPropertyId() {

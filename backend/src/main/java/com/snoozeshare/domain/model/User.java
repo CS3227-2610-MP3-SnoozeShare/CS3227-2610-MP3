@@ -19,28 +19,34 @@ import jakarta.persistence.Table;
 public class User {
 
     @Id
-    @Column(name = "user_id")
-    private UUID userId;
+    @Column(name = "id")
+    private UUID id;
+
+    @Column(name = "firebase_uid", nullable = false, unique = true)
+    private String firebaseUid;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
 
-    @Column(name = "display_name", nullable = false)
+    @Column(name = "display_name")
     private String displayName;
 
     @Column(nullable = false, unique = true)
     private String email;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "account_status", nullable = false)
-    private AccountStatus accountStatus;
+    @Column(name = "status", nullable = false)
+    private AccountStatus status;
 
     @Column(name = "registration_code")
     private String registrationCode;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt;
 
     @Column(name = "suspension_reason")
     private String suspensionReason;
@@ -49,22 +55,30 @@ public class User {
     protected User() {}
 
     /** Creates a new user. */
-    public User(UUID userId, Role role, String displayName,
-                String email, AccountStatus accountStatus,
-                String registrationCode, Instant createdAt,
+    @SuppressWarnings("checkstyle:ParameterNumber")
+    public User(UUID id, String firebaseUid, Role role,
+                String displayName, String email,
+                AccountStatus status, String registrationCode,
+                Instant createdAt, Instant updatedAt,
                 String suspensionReason) {
-        this.userId = userId;
+        this.id = id;
+        this.firebaseUid = firebaseUid;
         this.role = role;
         this.displayName = displayName;
         this.email = email;
-        this.accountStatus = accountStatus;
+        this.status = status;
         this.registrationCode = registrationCode;
         this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
         this.suspensionReason = suspensionReason;
     }
 
-    public UUID getUserId() {
-        return userId;
+    public UUID getId() {
+        return id;
+    }
+
+    public String getFirebaseUid() {
+        return firebaseUid;
     }
 
     public Role getRole() {
@@ -79,12 +93,12 @@ public class User {
         return email;
     }
 
-    public AccountStatus getAccountStatus() {
-        return accountStatus;
+    public AccountStatus getStatus() {
+        return status;
     }
 
-    public void setAccountStatus(AccountStatus accountStatus) {
-        this.accountStatus = accountStatus;
+    public void setStatus(AccountStatus status) {
+        this.status = status;
     }
 
     public String getRegistrationCode() {
@@ -93,6 +107,14 @@ public class User {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
     public String getSuspensionReason() {

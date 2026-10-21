@@ -15,13 +15,13 @@ import jakarta.persistence.Table;
 public class Wallet {
 
     @Id
-    @Column(name = "wallet_id")
-    private UUID walletId;
+    @Column(name = "id")
+    private UUID id;
 
     @Column(name = "user_id", nullable = false, unique = true)
     private UUID userId;
 
-    @Column(nullable = false, precision = 19, scale = 4)
+    @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal balance;
 
     @Column(nullable = false, length = 3)
@@ -34,18 +34,18 @@ public class Wallet {
     protected Wallet() {}
 
     /** Creates a new wallet. */
-    public Wallet(UUID walletId, UUID userId,
+    public Wallet(UUID id, UUID userId,
                   BigDecimal balance, String currency,
                   Instant updatedAt) {
-        this.walletId = walletId;
+        this.id = id;
         this.userId = userId;
         this.balance = balance;
         this.currency = currency;
         this.updatedAt = updatedAt;
     }
 
-    public UUID getWalletId() {
-        return walletId;
+    public UUID getId() {
+        return id;
     }
 
     public UUID getUserId() {
