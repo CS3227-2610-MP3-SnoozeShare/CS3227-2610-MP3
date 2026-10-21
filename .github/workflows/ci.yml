@@ -93,20 +93,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       # AGENTS.md § 2 approval gate: a pull request into development may not merge a branch state that is not
-      # Approved by the owner or that still has live session rows. The changed files come from the API because
-      # the checkout is shallow.
+      # Approved by the owner or that still has live session rows, and every pull request must carry one (only sync/*
+      # branches are exempt). The changed files come from the API because the checkout is shallow.
       - name: "repo: branch states are approved before merge"
         if: ${{ github.event_name == 'pull_request' && github.base_ref == 'development' }}
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_REF: ${{ github.head_ref }}
         run: |
           files=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/files" --paginate \
             --jq '.[] | select(.status != "removed") | .filename' \
             | grep -E '^docs/project-state/branch-states/[^/]+\.md$' || true)
           if [ -z "$files" ]; then
-            echo "No branch state in this pull request."
-            exit 0
+            # A branch carries its own branch state (AGENTS.md § 2, § 8); only the fold PR, which archives it, has none.
+            if [[ "$HEAD_REF" == sync/* ]]; then
+              echo "Sync pull request ($HEAD_REF): no branch state expected."
+              exit 0
+            fi
+            echo "::error::This pull request has no branch state under docs/project-state/branch-states/. Every branch writes one and the owner approves it before the PR is opened (AGENTS.md § 8, gate 3)."
+            exit 1
           fi
           bash .github/scripts/check-branch-states.sh $files
       - uses: actions/setup-java@v4

@@ -237,8 +237,7 @@ X" keeps the stage open: fix it, then ask again. Small changes (§ 3) skip gates
 - **Gate 3 is the review that unblocks the PR.** The agent sets the branch state to `In review`
   with an empty session table and asks the operator to review. The agent never pushes, opens a PR
   or merges before the `Approved` line is written. The CI check (`check-branch-states.sh`) backs this up
-  and does not replace it: it only runs when the PR carries a branch state, so a PR without one is
-  not checked.
+  and does not replace it: it fails a PR into `development` whose branch state is not `Approved`, has live session rows, or is missing (a `sync/*` fold PR is exempt), so the review has to happen first.
 - **"By hand" in the sync, refresh and update skills means the operator's yes in chat.** The agent
   asks and then runs `sync-project-state` or `update-documentation`; the operator does not have to
   invoke them. `refresh-project-state` is still never started by an agent (§ 7).
