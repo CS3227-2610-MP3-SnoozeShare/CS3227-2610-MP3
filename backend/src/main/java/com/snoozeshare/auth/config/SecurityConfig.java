@@ -1,5 +1,6 @@
 package com.snoozeshare.auth.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.annotation.Bean;
@@ -11,6 +12,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.snoozeshare.auth.security.ClientIpResolver;
 import com.snoozeshare.auth.security.FirebaseAuthFilter;
 import com.snoozeshare.auth.security.FirebaseTokenVerifier;
 import com.snoozeshare.auth.security.RoleAuthorizationFilter;
@@ -20,6 +22,12 @@ import com.snoozeshare.auth.security.RoleAuthorizationService;
 @Configuration(proxyBeanMethods = false)
 @EnableMethodSecurity
 public class SecurityConfig {
+
+    @Bean
+    ClientIpResolver clientIpResolver(
+        @Value("${snoozeshare.proxy.trust-forwarded-headers:false}") boolean trustForwardedHeaders) {
+        return new ClientIpResolver(trustForwardedHeaders);
+    }
 
     @Bean
     @ConditionalOnProperty(name = "snoozeshare.security.enabled", havingValue = "true")

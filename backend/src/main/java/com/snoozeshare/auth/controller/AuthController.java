@@ -22,6 +22,7 @@ import com.snoozeshare.auth.api.AuthErrorResponse;
 import com.snoozeshare.auth.api.AuthProfileResponse;
 import com.snoozeshare.auth.api.RegisterRequest;
 import com.snoozeshare.auth.api.RegistrationCodeValidationRequest;
+import com.snoozeshare.auth.security.ClientIpResolver;
 import com.snoozeshare.auth.security.FirebaseTokenVerifier.FirebaseAuthentication;
 import com.snoozeshare.auth.service.AuthRegistrationService;
 import com.snoozeshare.auth.service.AuthRegistrationService.AuthRegistrationException;
@@ -41,19 +42,22 @@ public class AuthController {
 
     private final AuthRegistrationService registration;
     private final RegistrationCodeValidationService codeValidation;
+    private final ClientIpResolver clientIpResolver;
 
     public AuthController(
         AuthRegistrationService registration,
-        RegistrationCodeValidationService codeValidation) {
+        RegistrationCodeValidationService codeValidation,
+        ClientIpResolver clientIpResolver) {
         this.registration = registration;
         this.codeValidation = codeValidation;
+        this.clientIpResolver = clientIpResolver;
     }
 
     @PostMapping("/registration-code/validate")
     public ResponseEntity<Void> validateRegistrationCode(
         @Valid @RequestBody RegistrationCodeValidationRequest request,
         HttpServletRequest servletRequest) {
-        codeValidation.validate(request, servletRequest.getRemoteAddr());
+        codeValidation.validate(request, clientIpResolver.resolve(servletRequest));
         return ResponseEntity.noContent().header("Cache-Control", "no-store").build();
     }
 
@@ -62,7 +66,8 @@ public class AuthController {
         @AuthenticationPrincipal FirebaseAuthentication identity,
         @Valid @RequestBody RegisterRequest request,
         HttpServletRequest servletRequest) {
-        RegistrationResult result = registration.register(identity, request, servletRequest.getRemoteAddr());
+        RegistrationResult result = registration.register(
+            identity, request, clientIpResolver.resolve(servletRequest));
         HttpStatus status = result.created() ? HttpStatus.CREATED : HttpStatus.OK;
         return ResponseEntity.status(status).body(result.profile());
     }

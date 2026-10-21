@@ -27,6 +27,7 @@ public class ProdEnvironmentGuard implements BeanFactoryPostProcessor, Environme
         "spring.datasource.password",
         "snoozeshare.cors.allowed-origin",
         "snoozeshare.security.enabled",
+        "snoozeshare.proxy.trust-forwarded-headers",
         "snoozeshare.firebase.enabled",
         "snoozeshare.firebase.project-id",
         "snoozeshare.registration.host-code",

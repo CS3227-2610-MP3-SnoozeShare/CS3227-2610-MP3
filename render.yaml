@@ -29,6 +29,8 @@ services:
         sync: false
       - key: SNOOZESHARE_SECURITY_ENABLED
         value: "true"
+      - key: SNOOZESHARE_TRUST_FORWARD_HEADERS
+        value: "true"
       - key: FIREBASE_ENABLED
         value: "true"
       - key: FIREBASE_PROJECT_ID

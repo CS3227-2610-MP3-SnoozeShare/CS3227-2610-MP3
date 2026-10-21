@@ -6,6 +6,8 @@ spring:
 snoozeshare:
   security:
     enabled: ${SNOOZESHARE_SECURITY_ENABLED}
+  proxy:
+    trust-forwarded-headers: ${SNOOZESHARE_TRUST_FORWARD_HEADERS}
   firebase:
     enabled: ${FIREBASE_ENABLED}
     project-id: ${FIREBASE_PROJECT_ID}

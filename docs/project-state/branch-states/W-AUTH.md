@@ -41,13 +41,13 @@ cd ../backend && ./gradlew test
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AUTH | Firebase authentication and role authorization | In review | [spec](docs/superpowers/specs/2026-10-20-w-auth-design.md); [registration pre-validation spec](docs/superpowers/specs/2026-10-21-w-auth-registration-prevalidation-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-auth-registration-prevalidation.md) | Review remediation implemented; backend/frontend verification green; owner review and trusted-IP decision remain | — |
+| W-AUTH | Firebase authentication and role authorization | In review | [spec](docs/superpowers/specs/2026-10-20-w-auth-design.md); [registration pre-validation spec](docs/superpowers/specs/2026-10-21-w-auth-registration-prevalidation-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-auth-registration-prevalidation.md) | Trusted proxy IP resolution added; full backend/frontend verification green; owner review remains | — |
 
 ## 4. Architecture
 
 ### 4.9 Web platform skeleton (backend, frontend, hosting)
 
-**Now:** W-AUTH initializes Firebase Admin when `FIREBASE_ENABLED=true`, requires security and Firebase settings in the prod profile, verifies revocable Firebase ID tokens, establishes a stateless Spring Security principal, resolves the active role from the PostgreSQL `users` row keyed by Firebase UID, applies role-specific URL authorization, and provides transactional profile/wallet registration plus `/api/auth/me`. Email verification status is informational only and does not gate authentication or registration. The frontend validates public Firebase configuration in production, lazily initializes Firebase browser auth, attaches ID tokens to backend requests, maps stable backend errors, logs safe correlated auth failures at the backend boundary, exposes auth screens, and protects role routes with client-side guards that ignore stale profile responses.
+**Now:** W-AUTH initializes Firebase Admin when `FIREBASE_ENABLED=true`, requires security, proxy, and Firebase settings in the prod profile, verifies revocable Firebase ID tokens, establishes a stateless Spring Security principal, resolves the active role from the PostgreSQL `users` row keyed by Firebase UID, applies role-specific URL authorization, and provides transactional profile/wallet registration plus `/api/auth/me`. Registration abuse limits use the direct peer locally and the first valid `X-Forwarded-For` address only when explicitly enabled for the trusted production proxy. Email verification status is informational only and does not gate authentication or registration. The frontend validates public Firebase configuration in production, lazily initializes Firebase browser auth, attaches ID tokens to backend requests, maps stable backend errors, logs safe correlated auth failures at the backend boundary, exposes auth screens, and protects role routes with client-side guards that ignore stale profile responses.
 
 | Path | Role |
 |---|---|
@@ -72,7 +72,7 @@ Authentication failures return a request ID that is logged with status, safe err
 
 - W-DOMAIN still owns domain persistence and wallet operations beyond registration-time provisioning.
 - Public code pre-validation remains a validity oracle by design; rate limits and secret strength are the compensating controls.
-- Rate limiting is process-local and direct-peer IP based; forwarded-header parsing is deliberately excluded until a trusted proxy contract is decided.
+- Rate limiting is process-local; forwarded-header parsing is explicitly disabled in local development and enabled only by the production proxy configuration.
 - Host and Agent codes remain reusable configuration values; rotation requires replacing deployment configuration.
 - Protected frontend routes use client-side guards; backend role authorization remains authoritative.
 - Firebase token revocation is checked on every backend request, coupling request latency and availability to Firebase.
@@ -81,7 +81,7 @@ Authentication failures return a request ID that is logged with status, safe err
 
 | ID | Question | Why it blocks | Owner |
 |---|---|---|---|
-| Q~1 | Decide whether to keep direct-peer IP limiting or define a trusted Render proxy address contract | Changing this would reverse the pre-validation spec's forwarded-header non-goal | Project owner |
+| — | No open questions | — | — |
 
 ## 8. Decisions
 
@@ -98,6 +98,7 @@ Authentication failures return a request ID that is logged with status, safe err
 | C~9 | Validate HOST/AGENT registration codes before the website calls Firebase signup, while retaining backend final validation and rate limiting | Project owner observed that an invalid code currently creates a Firebase identity; the website flow must avoid that side effect, while direct or modified clients remain protected by the backend check | Project owner, 2026-10-21 |
 | C~10 | Production must fail startup unless security, Firebase, registration-code and Admin credential settings are explicitly configured; frontend browser Firebase values are deployment metadata and CI uses non-secret repository variables or safe fallbacks | Review found that an unset security toggle would otherwise expose a permit-all production chain and that CI secrets were unnecessary for public browser configuration | Review remediation, 2026-10-21 |
 | C~11 | Auth error responses carry a generated request ID that is logged with status, safe code and path; unexpected failures use `INTERNAL_ERROR` | Review found that returned request IDs had no correlation and database failures were mislabeled as validation errors | Review remediation, 2026-10-21 |
+| C~12 | Use the first valid `X-Forwarded-For` address only when `SNOOZESHARE_TRUST_FORWARD_HEADERS=true`; local development ignores forwarded headers and falls back to `getRemoteAddr()` | The operator requested per-client Render rate limiting while preserving safe local testing and preventing arbitrary local header spoofing | Project owner, 2026-10-21 |
 
 ## 9. Deviations
 
@@ -143,3 +144,4 @@ Authentication failures return a request ID that is logged with status, safe err
 | 2026-10-21 | Completed registration pre-validation workstream slice; all plan tasks done, branch state is In review, and no merge/approval was performed | W-AUTH | T5 |
 | 2026-10-21 | Added descriptive placeholders to login, registration, and forgot-password form inputs; frontend presentation-only refinement | W-AUTH | auth form UX |
 | 2026-10-21 | Closed review findings for production fail-closed configuration, limiter ordering/reset scope, auth error correlation, stale frontend auth responses, safe return paths, development Firebase absence, CI public config and deployment documentation | W-AUTH | review remediation |
+| 2026-10-21 | Added opt-in trusted-proxy client IP resolution with local fallback, production configuration and unit coverage | W-AUTH | C~12 |

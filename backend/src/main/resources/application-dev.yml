@@ -11,6 +11,8 @@ snoozeshare:
     project-id: ${FIREBASE_PROJECT_ID:}
   security:
     enabled: ${FIREBASE_ENABLED:false}
+  proxy:
+    trust-forwarded-headers: ${SNOOZESHARE_TRUST_FORWARD_HEADERS:false}
   registration:
     host-code: ${SNOOZESHARE_HOST_REGISTRATION_CODE:}
     agent-code: ${SNOOZESHARE_AGENT_REGISTRATION_CODE:}
