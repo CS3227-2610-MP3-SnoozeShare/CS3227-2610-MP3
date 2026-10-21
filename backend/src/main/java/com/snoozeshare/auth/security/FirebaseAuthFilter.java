@@ -38,7 +38,7 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
         FilterChain filterChain) throws ServletException, IOException {
         String token = bearerToken(request.getHeader("Authorization"));
         if (token == null) {
-            AuthErrorWriter.write(response, HttpServletResponse.SC_UNAUTHORIZED, "INVALID_TOKEN");
+            AuthErrorWriter.write(request, response, HttpServletResponse.SC_UNAUTHORIZED, "INVALID_TOKEN");
             return;
         }
         try {
@@ -52,7 +52,7 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
                 : HttpServletResponse.SC_UNAUTHORIZED;
             String code = exception.failure() == VerificationFailure.PROVIDER_UNAVAILABLE
                 ? "AUTH_PROVIDER_UNAVAILABLE" : "INVALID_TOKEN";
-            AuthErrorWriter.write(response, status, code);
+            AuthErrorWriter.write(request, response, status, code);
         } finally {
             SecurityContextHolder.clearContext();
         }

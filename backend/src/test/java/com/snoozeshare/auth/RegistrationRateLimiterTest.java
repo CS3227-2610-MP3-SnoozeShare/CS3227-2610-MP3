@@ -39,6 +39,19 @@ class RegistrationRateLimiterTest {
         assertThat(limiter.allow("uid", "ip")).isTrue();
     }
 
+    @Test
+    void resettingOneUserDoesNotResetTheSharedIpCounter() {
+        RegistrationRateLimiter limiter = new RegistrationRateLimiter(
+            Clock.fixed(Instant.parse("2026-01-01T00:00:00Z"), ZoneOffset.UTC));
+        for (int attempt = 0; attempt < 20; attempt++) {
+            limiter.recordInvalid("uid", "ip");
+        }
+        limiter.resetUser("uid", "ip");
+
+        assertThat(limiter.allow("uid", "ip")).isFalse();
+        assertThat(limiter.allow("other-uid", "ip")).isFalse();
+    }
+
     private static final class MutableClock extends Clock {
         private Instant current;
 

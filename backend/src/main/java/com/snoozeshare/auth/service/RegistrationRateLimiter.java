@@ -30,19 +30,30 @@ public class RegistrationRateLimiter {
 
     public synchronized boolean allow(String uid, String ip) {
         Instant now = clock.instant();
+        removeExpired(now);
         return count(uidIpCounters, uid + "|" + ip, now) < UID_IP_LIMIT
             && count(ipCounters, ip, now) < IP_LIMIT;
     }
 
     public synchronized void recordInvalid(String uid, String ip) {
         Instant now = clock.instant();
+        removeExpired(now);
         increment(uidIpCounters, uid + "|" + ip, now);
         increment(ipCounters, ip, now);
     }
 
     public synchronized void reset(String uid, String ip) {
-        uidIpCounters.remove(uid + "|" + ip);
+        resetUser(uid, ip);
         ipCounters.remove(ip);
+    }
+
+    public synchronized void resetUser(String uid, String ip) {
+        uidIpCounters.remove(uid + "|" + ip);
+    }
+
+    private void removeExpired(Instant now) {
+        uidIpCounters.entrySet().removeIf(entry -> entry.getValue().started.plus(WINDOW).isBefore(now));
+        ipCounters.entrySet().removeIf(entry -> entry.getValue().started.plus(WINDOW).isBefore(now));
     }
 
     private int count(Map<String, Counter> counters, String key, Instant now) {

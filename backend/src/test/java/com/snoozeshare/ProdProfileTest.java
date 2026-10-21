@@ -27,7 +27,13 @@ class ProdProfileTest {
                 "--SPRING_DATASOURCE_URL=" + postgres.getJdbcUrl(),
                 "--SPRING_DATASOURCE_USERNAME=" + postgres.getUsername(),
                 "--SPRING_DATASOURCE_PASSWORD=" + postgres.getPassword(),
-                "--SNOOZESHARE_CORS_ALLOWED_ORIGIN=http://localhost:3000"));
+                "--SNOOZESHARE_CORS_ALLOWED_ORIGIN=http://localhost:3000",
+                "--SNOOZESHARE_SECURITY_ENABLED=true",
+                "--FIREBASE_ENABLED=true",
+                "--FIREBASE_PROJECT_ID=test-project",
+                "--SNOOZESHARE_HOST_REGISTRATION_CODE=host-code",
+                "--SNOOZESHARE_AGENT_REGISTRATION_CODE=agent-code",
+                "--GOOGLE_APPLICATION_CREDENTIALS=/tmp/test-service-account.json"));
             args.removeIf(arg -> arg.startsWith("--" + omitted + "="));
             assertThatThrownBy(() -> new SpringApplicationBuilder(SnoozeShareApplication.class)
                 .profiles("prod")
@@ -48,7 +54,13 @@ class ProdProfileTest {
                 .web(WebApplicationType.NONE)
                 .run("--SPRING_DATASOURCE_URL=" + postgres.getJdbcUrl(),
                     "--SPRING_DATASOURCE_USERNAME=" + postgres.getUsername(),
-                    "--SPRING_DATASOURCE_PASSWORD=" + postgres.getPassword()))
+                    "--SPRING_DATASOURCE_PASSWORD=" + postgres.getPassword(),
+                    "--SNOOZESHARE_SECURITY_ENABLED=true",
+                    "--FIREBASE_ENABLED=true",
+                    "--FIREBASE_PROJECT_ID=test-project",
+                    "--SNOOZESHARE_HOST_REGISTRATION_CODE=host-code",
+                    "--SNOOZESHARE_AGENT_REGISTRATION_CODE=agent-code",
+                    "--GOOGLE_APPLICATION_CREDENTIALS=/tmp/test-service-account.json"))
                 .satisfies(error -> assertThat(messageChain(error)).contains("SNOOZESHARE_CORS_ALLOWED_ORIGIN"));
         }
     }

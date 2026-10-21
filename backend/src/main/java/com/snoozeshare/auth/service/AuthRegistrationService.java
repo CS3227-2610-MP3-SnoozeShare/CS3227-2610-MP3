@@ -76,7 +76,9 @@ public class AuthRegistrationService {
             }
             return new RegistrationResult(profile(winner), false);
         }
-        rateLimiter.reset(identity.uid(), ip);
+        if (request.role() != AuthRole.GUEST) {
+            rateLimiter.resetUser(identity.uid(), ip);
+        }
         return new RegistrationResult(profile(created), true);
     }
 

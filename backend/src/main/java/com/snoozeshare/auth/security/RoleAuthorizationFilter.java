@@ -39,7 +39,7 @@ public class RoleAuthorizationFilter extends OncePerRequestFilter {
         FilterChain filterChain) throws ServletException, IOException {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!(principal instanceof FirebaseAuthentication identity)) {
-            AuthErrorWriter.write(response, HttpServletResponse.SC_UNAUTHORIZED, "INVALID_TOKEN");
+            AuthErrorWriter.write(request, response, HttpServletResponse.SC_UNAUTHORIZED, "INVALID_TOKEN");
             return;
         }
         try {
@@ -54,7 +54,7 @@ public class RoleAuthorizationFilter extends OncePerRequestFilter {
         } catch (RoleAuthorizationService.AuthorizationException exception) {
             int status = "PROFILE_NOT_REGISTERED".equals(exception.code())
                 ? HttpServletResponse.SC_NOT_FOUND : HttpServletResponse.SC_FORBIDDEN;
-            AuthErrorWriter.write(response, status, exception.code());
+            AuthErrorWriter.write(request, response, status, exception.code());
         }
     }
 

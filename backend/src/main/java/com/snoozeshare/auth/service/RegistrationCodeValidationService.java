@@ -33,6 +33,9 @@ public class RegistrationCodeValidationService {
         if (request.role() == AuthRole.GUEST) {
             throw new AuthRegistrationException("VALIDATION_ERROR", 400);
         }
+        if (!rateLimiter.allow(ip, request.role())) {
+            throw new AuthRegistrationException("REGISTRATION_RATE_LIMITED", 429);
+        }
         String expected = request.role() == AuthRole.HOST ? hostCode : agentCode;
         boolean matches = MessageDigest.isEqual(
             request.registrationCode().getBytes(StandardCharsets.UTF_8),

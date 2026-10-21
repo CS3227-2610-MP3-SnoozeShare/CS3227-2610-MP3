@@ -62,6 +62,24 @@ class RegistrationCodeValidationTest {
         org.junit.jupiter.api.Assertions.assertThrows(AuthRegistrationException.class, rotatedValidation);
     }
 
+    @Test
+    void aValidCodeCannotBypassAnExhaustedRoleLimiter() {
+        PublicRegistrationRateLimiter limiter = new PublicRegistrationRateLimiter(Clock.systemUTC());
+        RegistrationCodeValidationService service = new RegistrationCodeValidationService(
+            limiter, "host-code", "agent-code");
+        for (int i = 0; i < 5; i++) {
+            limiter.recordInvalid("127.0.0.1", AuthRole.HOST);
+        }
+
+        Executable validation = () -> service.validate(
+            new RegistrationCodeValidationRequest(AuthRole.HOST, "host-code"), "127.0.0.1");
+
+        AuthRegistrationException exception = org.junit.jupiter.api.Assertions.assertThrows(
+            AuthRegistrationException.class, validation);
+        assertThat(exception.code()).isEqualTo("REGISTRATION_RATE_LIMITED");
+        assertThat(exception.status()).isEqualTo(429);
+    }
+
     private void validateRotatedCode(RegistrationCodeValidationService service) {
         service.validate(new RegistrationCodeValidationRequest(AuthRole.HOST, "old-host"), "127.0.0.1");
     }

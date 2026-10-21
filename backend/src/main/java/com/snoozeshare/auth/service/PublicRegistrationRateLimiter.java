@@ -32,14 +32,27 @@ public class PublicRegistrationRateLimiter {
 
     public synchronized boolean recordInvalid(String ip, AuthRole role) {
         Instant now = clock.instant();
+        removeExpired(now);
         String roleKey = ip + "|" + role;
         int roleCount = increment(roleCounters, roleKey, now);
         int ipCount = increment(ipCounters, ip, now);
         return roleCount <= ROLE_LIMIT && ipCount <= IP_LIMIT;
     }
 
+    public synchronized boolean allow(String ip, AuthRole role) {
+        Instant now = clock.instant();
+        removeExpired(now);
+        return count(roleCounters, ip + "|" + role, now) < ROLE_LIMIT
+            && count(ipCounters, ip, now) < IP_LIMIT;
+    }
+
     public synchronized void resetRole(String ip, AuthRole role) {
         roleCounters.remove(ip + "|" + role);
+    }
+
+    private void removeExpired(Instant now) {
+        roleCounters.entrySet().removeIf(entry -> entry.getValue().started.plus(WINDOW).isBefore(now));
+        ipCounters.entrySet().removeIf(entry -> entry.getValue().started.plus(WINDOW).isBefore(now));
     }
 
     private int increment(Map<String, Counter> counters, String key, Instant now) {
@@ -51,6 +64,15 @@ public class PublicRegistrationRateLimiter {
         int count = previous.count + 1;
         counters.put(key, new Counter(previous.started, count));
         return count;
+    }
+
+    private int count(Map<String, Counter> counters, String key, Instant now) {
+        Counter counter = counters.get(key);
+        if (counter == null || counter.started.plus(WINDOW).isBefore(now)) {
+            counters.remove(key);
+            return 0;
+        }
+        return counter.count;
     }
 
     private record Counter(Instant started, int count) { }
