@@ -62,7 +62,7 @@ public class LedgerWriter {
             throw new IllegalArgumentException(
                     "Amount must not be zero");
         }
-        Wallet wallet = wallets.findById(walletId)
+        Wallet wallet = wallets.findByIdForUpdate(walletId)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Wallet does not exist"));
         DomainValidation.requireSgd(wallet.getCurrency());

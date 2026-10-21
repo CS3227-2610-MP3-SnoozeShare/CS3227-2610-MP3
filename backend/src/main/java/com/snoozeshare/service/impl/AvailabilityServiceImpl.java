@@ -13,14 +13,18 @@ import java.util.stream.Collectors;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
 
+import com.snoozeshare.domain.enums.AccountStatus;
 import com.snoozeshare.domain.enums.BookingStatus;
+import com.snoozeshare.domain.enums.Role;
 import com.snoozeshare.domain.model.AvailabilityBlock;
 import com.snoozeshare.domain.model.Booking;
 import com.snoozeshare.domain.model.Property;
+import com.snoozeshare.domain.model.User;
 import com.snoozeshare.domain.policy.StayDatePolicy;
 import com.snoozeshare.repository.AvailabilityBlockRepository;
 import com.snoozeshare.repository.BookingRepository;
 import com.snoozeshare.repository.PropertyRepository;
+import com.snoozeshare.repository.UserRepository;
 import com.snoozeshare.service.AvailabilityService;
 
 @Service
@@ -34,15 +38,18 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     private final PropertyRepository properties;
     private final AvailabilityBlockRepository blocks;
     private final BookingRepository bookings;
+    private final UserRepository users;
     private final StayDatePolicy dates;
 
     public AvailabilityServiceImpl(PropertyRepository properties,
                                    AvailabilityBlockRepository blocks,
                                    BookingRepository bookings,
+                                   UserRepository users,
                                    Clock clock) {
         this.properties = properties;
         this.blocks = blocks;
         this.bookings = bookings;
+        this.users = users;
         this.dates = new StayDatePolicy(clock);
     }
 
@@ -59,6 +66,14 @@ public class AvailabilityServiceImpl implements AvailabilityService {
             throw new IllegalArgumentException("Property and a valid date range are required");
         }
         dates.requireNotInPast(start, "From date");
+        User host = users.findById(hostId)
+                .orElseThrow(() -> new IllegalArgumentException("Host does not exist"));
+        if (host.getRole() != Role.HOST) {
+            throw new IllegalArgumentException("Only hosts can create calendar blocks");
+        }
+        if (host.getStatus() != AccountStatus.ACTIVE) {
+            throw new IllegalStateException("Host account is not active");
+        }
         LocalDate exclusiveEnd = end.plusDays(1);
         Property property = properties.findById(propertyId)
                 .orElseThrow(() -> new IllegalArgumentException("Property does not exist"));

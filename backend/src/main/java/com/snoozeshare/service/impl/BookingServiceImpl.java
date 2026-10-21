@@ -14,10 +14,12 @@ import java.util.UUID;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.snoozeshare.domain.enums.AccountStatus;
 import com.snoozeshare.domain.enums.BookingStatus;
+import com.snoozeshare.domain.enums.ListingStatus;
 import com.snoozeshare.domain.enums.Role;
 import com.snoozeshare.domain.enums.TicketStatus;
 import com.snoozeshare.domain.enums.WalletTransactionType;
@@ -93,17 +95,23 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    @Transactional
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public Booking submitRequest(UUID guestId, UUID propertyId,
                                  LocalDate start, LocalDate end) {
         stayDates.requireValidStay(start, end);
         User guest = users.findById(guestId)
                 .orElseThrow(() -> new IllegalArgumentException("Guest does not exist"));
+        if (guest.getRole() != Role.GUEST) {
+            throw new IllegalArgumentException("Only guests can submit booking requests");
+        }
         if (guest.getStatus() != AccountStatus.ACTIVE) {
             throw new IllegalStateException("Account is not active");
         }
         Property property = properties.findById(propertyId)
                 .orElseThrow(() -> new IllegalArgumentException("Property does not exist"));
+        if (property.getStatus() != ListingStatus.ACTIVE) {
+            throw new IllegalArgumentException("Listing is not active");
+        }
         if (!bookings.findOverlapping(propertyId, start, end).isEmpty()
                 || !blocks.findOverlapping(propertyId, start, end).isEmpty()) {
             throw new IllegalArgumentException("Dates are not available for this property");

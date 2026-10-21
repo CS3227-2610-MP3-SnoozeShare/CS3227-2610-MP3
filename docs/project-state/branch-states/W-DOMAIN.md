@@ -7,9 +7,9 @@ after the branch merges.
 - **Branch:** W-DOMAIN (from `development` at `4cc27c3`)
 - **Base:** `349d55c` (development tip after W-AUTH merge)
 - **Owner:** Nathan
-- **Status:** Approved
+- **Status:** In review
 - **Approved:** Nathan, 2026-10-21
-- **Last updated:** 2026-10-21 by Claude Opus 4.6 — closed for review
+- **Last updated:** 2026-10-21 by Claude Opus 4.6 — PR review bugfixes applied
 
 ---
 
@@ -136,3 +136,4 @@ No change.
 | 2026-10-21 | Port 15 service implementations (T7): 13 interfaces, 14 value objects, 2 request types, 15 impls, 1 utility; adapted desktop record patterns to JPA entity patterns; changed T6 JDBC repos and service impls from `@ConditionalOnBean(JdbcTemplate/WalletRepo/AuditLogRepo)` to `@ConditionalOnBean(PropertyRepository.class)` for reliable no-DB test support | W~DOMAIN | `7ecc9a1` |
 | 2026-10-21 | Create DTO layer (T8): 16 request DTOs with Jakarta validation, 21 response DTOs with `from()` factories, 3 mappers; follows auth module pattern (`@JsonIgnoreProperties(ignoreUnknown = false)`, records) | W~DOMAIN | — |
 | 2026-10-21 | Add T9 tests: 6 unit test classes (BookingStateMachine, TicketStateMachine, StayDatePolicy, DisputeWindowPolicy, SettlementCalculator, DomainValidation) and 5 repository integration tests (`@DataJpaTest` + Testcontainers: User, Booking, Wallet, Ticket, AuditLog); all 163 tests green | W~DOMAIN | — |
+| 2026-10-21 | Fix 6 PR review bugs: [P1] SERIALIZABLE isolation on `submitRequest`; [P1] pessimistic wallet locking via `findByIdForUpdate`; [P1] role/status authorization in `submitRequest` and `createHostBlock`; [P2] force-cancel audit captures before-state; [P2] `@NotNull` on `FileTicketRequest.requestedRemedy`; [P2] V005 tightens nightly-rate CHECK to reject zero and enforce two-decimal precision | W~DOMAIN | — |

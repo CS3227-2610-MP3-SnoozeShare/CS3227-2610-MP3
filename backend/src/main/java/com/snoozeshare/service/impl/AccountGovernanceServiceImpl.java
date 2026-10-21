@@ -161,10 +161,11 @@ public class AccountGovernanceServiceImpl implements AccountGovernanceService {
     }
 
     private void forceCancel(Booking booking, User suspended, UUID agentId, Instant now) {
-        if (!BookingStateMachine.canTransition(booking.getStatus(),
+        BookingStatus before = booking.getStatus();
+        if (!BookingStateMachine.canTransition(before,
                 BookingStatus.FORCE_CANCELLED, Role.AGENT)) {
             throw new IllegalStateException("Cannot force-cancel a booking in status "
-                    + booking.getStatus());
+                    + before);
         }
         booking.setStatus(BookingStatus.FORCE_CANCELLED);
         booking.setDecidedAt(now);
@@ -172,7 +173,7 @@ public class AccountGovernanceServiceImpl implements AccountGovernanceService {
         blocks.deleteByBookingId(booking.getId());
         audit.record(AuditRecord.builder(agentId, AuditAction.BOOKING_FORCE_CANCELLED,
                         "Booking", booking.getId())
-                .status(booking.getStatus(), BookingStatus.FORCE_CANCELLED)
+                .status(before, BookingStatus.FORCE_CANCELLED)
                 .reason(CASCADE_BOOKING_REASON).subject(suspended.getId())
                 .booking(booking.getId()).at(now).build());
         Wallet wallet = wallets.findByUserId(booking.getGuestId())

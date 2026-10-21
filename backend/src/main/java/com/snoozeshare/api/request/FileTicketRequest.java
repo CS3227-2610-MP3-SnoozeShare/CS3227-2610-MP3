@@ -15,6 +15,6 @@ public record FileTicketRequest(
         @NotBlank String category,
         @NotBlank String title,
         @NotBlank String description,
-        RemedyType requestedRemedy,
+        @NotNull RemedyType requestedRemedy,
         String supportingText) {
 }
