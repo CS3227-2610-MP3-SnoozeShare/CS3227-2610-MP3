@@ -32,19 +32,19 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| 2026-10-22 backend phase | 2026-10-22 | GPT-5 | W-HOST-API | Building | Operator approved the amended spec; 10-task plan drafted and linted, Implementer review in progress | Address review findings, then request Gate 2 plan approval; no code before approval | 2026-10-22 |
+| 2026-10-22 backend phase | 2026-10-22 | GPT-5 | W-HOST-API | Building | Owner approved the reviewed 10-task plan; preparing baseline build for T1 | Run backend and frontend baseline builds; record results, then start T1 step 1 | 2026-10-22 |
 
 **Remaining**
 
 - [ ] Owner review and approval remain for the completed fixture-backed UI phase.
-- [ ] Backend-integration plan requires owner approval before implementation.
+- [ ] Run baseline builds before T1; stop and record any pre-existing failures.
 
 ## 3. Workstreams
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
 | W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Listings, requests, and wallet scroll within viewport; 143 tests, lint and build pass | guide out of date: W-HOST Host UI pages and Fall Light details |
-| W-HOST-API | Replace Host fixtures with authenticated backend integration | Spec'd | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [draft plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | Spec approved; 10-task plan drafted; wallet idempotency removed by C~16; Implementer review in progress | — |
+| W-HOST-API | Replace Host fixtures with authenticated backend integration | Planned | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | Approved 10-task plan; six waves; baseline build pending | — |
 
 ## 4. Architecture
 
@@ -56,7 +56,7 @@ Host route content uses a full-width page frame; input value text is normal-weig
 
 ## 6. Known Gaps
 
-W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJECT_STATE.md` § Known Gaps. W-HOST-API implementation has not started; the API spec still requires owner approval.
+W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJECT_STATE.md` § Known Gaps. W-HOST-API implementation has not started; its approved plan requires green baseline builds before T1.
 
 ## 7. Needs a Human
 
@@ -147,3 +147,4 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | 2026-10-22 | Resolved user-approved W-HOST-API defaults; fixed second-round findings by aligning idempotency uniqueness/hash scope and defining bounded database paging for summaries, histories, and wallet statements | W-HOST-API | `2026-10-22` |
 | 2026-10-22 | Removed wallet idempotency table, key/replay API, and deduplication requirements per C~16; retained atomic wallet ledger/audit behavior and specified refresh instead of automatic retry | W-HOST-API | `2026-10-22` |
 | 2026-10-22 | Recorded operator approval of the amended W-HOST-API spec and drafted its ten-task implementation plan; plan review and Gate 2 approval remain pending | W-HOST-API | `2026-10-22` |
+| 2026-10-22 | Recorded owner approval of the reviewed 10-task, six-wave W-HOST-API plan; corrected frontend test commands to match the `vitest run` package script | W-HOST-API | `2026-10-22` |
