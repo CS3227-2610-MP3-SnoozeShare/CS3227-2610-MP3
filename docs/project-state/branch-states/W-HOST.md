@@ -9,7 +9,7 @@ in after the branch merges.
 - **Owner:** project owner
 - **Status:** In review
 - **Approved:** —
-- **Last updated:** 2026-10-21 by GPT-5 — listing detail aligned to artifact; awaiting owner review
+- **Last updated:** 2026-10-21 by GPT-5 — listing detail typography and artifact layout refinements verified; awaiting owner review
 
 ---
 
@@ -42,7 +42,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Listing detail artifact parity implemented; 111 tests, lint, isolated production build pass | guide out of date: W-HOST Host UI pages and Fall Light details |
+| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Detail typography, review spacing, 40% Performance placement, and breadcrumb alignment refined; 111 tests, lint, isolated build pass | guide out of date: W-HOST Host UI pages and Fall Light details |
 
 ## 4. Architecture
 
@@ -101,3 +101,4 @@ None.
 | 2026-10-21 | Refined listing action link colors and listing-detail actions; restored page-title tracking style | W-HOST | Operator follow-up |
 | 2026-10-21 | Made each listing card surface navigate to its detail page while preserving independent availability, calendar, and edit controls; 109 tests, lint, and build pass | W-HOST | Operator follow-up |
 | 2026-10-21 | Matched listing detail to the artifact with a gradient hero, six metrics, compact inline reviews/performance, and breadcrumb-row actions; 111 tests, lint, and isolated production build pass | W-HOST | Operator follow-up |
+| 2026-10-21 | Increased detail/address typography; added review spacing; aligned Performance beside title/metrics at ~40% content width; top-aligned breadcrumb with shared Host placement; 111 tests, lint, isolated production build pass | W-HOST | Operator follow-up |
