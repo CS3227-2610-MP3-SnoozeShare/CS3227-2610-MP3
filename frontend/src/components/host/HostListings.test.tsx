@@ -62,7 +62,10 @@ describe('Host listing components', () => {
     expect(availability).toHaveClass('flex-row');
     expect(availability.children[0]).toHaveTextContent('ACTIVE');
     expect(availability.children[1]).toBe(within(availability).getByRole('switch'));
-    expect(sections[0].parentElement).toHaveClass('gap-x-2', 'xl:gap-x-3', 'xl:w-fit', 'xl:grid-cols-[5rem_5rem_7rem_10rem_5rem]');
+    expect(sections[0].parentElement).toHaveClass(
+      'grid-cols-2', 'min-[560px]:grid-cols-3', 'lg:grid-cols-5',
+      'gap-x-2', 'xl:gap-x-3', 'xl:w-fit', 'xl:grid-cols-[5rem_5rem_7rem_10rem_5rem]',
+    );
     const widthClass = availability.className;
     fireEvent.click(within(availability).getByRole('switch'));
     expect(within(card).getByRole('group', { name: 'Availability' }).className).toBe(widthClass);
