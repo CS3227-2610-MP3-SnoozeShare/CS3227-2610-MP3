@@ -8,7 +8,7 @@ export type HostListing = {
 export type ListingDetail = HostListing & {
   description: string; address: string; postalCode: string; maxGuests: number; bedrooms: number;
   bathrooms: number; checkIn: string; checkOut: string; amenities: string[]; reviewCount: number;
-  occupancy30d: number; earnings30d: number;
+  occupancy30d: number; earnings30d: number; reviews: { author: string; rating: number; text: string }[];
 };
 
 export type CalendarDay = { date: string; month: 'current' | 'other'; booked: boolean; blocked: boolean };

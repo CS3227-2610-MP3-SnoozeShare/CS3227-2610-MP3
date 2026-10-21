@@ -13,6 +13,10 @@ const lakeside: ListingDetail = {
   ...listings[0], address: '142 Shoreline Dr', postalCode: '53211', maxGuests: 4, bedrooms: 2, bathrooms: 1,
   checkIn: '3:00 PM', checkOut: '11:00 AM', description: 'A cozy cabin steps from the water, with a private dock and wood-burning stove. Perfect for a quiet long weekend away from the city.',
   amenities: ['Wifi', 'Parking', 'Kitchen', 'Washer'], reviewCount: 23, occupancy30d: 62, earnings30d: 1860,
+  reviews: [
+    { author: 'Marcus T.', rating: 5, text: 'Exactly as pictured, host was very responsive.' },
+    { author: 'Priya S.', rating: 5, text: 'Loved the dock. Would book again.' },
+  ],
 };
 
 const requests: RequestData = {
@@ -44,11 +48,17 @@ const statement: StatementRow[] = [
 
 const calendar: CalendarData = {
   monthLabel: 'September 2026',
-  days: [
-    { date: '2026-09-15', month: 'current', booked: false, blocked: true },
-    { date: '2026-09-16', month: 'current', booked: false, blocked: true },
-    { date: '2026-09-17', month: 'current', booked: false, blocked: true },
-  ],
+  days: Array.from({ length: 35 }, (_, index) => {
+    const date = new Date(2026, 7, 30 + index);
+    const inCurrentMonth = date.getMonth() === 8;
+    const day = date.getDate();
+    return {
+      date: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+      month: inCurrentMonth ? 'current' : 'other',
+      booked: inCurrentMonth && day === 11,
+      blocked: inCurrentMonth && day >= 15 && day <= 17,
+    };
+  }),
   overrides: ['Oct 3 – Oct 5'],
 };
 

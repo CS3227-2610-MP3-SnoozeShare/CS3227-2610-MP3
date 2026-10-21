@@ -12,7 +12,7 @@ export function Field({ className, id, label, ...props }: FieldProps) {
       <span>{label}</span>
       <input
         id={fieldId}
-        className={cn('h-9 rounded-lg border border-input bg-background px-3 text-sm outline-none transition-colors focus:border-ring focus:ring-3 focus:ring-ring/20', className)}
+        className={cn('h-9 rounded-lg border border-input bg-background px-3 text-sm font-normal outline-none transition-colors focus:border-ring focus:ring-3 focus:ring-ring/20', className)}
         {...props}
       />
     </label>

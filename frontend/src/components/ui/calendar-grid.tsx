@@ -10,14 +10,15 @@ const stateLabels: Record<CalendarDay['state'], string> = {
 
 export function CalendarGrid({ monthLabel, days, className, ...props }: { monthLabel: string; days: CalendarDay[] } & HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cn('grid grid-cols-7 overflow-hidden rounded-lg border border-[var(--border-muted)]', className)} {...props}>
-      <div aria-label={monthLabel} className="col-span-7 grid grid-cols-7" role="grid">
-        {days.map((day) => (
-          <div aria-label={`${day.label}, ${stateLabels[day.state]}`} className="min-h-16 border-b border-r border-[var(--border-muted)] p-2 text-sm" data-state={day.state} key={day.date} role="gridcell">
-            <span>{day.label}</span>
-          </div>
-        ))}
-      </div>
+    <div aria-label={monthLabel} className={cn('grid grid-cols-7 overflow-hidden rounded-lg border border-[var(--border-muted)]', className)} role="grid" {...props}>
+      {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map((weekday) => (
+        <div className="border-b border-r border-[var(--border-muted)] bg-[var(--surface-inset)] px-2 py-2 text-center text-[11px] font-semibold text-[var(--text-subtle)]" key={weekday} role="columnheader">{weekday}</div>
+      ))}
+      {days.map((day) => (
+        <div aria-label={`${day.label}, ${stateLabels[day.state]}`} className={cn('min-h-[72px] border-b border-r border-[var(--border-muted)] p-2 text-sm', day.state === 'available' && 'bg-[#eaf2d8]', day.state === 'booked' && 'bg-[#f4dfe0]', day.state === 'blocked' && 'bg-[#f6e5df]', day.state === 'other' && 'bg-[var(--surface-inset)] text-[var(--text-subtle)]')} data-state={day.state} key={day.date} role="gridcell">
+          <span>{day.label}</span>
+        </div>
+      ))}
     </div>
   );
 }

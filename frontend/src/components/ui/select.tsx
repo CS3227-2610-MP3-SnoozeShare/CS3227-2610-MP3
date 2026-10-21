@@ -22,7 +22,7 @@ export function SelectField({ 'aria-label': ariaLabel, name, value, options, onV
         aria-label={ariaLabel}
         className="mt-1 flex h-9 w-full items-center justify-between rounded-lg border border-input bg-background px-3 py-1.5 text-sm shadow-xs outline-none transition-colors focus:border-ring focus:ring-3 focus:ring-ring/50"
       >
-        <Select.Value />
+        <Select.Value>{options.find((option) => option.value === value)?.label ?? value}</Select.Value>
         <Select.Icon><ChevronDown className="size-4 opacity-70" /></Select.Icon>
       </Select.Trigger>
       <Select.Portal>
