@@ -32,7 +32,9 @@ public enum AuditAction {
     TICKET_CATEGORY_DELETED,
     REVIEW_SUBMITTED,
     ACCOUNT_SUSPENDED,
-    ACCOUNT_REACTIVATED;
+    ACCOUNT_REACTIVATED,
+    AI_CALL,
+    AI_CALL_REJECTED;
 
     /** Money rows reuse the wallet transaction type's name so the two ledgers line up. */
     public static AuditAction forWallet(WalletTransactionType type) {
