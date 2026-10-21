@@ -1,7 +1,6 @@
 package com.snoozeshare.repository;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -45,6 +44,19 @@ public class JdbcLedgerRepository implements LedgerRepository {
     }
 
     @Override
+    public List<WalletTransaction> entriesForWallet(UUID walletId, int page, int size) {
+        if (page < 0 || size < 1 || size > 100) {
+            throw new IllegalArgumentException("Invalid wallet statement page");
+        }
+        return jdbc.query(
+                BASE_SELECT
+                + " AND a.subject_user_id = ("
+                + "SELECT w.user_id FROM wallets w WHERE w.id = ?)"
+                + " ORDER BY a.timestamp DESC, a.id DESC LIMIT ? OFFSET ?",
+                this::mapRow, walletId, size + 1, (long) page * size);
+    }
+
+    @Override
     public List<WalletTransaction> entriesForBooking(UUID bookingId) {
         return jdbc.query(
                 BASE_SELECT
@@ -64,6 +76,6 @@ public class JdbcLedgerRepository implements LedgerRepository {
                 rs.getString("reason"),
                 rs.getObject("booking_id", UUID.class),
                 rs.getObject("ticket_id", UUID.class),
-                rs.getObject("timestamp", Instant.class));
+                rs.getTimestamp("timestamp").toInstant());
     }
 }

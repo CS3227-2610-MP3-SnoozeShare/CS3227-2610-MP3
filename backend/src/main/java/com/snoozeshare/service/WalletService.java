@@ -21,4 +21,6 @@ public interface WalletService {
     WalletTransaction withdraw(UUID userId, BigDecimal amount);
 
     List<WalletTransaction> statementFor(UUID userId);
+
+    List<WalletTransaction> statementFor(UUID userId, int page, int size);
 }

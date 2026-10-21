@@ -14,5 +14,7 @@ public interface LedgerRepository {
 
     List<WalletTransaction> entriesForWallet(UUID walletId);
 
+    List<WalletTransaction> entriesForWallet(UUID walletId, int page, int size);
+
     List<WalletTransaction> entriesForBooking(UUID bookingId);
 }

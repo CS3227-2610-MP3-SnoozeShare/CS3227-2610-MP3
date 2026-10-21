@@ -25,8 +25,8 @@
 | T3 Make calendar mutations atomic and expose calendar API | T0,T1 | T2 | 2 | Done |
 | T4 Serialize Host booking decisions | T0,T1 | T5,T6 | 2 | Done |
 | T5 Add distinct Host conversation APIs | T0,T1 | T4,T6 | 2 | Done |
-| T6 Add Host wallet API | T0,T1 | T4,T5 | 2 | In progress |
-| T7 Add authenticated frontend Host API adapter | T0,T1,T2,T3,T4,T5,T6 | - | 3 | Not started |
+| T6 Add Host wallet API | T0,T1 | T4,T5 | 2 | Done |
+| T7 Add authenticated frontend Host API adapter | T0,T1,T2,T3,T4,T5,T6 | - | 3 | In progress |
 | T8 Wire listing, calendar, and request screens | T2,T3,T4,T7 | - | 4 | Not started |
 | T9 Wire messages and wallet screens | T5,T6,T7,T8 | - | 5 | Not started |
 | T10 Verify integration and close the phase | T9 | - | 6 | Not started |
@@ -243,16 +243,18 @@
 | Create | `backend/src/main/java/com/snoozeshare/api/response/HostWalletResponse.java` | Wallet plus bounded statement page response. |
 | Create | `backend/src/main/java/com/snoozeshare/api/response/HostWalletMutationResponse.java` | `mocked`, resulting wallet, and transaction only; no `replayed` field. |
 | Modify | `backend/src/main/java/com/snoozeshare/repository/LedgerRepository.java` and `backend/src/main/java/com/snoozeshare/repository/JdbcLedgerRepository.java` | Add direct database paging ordered by `timestamp DESC, id DESC`; do not load and slice a complete ledger list. |
+| Modify | `backend/src/main/java/com/snoozeshare/repository/WalletRepository.java` | Add wallet-ID-only lookup so mutations do not preload a stale entity before `LedgerWriter` locks it. |
 | Modify | `backend/src/main/java/com/snoozeshare/service/WalletService.java` and `backend/src/main/java/com/snoozeshare/service/impl/WalletServiceImpl.java` (`statementFor`, `topUp`, `withdraw`) | Expose bounded statement query and preserve existing wallet-row lock, transaction, ledger, audit, and after-commit event behavior. Each accepted request is a separate operation. |
+| Modify | `backend/src/main/java/com/snoozeshare/service/impl/LedgerWriter.java` | Dispatch wallet transaction events only after the enclosing transaction commits. |
 | Test | `backend/src/test/java/com/snoozeshare/api/host/HostWalletIntegrationTest.java` | Amount validation, owner scope, paged statement, insufficient balance, and atomic balance/ledger/audit behavior (E3,E9,E10,E12,E15,E17). |
 
 **Checklist**
 
-- [ ] 1. Write failing wallet tests for E9, E10, E12, and E17; prove failed mutations do not change balance or ledger and the statement query is database-bounded.
-- [ ] 2. Implement routes and response DTOs with no schema migration, request key, payload hash, or replay response; use existing wallet row locking and ledger transaction.
-- [ ] 3. Run tests; verify every received mutation is a separate operation, concurrent balance changes serialize, invalid/insufficient requests roll back, and no wallet payload is logged.
-- [ ] 4. Run backend Checkstyle (`./gradlew checkstyleMain checkstyleTest`) and build.
-- [ ] 5. Update branch state; commit `feat: expose Host wallet API`.
+- [x] 1. Write failing wallet tests for E9, E10, E12, and E17; prove failed mutations do not change balance or ledger and the statement query is database-bounded.
+- [x] 2. Implement routes and response DTOs with no schema migration, request key, payload hash, or replay response; use existing wallet row locking and ledger transaction.
+- [x] 3. Run tests; verify every received mutation is a separate operation, concurrent balance changes serialize, invalid/insufficient requests roll back, and no wallet payload is logged.
+- [x] 4. Run backend Checkstyle (`./gradlew checkstyleMain checkstyleTest`) and build.
+- [x] 5. Update branch state; commit `feat: expose Host wallet API`.
 
 ### T7: Add authenticated frontend Host API adapter
 
