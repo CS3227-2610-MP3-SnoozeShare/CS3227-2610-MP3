@@ -9,7 +9,7 @@ in after the branch merges.
 - **Owner:** project owner
 - **Status:** In review
 - **Approved:** —
-- **Last updated:** 2026-10-21 by GPT-5 — button cursor and outline hover treatment verified; awaiting owner review
+- **Last updated:** 2026-10-21 by GPT-5 — listing action/title styling refinements recorded; awaiting owner review
 
 ---
 
@@ -98,3 +98,4 @@ None.
 | 2026-10-21 | Applied shared chevron breadcrumbs to New, Edit, listing detail, and booking calendar routes; expanded route regression coverage; 106 tests and lint pass | W-HOST | T4 follow-up |
 | 2026-10-21 | Added entry-example placeholders to New/Edit title, description, address, location, capacity, and rate inputs; 107 tests, lint, and production build pass | W-HOST | T4 follow-up |
 | 2026-10-21 | Added pointer cursors for enabled buttons and hover feedback for outlined buttons and links | W-HOST | T1 follow-up |
+| 2026-10-21 | Refined listing action link colors and listing-detail actions; restored page-title tracking style | W-HOST | Operator follow-up |
