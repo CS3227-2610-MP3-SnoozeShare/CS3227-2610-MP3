@@ -24,7 +24,7 @@
 | T2 Add listing API and detail projection | T0,T1 | T3 | 2 | Done |
 | T3 Make calendar mutations atomic and expose calendar API | T0,T1 | T2 | 2 | Done |
 | T4 Serialize Host booking decisions | T0,T1 | T5,T6 | 2 | Done |
-| T5 Add distinct Host conversation APIs | T0,T1 | T4,T6 | 2 | Not started |
+| T5 Add distinct Host conversation APIs | T0,T1 | T4,T6 | 2 | In progress |
 | T6 Add Host wallet API | T0,T1 | T4,T5 | 2 | Not started |
 | T7 Add authenticated frontend Host API adapter | T0,T1,T2,T3,T4,T5,T6 | - | 3 | Not started |
 | T8 Wire listing, calendar, and request screens | T2,T3,T4,T7 | - | 4 | Not started |
@@ -204,7 +204,7 @@
 - [x] 2. Add Host-page repository methods and row locking; keep state-machine, escrow, ledger, audit, and event work in the existing service transaction.
 - [x] 3. Run the tests; verify one decision changes state and writes ledger/audit/event once, while the concurrent loser receives 409 `STATE_CONFLICT`.
 - [x] 4. Run backend Checkstyle (`./gradlew checkstyleMain checkstyleTest`) and build.
-- [x] 5. Update branch state; commit `feat: serialize Host booking decisions`.
+- [x] 5. Update branch state; commit `feat: serialize Host booking decisions` (`740e1bc`).
 
 ### T5: Add distinct Host conversation APIs
 

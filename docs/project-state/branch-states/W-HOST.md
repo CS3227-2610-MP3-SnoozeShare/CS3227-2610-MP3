@@ -9,7 +9,7 @@ in after the branch merges.
 - **Owner:** project owner
 - **Status:** Draft
 - **Approved:** —
-- **Last updated:** 2026-10-22 by GPT-5 — T4 request API and serialized decisions implemented; PostgreSQL tests and backend build pass
+- **Last updated:** 2026-10-22 by GPT-5 — T4 committed as `740e1bc`; T5 conversation APIs started
 
 ---
 
@@ -32,20 +32,21 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| 2026-10-22 backend phase | 2026-10-22 | GPT-5 | W-HOST-API | Active | T4 implementation, integration/concurrency tests, Checkstyle and backend build pass | Commit T4, then begin T5 booking/ticket message APIs | 2026-10-22 |
+| 2026-10-22 backend phase | 2026-10-22 | GPT-5 | W-HOST-API | Active | T5 step 1: write failing booking/ticket messaging tests | Run focused tests to capture missing routes, access checks, and bounded history behavior | 2026-10-22 |
 
 **Remaining**
 
 - [ ] Owner review and approval remain for the completed fixture-backed UI phase.
 - [x] T4 booking decisions: owner-scoped database paging, authenticated API, row-lock decision and concurrency tests are complete.
-- [ ] T5-T6 Host messaging and wallet APIs remain; begin T5 after committing T4.
+- [ ] T5 Host booking/ticket message APIs: write failing channel-scoped integration tests.
+- [ ] T6 Host wallet API remains after T5.
 
 ## 3. Workstreams
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
 | W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Listings, requests, and wallet scroll within viewport; 143 tests, lint and build pass | guide out of date: W-HOST Host UI pages and Fall Light details |
-| W-HOST-API | Replace Host fixtures with authenticated backend integration | Building | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T4 done: bounded request pages and row-locked decisions; T5 next | — |
+| W-HOST-API | Replace Host fixtures with authenticated backend integration | Building | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T5/5 in flight: distinct booking/ticket channels and transactional messaging | — |
 
 ## 4. Architecture
 
@@ -187,3 +188,4 @@ No open questions.
 | 2026-10-22 | Added the authenticated Host calendar API, bounded month projection, inclusive range responses, audited block mutations, and serializable retry; focused tests and full backend checks pass | W-HOST-API | T3 |
 | 2026-10-22 | Committed the atomic Host calendar API as `fb4188a`; starting T4 booking-request paging and decision serialization | W-HOST-API | T3/T4 |
 | 2026-10-22 | Added authenticated pending/history booking pages, 500-code-point decision validation, row-locked one-shot decisions, transactional decision audit and after-commit events; PostgreSQL tests and backend Checkstyle/build pass | W-HOST-API | T4 |
+| 2026-10-22 | Committed serialized Host booking decisions as `740e1bc`; starting T5 booking/ticket messaging APIs | W-HOST-API | T4/T5 |
