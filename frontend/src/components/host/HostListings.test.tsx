@@ -40,6 +40,10 @@ describe('Host listing components', () => {
     for (const section of sections) expect(section).toHaveClass('items-center', 'justify-center', 'text-center');
     const availability = within(card).getByRole('group', { name: 'Availability' });
     expect(availability).toHaveClass('w-28');
+    expect(availability).toHaveClass('flex-row');
+    expect(availability.children[0]).toHaveTextContent('ACTIVE');
+    expect(availability.children[1]).toBe(within(availability).getByRole('switch'));
+    expect(sections[0].parentElement).toHaveClass('gap-x-2', 'xl:gap-x-3', 'xl:w-fit', 'xl:grid-cols-[5rem_5rem_7rem_10rem_5rem]');
     const widthClass = availability.className;
     fireEvent.click(within(availability).getByRole('switch'));
     expect(within(card).getByRole('group', { name: 'Availability' }).className).toBe(widthClass);
