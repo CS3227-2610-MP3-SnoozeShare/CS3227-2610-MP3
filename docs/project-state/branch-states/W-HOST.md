@@ -32,19 +32,19 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| 2026-10-22 backend phase | 2026-10-22 | GPT-5 | W-HOST-API | Building | Owner approved the reviewed 10-task plan; preparing baseline build for T1 | Run backend and frontend baseline builds; record results, then start T1 step 1 | 2026-10-22 |
+| 2026-10-22 backend phase | 2026-10-22 | GPT-5 | W-HOST-API | Blocked — needs human | Backend baseline passes; frontend `npm ci` fails because registry DNS is unavailable (`ENOTFOUND`); `node_modules` is absent after install attempts | Restore frontend dependencies when npm registry/network is available, rerun frontend baseline, then start T1 step 1 | 2026-10-22 |
 
 **Remaining**
 
 - [ ] Owner review and approval remain for the completed fixture-backed UI phase.
-- [ ] Run baseline builds before T1; stop and record any pre-existing failures.
+- [ ] Restore frontend dependencies and run its baseline (`npm ci`, `npm test`, `npm run lint`, `npm run build`); then begin T1.
 
 ## 3. Workstreams
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
 | W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Listings, requests, and wallet scroll within viewport; 143 tests, lint and build pass | guide out of date: W-HOST Host UI pages and Fall Light details |
-| W-HOST-API | Replace Host fixtures with authenticated backend integration | Planned | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | Approved 10-task plan; six waves; baseline build pending | — |
+| W-HOST-API | Replace Host fixtures with authenticated backend integration | Blocked — needs human | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | Backend baseline passes; frontend baseline blocked by npm registry DNS (`ENOTFOUND`); T1 has not started | — |
 
 ## 4. Architecture
 
@@ -56,7 +56,7 @@ Host route content uses a full-width page frame; input value text is normal-weig
 
 ## 6. Known Gaps
 
-W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJECT_STATE.md` § Known Gaps. W-HOST-API implementation has not started; its approved plan requires green baseline builds before T1.
+W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJECT_STATE.md` § Known Gaps. W-HOST-API T1 is waiting on restored frontend dependencies and a green frontend baseline.
 
 ## 7. Needs a Human
 
@@ -91,6 +91,7 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 |---|---|---|---|
 | D~1 | 2026-10-21 | Initial T8 comparison was blocked by missing Host authentication; operator subsequently logged in and enabled a live route comparison | Resolved. Authenticated artifact comparison completed; all eight Host content routes were checked at 1680×945, 1280×800, and 768×1024 with no horizontal overflow |
 | D~2 | 2026-10-21 | Next.js production build intermittently failed during page-data collection with `Invariant: no direct app page entry found for /_not-found` after the breadcrumb implementation | Build passed from an isolated frontend copy while the local dev server remained active; shared `.next` state may explain the earlier failure, but cause is not proven. Recheck from a clean isolated build if it recurs |
+| D~3 | 2026-10-22 | Frontend baseline could not start: both `npm ci` attempts failed fetching packages with `ENOTFOUND` for `registry.npmjs.org`; the default npm cache also rejected log writes | Backend `./gradlew build` passes. `npm ci` removed the prior ignored `frontend/node_modules`; T1 is paused until the npm registry/network is available and dependencies can be restored |
 
 ## 10. Changes
 
@@ -148,3 +149,4 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | 2026-10-22 | Removed wallet idempotency table, key/replay API, and deduplication requirements per C~16; retained atomic wallet ledger/audit behavior and specified refresh instead of automatic retry | W-HOST-API | `2026-10-22` |
 | 2026-10-22 | Recorded operator approval of the amended W-HOST-API spec and drafted its ten-task implementation plan; plan review and Gate 2 approval remain pending | W-HOST-API | `2026-10-22` |
 | 2026-10-22 | Recorded owner approval of the reviewed 10-task, six-wave W-HOST-API plan; corrected frontend test commands to match the `vitest run` package script | W-HOST-API | `2026-10-22` |
+| 2026-10-22 | Verified backend baseline build; paused before T1 because frontend dependencies could not be restored with npm registry DNS failures (`ENOTFOUND`) | W-HOST-API | D~3 |
