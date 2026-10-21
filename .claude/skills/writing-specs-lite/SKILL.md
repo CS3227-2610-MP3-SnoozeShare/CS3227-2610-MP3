@@ -134,7 +134,7 @@ Decide from the change, not the feature name. Record the tier and why in the ind
 
 ## Perspectives (review pass)
 
-A spec written from one point of view hides that point of view's blind spots. Before asking for approval, review the drafted files from each lens below. Dispatch one fresh `lite-reviewer` subagent per lens (`.claude/agents/lite-reviewer.md`; tools are Read, Grep, Glob only, so it cannot edit). Give each the index path, the lens and the risk tier; run them in parallel. Each reviews **logic first, then seams and integration with the wider system**, then its lens. Do not review your own spec inline instead; if the agent cannot be dispatched, tell the operator and stop rather than self-reviewing. Skip the Attacker lens only for Low tier.
+A spec written from one point of view hides that point of view's blind spots. Before asking for approval, review the drafted files from the lenses the tier calls for (see Scale by tier). Dispatch one fresh `lite-reviewer` subagent per lens (`.claude/agents/lite-reviewer.md`; tools are Read, Grep, Glob only, so it cannot edit). Give each the index path, the lens and the risk tier; run them in parallel. Each reviews **logic first, then seams and integration with the wider system**, then its lens. Do not review your own spec inline instead; if the agent cannot be dispatched, tell the operator and stop rather than self-reviewing.
 
 | Lens | Asks |
 |---|---|
@@ -144,7 +144,9 @@ A spec written from one point of view hides that point of view's blind spots. Be
 | **Maintainer / future reader** | Does it respect Architecture and Conventions? Does it quietly reverse a Known Gap or decision? What will surprise someone in six months? |
 | **User / operator** | Does it solve the stated problem? Is anything in scope the operator did not ask for? |
 
-**Scale by tier.** Low: Implementer + Tester. Medium: add Maintainer + User. High: all five, and the Attacker lens must produce a written threat list (kept in `api.md` security rows or `edge-cases.md`).
+**Scale by tier.** Low and Medium: Implementer + Tester. High: Implementer + Tester + Maintainer. The User lens is dispatched only when the operator asks for it. The W-INFRA trial showed four parallel lenses overlap heavily, hence the caps.
+
+**Add the Attacker lens dynamically, at any tier, when the feature needs extra protection.** Add it when the spec touches any of: authentication or session handling; roles, permissions or ownership checks; tenancy or one user reading another's data; money, ledger or escrow; personal or sensitive data; secrets, tokens or API keys; untrusted input crossing a boundary (public endpoints, file uploads, user text sent to an LLM, webhooks); or anything that is hard to undo if abused. The spec author decides while drafting and states it in the index's review line ("Lenses: Implementer, Tester, Maintainer, Attacker (reason)"); any other reviewer who finds such a surface recommends adding it, and the author dispatches it in the next round. When the Attacker lens runs it writes the threat list (actor, abuse, mitigation present or missing), kept in `api.md` security rows or `edge-cases.md`, and every row needs a test. When it does not run, the spec's Security line says nothing in the list above applies.
 
 **Reviewer prompt:** "Review the spec at `<index path>` and its folder. Lens: <lens>. Risk tier: <tier>." The output format and review order live in the agent definition; merge the reports and deduplicate before triage.
 
