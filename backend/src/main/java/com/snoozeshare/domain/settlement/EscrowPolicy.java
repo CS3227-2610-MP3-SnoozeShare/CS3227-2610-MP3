@@ -1,17 +1,15 @@
 package com.snoozeshare.domain.settlement;
 
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-import com.snoozeshare.domain.enums.WalletTransactionType;
 import com.snoozeshare.domain.model.WalletTransaction;
 
 public final class EscrowPolicy {
 
-    private static final Set<WalletTransactionType> RELEASING = EnumSet.of(
-            WalletTransactionType.ESCROW_REFUND, WalletTransactionType.BOOKING_PAYOUT,
-            WalletTransactionType.TICKET_REMEDY, WalletTransactionType.AGENT_OVERRIDE);
+    private static final Set<String> RELEASING = Set.of(
+            "ESCROW_REFUND", "BOOKING_PAYOUT",
+            "TICKET_REMEDY", "AGENT_OVERRIDE");
 
     private EscrowPolicy() {
     }
@@ -22,10 +20,10 @@ public final class EscrowPolicy {
     public static boolean isHeld(List<WalletTransaction> bookingTransactions) {
         boolean held = false;
         for (WalletTransaction transaction : bookingTransactions) {
-            if (RELEASING.contains(transaction.type())) {
+            if (RELEASING.contains(transaction.actionType())) {
                 return false;
             }
-            if (transaction.type() == WalletTransactionType.ESCROW_HOLD) {
+            if ("ESCROW_HOLD".equals(transaction.actionType())) {
                 held = true;
             }
         }
