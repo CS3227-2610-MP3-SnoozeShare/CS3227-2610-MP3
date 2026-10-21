@@ -7,6 +7,7 @@
 - **Reviewed by lenses:** Implementer, Tester, Attacker (two rounds; findings resolved)
 - **Amendment (2026-10-21):** Owner-directed visual parity corrections for full-width Host pages, complete calendar, form presentation, and artifact page details; see the W-HOST branch state.
 - **Amendment (2026-10-21):** Owner-directed Listings refinement: align the create action with the heading, remove status pills, and use five centered width-stable card groups with outlined navigation actions; see the W-HOST branch state.
+- **Amendment (2026-10-21):** Owner-directed card follow-up: keep the availability label and switch inline (switch on the right) and tighten the five-group layout into a compact, right-aligned desktop block; see C~4 in the W-HOST branch state.
 
 ## 1. Problem
 
