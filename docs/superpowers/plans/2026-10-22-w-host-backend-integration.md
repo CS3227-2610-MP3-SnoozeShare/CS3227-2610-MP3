@@ -18,7 +18,7 @@
 
 | Task | Depends on | Can run concurrently with | Wave | Status |
 |---|---|---|---|---|
-| T1 Add Host identity resolver and stable error boundary | - | - | 1 | Not started |
+| T1 Add Host identity resolver and stable error boundary | - | - | 1 | Done |
 | T2 Add listing API and detail projection | T1 | T3 | 2 | Not started |
 | T3 Make calendar mutations atomic and expose calendar API | T1 | T2 | 2 | Not started |
 | T4 Serialize Host booking decisions | T1 | T5,T6 | 2 | Not started |
@@ -58,7 +58,7 @@
 
 ## Verification gates
 
-- Backend task tests: from `backend/`, run `./gradlew test --tests '<named test class>'`; run `./gradlew checkstyle` after Java changes.
+- Backend task tests: from `backend/`, run `./gradlew test --tests '<named test class>'`; run `./gradlew checkstyleMain checkstyleTest` after Java changes.
 - Frontend task tests: from `frontend/`, run `npm test -- <test-file>`; also run `npm run lint` after TS/TSX changes.
 - Before finishing: `cd backend && ./gradlew build`, then `cd frontend && npm test && npm run lint && npm run build` (with the configured `NEXT_PUBLIC_API_BASE_URL`); every F/N acceptance criterion has a passing test or recorded manual check.
 
@@ -81,11 +81,11 @@
 
 **Checklist**
 
-- [ ] 1. Write failing identity/error tests for E1, E2, E15, and E22; run the named backend test classes and confirm they fail for missing resolver/error mapping.
-- [ ] 2. Implement typed error cases and resolve the Firebase UID against both auth and domain repositories; never accept a browser-supplied host UUID.
-- [ ] 3. Run the same tests; assert missing auth profile remains 404 `PROFILE_NOT_REGISTERED`, inconsistent domain profile is 409 `PROFILE_INCONSISTENT`, and role failures remain 403.
-- [ ] 4. Run `cd backend && ./gradlew checkstyle` and `cd backend && ./gradlew build`.
-- [ ] 5. Update branch-state Progress and Changes; commit `feat: add Host identity and API error boundary`.
+- [x] 1. Write failing identity/error tests for E1, E2, E15, and E22; run the named backend test classes and confirm they fail for missing resolver/error mapping.
+- [x] 2. Implement typed error cases and resolve the Firebase UID against both auth and domain repositories; never accept a browser-supplied host UUID.
+- [x] 3. Run the same tests; assert missing auth profile remains 404 `PROFILE_NOT_REGISTERED`, inconsistent domain profile is 409 `PROFILE_INCONSISTENT`, and role failures remain 403.
+- [x] 4. Run `cd backend && ./gradlew checkstyleMain checkstyleTest` and `cd backend && ./gradlew build`.
+- [x] 5. Update branch-state Progress and Changes; commit `feat: add Host identity and API error boundary`.
 
 ### T2: Add listing API and detail projection
 
@@ -108,7 +108,7 @@
 - [ ] 1. Write failing repository/controller tests for E3-E5 and E17; verify another Host cannot read or mutate a listing and the repository returns no more than `size + 1` rows.
 - [ ] 2. Add page query, service projection, composite detail response, and controller routes from `api.md`; retain Bean Validation and reject unknown JSON fields.
 - [ ] 3. Run the named tests; verify deterministic `createdAt DESC, id ASC`, exact 404 `NOT_FOUND`, and no entity serialization.
-- [ ] 4. Run backend Checkstyle and build.
+- [ ] 4. Run backend Checkstyle (`./gradlew checkstyleMain checkstyleTest`) and build.
 - [ ] 5. Update branch state; commit `feat: add Host listing API`.
 
 ### T3: Make calendar mutations atomic and expose calendar API
@@ -130,7 +130,7 @@
 - [ ] 1. Write failing tests for E6 and E18; cover malformed/past/reversed/overlapping ranges and two concurrent overlapping blocks.
 - [ ] 2. Add the month DTO/controller and transactional mutation retry; convert inclusive API end dates to the existing half-open service representation exactly once.
 - [ ] 3. Run tests; assert one overlapping block at most, expected 422 after retry, 409 after a second serialization failure, and audit only for committed writes.
-- [ ] 4. Run backend Checkstyle and build.
+- [ ] 4. Run backend Checkstyle (`./gradlew checkstyleMain checkstyleTest`) and build.
 - [ ] 5. Update branch state; commit `feat: expose atomic Host calendar API`.
 
 ### T4: Serialize Host booking decisions
@@ -152,7 +152,7 @@
 - [ ] 1. Write failing request/query and concurrency tests for E3, E7, E17, and E19.
 - [ ] 2. Add Host-page repository methods and row locking; keep state-machine, escrow, ledger, audit, and event work in the existing service transaction.
 - [ ] 3. Run the tests; verify one decision changes state and writes ledger/audit/event once, while the concurrent loser receives 409 `STATE_CONFLICT`.
-- [ ] 4. Run backend Checkstyle and build.
+- [ ] 4. Run backend Checkstyle (`./gradlew checkstyleMain checkstyleTest`) and build.
 - [ ] 5. Update branch state; commit `feat: serialize Host booking decisions`.
 
 ### T5: Add distinct Host conversation APIs
@@ -175,7 +175,7 @@
 - [ ] 1. Write failing tests for E3, E8, E16, E17, and E20 for each message channel.
 - [ ] 2. Implement distinct routes and scoped page queries; keep conversation content out of logs and ensure event listeners run only after transaction commit.
 - [ ] 3. Run tests; verify cross-tenant 404, resolved-thread 409, authorized read/post, bounded newest-first history, and no event on rollback.
-- [ ] 4. Run backend Checkstyle and build.
+- [ ] 4. Run backend Checkstyle (`./gradlew checkstyleMain checkstyleTest`) and build.
 - [ ] 5. Update branch state; commit `feat: add Host booking and ticket messaging APIs`.
 
 ### T6: Add Host wallet API
@@ -198,7 +198,7 @@
 - [ ] 1. Write failing wallet tests for E9, E10, E12, and E17; prove failed mutations do not change balance or ledger and the statement query is database-bounded.
 - [ ] 2. Implement routes and response DTOs with no schema migration, request key, payload hash, or replay response; use existing wallet row locking and ledger transaction.
 - [ ] 3. Run tests; verify every received mutation is a separate operation, concurrent balance changes serialize, invalid/insufficient requests roll back, and no wallet payload is logged.
-- [ ] 4. Run backend Checkstyle and build.
+- [ ] 4. Run backend Checkstyle (`./gradlew checkstyleMain checkstyleTest`) and build.
 - [ ] 5. Update branch state; commit `feat: expose Host wallet API`.
 
 ### T7: Add authenticated frontend Host API adapter

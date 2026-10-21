@@ -32,23 +32,23 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| 2026-10-22 backend phase | 2026-10-22 | GPT-5 | W-HOST-API | Blocked — needs human | Backend baseline passes; frontend `npm ci` fails because registry DNS is unavailable (`ENOTFOUND`); `node_modules` is absent after install attempts | Restore frontend dependencies when npm registry/network is available, rerun frontend baseline, then start T1 step 1 | 2026-10-22 |
+| 2026-10-22 backend phase | 2026-10-22 | GPT-5 | W-HOST-API | Building | T1 complete: Host identity resolver, safe error boundary, and auth/profile-drift tests verified | T2 step 1: write listing pagination/controller contract tests and bounded-query test | 2026-10-22 |
 
 **Remaining**
 
 - [ ] Owner review and approval remain for the completed fixture-backed UI phase.
-- [ ] Restore frontend dependencies and run its baseline (`npm ci`, `npm test`, `npm run lint`, `npm run build`); then begin T1.
+- [ ] T2 step 1: write and run listing pagination/controller tests and a bounded repository-query test.
 
 ## 3. Workstreams
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
 | W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Listings, requests, and wallet scroll within viewport; 143 tests, lint and build pass | guide out of date: W-HOST Host UI pages and Fall Light details |
-| W-HOST-API | Replace Host fixtures with authenticated backend integration | Blocked — needs human | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | Backend baseline passes; frontend baseline blocked by npm registry DNS (`ENOTFOUND`); T1 has not started | — |
+| W-HOST-API | Replace Host fixtures with authenticated backend integration | Building | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T1/10 done: identity and error boundary; T2/10 next: listing API | — |
 
 ## 4. Architecture
 
-**Now:** W-DOMAIN's JPA model, repositories, and services are merged; the completed Host UI remains fixture-backed. W-HOST-API adds the authenticated `/api/host/**` boundary over those services without changing the visual contract.
+**Now:** W-DOMAIN's JPA model, repositories, and services are merged; the Host UI remains fixture-backed. `HostIdentityResolver` cross-checks the verified Firebase UID and active HOST auth/domain profiles. `HostApiExceptionHandler` provides safe typed error envelopes for API controllers; `/api/host/**` controllers are still being added.
 
 ## 5. Conventions
 
@@ -56,7 +56,7 @@ Host route content uses a full-width page frame; input value text is normal-weig
 
 ## 6. Known Gaps
 
-W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJECT_STATE.md` § Known Gaps. W-HOST-API T1 is waiting on restored frontend dependencies and a green frontend baseline.
+W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJECT_STATE.md` § Known Gaps. W-HOST-API T1 is in progress after green backend/frontend baselines.
 
 ## 7. Needs a Human
 
@@ -91,7 +91,8 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 |---|---|---|---|
 | D~1 | 2026-10-21 | Initial T8 comparison was blocked by missing Host authentication; operator subsequently logged in and enabled a live route comparison | Resolved. Authenticated artifact comparison completed; all eight Host content routes were checked at 1680×945, 1280×800, and 768×1024 with no horizontal overflow |
 | D~2 | 2026-10-21 | Next.js production build intermittently failed during page-data collection with `Invariant: no direct app page entry found for /_not-found` after the breadcrumb implementation | Build passed from an isolated frontend copy while the local dev server remained active; shared `.next` state may explain the earlier failure, but cause is not proven. Recheck from a clean isolated build if it recurs |
-| D~3 | 2026-10-22 | Frontend baseline could not start: both `npm ci` attempts failed fetching packages with `ENOTFOUND` for `registry.npmjs.org`; the default npm cache also rejected log writes | Backend `./gradlew build` passes. `npm ci` removed the prior ignored `frontend/node_modules`; T1 is paused until the npm registry/network is available and dependencies can be restored |
+| D~3 | 2026-10-22 | Initial frontend dependency restore failed in the restricted environment: `ENOTFOUND` for `registry.npmjs.org`; the default npm cache also rejected log writes | Resolved by restoring lockfile-pinned dependencies with approved network access and a `/private/tmp` npm cache. Baselines pass: backend build; frontend 143 tests, lint, and production build using local placeholder public config |
+| D~4 | 2026-10-22 | The plan's `./gradlew checkstyle` shorthand is ambiguous because Gradle exposes `checkstyleMain` and `checkstyleTest`; the first invocation stopped before checks | Resolved: plan invokes both tasks explicitly; T1 Checkstyle and the full backend build pass |
 
 ## 10. Changes
 
@@ -149,4 +150,6 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | 2026-10-22 | Removed wallet idempotency table, key/replay API, and deduplication requirements per C~16; retained atomic wallet ledger/audit behavior and specified refresh instead of automatic retry | W-HOST-API | `2026-10-22` |
 | 2026-10-22 | Recorded operator approval of the amended W-HOST-API spec and drafted its ten-task implementation plan; plan review and Gate 2 approval remain pending | W-HOST-API | `2026-10-22` |
 | 2026-10-22 | Recorded owner approval of the reviewed 10-task, six-wave W-HOST-API plan; corrected frontend test commands to match the `vitest run` package script | W-HOST-API | `2026-10-22` |
-| 2026-10-22 | Verified backend baseline build; paused before T1 because frontend dependencies could not be restored with npm registry DNS failures (`ENOTFOUND`) | W-HOST-API | D~3 |
+| 2026-10-22 | Restored frontend dependencies after initial registry DNS failures; backend build and frontend 143 tests, lint, and production build pass; started T1 | W-HOST-API | D~3 |
+| 2026-10-22 | Corrected backend Checkstyle command to `checkstyleMain checkstyleTest` after Gradle reported `checkstyle` ambiguous; T1 checks rerun pending | W-HOST-API | D~4 |
+| 2026-10-22 | Added verified Host identity cross-checking, controller-scoped safe error responses, and security/profile-drift tests; focused tests, Checkstyle, and full backend build pass | W-HOST-API | T1 |
