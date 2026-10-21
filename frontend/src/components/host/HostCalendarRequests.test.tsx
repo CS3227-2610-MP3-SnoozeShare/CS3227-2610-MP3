@@ -13,7 +13,7 @@ describe('Host calendar and requests', () => {
     expect(resolveCalendarState({ date: 'x', month: 'other', booked: false, blocked: false })).toBe('other');
   });
 
-  it('renders calendar legend, blocked dates, request tables, and local decision modal', async () => {
+  it('renders calendar legend, blocked dates, request tables, and contextual approval details', async () => {
     const adapter = createHostFixtureAdapter();
     render(<><HostCalendarPanel calendar={adapter.getCalendar('lakeside-cabin').data!} /><HostRequestsTable requests={adapter.getRequests().data!} /></>);
     expect(screen.getByText('Available')).toBeInTheDocument();
@@ -21,7 +21,18 @@ describe('Host calendar and requests', () => {
     expect(screen.getByText('Maintenance')).toBeInTheDocument();
     expect(screen.getByText('Jane G.')).toBeInTheDocument();
     fireEvent.click(screen.getAllByRole('button', { name: 'Approve' })[0]);
-    await waitFor(() => expect(screen.getByRole('dialog')).toHaveTextContent('presentation-only'));
+    await waitFor(() => expect(screen.getByRole('dialog')).toHaveTextContent('The booking moves to CONFIRMED'));
+    const dialog = screen.getByRole('dialog');
+    const summary = within(dialog).getByRole('group', { name: 'Booking summary' });
+    const explanation = within(dialog).getByText('The booking moves to CONFIRMED and the guest is notified. Funds stay held in escrow until check-in.');
+    expect(dialog).toHaveClass('max-w-[31rem]');
+    expect(within(dialog).getByRole('heading', { name: 'Approve booking request?' })).toHaveClass('text-base');
+    expect(summary).toHaveClass('bg-[var(--success)]', 'text-white', 'p-4');
+    expect(summary).toHaveTextContent('Jane G. · Oct 3–6 (3 nights)');
+    expect(summary).toHaveTextContent('$360.00 earning');
+    expect(summary.compareDocumentPosition(explanation) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(explanation).toHaveClass('bg-[var(--surface-inset)]');
+    expect(within(dialog).getByRole('button', { name: 'Confirm approve' })).toHaveClass('bg-[var(--success)]', 'text-sm');
   });
 
   it('shows a single required range field and removes a current blocked-date entry locally', () => {
@@ -137,6 +148,38 @@ describe('Host calendar and requests', () => {
     expect(within(pastTable).getAllByText('CONFIRMED')).toHaveLength(2);
     expect(within(pastTable).getByText('REJECTED')).toBeInTheDocument();
     expect(within(pastTable).queryByText('NET EARNING')).not.toBeInTheDocument();
+    expect(within(pastTable).getAllByText('CONFIRMED')[0]).toHaveClass('ss-pill', 'ss-status-success');
+    expect(within(pastTable).getByText('$630.00')).toHaveClass('font-semibold');
+  });
+
+  it('uses artifact-style card tables, emphasis, and approve/reject buttons', () => {
+    const requests = createHostFixtureAdapter().getRequests().data!;
+    render(<HostRequestsTable requests={requests} />);
+    const pendingTable = screen.getAllByRole('table')[0];
+    const guestCell = within(pendingTable).getByText('Jane G.');
+    const earningCell = within(pendingTable).getByText('$349.20');
+
+    expect(pendingTable.parentElement?.parentElement).toHaveClass('rounded-xl', 'border', 'bg-white');
+    expect(pendingTable.querySelector('thead')).toHaveClass('bg-[var(--surface-inset)]');
+    expect(guestCell).toHaveClass('font-semibold');
+    expect(earningCell).toHaveClass('font-semibold', 'text-primary');
+    expect(within(pendingTable).getAllByRole('button', { name: 'Approve' })[0]).toHaveClass('bg-[var(--success)]');
+    expect(within(pendingTable).getAllByRole('button', { name: 'Reject' })[0]).toHaveClass('border', 'border-destructive');
+  });
+
+  it('shows contextual rejection details and an optional message field', () => {
+    render(<HostRequestsTable requests={createHostFixtureAdapter().getRequests().data!} />);
+    fireEvent.click(screen.getAllByRole('button', { name: 'Reject' })[0]);
+
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toHaveTextContent('Jane G. · Oct 3–6 (3 nights)');
+    expect(dialog).toHaveTextContent('$360.00 to be refunded');
+    expect(dialog).toHaveTextContent('no fee is charged for a host rejection');
+    const summary = within(dialog).getByRole('group', { name: 'Booking summary' });
+    expect(summary).toHaveClass('bg-destructive', 'text-white', 'p-4');
+    expect(within(dialog).getByLabelText('Message to guest (optional)')).toHaveClass('min-h-[52px]');
+    expect(within(dialog).getByLabelText('Message to guest (optional)')).toHaveAttribute('placeholder', 'e.g. dates unavailable due to maintenance');
+    expect(within(dialog).getByRole('button', { name: 'Confirm reject' })).toHaveClass('bg-destructive', 'text-sm');
   });
 
   it('navigates between full month grids locally', () => {

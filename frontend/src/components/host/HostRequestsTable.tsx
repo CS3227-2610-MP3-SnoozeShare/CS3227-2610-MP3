@@ -5,8 +5,71 @@ import type { BookingRequest, RequestData } from './hostTypes';
 import { Modal } from '@/components/ui/modal';
 import { Table, Tbody, Td, Th, Thead, Tr } from '@/components/ui/table';
 
+type Decision = { request: BookingRequest; action: 'Approve' | 'Reject' } | null;
+
+function money(amount: number) {
+  return `$${amount.toFixed(2)}`;
+}
+
 export function HostRequestsTable({ requests }: { requests: RequestData }) {
-  const [decision, setDecision] = useState<{ request: BookingRequest; action: 'Approve' | 'Reject' } | null>(null);
-  const table = (rows: BookingRequest[], pending = false) => <Table><Thead><Tr><Th>GUEST</Th><Th>LISTING</Th><Th>DATES</Th><Th>NIGHTS</Th>{pending ? <><Th>GROSS</Th><Th>NET EARNING</Th><Th>GUEST RATING</Th><Th>ACTION</Th></> : <><Th>TOTAL</Th><Th>STATUS</Th></>}</Tr></Thead><Tbody>{rows.map((request) => <Tr key={request.id}><Td>{request.guest}</Td><Td>{request.listing}</Td><Td>{request.dates}</Td><Td>{request.nights}</Td><Td>${request.gross.toFixed(2)}</Td>{pending ? <><Td>{request.net == null ? '—' : `$${request.net.toFixed(2)}`}</Td><Td>{request.rating == null ? 'No ratings yet' : `${request.rating.toFixed(1)} ★`}</Td><Td><div className="flex gap-2"><button className="text-primary" onClick={() => setDecision({ request, action: 'Approve' })} type="button">Approve</button><button className="text-destructive" onClick={() => setDecision({ request, action: 'Reject' })} type="button">Reject</button></div></Td></> : <Td className={request.status === 'confirmed' ? 'text-[var(--success)]' : 'text-destructive'}>{request.status.toUpperCase()}</Td>}</Tr>)}</Tbody></Table>;
-  return <div className="space-y-6"><section><div className="mb-2 flex items-center justify-between"><h2 className="text-lg font-semibold">Pending requests</h2><span className="ss-pill ss-status-pending">{requests.pending.length} pending</span></div>{requests.pending.length ? table(requests.pending, true) : <div className="ss-card p-6 text-center text-[var(--text-subtle)]">No pending requests</div>}<p className="mt-2 text-xs text-[var(--text-subtle)]">Net earning = gross − 3% platform fee.</p></section><section><h2 className="mb-2 text-lg font-semibold">Past requests</h2>{requests.past.length ? table(requests.past) : <div className="ss-card p-6 text-center text-[var(--text-subtle)]">No past requests</div>}</section><Modal open={Boolean(decision)} title={`${decision?.action ?? ''} request?`} description="This is a presentation-only Host control. No booking decision will be saved." onClose={() => setDecision(null)} onConfirm={() => setDecision(null)} confirmLabel={decision?.action ?? 'Confirm'} /></div>;
+  const [decision, setDecision] = useState<Decision>(null);
+  const table = (rows: BookingRequest[], pending = false) => (
+    <div className="overflow-hidden rounded-xl border border-border bg-white">
+      <Table>
+        <Thead className="bg-[var(--surface-inset)]">
+          <Tr><Th>GUEST</Th><Th>LISTING</Th><Th>DATES</Th><Th>NIGHTS</Th>{pending ? <><Th>GROSS</Th><Th>NET EARNING</Th><Th>GUEST RATING</Th><Th>ACTION</Th></> : <><Th>TOTAL</Th><Th>STATUS</Th></>}</Tr>
+        </Thead>
+        <Tbody>
+          {rows.map((request) => (
+            <Tr key={request.id}>
+              <Td className="font-semibold">{request.guest}</Td><Td>{request.listing}</Td><Td>{request.dates}</Td><Td>{request.nights}</Td>
+              <Td className={!pending ? 'font-semibold' : undefined}>{money(request.gross)}</Td>
+              {pending ? <>
+                <Td className="font-semibold text-primary">{request.net == null ? '—' : money(request.net)}</Td>
+                <Td>{request.rating == null ? 'No ratings yet' : `${request.rating.toFixed(1)} ★`}</Td>
+                <Td><div className="flex gap-2">
+                  <button className="cursor-pointer rounded-lg bg-[var(--success)] px-3 py-1.5 text-sm font-semibold text-white hover:opacity-90" onClick={() => setDecision({ request, action: 'Approve' })} type="button">Approve</button>
+                  <button className="cursor-pointer rounded-lg border border-destructive px-3 py-1.5 text-sm font-semibold text-destructive hover:bg-destructive/5" onClick={() => setDecision({ request, action: 'Reject' })} type="button">Reject</button>
+                </div></Td>
+              </> : <Td><span className={`ss-pill ${request.status === 'confirmed' ? 'ss-status-success' : 'ss-status-danger'}`}>{request.status.toUpperCase()}</span></Td>}
+            </Tr>
+          ))}
+        </Tbody>
+      </Table>
+    </div>
+  );
+
+  const selected = decision?.request;
+  const isApproval = decision?.action === 'Approve';
+  const description = isApproval
+    ? 'The booking moves to CONFIRMED and the guest is notified. Funds stay held in escrow until check-in.'
+    : 'The guest will be notified and the held funds fully refunded (ESCROW_REFUND) — no fee is charged for a host rejection.';
+
+  return <div className="space-y-6">
+    <section aria-label="Pending requests">
+      {requests.pending.length ? table(requests.pending, true) : <div className="ss-card p-6 text-center text-[var(--text-subtle)]">No pending requests</div>}
+      <p className="mt-2 text-xs text-[var(--text-subtle)]">Net earning = gross − 3% platform fee. Guest rating is their average review score, or &quot;No ratings yet&quot;.</p>
+    </section>
+    <section>
+      <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-[var(--text-subtle)]">PAST REQUESTS</h2>
+      {requests.past.length ? table(requests.past) : <div className="ss-card p-6 text-center text-[var(--text-subtle)]">No past requests</div>}
+    </section>
+    <Modal
+      open={Boolean(decision)}
+      title={`${decision?.action ?? ''} booking request?`}
+      description={description}
+      onClose={() => setDecision(null)}
+      onConfirm={() => setDecision(null)}
+      confirmLabel={`Confirm ${decision?.action?.toLowerCase() ?? ''}`.trim()}
+      confirmTone={isApproval ? 'success' : 'danger'}
+      layout="decision"
+      summary={selected && <div aria-label="Booking summary" className={`mt-4 rounded-lg p-4 text-white ${isApproval ? 'bg-[var(--success)]' : 'bg-destructive'}`} role="group">
+        <p className="text-sm font-bold">{selected.listing}</p>
+        <p className="text-xs">{selected.guest} · {selected.dates} ({selected.nights} nights)</p>
+        <p className="mt-1 text-2xl font-bold">{money(selected.gross)} <span className="text-xs font-normal">{isApproval ? 'earning' : 'to be refunded'}</span></p>
+      </div>}
+    >
+      {decision?.action === 'Reject' && <label className="mt-4 block text-xs font-semibold" htmlFor="guest-message">Message to guest (optional)<textarea id="guest-message" className="mt-1 min-h-[52px] w-full rounded-md border border-border bg-[#fdf8f0] px-2 py-2 text-sm font-normal" placeholder="e.g. dates unavailable due to maintenance" rows={1} /></label>}
+    </Modal>
+  </div>;
 }

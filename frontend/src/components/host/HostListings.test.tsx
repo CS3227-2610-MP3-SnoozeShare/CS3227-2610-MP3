@@ -18,8 +18,9 @@ describe('Host listing components', () => {
     render(<HostFixtureProvider><HostListingsPage /></HostFixtureProvider>);
     const heading = screen.getByRole('heading', { name: 'My listings' });
     const createLink = screen.getByRole('link', { name: '+ New listing' });
-    expect(createLink.parentElement).toBe(heading.parentElement);
-    expect(heading.parentElement).toHaveClass('flex', 'items-center', 'justify-between');
+    const titleRow = heading.parentElement!.parentElement;
+    expect(createLink.parentElement).toBe(titleRow);
+    expect(titleRow).toHaveClass('flex', 'items-center', 'justify-between');
   });
 
   it('renders listing card metrics, fallback thumbnail, statuses, and links', () => {

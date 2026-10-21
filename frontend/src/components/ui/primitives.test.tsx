@@ -31,6 +31,24 @@ describe('Fall Light primitives', () => {
     expect(screen.getByRole('button', { name: 'Open dialog' })).toHaveFocus();
   });
 
+  it('closes only backdrop-origin clicks, not a resize drag that ends outside', () => {
+    const onClose = vi.fn();
+    render(<Modal open title="Confirm" description="Confirm this action?" onClose={onClose} onConfirm={() => {}}><textarea aria-label="Resizable message" /></Modal>);
+    const dialog = screen.getByRole('dialog');
+    const backdrop = dialog.parentElement!;
+    const textarea = screen.getByLabelText('Resizable message');
+
+    fireEvent.pointerDown(textarea);
+    fireEvent.pointerUp(backdrop);
+    fireEvent.click(backdrop);
+    expect(onClose).not.toHaveBeenCalled();
+
+    fireEvent.pointerDown(backdrop);
+    fireEvent.pointerUp(backdrop);
+    fireEvent.click(backdrop);
+    expect(onClose).toHaveBeenCalledOnce();
+  });
+
   it('renders shared card, field, select, table, and button semantics', () => {
     render(
       <Card>

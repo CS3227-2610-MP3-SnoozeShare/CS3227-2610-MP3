@@ -9,7 +9,7 @@ in after the branch merges.
 - **Owner:** project owner
 - **Status:** In review
 - **Approved:** —
-- **Last updated:** 2026-10-21 by GPT-5 — current-page breadcrumb emphasis verified; awaiting owner review
+- **Last updated:** 2026-10-21 by GPT-5 — pending pill grouped beside booking requests title
 
 ---
 
@@ -42,7 +42,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Shared breadcrumbs emphasize the current page and expose it with aria-current; 125 frontend tests and lint pass | guide out of date: W-HOST Host UI pages and Fall Light details |
+| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Pending pill sits beside title; action title rows preserved; 128 frontend tests and lint pass | guide out of date: W-HOST Host UI pages and Fall Light details |
 
 ## 4. Architecture
 
@@ -115,3 +115,7 @@ None.
 | 2026-10-21 | Fixed date-picker weekday drift by anchoring reopened grids to the selected month’s first day; Sep 16 stays Wednesday after reopening. 119 tests, lint, and production build pass | W-HOST | Operator follow-up |
 | 2026-10-21 | Booking calendar now always renders six weeks; date picker stages edits for Apply, Clear leaves it open, outside click dismisses without applying, and picker/blocked-date ranges share year-aware formatting. 124 tests, lint, production build pass | W-HOST | Operator follow-up |
 | 2026-10-21 | Bolded the current page in shared Host breadcrumbs, marked it with aria-current="page", and added a regression test; 125 frontend tests and lint pass | W-HOST | Operator follow-up |
+| 2026-10-21 | Matched booking requests hierarchy, card tables, emphasis, statuses, action buttons, and contextual approval/rejection dialogs; preserved header and full-width layout; 127 frontend tests, lint, and production build pass | W-HOST | Operator follow-up |
+| 2026-10-21 | Matched approval/rejection dialogs to artifact sizing, summary colors, copy order, input and action styling; outside clicks now dismiss modals without dismissing on inside clicks; 128 frontend tests, lint, and production build pass | W-HOST | Operator follow-up |
+| 2026-10-21 | Guarded backdrop dismissal by pointer origin so dragging the rejection textarea resize handle outside the modal no longer closes it; verified 128 tests, lint, production build | W-HOST | Operator follow-up |
+| 2026-10-21 | Grouped the booking-requests pending pill directly beside its title while preserving the New listing title/action row; 128 tests and lint pass | W-HOST | Operator follow-up |
