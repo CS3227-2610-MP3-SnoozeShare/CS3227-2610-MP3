@@ -9,7 +9,7 @@ in after the branch merges.
 - **Owner:** project owner
 - **Status:** In review
 - **Approved:** —
-- **Last updated:** 2026-10-21 by GPT-5 — T9 follow-up verified and documented; awaiting owner review
+- **Last updated:** 2026-10-21 by GPT-5 — listing form parity verified; committing and pushing; awaiting owner review
 
 ---
 
@@ -36,13 +36,13 @@ No change.
 
 **Remaining**
 
-- [ ] Owner review and approval. Only after approval can W-HOST be integrated. Keep domain-dependent contracts provisional until W-DOMAIN settles them.
+- [ ] Owner review and approval remain before integration. Keep domain-dependent contracts provisional until W-DOMAIN settles them.
 
 ## 3. Workstreams
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | T9 follow-up verified: compact desktop groups and inline availability control | guide out of date: W-HOST Host UI pages and Fall Light details |
+| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | T4 follow-up verified: artifact field/card layout across full-width forms | guide out of date: W-HOST Host UI pages and Fall Light details |
 
 ## 4. Architecture
 
@@ -68,6 +68,7 @@ None.
 | C~2 | 2026-10-21 | Host content pages use the full available width; edit values use normal weight and selected status uses title case; host messages do not show a New Ticket action | Project owner, after authenticated comparison, directed these UI corrections and explicitly rejected adding New Ticket to Host messaging | Operator conversation |
 | C~3 | 2026-10-21 | Listings page places its create action beside the title; cards omit the status pill and use five centered, width-stable right-side groups, with outlined calendar/edit actions | Project owner requested the final Listings refinements after reviewing the pushed W-HOST implementation | Operator conversation |
 | C~4 | 2026-10-21 | Within the Availability group, the switch sits to the right of its ACTIVE/INACTIVE label; reduce horizontal gaps among all five card groups while retaining centered content and stable widths | Project owner requested a follow-up after reviewing the first T9 layout | Operator conversation |
+| C~5 | 2026-10-21 | New/Edit listing forms retain full-width page use, with their four form cards arranged to fill the available width rather than constraining the form to the artifact's narrower artboard | Project owner clarified that the forms should add up to use the full width after the visual comparison surfaced the apparent width difference | Operator conversation |
 
 ## 9. Deviations
 
@@ -90,3 +91,4 @@ None.
 | 2026-10-21 | Corrected full-width Host framing, listing/detail/calendar/request parity, and edit-form typography; no Host New Ticket action; fixed inactive switch token and modal keyboard focus; all 97 frontend tests, lint, build, and three-viewport route checks pass | W-HOST | T8 |
 | 2026-10-21 | Aligned New listing with the page title; removed status pills; centered five fixed-width card groups and added outlined calendar/edit actions; all 99 frontend tests, lint, build, and desktop/tablet browser checks pass | W-HOST | T9 |
 | 2026-10-21 | Kept the availability switch to the right of its label and compacted the five desktop card groups; all 99 frontend tests, lint, production build, and desktop browser check pass | W-HOST | T9 follow-up |
+| 2026-10-21 | Matched New/Edit listing forms to artifact card order, paired fields, six amenity rows, section styling, breadcrumbs, currency/time display, and action order while retaining full-width cards; 104 tests, lint, build, and browser checks pass | W-HOST | T4 follow-up |
