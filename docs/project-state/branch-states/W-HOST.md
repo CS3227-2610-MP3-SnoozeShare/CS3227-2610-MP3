@@ -9,7 +9,7 @@ in after the branch merges.
 - **Owner:** project owner
 - **Status:** Draft
 - **Approved:** —
-- **Last updated:** 2026-10-21 by GPT-5 — completed W-HOST UI specification
+- **Last updated:** 2026-10-21 by GPT-5 — recorded W-HOST UI spec commit
 
 ---
 
@@ -72,4 +72,6 @@ No change.
 
 ## 10. Changes
 
-No implementation changes yet.
+| Date | What changed | Workstream | Ref |
+|---|---|---|---|
+| 2026-10-21 | Specified the exact Claude-artifact Fall Light Host UI, synthetic fixture contract, local-only presentation behavior, and visual verification criteria | W-HOST | `c608be1` |
