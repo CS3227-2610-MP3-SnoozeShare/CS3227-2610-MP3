@@ -24,7 +24,7 @@
 | T2 Add listing API and detail projection | T0,T1 | T3 | 2 | Done |
 | T3 Make calendar mutations atomic and expose calendar API | T0,T1 | T2 | 2 | Done |
 | T4 Serialize Host booking decisions | T0,T1 | T5,T6 | 2 | Done |
-| T5 Add distinct Host conversation APIs | T0,T1 | T4,T6 | 2 | In progress |
+| T5 Add distinct Host conversation APIs | T0,T1 | T4,T6 | 2 | Done |
 | T6 Add Host wallet API | T0,T1 | T4,T5 | 2 | Not started |
 | T7 Add authenticated frontend Host API adapter | T0,T1,T2,T3,T4,T5,T6 | - | 3 | Not started |
 | T8 Wire listing, calendar, and request screens | T2,T3,T4,T7 | - | 4 | Not started |
@@ -216,18 +216,20 @@
 |---|---|---|
 | Create | `backend/src/main/java/com/snoozeshare/api/controller/HostBookingMessagesController.java` | Host participant-scoped booking conversation summary/history/post/read routes. |
 | Create | `backend/src/main/java/com/snoozeshare/api/controller/HostTicketMessagesController.java` | Host-channel ticket summary/history/post/read routes; no ticket creation action. |
+| Modify | `backend/src/main/java/com/snoozeshare/repository/BookingRepository.java` and `backend/src/main/java/com/snoozeshare/repository/TicketRepository.java` | Add host-scoped, stable pageable parent queries for bounded conversation summaries. |
 | Modify | `backend/src/main/java/com/snoozeshare/repository/BookingMessageRepository.java` and `backend/src/main/java/com/snoozeshare/repository/MessageRepository.java` | Add participant/channel-scoped pageable history reads with stable newest-first order. |
+| Modify | `backend/src/main/java/com/snoozeshare/repository/JdbcBookingMessageReadRepository.java` and `backend/src/main/java/com/snoozeshare/repository/JdbcMessageReadRepository.java` | Compare unread message timestamps with the timestamp of the last-read message. |
 | Modify | `backend/src/main/java/com/snoozeshare/service/BookingConversationService.java`, `backend/src/main/java/com/snoozeshare/service/MessageService.java`, and corresponding `*Impl.java` files | Add bounded summary/history queries; ensure message events publish only after commit. |
 | Test | `backend/src/test/java/com/snoozeshare/api/host/HostBookingMessagesIntegrationTest.java` | Booking privacy, paging, post/read behavior, event-after-commit and rollback (E3,E16,E20). |
 | Test | `backend/src/test/java/com/snoozeshare/api/host/HostTicketMessagesIntegrationTest.java` | HOST channel, private/resolved thread behavior, no ticket creation. |
 
 **Checklist**
 
-- [ ] 1. Write failing tests for E3, E8, E16, E17, and E20 for each message channel.
-- [ ] 2. Implement distinct routes and scoped page queries; keep conversation content out of logs and ensure event listeners run only after transaction commit.
-- [ ] 3. Run tests; verify cross-tenant 404, resolved-thread 409, authorized read/post, bounded newest-first history, and no event on rollback.
-- [ ] 4. Run backend Checkstyle (`./gradlew checkstyleMain checkstyleTest`) and build.
-- [ ] 5. Update branch state; commit `feat: add Host booking and ticket messaging APIs`.
+- [x] 1. Write failing tests for E3, E16, and E17 in both channels; E8 for private/resolved tickets; and E20 rollback behavior for booking and ticket messages.
+- [x] 2. Implement distinct routes and scoped page queries; keep conversation content out of logs and ensure event listeners run only after transaction commit.
+- [x] 3. Run tests; verify cross-tenant 404, resolved-thread 409, authorized read/post, bounded newest-first history, and no booking or ticket event on rollback.
+- [x] 4. Run backend Checkstyle (`./gradlew checkstyleMain checkstyleTest`) and build.
+- [x] 5. Update branch state; commit `feat: add Host booking and ticket messaging APIs`.
 
 ### T6: Add Host wallet API
 

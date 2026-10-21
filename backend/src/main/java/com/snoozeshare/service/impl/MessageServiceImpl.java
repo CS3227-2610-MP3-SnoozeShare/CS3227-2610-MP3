@@ -10,6 +10,9 @@ import java.util.UUID;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.snoozeshare.domain.enums.Role;
 import com.snoozeshare.domain.enums.ThreadChannel;
@@ -24,6 +27,7 @@ import com.snoozeshare.infra.events.MessagePostedEvent;
 import com.snoozeshare.repository.BookingRepository;
 import com.snoozeshare.repository.JdbcMessageReadRepository;
 import com.snoozeshare.repository.MessageRepository;
+import com.snoozeshare.repository.OffsetLimitPageable;
 import com.snoozeshare.repository.PropertyRepository;
 import com.snoozeshare.repository.TicketRepository;
 import com.snoozeshare.repository.UserRepository;
@@ -73,6 +77,15 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<Message> thread(UUID ticketId, ThreadChannel channel, UUID viewerId,
+                                Role viewerRole, int page, int size) {
+        requireParty(ticket(ticketId), channel, viewerId, viewerRole);
+        return messages.findThreadPage(ticketId, channel, new OffsetLimitPageable(page, size));
+    }
+
+    @Override
+    @Transactional
     public Message post(UUID ticketId, ThreadChannel channel, UUID authorId, Role authorRole,
                         String body) {
         DomainValidation.requireText(body, "body");
@@ -84,8 +97,22 @@ public class MessageServiceImpl implements MessageService {
         Instant now = clock.instant();
         Message saved = messages.save(new Message(UUID.randomUUID(), ticketId, channel, authorId,
                 authorRole, body.trim(), now));
-        publisher.publishEvent(new MessagePostedEvent(saved.getId(), ticketId, now));
+        publishAfterCommit(new MessagePostedEvent(saved.getId(), ticketId, now));
         return saved;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ConversationSummary> conversationsFor(UUID userId, Role role,
+                                                       int page, int size) {
+        ThreadChannel channel = channelOf(role);
+        if (role != Role.HOST) {
+            throw new IllegalArgumentException("Host inbox requires a Host role");
+        }
+        return tickets.findConversationTicketsByHost(userId, channel,
+                new OffsetLimitPageable(page, size)).stream()
+                .map(ticket -> summarize(ticket, channel, userId).summary())
+                .toList();
     }
 
     @Override
@@ -116,11 +143,25 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
+    @Transactional
     public void markRead(UUID ticketId, ThreadChannel channel, UUID userId, Role role) {
         requireParty(ticket(ticketId), channel, userId, role);
         messages.findLast(ticketId, channel)
                 .ifPresent(last -> messageReads.markRead(ticketId, channel, userId,
                         last.getId()));
+    }
+
+    private void publishAfterCommit(Object event) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            publisher.publishEvent(event);
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                publisher.publishEvent(event);
+            }
+        });
     }
 
     private Ranked summarize(Ticket ticket, ThreadChannel channel, UUID userId) {

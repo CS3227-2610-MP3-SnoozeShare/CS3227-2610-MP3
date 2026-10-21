@@ -61,6 +61,17 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
     @Query("SELECT b FROM Booking b WHERE b.id = :bookingId")
     java.util.Optional<Booking> findByIdForUpdate(@Param("bookingId") UUID bookingId);
 
+    @Query("SELECT b FROM Booking b WHERE b.listingId IN "
+            + "(SELECT p.id FROM Property p WHERE p.hostId = :hostId) "
+            + "AND (b.status = com.snoozeshare.domain.enums.BookingStatus.CONFIRMED "
+            + "AND b.endDate >= :openCutoff OR EXISTS "
+            + "(SELECT m.id FROM BookingMessage m WHERE m.bookingId = b.id)) "
+            + "ORDER BY COALESCE((SELECT MAX(m.sentAt) FROM BookingMessage m "
+            + "WHERE m.bookingId = b.id), b.createdAt) DESC, b.id ASC")
+    List<Booking> findConversationBookingsByHost(@Param("hostId") UUID hostId,
+                                                  @Param("openCutoff") LocalDate openCutoff,
+                                                  Pageable pageable);
+
     @Query("SELECT b FROM Booking b WHERE b.status = "
             + "com.snoozeshare.domain.enums.BookingStatus.CONFIRMED "
             + "AND b.endDate <= :cutoff")
