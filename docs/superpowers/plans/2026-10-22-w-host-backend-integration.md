@@ -26,8 +26,8 @@
 | T4 Serialize Host booking decisions | T0,T1 | T5,T6 | 2 | Done |
 | T5 Add distinct Host conversation APIs | T0,T1 | T4,T6 | 2 | Done |
 | T6 Add Host wallet API | T0,T1 | T4,T5 | 2 | Done |
-| T7 Add authenticated frontend Host API adapter | T0,T1,T2,T3,T4,T5,T6 | - | 3 | In progress |
-| T8 Wire listing, calendar, and request screens | T2,T3,T4,T7 | - | 4 | Not started |
+| T7 Add authenticated frontend Host API adapter | T0,T1,T2,T3,T4,T5,T6 | - | 3 | Done |
+| T8 Wire listing, calendar, and request screens | T2,T3,T4,T7 | - | 4 | In progress |
 | T9 Wire messages and wallet screens | T5,T6,T7,T8 | - | 5 | Not started |
 | T10 Verify integration and close the phase | T9 | - | 6 | Not started |
 
@@ -265,8 +265,8 @@
 | Action | Path | What changes |
 |---|---|---|
 | Create | `frontend/src/lib/hostApi.ts` | Typed endpoint functions, page query builder, response parsing, mutation/error behavior; use `authenticatedFetch` and never accept host UUID input. |
-| Create | `frontend/src/components/host/HostApiProvider.tsx` | Async API-backed state and mutations with loading/error/empty/not-found and refresh operations; cache the wallet summary in shared provider state. |
-| Modify | `frontend/src/components/host/HostFixtureProvider.tsx` | Preserve fixture provider as the deterministic test adapter behind the same consumer interface. |
+| Create | `frontend/src/components/host/HostApiProvider.tsx` | Async API-backed resource states and mutations with loading/error/empty/not-found and refresh operations; cache the wallet summary in shared provider state. |
+| Keep | `frontend/src/components/host/HostFixtureProvider.tsx` | Retain the synchronous fixture adapter for deterministic visual tests while production routes adopt the async API contract. |
 | Modify | `frontend/src/components/host/hostTypes.ts` | Add API DTO/page types and map backend values into existing visual types. |
 | Modify | `frontend/src/app/host/layout.tsx` | Use API-backed provider for production Host routes while tests can continue mounting fixture provider. |
 | Modify | `frontend/src/components/host/HostRoleShell.tsx` | Read navbar wallet balance from the same in-memory provider query used by Wallet; do not request the statement here. |
@@ -275,11 +275,11 @@
 
 **Checklist**
 
-- [ ] 1. Write failing adapter/provider tests for E4, E11, E13, E17, and E23; assert token use, bounded paging, and no client-selected host identifier.
-- [ ] 2. Implement typed API calls and provider state; preserve fixture adapter test usage and stable user-safe error mapping. Keep wallet summary shared in provider memory so the navbar and Wallet page do not fetch balance twice.
-- [ ] 3. Add wallet mutation in-flight lock and ambiguous-failure refresh; do not automatically resend top-up/withdraw requests.
-- [ ] 4. Run focused frontend tests and `npm run lint`.
-- [ ] 5. Update branch state; commit `feat: add authenticated Host API adapter`.
+- [x] 1. Write failing adapter/provider tests for E4, E11, E13, E17, and E23; assert token use, bounded paging, and no client-selected host identifier.
+- [x] 2. Implement typed API calls and provider state; preserve fixture adapter test usage and stable user-safe error mapping. Keep wallet summary shared in provider memory so the navbar and Wallet page do not fetch balance twice.
+- [x] 3. Add wallet mutation in-flight lock and ambiguous-failure refresh; do not automatically resend top-up/withdraw requests.
+- [x] 4. Run focused frontend tests and `npm run lint`.
+- [x] 5. Update branch state; commit `feat: add authenticated Host API adapter`.
 
 ### T8: Wire listing, calendar, and request screens
 

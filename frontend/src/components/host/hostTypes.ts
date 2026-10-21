@@ -28,3 +28,77 @@ export type Conversation = {
 
 export type WalletSummary = { balance: number; escrowNote: string };
 export type StatementRow = { date: string; type: string; relatedTo: string; amount: number; balanceAfter: number };
+
+export type HostPage<T> = { items: T[]; page: number; size: number; hasMore: boolean };
+export type HostListingDto = {
+  id: string; hostId: string; status: 'ACTIVE' | 'INACTIVE'; title: string; description: string;
+  propertyType: string; streetAddress: string; city: string; region: string; postalCode: number;
+  maxGuests: number; bedrooms: number; bathrooms: number; baseNightlyRate: number;
+  checkInTime: string; checkOutTime: string; amenities: string[]; createdAt: string;
+};
+export type HostListingDetailDto = { listing: HostListingDto; metrics: { bookingCount: number; averageRating: number; reviews: { guestName: string; rating: number; comment: string }[]; occupancyPercentage: number; earnings: number } };
+export type CreateHostListingPayload = Omit<HostListingDto, 'id' | 'hostId' | 'createdAt'>;
+export type UpdateHostListingPayload = Omit<CreateHostListingPayload, 'propertyType'> & { propertyType?: string };
+export type HostCalendarDto = { year: number; month: number; days: { date: string; booked: boolean; blocked: boolean }[]; blocks: { id: string; reason: string; startDate: string; endDate: string }[] };
+export type HostBlockDto = { id: string; propertyId: string; startDate: string; endDate: string; source: string; bookingId: string | null; reason: string | null };
+export type HostBookingDto = { booking: Record<string, unknown>; guestDisplayName: string; listingTitle: string; nights: number; grossAmount: number; projectedNetAmount: number; guestAverageRating: number | null };
+export type HostMessageDto = { id: string; authorId: string; authorRole: string; body: string; sentAt: string };
+export type BookingConversationDto = { bookingId: string; listingTitle: string; startDate: string; endDate: string; counterpartName: string; lastMessage: HostMessageDto | null; unreadCount: number; open: boolean };
+export type TicketConversationDto = { ticketId: string; channel: 'HOST'; ticketLabel: string; ticketTitle: string; listingTitle: string; counterpartName: string; lastMessage: HostMessageDto | null; unreadCount: number; open: boolean };
+export type HostTransactionDto = { id: string; actionType: string; walletAdjustment: number; balanceAfter: number; reason: string; bookingId: string | null; ticketId: string | null; timestamp: string };
+export type HostWalletDto = { wallet: { id: string; userId: string; balance: number; currency: string; updatedAt: string }; statement: HostPage<HostTransactionDto> };
+export type HostWalletMutationDto = { mocked: true; wallet: HostWalletDto['wallet']; transaction: HostTransactionDto };
+
+/** Converts the backend PropertyResponse into the stable presentation model. */
+export function mapHostListing(dto: HostListingDto): HostListing {
+  return {
+    id: dto.id,
+    title: dto.title,
+    type: humanize(dto.propertyType),
+    city: dto.city,
+    region: dto.region,
+    rate: Number(dto.baseNightlyRate),
+    bookings: 0,
+    rating: 0,
+    status: dto.status === 'ACTIVE' ? 'active' : 'inactive',
+  };
+}
+
+export function mapHostListingDetail(dto: HostListingDetailDto): ListingDetail {
+  const listing = mapHostListing(dto.listing);
+  return {
+    ...listing,
+    description: dto.listing.description,
+    address: dto.listing.streetAddress,
+    postalCode: String(dto.listing.postalCode),
+    maxGuests: dto.listing.maxGuests,
+    bedrooms: dto.listing.bedrooms,
+    bathrooms: dto.listing.bathrooms,
+    checkIn: dto.listing.checkInTime,
+    checkOut: dto.listing.checkOutTime,
+    amenities: dto.listing.amenities.map(humanize),
+    reviewCount: dto.metrics.reviews.length,
+    occupancy30d: dto.metrics.occupancyPercentage,
+    earnings30d: Number(dto.metrics.earnings),
+    bookings: dto.metrics.bookingCount,
+    rating: dto.metrics.averageRating,
+    reviews: dto.metrics.reviews.map((review) => ({ author: review.guestName, rating: review.rating, text: review.comment })),
+  };
+}
+
+export function mapHostWallet(dto: HostWalletDto): { wallet: WalletSummary; statement: StatementRow[] } {
+  return {
+    wallet: { balance: Number(dto.wallet.balance), escrowNote: 'Pending booking funds are held in escrow until the stay is complete.' },
+    statement: dto.statement.items.map((transaction) => ({
+      date: new Date(transaction.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }),
+      type: transaction.actionType,
+      relatedTo: transaction.bookingId ? `Booking #${transaction.bookingId}` : transaction.ticketId ? `Ticket #${transaction.ticketId}` : '—',
+      amount: Number(transaction.walletAdjustment),
+      balanceAfter: Number(transaction.balanceAfter),
+    })),
+  };
+}
+
+function humanize(value: string) {
+  return value.toLowerCase().replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
