@@ -9,6 +9,10 @@ spring:
   datasource:
     hikari:
       connection-timeout: 5000
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
 server:
   port: ${PORT:8080}
 management:
