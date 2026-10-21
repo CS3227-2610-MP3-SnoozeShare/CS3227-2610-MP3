@@ -19,9 +19,9 @@
 
 | Task | Depends on | Can run concurrently with | Wave | Status |
 |---|---|---|---|---|
-| T0 Activate W-DOMAIN service beans deterministically | - | T1 | 1 | Not started |
+| T0 Activate W-DOMAIN service beans deterministically | - | T1 | 1 | Done |
 | T1 Add Host identity resolver and stable error boundary | - | T0 | 1 | Done |
-| T2 Add listing API and detail projection | T0,T1 | T3 | 2 | Not started |
+| T2 Add listing API and detail projection | T0,T1 | T3 | 2 | Done |
 | T3 Make calendar mutations atomic and expose calendar API | T0,T1 | T2 | 2 | Not started |
 | T4 Serialize Host booking decisions | T0,T1 | T5,T6 | 2 | Not started |
 | T5 Add distinct Host conversation APIs | T0,T1 | T4,T6 | 2 | Not started |
@@ -97,17 +97,18 @@
 | Modify | `backend/src/main/java/com/snoozeshare/service/impl/TransactionServiceImpl.java` | Replace repository-bean condition with the explicit property condition; preserve service behavior. |
 | Modify | `backend/src/main/java/com/snoozeshare/service/impl/UserServiceImpl.java` | Replace repository-bean condition with the explicit property condition; preserve service behavior. |
 | Modify | `backend/src/main/java/com/snoozeshare/service/impl/WalletServiceImpl.java` | Replace repository-bean condition with the explicit property condition; preserve service behavior. |
+| Test | `backend/src/test/java/com/snoozeshare/PersistenceBeanAssertions.java` | Share exact present/absent assertions for all 15 service contracts and three JDBC adapters. |
 | Test | `backend/src/test/java/com/snoozeshare/DomainServiceActivationTest.java` | Without overriding the `application.yml` default, assert all 15 named service contracts and three named JDBC adapters register (E24). |
 | Modify | `backend/src/test/java/com/snoozeshare/ServerPortDefaultTest.java` | Disable persistence beans in its JPA-excluded context and assert they are absent (E25). |
 | Modify | `backend/src/test/java/com/snoozeshare/ServerPortOverrideTest.java` | Disable persistence beans in its JPA-excluded context and assert they are absent (E25). |
 
 **Checklist**
 
-- [ ] 1. Add failing E24/E25 context assertions and run `./gradlew test --tests 'com.snoozeshare.DomainServiceActivationTest' --tests 'com.snoozeshare.ServerPortDefaultTest' --tests 'com.snoozeshare.ServerPortOverrideTest'`; verify database-backed service activation fails before the fix.
-- [ ] 2. Set `snoozeshare.persistence.enabled: true` in `application.yml`; replace `@ConditionalOnBean(PropertyRepository.class)` on all 15 service-contract implementations, `LedgerWriter`, and 3 JDBC adapters with `@ConditionalOnProperty(name = "snoozeshare.persistence.enabled", havingValue = "true", matchIfMissing = false)`.
-- [ ] 3. Set the property to `false` in the two database-free server tests; assert excluded service/adapters are absent there.
-- [ ] 4. Run the named context tests; verify default-on E24 service/adapters and explicit-off E25. T2 separately verifies Host controller startup with the activated `ListingService`.
-- [ ] 5. Run `./gradlew checkstyleMain checkstyleTest` and `./gradlew build` from `backend/`.
+- [x] 1. Add failing E24/E25 context assertions and run `./gradlew test --tests 'com.snoozeshare.DomainServiceActivationTest' --tests 'com.snoozeshare.ServerPortDefaultTest' --tests 'com.snoozeshare.ServerPortOverrideTest'`; verify database-backed service activation fails before the fix.
+- [x] 2. Set `snoozeshare.persistence.enabled: true` in `application.yml`; replace `@ConditionalOnBean(PropertyRepository.class)` on all 15 service-contract implementations, `LedgerWriter`, and 3 JDBC adapters with `@ConditionalOnProperty(name = "snoozeshare.persistence.enabled", havingValue = "true", matchIfMissing = false)`.
+- [x] 3. Set the property to `false` in the two database-free server tests; assert excluded service/adapters are absent there.
+- [x] 4. Run the named context tests; verify default-on E24 service/adapters and explicit-off E25. T2 separately verifies Host controller startup with the activated `ListingService`.
+- [x] 5. Run `./gradlew checkstyleMain checkstyleTest` and `./gradlew build` from `backend/`.
 - [ ] 6. Update branch-state Progress and Changes; commit `fix: activate W-DOMAIN services deterministically`.
 
 ### T1: Add Host identity resolver and stable error boundary
@@ -141,7 +142,7 @@
 
 | Action | Path | What changes |
 |---|---|---|
-| Modify | `backend/src/main/java/com/snoozeshare/api/controller/HostListingController.java` | Continue the partial Host-scoped list/detail/create/update/status controller; it uses `ListingService` and `ListingMetricsService` and has no repository access. |
+| Modify | `backend/src/main/java/com/snoozeshare/api/controller/HostListingController.java` | Continue the partial Host-scoped list/detail/create/update/status controller; it uses `ListingService` and `ListingMetricsService`, has no repository access, and is registered only when `snoozeshare.security.enabled=true` so its resolver is present. |
 | Modify | `backend/src/main/java/com/snoozeshare/api/response/HostListingDetailResponse.java` | Continue the partial composite `PropertyResponse` + `ListingMetricsResponse` payload. |
 | Modify | `backend/src/main/java/com/snoozeshare/api/response/PageResponse.java` | Continue the partial shared `{items,page,size,hasMore}` response. |
 | Modify | `backend/src/main/java/com/snoozeshare/api/request/CreateListingRequest.java` and `backend/src/main/java/com/snoozeshare/api/request/UpdateListingRequest.java` | Enforce the approved title maximum of 120 characters and description maximum of 5,000 characters with Bean Validation. |
@@ -153,10 +154,10 @@
 
 **Checklist**
 
-- [ ] 1. Write failing repository/controller tests for E3-E5, E17, and E24; verify another Host cannot read or mutate a listing, page 1 begins at row `size` with no gap/duplicate, and the bounded query returns at most `size + 1` rows.
-- [ ] 2. Add `OffsetLimitPageable(page, size)` with offset `page * size` and limit `size + 1`; use it in the Host listing query, then add the composite detail response and controller routes from `api.md`; retain Bean Validation and reject unknown JSON fields.
-- [ ] 3. Run the named tests; verify deterministic `createdAt DESC, id ASC`, exact 404 `NOT_FOUND`, no entity serialization, and controller startup with the activated service.
-- [ ] 4. Run backend Checkstyle (`./gradlew checkstyleMain checkstyleTest`) and build.
+- [x] 1. Write failing repository/controller tests for E3-E5, E17, and E24; verify another Host cannot read or mutate a listing, page 1 begins at row `size` with no gap/duplicate, and the bounded query returns at most `size + 1` rows.
+- [x] 2. Add `OffsetLimitPageable(page, size)` with offset `page * size` and limit `size + 1`; use it in the Host listing query, then add the composite detail response and controller routes from `api.md`; gate the controller on `snoozeshare.security.enabled=true`; retain Bean Validation and reject unknown JSON fields.
+- [x] 3. Run the named tests; verify deterministic `createdAt DESC, id ASC`, exact 404 `NOT_FOUND`, no entity serialization, and controller startup with the activated service.
+- [x] 4. Run backend Checkstyle (`./gradlew checkstyleMain checkstyleTest`) and build.
 - [ ] 5. Update branch state; commit `feat: add Host listing API`.
 
 ### T3: Make calendar mutations atomic and expose calendar API

@@ -9,14 +9,13 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import com.snoozeshare.domain.model.AuditLogEntry;
 import com.snoozeshare.domain.model.User;
 import com.snoozeshare.repository.AuditCriteria;
 import com.snoozeshare.repository.AuditLogRepository;
-import com.snoozeshare.repository.PropertyRepository;
 import com.snoozeshare.repository.UserRepository;
 import com.snoozeshare.service.AuditFilter;
 import com.snoozeshare.service.AuditRecord;
@@ -24,7 +23,7 @@ import com.snoozeshare.service.AuditService;
 
 /** Writes and queries audit log entries. */
 @Service
-@ConditionalOnBean(PropertyRepository.class)
+@ConditionalOnProperty(name = "snoozeshare.persistence.enabled", havingValue = "true", matchIfMissing = false)
 public class AuditServiceImpl implements AuditService {
 
     private static final Pattern ID_FRAGMENT =

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 
 /** PORT overrides the listening port (E20). */
@@ -16,14 +17,23 @@ import org.springframework.core.env.Environment;
         + "org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration,"
         + "org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration,"
         + "org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration",
-    "management.health.db.enabled=false", "PORT=18080"})
+    "management.health.db.enabled=false", "PORT=18080",
+    "snoozeshare.persistence.enabled=false"})
 class ServerPortOverrideTest {
 
     @Autowired
     private Environment env;
 
+    @Autowired
+    private ApplicationContext context;
+
     @Test
     void portFollowsPortVariable() {
         assertThat(env.getProperty("server.port")).isEqualTo("18080");
+    }
+
+    @Test
+    void databaseFreeContextHasNoPersistenceBeans() {
+        PersistenceBeanAssertions.assertAbsent(context);
     }
 }

@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +20,7 @@ import com.snoozeshare.domain.model.Property;
 import com.snoozeshare.domain.model.User;
 import com.snoozeshare.domain.policy.StayDatePolicy;
 import com.snoozeshare.domain.validation.DomainValidation;
+import com.snoozeshare.repository.OffsetLimitPageable;
 import com.snoozeshare.repository.PropertyRepository;
 import com.snoozeshare.repository.SearchCriteria;
 import com.snoozeshare.service.AuditRecord;
@@ -31,7 +32,7 @@ import com.snoozeshare.service.SearchResult;
 import com.snoozeshare.service.UserService;
 
 @Service
-@ConditionalOnBean(PropertyRepository.class)
+@ConditionalOnProperty(name = "snoozeshare.persistence.enabled", havingValue = "true", matchIfMissing = false)
 public class ListingServiceImpl implements ListingService {
 
     private final StayDatePolicy searchDates;
@@ -104,6 +105,15 @@ public class ListingServiceImpl implements ListingService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<Property> findByHostId(UUID hostId, int page, int size) {
+        if (hostId == null || page < 0 || size < 1 || size > 100) {
+            throw new IllegalArgumentException("Invalid Host listing page");
+        }
+        return properties.findByHostIdOrderByCreatedAtDescIdAsc(hostId, new OffsetLimitPageable(page, size));
+    }
+
+    @Override
     @Transactional
     public Property create(Property draft, UUID hostId) {
         User host = requireActiveHost(hostId);
@@ -139,7 +149,7 @@ public class ListingServiceImpl implements ListingService {
         if (!host.getId().equals(existing.getHostId())) {
             throw new IllegalStateException("Host does not own this property");
         }
-        validateDraft(draft);
+        validateDraft(draft, false);
         existing.setTitle(draft.getTitle());
         existing.setDescription(draft.getDescription());
         existing.setPropertyType(draft.getPropertyType());
@@ -198,6 +208,10 @@ public class ListingServiceImpl implements ListingService {
     }
 
     private static void validateDraft(Property draft) {
+        validateDraft(draft, true);
+    }
+
+    private static void validateDraft(Property draft, boolean requireStatus) {
         if (draft == null) {
             throw new IllegalArgumentException("Property must not be null");
         }
@@ -206,7 +220,7 @@ public class ListingServiceImpl implements ListingService {
         if (draft.getPropertyType() == null) {
             throw new IllegalArgumentException("Property Type must be selected");
         }
-        if (draft.getStatus() == null) {
+        if (requireStatus && draft.getStatus() == null) {
             throw new IllegalArgumentException("Status must be selected");
         }
         if (draft.getMaxGuests() <= 0) {

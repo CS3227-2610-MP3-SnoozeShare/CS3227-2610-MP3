@@ -3,7 +3,7 @@ package com.snoozeshare.service.impl;
 import java.time.Clock;
 import java.util.UUID;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,14 +12,13 @@ import com.snoozeshare.domain.enums.BookingStatus;
 import com.snoozeshare.domain.model.Booking;
 import com.snoozeshare.domain.model.Review;
 import com.snoozeshare.repository.BookingRepository;
-import com.snoozeshare.repository.PropertyRepository;
 import com.snoozeshare.repository.ReviewRepository;
 import com.snoozeshare.service.AuditRecord;
 import com.snoozeshare.service.AuditService;
 import com.snoozeshare.service.ReviewService;
 
 @Service
-@ConditionalOnBean(PropertyRepository.class)
+@ConditionalOnProperty(name = "snoozeshare.persistence.enabled", havingValue = "true", matchIfMissing = false)
 public class ReviewServiceImpl implements ReviewService {
 
     private final BookingRepository bookings;

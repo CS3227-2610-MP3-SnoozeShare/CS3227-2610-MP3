@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import com.snoozeshare.domain.enums.AccountStatus;
@@ -28,7 +28,7 @@ import com.snoozeshare.repository.UserRepository;
 import com.snoozeshare.service.AvailabilityService;
 
 @Service
-@ConditionalOnBean(PropertyRepository.class)
+@ConditionalOnProperty(name = "snoozeshare.persistence.enabled", havingValue = "true", matchIfMissing = false)
 public class AvailabilityServiceImpl implements AvailabilityService {
 
     private static final Set<BookingStatus> CALENDAR_STATUSES = EnumSet.of(

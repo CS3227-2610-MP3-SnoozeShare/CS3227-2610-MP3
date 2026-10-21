@@ -21,6 +21,8 @@ public interface ListingService {
 
     List<Property> findByHostId(UUID hostId);
 
+    List<Property> findByHostId(UUID hostId, int page, int size);
+
     Property create(Property draft, UUID hostId);
 
     Property update(Property draft, UUID hostId);

@@ -5,7 +5,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +23,7 @@ import com.snoozeshare.repository.WalletRepository;
 import com.snoozeshare.service.TransactionService;
 
 @Service
-@ConditionalOnBean(PropertyRepository.class)
+@ConditionalOnProperty(name = "snoozeshare.persistence.enabled", havingValue = "true", matchIfMissing = false)
 public class TransactionServiceImpl implements TransactionService {
 
     private final BookingRepository bookings;

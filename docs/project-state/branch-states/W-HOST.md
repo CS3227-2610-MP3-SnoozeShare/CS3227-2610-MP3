@@ -9,7 +9,7 @@ in after the branch merges.
 - **Owner:** project owner
 - **Status:** Draft
 - **Approved:** —
-- **Last updated:** 2026-10-22 by GPT-5 — approved W-HOST-API scope amendment; final plan review before T0
+- **Last updated:** 2026-10-22 by GPT-5 — completed T0 and resolved T2 listing paging/update validation failures
 
 ---
 
@@ -32,27 +32,27 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| 2026-10-22 backend phase | 2026-10-22 | GPT-5 | W-HOST-API | Active | Add T0 context tests first and verify default-on service activation fails before the fix | Then replace repository-bean conditions with explicit property conditions, verify enabled/disabled contexts, and commit T0 | 2026-10-22 |
+| 2026-10-22 backend phase | 2026-10-22 | GPT-5 | W-HOST-API | Active | T0 activation is implemented and backend checks pass; T2 listings pass focused integration tests | Complete T2 contract coverage, then proceed to T3-T6 backend endpoints | 2026-10-22 |
 
 **Remaining**
 
 - [ ] Owner review and approval remain for the completed fixture-backed UI phase.
-- [ ] Execute amended W-HOST-API T0, then resume T2; partial listing query, DTO, controller, and tests remain uncommitted.
+- [ ] Finish T2 listing API contract coverage and commit T0/T2 in plan-sized green commits; then implement T3-T6.
 
 ## 3. Workstreams
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
 | W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Listings, requests, and wallet scroll within viewport; 143 tests, lint and build pass | guide out of date: W-HOST Host UI pages and Fall Light details |
-| W-HOST-API | Replace Host fixtures with authenticated backend integration | Building | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T0 prerequisite added; next activate persistence-backed beans, then resume T2 listing API | — |
+| W-HOST-API | Replace Host fixtures with authenticated backend integration | Building | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T0 complete; T2 listing routes, owner checks, and page continuity pass; finish contract coverage | — |
 
 ## 4. Architecture
 
-**Now:** W-DOMAIN's JPA model and repositories are merged; service beans are currently gated on a repository bean that is registered too late for component conditions, so Host controllers cannot inject `ListingService`. W-HOST-API will gate the existing JDBC adapters and service implementations on explicit `snoozeshare.persistence.enabled` configuration instead; `HostIdentityResolver` cross-checks Firebase and domain profiles, and the Host UI remains fixture-backed until integration completes.
+**Now:** W-DOMAIN's JPA model and repositories are merged; W-HOST-API activates JDBC adapters and service implementations via `snoozeshare.persistence.enabled` rather than repository-bean ordering. Host API controllers are active only when `snoozeshare.security.enabled=true`, matching the security-gated `HostIdentityResolver`; the Host UI remains fixture-backed until integration completes.
 
 ## 5. Conventions
 
-Host route content uses a full-width page frame; input value text is normal-weight, while field labels remain emphasized. Listings, requests, messages, and wallet keep the navbar fixed to the viewport and scroll long content internally; requests cap pending rows at four and let past rows use remaining height, while the wallet statement uses remaining height. Scrollable Host tables keep their header visible, including on horizontal overflow. Per operator-approved C~17, W-HOST-API persistence-backed service implementations and JDBC adapters use `@ConditionalOnProperty(name = "snoozeshare.persistence.enabled", havingValue = "true")`; `application.yml` sets it true, and database-free contexts set false, replacing the current `@ConditionalOnBean(PropertyRepository.class)` convention for this integration.
+Host route content uses a full-width page frame; input value text is normal-weight, while field labels remain emphasized. Listings, requests, messages, and wallet keep the navbar fixed to the viewport and scroll long content internally; requests cap pending rows at four and let past rows use remaining height, while the wallet statement uses remaining height. Scrollable Host tables keep their header visible, including on horizontal overflow. Per operator-approved C~17, W-HOST-API persistence-backed service implementations and JDBC adapters use `@ConditionalOnProperty(name = "snoozeshare.persistence.enabled", havingValue = "true")`; `application.yml` sets it true, and database-free contexts set false, replacing the current `@ConditionalOnBean(PropertyRepository.class)` convention for this integration. The Host listing API controller is gated by `snoozeshare.security.enabled=true` so auth-disabled dev contexts do not register a route without its identity resolver.
 
 ## 6. Known Gaps
 
@@ -95,8 +95,9 @@ No open questions.
 | D~3 | 2026-10-22 | Initial frontend dependency restore failed in the restricted environment: `ENOTFOUND` for `registry.npmjs.org`; the default npm cache also rejected log writes | Resolved by restoring lockfile-pinned dependencies with approved network access and a `/private/tmp` npm cache. Baselines pass: backend build; frontend 143 tests, lint, and production build using local placeholder public config |
 | D~4 | 2026-10-22 | The plan's `./gradlew checkstyle` shorthand is ambiguous because Gradle exposes `checkstyleMain` and `checkstyleTest`; the first invocation stopped before checks | Resolved: plan invokes both tasks explicitly; T1 Checkstyle and the full backend build pass |
 | D~5 | 2026-10-22 | T2's file list omitted `CreateListingRequest` and `UpdateListingRequest`, which need the approved title/description length constraints | Plan-only correction added both DTOs to T2; the 120-character title and 5,000-character description limits are unchanged |
-| D~6 | 2026-10-22 | `HostListingsControllerTest` context fails because `ListingService` is not registered; Spring's condition report says `PropertyRepository` is unavailable to service `@ConditionalOnBean` checks, although JPA later discovers 11 repository interfaces | Resolved by operator approval C~17 to add T0 for explicit persistence-property activation; partial T2 changes remain uncommitted and resume after T0 |
-| D~7 | 2026-10-22 | The partial `ListingServiceImpl.findByHostId` uses `PageRequest.of(page, size + 1)`, whose offset is `page * (size + 1)` and skips rows on later pages | T2 plan now requires `OffsetLimitPageable` with offset `page * size`, limit `size + 1`, and page-continuity regression tests; implementation remains pending |
+| D~6 | 2026-10-22 | `HostListingsControllerTest` context fails because `ListingService` is not registered; Spring's condition report says `PropertyRepository` is unavailable to service `@ConditionalOnBean` checks, although JPA later discovers 11 repository interfaces | Resolved by operator approval C~17; T0 now activates 15 service contracts and three JDBC adapters via explicit property |
+| D~7 | 2026-10-22 | The partial `ListingServiceImpl.findByHostId` used `PageRequest.of(page, size + 1)`, whose offset is `page * (size + 1)` and skips rows on later pages | Resolved in T2 with `OffsetLimitPageable` and repository plus controller page-continuity regression tests |
+| D~8 | 2026-10-22 | The partial `HostListingController` was unconditional while `HostIdentityResolver` is gated by `snoozeshare.security.enabled`, making the default auth-disabled profile fail startup | T2 now gates the controller on the same security property; DB-backed controller integration enables security, while dev and DB-free contexts omit the protected Host route |
 
 ## 10. Changes
 
@@ -161,3 +162,5 @@ No open questions.
 | 2026-10-22 | T2 exposed unavailable `ListingService` bean activation in Spring; paused for owner direction on the prerequisite cross-cutting wiring | W-HOST-API | D~6 |
 | 2026-10-22 | Amended the W-HOST-API contract and plan with T0: property-controlled activation for W-DOMAIN services/adapters and enabled/disabled context coverage | W-HOST-API | C~17 |
 | 2026-10-22 | Clarified T2's zero-based page offset and bounded `size + 1` query mechanism after review exposed a skip on later listing pages | W-HOST-API | D~7 |
+| 2026-10-22 | Activated W-DOMAIN persistence beans with the approved property gate; T0 context tests, Checkstyle, and backend build pass | W-HOST-API | C~17 |
+| 2026-10-22 | Implemented Host listing collection/detail/create/update/status routes and metrics projection; fixed status-omitting update validation and verified page continuity | W-HOST-API | T2 |

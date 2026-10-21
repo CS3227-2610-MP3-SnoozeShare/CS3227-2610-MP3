@@ -5,7 +5,7 @@ import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.UUID;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +15,6 @@ import com.snoozeshare.domain.model.Wallet;
 import com.snoozeshare.domain.model.WalletTransaction;
 import com.snoozeshare.domain.validation.DomainValidation;
 import com.snoozeshare.infra.events.WalletTransactionRecordedEvent;
-import com.snoozeshare.repository.PropertyRepository;
 import com.snoozeshare.repository.WalletRepository;
 import com.snoozeshare.service.AuditRecord;
 import com.snoozeshare.service.AuditService;
@@ -28,7 +27,7 @@ import com.snoozeshare.service.AuditService;
  * {@link ApplicationEventPublisher}.
  */
 @Service
-@ConditionalOnBean(PropertyRepository.class)
+@ConditionalOnProperty(name = "snoozeshare.persistence.enabled", havingValue = "true", matchIfMissing = false)
 public class LedgerWriter {
 
     private final WalletRepository wallets;
