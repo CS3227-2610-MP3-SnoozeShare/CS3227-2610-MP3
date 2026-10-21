@@ -4,5 +4,15 @@ spring:
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
 snoozeshare:
+  security:
+    enabled: ${SNOOZESHARE_SECURITY_ENABLED}
+  proxy:
+    trust-forwarded-headers: ${SNOOZESHARE_TRUST_FORWARD_HEADERS}
+  firebase:
+    enabled: ${FIREBASE_ENABLED}
+    project-id: ${FIREBASE_PROJECT_ID}
+  registration:
+    host-code: ${SNOOZESHARE_HOST_REGISTRATION_CODE}
+    agent-code: ${SNOOZESHARE_AGENT_REGISTRATION_CODE}
   cors:
     allowed-origin: ${SNOOZESHARE_CORS_ALLOWED_ORIGIN}

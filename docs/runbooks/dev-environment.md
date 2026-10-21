@@ -11,7 +11,7 @@ Render first, then Vercel, then Render again: the frontend needs the backend URL
 | # | Owner | Step |
 |---|---|---|
 | 1 | Xiao-Congchen | Render: New > Blueprint from this repo; it reads `render.yaml` (Docker web service on the free plan, branch `development`, build context `backend`, health check `/actuator/health`). Enter the `sync: false` secrets in the dashboard when prompted. |
-| 2 | Xiao-Congchen | Neon: create a project and a branch `dev`. On Render set `SPRING_PROFILES_ACTIVE=prod`, `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD`, and a placeholder `SNOOZESHARE_CORS_ALLOWED_ORIGIN` (for example `http://localhost:3000`). Deploy. |
+| 2 | Xiao-Congchen | Neon: create a project and a branch `dev`. On Render set `SPRING_PROFILES_ACTIVE=prod`, `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD`, and a placeholder `SNOOZESHARE_CORS_ALLOWED_ORIGIN` (for example `http://localhost:3000`). Add the Firebase Admin settings below and deploy. |
 | 3 | Xiao-Congchen | Vercel: create a project with root directory `frontend`, Production Branch `development`, and `NEXT_PUBLIC_API_BASE_URL` set to the Render public URL (no trailing slash). A first deploy without the variable must fail the build. Set the Framework Preset to **Next.js**: if the preset is left on "Other", the build fails with `No Output Directory named "public" found` (`frontend/vercel.json` also pins it). |
 | 4 | Xiao-Congchen | Render: set `SNOOZESHARE_CORS_ALLOWED_ORIGIN` to Vercel's stable production domain (scheme and host, no trailing slash) and redeploy. |
 | 5 | Xiao-Congchen | Verify (below) and fill in the evidence block. |
@@ -25,9 +25,22 @@ Render first, then Vercel, then Render again: the frontend needs the backend URL
 | `SPRING_DATASOURCE_USERNAME` | Render | Neon role |
 | `SPRING_DATASOURCE_PASSWORD` | Render | Neon password (set in Render, never committed) |
 | `SNOOZESHARE_CORS_ALLOWED_ORIGIN` | Render | Vercel production domain, one origin |
+| `SNOOZESHARE_SECURITY_ENABLED` | Render | `true` |
+| `SNOOZESHARE_TRUST_FORWARD_HEADERS` | Render | `true`; the backend then reads the client address from `CF-Connecting-IP` (set by Cloudflare in front of Render) and never from `X-Forwarded-For` |
+| `FIREBASE_ENABLED` | Render | `true` |
+| `FIREBASE_PROJECT_ID` | Render | Firebase project ID |
+| `SNOOZESHARE_HOST_REGISTRATION_CODE` | Render | Privileged registration code, never committed |
+| `SNOOZESHARE_AGENT_REGISTRATION_CODE` | Render | Privileged registration code, never committed |
+| `GOOGLE_APPLICATION_CREDENTIALS` | Render | Path to the provisioned Firebase Admin service-account JSON |
 | `NEXT_PUBLIC_API_BASE_URL` | Vercel | Render public URL |
+| `NEXT_PUBLIC_FIREBASE_API_KEY` | Vercel | Firebase browser app configuration |
+| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | Vercel | Firebase browser app configuration |
+| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | Vercel | Firebase browser app configuration |
+| `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` | Vercel | Firebase browser app configuration |
+| `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | Vercel | Firebase browser app configuration |
+| `NEXT_PUBLIC_FIREBASE_APP_ID` | Vercel | Firebase browser app configuration |
 
-With `prod` active, the backend refuses to start if any of the first five is missing, and the error names the variable. Without `SPRING_PROFILES_ACTIVE` the `dev` profile applies and startup fails on the missing local database rather than serving.
+With `prod` active, the backend refuses to start if a datasource, CORS, security, Firebase, registration-code, or Admin credential setting is missing, and the error names the property. Without `SPRING_PROFILES_ACTIVE` the `dev` profile applies and startup fails on the missing local database rather than serving.
 
 ## Neon connection string
 

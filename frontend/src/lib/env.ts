@@ -13,4 +13,15 @@ export function validateEnv(env: Record<string, string | undefined> = process.en
   if (!/^https?:\/\/[^/]+$/.test(value)) {
     throw new Error('NEXT_PUBLIC_API_BASE_URL must be an http(s) URL without a trailing slash');
   }
+  const firebaseKeys = [
+    'NEXT_PUBLIC_FIREBASE_API_KEY',
+    'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
+    'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
+    'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET',
+    'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',
+    'NEXT_PUBLIC_FIREBASE_APP_ID',
+  ] as const;
+  for (const key of firebaseKeys) {
+    if (!env[key]) throw new Error(`${key} is required`);
+  }
 }
