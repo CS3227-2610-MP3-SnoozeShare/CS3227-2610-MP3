@@ -107,6 +107,8 @@ describe('Host listing components', () => {
       expect(screen.getByRole('checkbox', { name: amenity })).toBeChecked();
     }
     expect(screen.getByRole('combobox', { name: 'Status' })).toHaveTextContent('Active');
+    expect(screen.getByRole('combobox', { name: 'Property type' })).toHaveClass('font-normal');
+    expect(screen.getByRole('combobox', { name: 'Status' })).toHaveClass('font-normal');
     expect(screen.getByLabelText('Title')).toHaveClass('font-normal');
     expect(screen.getByLabelText('Description')).toHaveClass('font-normal');
   });
@@ -121,16 +123,23 @@ describe('Host listing components', () => {
     expect(screen.getByLabelText('Check-out time')).toHaveValue('11:00');
   });
 
-  it('arranges full-width form cards in the artifact column order', () => {
+  it('keeps related cards in independent desktop stacks and preserves narrow-screen order', () => {
     render(<HostFixtureProvider><NewListingPage /></HostFixtureProvider>);
     const form = screen.getByRole('button', { name: 'Save listing' }).closest('form')!;
-    const headings = within(form).getAllByRole('heading', { level: 2 });
+    const layout = form.firstElementChild!;
+    const stacks = Array.from(layout.children);
+    const leftHeadings = within(stacks[0] as HTMLElement).getAllByRole('heading', { level: 2 });
+    const rightHeadings = within(stacks[1] as HTMLElement).getAllByRole('heading', { level: 2 });
 
-    expect(headings.map((heading) => heading.textContent)).toEqual([
-      'BASIC DETAILS', 'CAPACITY & PRICING', 'LOCATION', 'AMENITIES',
-    ]);
-    expect(form.firstElementChild).toHaveClass('grid', 'lg:grid-cols-2');
-    expect(form.firstElementChild).toHaveClass('w-full');
+    expect(layout).toHaveClass('grid', 'lg:grid-cols-2', 'w-full', 'gap-y-2');
+    expect(stacks[0]).toHaveClass('contents', 'lg:flex', 'lg:flex-col', 'lg:gap-2');
+    expect(stacks[1]).toHaveClass('contents', 'lg:flex', 'lg:flex-col', 'lg:gap-2');
+    expect(leftHeadings.map((heading) => heading.textContent)).toEqual(['BASIC DETAILS', 'LOCATION']);
+    expect(rightHeadings.map((heading) => heading.textContent)).toEqual(['CAPACITY & PRICING', 'AMENITIES']);
+    expect(within(form).getByRole('heading', { name: 'BASIC DETAILS' }).closest('section')).toHaveClass('order-1');
+    expect(within(form).getByRole('heading', { name: 'CAPACITY & PRICING' }).closest('section')).toHaveClass('order-2');
+    expect(within(form).getByRole('heading', { name: 'LOCATION' }).closest('section')).toHaveClass('order-3');
+    expect(within(form).getByRole('heading', { name: 'AMENITIES' }).closest('section')).toHaveClass('order-4');
     expect(screen.getByRole('heading', { name: 'BASIC DETAILS' }).closest('section')).toHaveClass('w-full');
   });
 
@@ -149,7 +158,7 @@ describe('Host listing components', () => {
 
     expect(within(form).getByText('Property type')).toBeInTheDocument();
     expect(within(form).getByText('Status')).toBeInTheDocument();
-    expect(form.firstElementChild).toHaveClass('items-start', 'gap-y-3');
+    expect(form.firstElementChild).toHaveClass('items-start', 'gap-y-2');
   });
 
   it('renders artifact amenity rows and orders the primary action before cancel', () => {

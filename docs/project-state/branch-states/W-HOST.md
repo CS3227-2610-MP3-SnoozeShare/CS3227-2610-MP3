@@ -42,7 +42,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | T4 follow-up verified: select labels, independent cards, flush menus, tighter rows and spaced breadcrumbs | guide out of date: W-HOST Host UI pages and Fall Light details |
+| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | T4 follow-up complete: independent desktop card stacks, tighter gaps, normal-weight select values | guide out of date: W-HOST Host UI pages and Fall Light details |
 
 ## 4. Architecture
 
@@ -93,3 +93,4 @@ None.
 | 2026-10-21 | Kept the availability switch to the right of its label and compacted the five desktop card groups; all 99 frontend tests, lint, production build, and desktop browser check pass | W-HOST | T9 follow-up |
 | 2026-10-21 | Matched New/Edit listing forms to artifact card order, paired fields, six amenity rows, section styling, breadcrumbs, currency/time display, and action order while retaining full-width cards; 104 tests, lint, build, and browser checks pass | W-HOST | T4 follow-up |
 | 2026-10-21 | Added visible Property type/Status labels; independently sized cards; tightened form gaps; positioned select menus directly below fields; increased breadcrumb spacing; 105 tests, lint, build, and browser check pass | W-HOST | T4 follow-up |
+| 2026-10-21 | Split New/Edit listing cards into top-aligned desktop stacks, kept the narrow-screen card sequence, tightened vertical field/card gaps, and normalized select trigger weight; 105 tests and lint pass | W-HOST | T4 follow-up |
