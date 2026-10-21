@@ -5,16 +5,16 @@ read it for context and write here instead of editing it. `sync-project-state` f
 in after the branch merges.
 
 - **Branch:** W-HOST (from `development` at `8702e88`)
-- **Base:** `4257d4b`
+- **Base:** `6b242b2`
 - **Owner:** project owner
 - **Status:** In review
 - **Approved:** —
-- **Last updated:** 2026-10-22 by GPT-5 — completed the fixture-backed UI plan and opened the backend-integration phase
+- **Last updated:** 2026-10-22 by GPT-5 — merged the W-DOMAIN fold from local development and advanced the branch base
 
 ---
 
-**Scope.** Assess and, if requested, implement host work that can proceed without the W-DOMAIN
-model, persistence, and service contracts.
+**Scope.** Implement the Host feature set, including the authenticated backend API and Next.js
+pages, on top of the completed W-DOMAIN model, persistence, and service contracts.
 
 ---
 
@@ -32,7 +32,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| 2026-10-22 backend phase | 2026-10-22 | GPT-5 | W-HOST-API | Building | User approved recommended API, identity, transaction, and wallet defaults; second-round review findings on key scope and bounded paging are incorporated | Run final spec lint/self-check, then request Gate 1 spec approval before writing the plan | 2026-10-22 |
+| 2026-10-22 backend phase | 2026-10-22 | GPT-5 | W-HOST-API | Building | Merged local development's W-DOMAIN state/guide fold at `af32e3f`; no conflicts; base advanced to `6b242b2` | Continue at the W-HOST-API Gate 1 spec approval; do not write the plan until approval | 2026-10-22 |
 
 **Remaining**
 
@@ -48,7 +48,7 @@ No change.
 
 ## 4. Architecture
 
-**Now:** The completed Host UI remains fixture-backed; the new backend phase will add an authenticated `/api/host/**` boundary over W-DOMAIN services without changing the visual contract.
+**Now:** W-DOMAIN's JPA model, repositories, and services are merged; the completed Host UI remains fixture-backed. W-HOST-API adds the authenticated `/api/host/**` boundary over those services without changing the visual contract.
 
 ## 5. Conventions
 
@@ -56,7 +56,7 @@ Host route content uses a full-width page frame; input value text is normal-weig
 
 ## 6. Known Gaps
 
-No change: existing W-DOMAIN dependency and accepted gaps remain in force.
+W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJECT_STATE.md` § Known Gaps. W-HOST-API implementation has not started; the API spec still requires owner approval.
 
 ## 7. Needs a Human
 
@@ -140,6 +140,7 @@ No change: existing W-DOMAIN dependency and accepted gaps remain in force.
 | 2026-10-22 | Inspected the live Requests page; reduced pending-cell padding and set a 224px cap so four complete single-line rows fit before scrolling; 143 tests and lint pass | W-HOST | Operator follow-up |
 | 2026-10-22 | Confirmed the fourth row clipped at 224px in the live screenshot; raised the pending-table cap to 244px and verified all four rows fully show before scrolling; requests tests and lint pass | W-HOST | Operator follow-up |
 | 2026-10-22 | Merged current `development` into W-HOST with the `ort` strategy; no conflicts or conflict markers; branch state base advanced to `4257d4b` | W-HOST | `6709cc8` |
+| 2026-10-22 | Merged local `development`'s W-DOMAIN fold into W-HOST with `ort`; preview showed no conflicts; branch base advanced from `4257d4b` to `6b242b2` | W-HOST | `af32e3f` |
 | 2026-10-22 | Marked the fixture-backed W-HOST UI plan complete as scoped and opened W-HOST-API for authenticated backend integration | W-HOST / W-HOST-API | `2026-10-22` |
 | 2026-10-22 | Drafted W-HOST-API spec; lint passed, but Implementer/Tester/Maintainer/Attacker review found unresolved High-risk contract blockers recorded under Q~1 | W-HOST-API | `2026-10-22` |
 | 2026-10-22 | Resolved user-approved W-HOST-API defaults; fixed second-round findings by aligning idempotency uniqueness/hash scope and defining bounded database paging for summaries, histories, and wallet statements | W-HOST-API | `2026-10-22` |
