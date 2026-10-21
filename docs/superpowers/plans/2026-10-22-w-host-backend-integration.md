@@ -19,7 +19,7 @@
 | Task | Depends on | Can run concurrently with | Wave | Status |
 |---|---|---|---|---|
 | T1 Add Host identity resolver and stable error boundary | - | - | 1 | Done |
-| T2 Add listing API and detail projection | T1 | T3 | 2 | Not started |
+| T2 Add listing API and detail projection | T1 | T3 | 2 | Blocked |
 | T3 Make calendar mutations atomic and expose calendar API | T1 | T2 | 2 | Not started |
 | T4 Serialize Host booking decisions | T1 | T5,T6 | 2 | Not started |
 | T5 Add distinct Host conversation APIs | T1 | T4,T6 | 2 | Not started |
@@ -95,9 +95,10 @@
 
 | Action | Path | What changes |
 |---|---|---|
-| Create | `backend/src/main/java/com/snoozeshare/api/controller/HostListingController.java` | Host-scoped list/detail/create/update/status routes using `ListingService` and `ListingMetricsService`; no repository access. |
-| Create | `backend/src/main/java/com/snoozeshare/api/response/HostListingDetailResponse.java` | Composite `PropertyResponse` + `ListingMetricsResponse` payload. |
-| Create | `backend/src/main/java/com/snoozeshare/api/response/PageResponse.java` | Shared `{items,page,size,hasMore}` response. |
+| Modify | `backend/src/main/java/com/snoozeshare/api/controller/HostListingController.java` | Continue the partial Host-scoped list/detail/create/update/status controller; it uses `ListingService` and `ListingMetricsService` and has no repository access. |
+| Modify | `backend/src/main/java/com/snoozeshare/api/response/HostListingDetailResponse.java` | Continue the partial composite `PropertyResponse` + `ListingMetricsResponse` payload. |
+| Modify | `backend/src/main/java/com/snoozeshare/api/response/PageResponse.java` | Continue the partial shared `{items,page,size,hasMore}` response. |
+| Modify | `backend/src/main/java/com/snoozeshare/api/request/CreateListingRequest.java` and `backend/src/main/java/com/snoozeshare/api/request/UpdateListingRequest.java` | Enforce the approved title maximum of 120 characters and description maximum of 5,000 characters with Bean Validation. |
 | Modify | `backend/src/main/java/com/snoozeshare/repository/PropertyRepository.java` (`findByHostId`) | Add deterministic pageable Host query with `createdAt DESC, id ASC`. |
 | Modify | `backend/src/main/java/com/snoozeshare/service/ListingService.java` and `backend/src/main/java/com/snoozeshare/service/impl/ListingServiceImpl.java` (`findByHostId`) | Expose bounded Host page read; preserve existing create/update/status authorization and audit behavior. |
 | Test | `backend/src/test/java/com/snoozeshare/api/host/HostListingsControllerTest.java` | JSON contracts, create/update/status, validation, owned/not-owned results (E3,E4,E5). |

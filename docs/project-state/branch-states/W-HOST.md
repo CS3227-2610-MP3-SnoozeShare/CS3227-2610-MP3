@@ -32,23 +32,23 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| 2026-10-22 backend phase | 2026-10-22 | GPT-5 | W-HOST-API | Building | T1 complete: Host identity resolver, safe error boundary, and auth/profile-drift tests verified | T2 step 1: write listing pagination/controller contract tests and bounded-query test | 2026-10-22 |
+| 2026-10-22 backend phase | 2026-10-22 | GPT-5 | W-HOST-API | Blocked — needs human | T2 controller context fails: `ListingService` is absent because service beans are gated by `@ConditionalOnBean(PropertyRepository.class)` before JPA repositories register | Await Q~2: decide whether to amend W-HOST-API spec/plan with prerequisite service-bean activation wiring; do not continue meanwhile | 2026-10-22 |
 
 **Remaining**
 
 - [ ] Owner review and approval remain for the completed fixture-backed UI phase.
-- [ ] T2 step 1: write and run listing pagination/controller tests and a bounded repository-query test.
+- [ ] Q~2: decide whether to add prerequisite activation wiring for the existing W-DOMAIN service beans; partial T2 query, DTO, controller, and tests are uncommitted.
 
 ## 3. Workstreams
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
 | W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Listings, requests, and wallet scroll within viewport; 143 tests, lint and build pass | guide out of date: W-HOST Host UI pages and Fall Light details |
-| W-HOST-API | Replace Host fixtures with authenticated backend integration | Building | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T1/10 done: identity and error boundary; T2/10 next: listing API | — |
+| W-HOST-API | Replace Host fixtures with authenticated backend integration | Blocked — needs human | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T2 stopped: Host API context cannot inject `ListingService`; prerequisite activation scope needs owner decision Q~2 | — |
 
 ## 4. Architecture
 
-**Now:** W-DOMAIN's JPA model, repositories, and services are merged; the Host UI remains fixture-backed. `HostIdentityResolver` cross-checks the verified Firebase UID and active HOST auth/domain profiles. `HostApiExceptionHandler` provides safe typed error envelopes for API controllers; `/api/host/**` controllers are still being added.
+**Now:** W-DOMAIN's JPA model and repositories are merged; service beans gated by `@ConditionalOnBean(PropertyRepository.class)` are absent when component conditions run before JPA repositories register, so Host controllers cannot inject `ListingService`. `HostIdentityResolver` cross-checks Firebase and domain profiles; the Host UI remains fixture-backed.
 
 ## 5. Conventions
 
@@ -56,13 +56,13 @@ Host route content uses a full-width page frame; input value text is normal-weig
 
 ## 6. Known Gaps
 
-W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJECT_STATE.md` § Known Gaps. W-HOST-API T1 is in progress after green backend/frontend baselines.
+W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJECT_STATE.md` § Known Gaps. W-HOST-API T2 is blocked by missing activation of the existing service beans; see D~6 and Q~2.
 
 ## 7. Needs a Human
 
 | ID | What is needed | What it blocks | Raised |
 |---|---|---|---|
-| — | None. The selected contract defaults and second-round fixes are recorded in the W-HOST-API spec. | — | — |
+| Q~2 | May W-HOST-API include prerequisite activation of existing W-DOMAIN service beans? The current Boot context excludes them before Host controllers can inject `ListingService`. | Blocks T2 and dependent Host API integration; may require a separate W-DOMAIN correction/workstream | Project owner |
 
 ## 8. Decisions
 
@@ -93,6 +93,8 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | D~2 | 2026-10-21 | Next.js production build intermittently failed during page-data collection with `Invariant: no direct app page entry found for /_not-found` after the breadcrumb implementation | Build passed from an isolated frontend copy while the local dev server remained active; shared `.next` state may explain the earlier failure, but cause is not proven. Recheck from a clean isolated build if it recurs |
 | D~3 | 2026-10-22 | Initial frontend dependency restore failed in the restricted environment: `ENOTFOUND` for `registry.npmjs.org`; the default npm cache also rejected log writes | Resolved by restoring lockfile-pinned dependencies with approved network access and a `/private/tmp` npm cache. Baselines pass: backend build; frontend 143 tests, lint, and production build using local placeholder public config |
 | D~4 | 2026-10-22 | The plan's `./gradlew checkstyle` shorthand is ambiguous because Gradle exposes `checkstyleMain` and `checkstyleTest`; the first invocation stopped before checks | Resolved: plan invokes both tasks explicitly; T1 Checkstyle and the full backend build pass |
+| D~5 | 2026-10-22 | T2's file list omitted `CreateListingRequest` and `UpdateListingRequest`, which need the approved title/description length constraints | Plan-only correction added both DTOs to T2; the 120-character title and 5,000-character description limits are unchanged |
+| D~6 | 2026-10-22 | `HostListingsControllerTest` context fails because `ListingService` is not registered; Spring's condition report says `PropertyRepository` is unavailable to service `@ConditionalOnBean` checks, although JPA later discovers 11 repository interfaces | T2 and dependent API tasks are stopped. Fixing activation ordering/property changes cross-cutting W-DOMAIN runtime wiring and needs owner-approved spec/plan scope. Partial T2 changes remain uncommitted pending Q~2 |
 
 ## 10. Changes
 
@@ -153,3 +155,5 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | 2026-10-22 | Restored frontend dependencies after initial registry DNS failures; backend build and frontend 143 tests, lint, and production build pass; started T1 | W-HOST-API | D~3 |
 | 2026-10-22 | Corrected backend Checkstyle command to `checkstyleMain checkstyleTest` after Gradle reported `checkstyle` ambiguous; T1 checks rerun pending | W-HOST-API | D~4 |
 | 2026-10-22 | Added verified Host identity cross-checking, controller-scoped safe error responses, and security/profile-drift tests; focused tests, Checkstyle, and full backend build pass | W-HOST-API | T1 |
+| 2026-10-22 | Expanded T2's planned file list to include title/description DTO validation already required by the approved API contract | W-HOST-API | D~5 |
+| 2026-10-22 | T2 exposed unavailable `ListingService` bean activation in Spring; paused for owner direction on the prerequisite cross-cutting wiring | W-HOST-API | D~6 |
