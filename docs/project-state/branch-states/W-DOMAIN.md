@@ -7,9 +7,9 @@ after the branch merges.
 - **Branch:** W-DOMAIN (from `development` at `4cc27c3`)
 - **Base:** `349d55c` (development tip after W-AUTH merge)
 - **Owner:** Nathan
-- **Status:** Draft   (`Draft` · `In review` · `Approved` · `Folded`)
-- **Approved:** —
-- **Last updated:** 2026-10-21 by Claude Opus 4.6 — T9 tests complete
+- **Status:** Approved   (`Draft` · `In review` · `Approved` · `Folded`)
+- **Approved:** Nathan, 2026-10-21
+- **Last updated:** 2026-10-21 by Claude Opus 4.6 — closed for review
 
 ---
 
@@ -35,7 +35,7 @@ cd backend; ./gradlew build   # needs Docker (Testcontainers)
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-21 10:00 | Claude Opus 4.6 | W~DOMAIN | Active | T9 done | Commit T9, reconcile branch state, mark In review | 2026-10-21 14:42 |
+| *(empty — all sessions closed)* | | | | | | | |
 
 **Remaining**
 
