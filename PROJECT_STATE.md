@@ -370,4 +370,4 @@ Live traps only; resolved ones are in the archive. Each is what, the consequence
 The Done ledger lives in **[`docs/project-state/done-ledger.md`](docs/project-state/done-ledger.md)** — every change, big or small, newest first.
 
 - **Latest entry:** 2026-10-21
-- **Entries:** 72 (iteration 2 started; earlier entries in the archive)
+- **Entries:** 73 (iteration 2 started; earlier entries in the archive)

@@ -79,3 +79,22 @@ First live deployment (T9), 2026-10-20. Owner: Xiao-Congchen (owns the Vercel, R
 | Frontend page | `Backend: UP`, reported by the owner |
 
 The body above does not match F3's exact `{"status":"UP"}`: Render runs on Kubernetes, where Spring Boot adds liveness and readiness probes. `management.endpoint.health.probes.enabled=false` (with `HealthOnKubernetesTest`) fixes this; after the next Render deploy the body is exactly `{"status":"UP"}`.
+
+### Authentication (W-AUTH), 2026-10-21
+
+Owner: Xiao-Congchen. The auth variables in the table above were set by hand in the Render and Vercel dashboards.
+
+| Item | Value |
+|---|---|
+| Backend URL / frontend URL | https://snoozeshare-api.onrender.com / https://cs3227-snoozeshare.vercel.app (Production Branch `development`) |
+| Health | HTTP 200, `{"status":"UP"}` (agent check, 2026-10-21) |
+| CORS preflight from the frontend origin | Allowed (agent check, 2026-10-21) |
+| `GET /api/auth/me` without a token | HTTP 401, `INVALID_TOKEN` (agent check, 2026-10-21) |
+| `POST /api/auth/registration-code/validate` with a wrong code | HTTP 403, `INVALID_REGISTRATION_CODE` (agent check, 2026-10-21) |
+| Frontend routes `/login`, `/register`, `/forgot-password`, `/guest`, `/host`, `/agent` | HTTP 200 each (agent check, 2026-10-21) |
+| Live sign-in | All steps of the Developer Guide § 7 "Web authentication check" were run on the live site by the owner and passed (reported by the owner; the time of the run was not recorded) |
+
+Setup problems met on the way, so they are not repeated:
+
+- **Render:** the first deploy failed with `Error processing condition on ...FirebaseConfig`. The cause is the last `Caused by:` line, `Could not resolve placeholder 'FIREBASE_ENABLED'`: `SNOOZESHARE_SECURITY_ENABLED`, `SNOOZESHARE_TRUST_FORWARD_HEADERS` and `FIREBASE_ENABLED` are set by `render.yaml` only when Render applies the Blueprint, which it did not do for the existing service. Add them by hand. A missing variable always shows as that wrapper, with the variable named at the bottom of the chain.
+- **Vercel:** Production Branch must be `development`. While it was `main`, `development` builds were Previews, which the backend's single allowed CORS origin cannot serve, and the stable URL stayed on the old build. **Redeploy** rebuilds the same commit as the deployment it is pressed on, so after changing the setting push a commit that touches `frontend/` rather than redeploying an old deployment.
