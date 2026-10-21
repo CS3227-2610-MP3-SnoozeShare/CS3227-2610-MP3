@@ -59,7 +59,7 @@ const calendar: CalendarData = {
       blocked: inCurrentMonth && day >= 15 && day <= 17,
     };
   }),
-  overrides: ['Oct 3 – Oct 5'],
+  blockedDates: [{ reason: 'Maintenance', range: 'Oct 3 – Oct 5' }],
 };
 
 export type HostFixtureAdapter = {
@@ -87,7 +87,7 @@ export function createHostFixtureAdapter(state: HostFixtureState = 'populated'):
       if (state === 'error') return { state, error: 'Unable to load this listing.' };
       return { state, data: detail as ListingDetail };
     },
-    getCalendar: () => result(calendar, { monthLabel: 'September 2026', days: [], overrides: [] }, 'Unable to load the booking calendar.'),
+    getCalendar: () => result(calendar, { monthLabel: 'September 2026', days: [], blockedDates: [] }, 'Unable to load the booking calendar.'),
     getRequests: () => result(requests, { pending: [], past: [] }, 'Unable to load booking requests.'),
     getMessages: () => result(messages, [], 'Unable to load messages.'),
     getStatement: () => result(statement, [], 'Unable to load wallet statement.'),

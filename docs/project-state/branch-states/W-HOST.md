@@ -9,7 +9,7 @@ in after the branch merges.
 - **Owner:** project owner
 - **Status:** In review
 - **Approved:** —
-- **Last updated:** 2026-10-21 by GPT-5 — booking calendar aligned with artifact; awaiting owner review
+- **Last updated:** 2026-10-21 by GPT-5 — calendar refinement complete; awaiting owner review
 
 ---
 
@@ -42,7 +42,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Aligned booking calendar composition, state colors, and local override control; 114 tests, lint, build pass | guide out of date: W-HOST Host UI pages and Fall Light details |
+| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Added dynamic week rows, required range picker/reason, and blocked-date reasons; 117 tests pass | guide out of date: W-HOST Host UI pages and Fall Light details |
 
 ## 4. Architecture
 
@@ -69,6 +69,7 @@ None.
 | C~3 | 2026-10-21 | Listings page places its create action beside the title; cards omit the status pill and use five centered, width-stable right-side groups, with outlined calendar/edit actions | Project owner requested the final Listings refinements after reviewing the pushed W-HOST implementation | Operator conversation |
 | C~4 | 2026-10-21 | Within the Availability group, the switch sits to the right of its ACTIVE/INACTIVE label; reduce horizontal gaps among all five card groups while retaining centered content and stable widths | Project owner requested a follow-up after reviewing the first T9 layout | Operator conversation |
 | C~5 | 2026-10-21 | New/Edit listing forms retain full-width page use, with their four form cards arranged to fill the available width rather than constraining the form to the artifact's narrower artboard | Project owner clarified that the forms should add up to use the full width after the visual comparison surfaced the apparent width difference | Operator conversation |
+| C~6 | 2026-10-21 | Booking calendar shows as many complete week rows as its month requires; blocking uses one artifact-style date-range picker and a required reason; current blocked dates list bold reasons above ranges with aligned remove actions, using Maintenance as the fixture reason | Project owner specified calendar coverage and the date-blocking presentation; separate start/end fields, optional reasons, and unlabeled override ranges are rejected | Operator conversation |
 
 ## 9. Deviations
 
@@ -105,3 +106,4 @@ None.
 | 2026-10-21 | Simplified outlined listing-card action-link styles while retaining the shared hover background; 111 tests and lint pass | W-HOST | Operator follow-up |
 | 2026-10-21 | Added an intermediate three-column card-info layout to prevent the Edit action being stranded at narrow viewport widths; 111 tests, lint, production build, and 628px browser check pass | W-HOST | Operator follow-up |
 | 2026-10-21 | Matched the calendar split panel, month/legend row, day colors and sizing, sample bookings, block form, and removable override; 114 tests, lint, production build, and browser check pass | W-HOST | Operator follow-up |
+| 2026-10-21 | Added month-sized calendar week rows; artifact-style single range picker; required reason; and reason-first blocked-date entries with Maintenance fixture. 117 tests, lint, production build, and browser checks pass | W-HOST | Operator follow-up |

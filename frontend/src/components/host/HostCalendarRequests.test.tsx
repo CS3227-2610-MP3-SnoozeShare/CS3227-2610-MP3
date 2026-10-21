@@ -13,30 +13,51 @@ describe('Host calendar and requests', () => {
     expect(resolveCalendarState({ date: 'x', month: 'other', booked: false, blocked: false })).toBe('other');
   });
 
-  it('renders calendar legend, overrides, request tables, and local decision modal', async () => {
+  it('renders calendar legend, blocked dates, request tables, and local decision modal', async () => {
     const adapter = createHostFixtureAdapter();
     render(<><HostCalendarPanel calendar={adapter.getCalendar('lakeside-cabin').data!} /><HostRequestsTable requests={adapter.getRequests().data!} /></>);
     expect(screen.getByText('Available')).toBeInTheDocument();
     expect(screen.getByText('Oct 3 – Oct 5')).toBeInTheDocument();
+    expect(screen.getByText('Maintenance')).toBeInTheDocument();
     expect(screen.getByText('Jane G.')).toBeInTheDocument();
     fireEvent.click(screen.getAllByRole('button', { name: 'Approve' })[0]);
     await waitFor(() => expect(screen.getByRole('dialog')).toHaveTextContent('presentation-only'));
   });
 
-  it('shows the artifact sample dates and removes a current override locally', () => {
+  it('shows a single required range field and removes a current blocked-date entry locally', () => {
     const calendar = createHostFixtureAdapter().getCalendar('lakeside-cabin').data!;
     render(<HostCalendarPanel calendar={calendar} />);
 
     expect(screen.getByRole('gridcell', { name: '4, Booked' })).toBeInTheDocument();
     expect(screen.getByRole('gridcell', { name: '5, Booked' })).toBeInTheDocument();
     expect(screen.getByRole('gridcell', { name: '11, Available' })).toBeInTheDocument();
-    expect(screen.getByLabelText('From')).toHaveValue('2026-09-15');
-    expect(screen.getByLabelText('To')).toHaveValue('2026-09-17');
-    expect(screen.getByText('Sep 15')).toBeInTheDocument();
-    expect(screen.getByText('Sep 17')).toBeInTheDocument();
-    expect(screen.getByLabelText('Reason (optional)')).toHaveAttribute('placeholder', 'e.g. personal use');
-    fireEvent.click(screen.getByRole('button', { name: 'Remove override Oct 3 – Oct 5' }));
+    expect(screen.getByRole('button', { name: 'Date range: Sep 15 – Sep 17' })).toBeInTheDocument();
+    expect(screen.queryByLabelText('From')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('To')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Reason')).toBeRequired();
+    const blockedEntry = screen.getByText('Maintenance').parentElement!;
+    expect(blockedEntry).toContainElement(screen.getByRole('button', { name: 'Remove blocked dates for Maintenance, Oct 3 – Oct 5' }));
+    expect(blockedEntry).toHaveClass('justify-between');
+    expect(screen.getByText('Maintenance').tagName).toBe('STRONG');
+    fireEvent.click(screen.getByRole('button', { name: 'Remove blocked dates for Maintenance, Oct 3 – Oct 5' }));
     expect(screen.queryByText('Oct 3 – Oct 5')).not.toBeInTheDocument();
+  });
+
+  it('requires a reason before opening the block confirmation', () => {
+    render(<HostCalendarPanel calendar={createHostFixtureAdapter().getCalendar('lakeside-cabin').data!} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Block these dates' }));
+    expect(screen.getByText('Reason is required')).toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('uses the date-picker calendar to choose one continuous range', () => {
+    render(<HostCalendarPanel calendar={createHostFixtureAdapter().getCalendar('lakeside-cabin').data!} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Date range: Sep 15 – Sep 17' }));
+    fireEvent.click(screen.getByRole('button', { name: '18' }));
+    expect(screen.getByText('Select an end date')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '20' }));
+    expect(screen.getByRole('button', { name: 'Date range: Sep 18 – Sep 20' })).toBeInTheDocument();
+    expect(screen.queryByRole('dialog', { name: 'Choose date range' })).not.toBeInTheDocument();
   });
 
   it('uses the artifact calendar-state colors and taller day cells', () => {
@@ -91,5 +112,13 @@ describe('Host calendar and requests', () => {
     expect(screen.getAllByRole('gridcell')).toHaveLength(35);
     fireEvent.click(screen.getByRole('button', { name: 'Previous month' }));
     expect(screen.getByText('September 2026')).toBeInTheDocument();
+  });
+
+  it('renders six calendar weeks for months that need them', () => {
+    const calendar = createHostFixtureAdapter().getCalendar('lakeside-cabin').data!;
+    render(<HostCalendarPanel calendar={calendar} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Previous month' }));
+    expect(screen.getByText('August 2026')).toBeInTheDocument();
+    expect(screen.getAllByRole('gridcell')).toHaveLength(42);
   });
 });

@@ -12,7 +12,7 @@ export type ListingDetail = HostListing & {
 };
 
 export type CalendarDay = { date: string; month: 'current' | 'other'; booked: boolean; blocked: boolean };
-export type CalendarData = { monthLabel: string; days: CalendarDay[]; overrides: string[] };
+export type CalendarData = { monthLabel: string; days: CalendarDay[]; blockedDates: { reason: string; range: string }[] };
 
 export type BookingRequest = {
   id: string; guest: string; listing: string; dates: string; nights: number; gross: number;
