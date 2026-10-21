@@ -10,7 +10,7 @@ Handover brief for developers taking over this project. It describes **confirmed
 is updated at checkpoints, so it can lag behind the code. For current status, work in flight, and
 what to build next, read [`PROJECT_STATE.md`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/PROJECT_STATE.md) — that is the source of truth.
 
-**Last updated:** 2026-10-21 — covers W1 to W16, the MP3-0 fixes, the W-INFRA web skeletons and dev deployment, and the W-AUTH web authentication; the desktop sections were checked against the built app on 2026-10-19, the web sections against `backend/`, `frontend/`, `render.yaml` and the live health check on 2026-10-20, and the W-AUTH parts against `backend/src/main/java/com/snoozeshare/auth`, `frontend/src` and their tests on 2026-10-21
+**Last updated:** 2026-10-22 — covers W1 to W16, the MP3-0 fixes, the W-INFRA web skeletons and dev deployment, the W-AUTH web authentication, and the W-DOMAIN ported domain layer; the desktop sections were checked against the built app on 2026-10-19, the web sections against `backend/`, `frontend/`, `render.yaml` and the live health check on 2026-10-20, the W-AUTH parts against `backend/src/main/java/com/snoozeshare/auth`, `frontend/src` and their tests on 2026-10-21, and the W-DOMAIN parts against `backend/src/main/java/com/snoozeshare/domain`, `repository`, `service`, `api` and their tests on 2026-10-22
 
 ## Contents
 
@@ -35,9 +35,7 @@ database; there is no server.
 
 The project is being re-platformed as a web app (C76). The repository is a mono-repo of three
 independent builds: `desktop/` (this guide's JavaFX app), `backend/` (a Spring Boot API on PostgreSQL) and
-`frontend/` (a Next.js app). So far the web side is a skeleton with real sign-in: a health endpoint, a status page, Firebase authentication
-with role authorization ([4.18](#418-authentication-and-role-authorization-backendauth-frontend-providers)), CI and a live dev deployment. None of the desktop domain features exist on the web
-yet (see [3.2](#32-web-platform-and-deployment)).
+`frontend/` (a Next.js app). The web side has Firebase authentication with role authorization ([4.18](#418-authentication-and-role-authorization-backendauth-frontend-providers)), the full domain model, repositories and core services ported to Spring Data JPA ([4.19](#419-domain-model-repositories-and-services-backend-domain-layer)), CI and a live dev deployment. No REST controllers expose the domain services yet; the role pages are empty landing shells (see [3.2](#32-web-platform-and-deployment)).
 
 **Target user:** the three roles the app serves — Guest (renter), Host (homeowner) and Support
 Agent (platform admin). This guide documents the role shells, Host operations, Support Agent
@@ -62,6 +60,7 @@ dispute-resolution tooling, messaging, wallets and the platform audit trail.
 | F12 (W13) | Persistent ticket and booking conversations, with Guest and Host Messages inboxes | [4.4](#44-ticket-messaging-messageservice), [4.4a](#44a-booking-messaging-bookingconversationservice), [4.8](#48-guest-portal-uiguest) and [4.9](#49-host-portal-uihost) |
 | — (W14) | **Unified Ledger:** every wallet movement is a single `audit_log` money row (with the wallet's running balance); the System user gets a real role and wallet and receives the platform's 3% fee | [4.16](#416-unified-ledger-ledgerwriter) |
 | — (W-AUTH) | **Web authentication:** Firebase sign-up and sign-in, registration with Host and Agent codes, role-based API authorization, and client-side route guards | [4.18](#418-authentication-and-role-authorization-backendauth-frontend-providers) |
+| — (W-DOMAIN) | **Web domain layer:** 12 JPA entities, 12 Spring Data repositories, 15 service implementations, 16 request DTOs and 21 response DTOs ported from the desktop app to Spring Boot with Spring Data JPA on PostgreSQL | [4.19](#419-domain-model-repositories-and-services-backend-domain-layer) |
 
 **Value proposition:** a support agent can take a dispute ticket, read both parties' evidence and
 chat, and settle the booking's held escrow between guest and host in one atomic, audited action.
@@ -93,8 +92,7 @@ Every payout follows one uniform fee rule, so the ledger always adds up.
   completion sweep; it skips bookings with an open or in-review ticket and is invoked by the app
   startup and Host Requests flow (C17, W8).
 - **Clawing money back from a host wallet** — agents only ever settle *held* escrow (C17).
-- **Microservices, message brokers, horizontal scaling, JPMS modules, JPA/Hibernate, a separate DTO
-  layer** — ruled out for a course-scoped single-process app (`PROJECT_STATE.md` § Known Gaps).
+- **Microservices, message brokers, horizontal scaling, JPMS modules** — ruled out for a course-scoped single-instance app (`PROJECT_STATE.md` § Known Gaps).
 
 ---
 
@@ -391,9 +389,7 @@ change back. See [4.14](#414-audit-trail).
 
 ### 3.2 Web platform and deployment
 
-The web side so far is a skeleton with authentication: a Spring Boot API whose only protected endpoints are the
-`/api/auth` ones, a Next.js app with sign-in, registration and empty role landing pages, and a hosted dev environment that
-tracks the `development` branch. No desktop domain feature has been ported.
+The web side has authentication and the full ported domain layer: a Spring Boot API with Firebase auth, the domain model as JPA entities, Spring Data repositories, and 15 service implementations; a Next.js app with sign-in, registration and empty role landing pages; and a hosted dev environment that tracks the `development` branch. No REST controllers expose the domain services yet — the role pages are empty landing shells.
 
 ```mermaid
 flowchart LR
@@ -420,7 +416,7 @@ flowchart LR
 1. The browser loads the page from `frontend/` (locally on port 3000, in the hosted environment from Vercel).
 2. `BackendStatus` calls `fetchBackendHealth` (`src/lib/api.ts`), which requests `NEXT_PUBLIC_API_BASE_URL` + `/actuator/health`; the component aborts the request after 5 seconds.
 3. The backend answers only if the request's `Origin` equals `snoozeshare.cors.allowed-origin` (the actuator and application endpoints are configured separately but fed from that one property).
-4. The health check runs a query against Postgres: locally the compose container, hosted a Neon branch. Flyway applied `V001__baseline.sql` and `V002__auth_users_wallets.sql` at startup.
+4. The health check runs a query against Postgres: locally the compose container, hosted a Neon branch. Flyway applied `V001__baseline.sql` through `V005__tighten_nightly_rate_constraint.sql` at startup (V002 auth, V003 domain tables, V004 system-user seed, V005 nightly-rate constraint; see [4.19](#419-domain-model-repositories-and-services-backend-domain-layer)).
 5. The page shows `Backend: UP` for a 200 response whose JSON status is `UP`, and `Backend: unreachable` for anything else; `Re-check` repeats the request.
 6. An authenticated request starts in the browser: `authenticatedFetch` (`src/lib/api.ts`) takes the signed-in user's Firebase ID token and sends it as `Authorization: Bearer <token>` (the sign-up and register flow is in [4.18](#418-authentication-and-role-authorization-backendauth-frontend-providers)).
 7. `FirebaseAuthFilter` verifies the token with Firebase Admin, including a revocation check and the project ID; a missing or invalid token gets `401 INVALID_TOKEN`, and an unreachable Firebase `503 AUTH_PROVIDER_UNAVAILABLE`.
@@ -441,6 +437,7 @@ evidence.
 | The API derives the UID from the verified bearer token, and route protection is client-side guards, not Next.js middleware | The client is never trusted for identity, and there is no session-cookie system to specify | A client-sent `firebaseUid`; Next.js middleware auth | C92 |
 | The `prod` profile fails startup unless security, Firebase, both codes and the Admin credentials are configured | An unset toggle would otherwise serve a permit-all production API | | C95 |
 | The client address for rate limits is `CF-Connecting-IP` when forwarded headers are trusted, and `X-Forwarded-For` is never read | Render's proxy appends to a client-supplied `X-Forwarded-For`, so its first entry is forgeable | The first `X-Forwarded-For` entry | C97 |
+| Spring Data JPA for persistence; entities use `id` as the PK column on every table | Cleaner Spring integration than ported JDBC; column naming follows W-AUTH's convention | Ported JDBC DAOs (C5 desktop) | C99 |
 
 ---
 
@@ -1475,7 +1472,7 @@ sequenceDiagram
 - `SnoozeShareApplication` (`backend/src/main/java/com/snoozeshare/`), `config/CorsConfig`, `config/CorsProperties`, `ProdEnvironmentGuard`.
 - `fetchBackendHealth(signal)` (`frontend/src/lib/api.ts`), `apiBaseUrl()` and `validateEnv()` (`frontend/src/lib/env.ts`), `BackendStatus` (`frontend/src/components/BackendStatus.tsx`).
 
-**Depends on.** PostgreSQL 17 through Spring JDBC and Flyway (`db/migration/V001__baseline.sql`, a comment-only baseline; `V002__auth_users_wallets.sql` belongs to [4.18](#418-authentication-and-role-authorization-backendauth-frontend-providers)); the frontend depends on the backend URL.
+**Depends on.** PostgreSQL 17 through Spring JDBC/JPA and Flyway (`db/migration/V001__baseline.sql`, a comment-only baseline; `V002__auth_users_wallets.sql` belongs to [4.18](#418-authentication-and-role-authorization-backendauth-frontend-providers); `V003`–`V005` belong to [4.19](#419-domain-model-repositories-and-services-backend-domain-layer)); the frontend depends on the backend URL.
 
 **Invariants.**
 - The `prod` profile has no defaults for the database or the allowed origin; `ProdEnvironmentGuard` fails startup and names any of `SPRING_DATASOURCE_URL`, `_USERNAME`, `_PASSWORD` or `SNOOZESHARE_CORS_ALLOWED_ORIGIN` that is missing, and fails unless `snoozeshare.security.enabled` and `snoozeshare.firebase.enabled` are true ([4.18](#418-authentication-and-role-authorization-backendauth-frontend-providers)). With no profile set the `dev` profile applies.
@@ -1584,6 +1581,74 @@ sequenceDiagram
 
 **Deviations.** D44 (Firebase beans exist only when `FIREBASE_ENABLED` is true, so contexts without a database or credentials still start).
 
+
+### 4.19 Domain model, repositories and services (`backend/` domain layer)
+
+**Purpose.** Port the desktop app's domain model, repositories and core services to Spring Boot with Spring Data JPA on PostgreSQL, so the role-feature workstreams (W-GUEST, W-HOST, W-AGENT) can build REST controllers on top of working business logic.
+
+**Packages.**
+
+| Path | Contents |
+|---|---|
+| `backend/src/main/java/com/snoozeshare/domain/model/` | 12 JPA entity classes (`User`, `Wallet`, `Property`, `Booking`, `AvailabilityBlock`, `Ticket`, `TicketCategory`, `Review`, `AuditLogEntry`, `Message`, `BookingMessage`) + `AmenitySetConverter` (comma-separated `TEXT` ↔ `Set<AmenityType>`) + `WalletTransaction` record (a projection, not an entity) |
+| `domain/enums/` | 13 enums copied from desktop: `AccountStatus`, `AmenityType`, `AssigneeFilter`, `AuditAction`, `BookingStatus`, `ListingStatus`, `PropertyType`, `RemedyType`, `ResolutionMode`, `Role`, `ThreadChannel`, `TicketStatus`, `WalletTransactionType` |
+| `domain/statemachine/` | `BookingStateMachine`, `TicketStateMachine` — the single legality check for status transitions, copied from desktop |
+| `domain/policy/` | `StayDatePolicy`, `DisputeWindowPolicy` — date rules, updated for entity-style getters |
+| `domain/settlement/` | `SettlementCalculator`, `SettlementBreakdown`, `EscrowPolicy` — escrow split maths, copied from desktop |
+| `domain/validation/` | `DomainValidation` — field validation (postal codes, rates, required text), copied from desktop |
+| `repository/` | 12 Spring Data JPA repository interfaces (`UserRepository`, `WalletRepository`, `PropertyRepository`, `BookingRepository`, `AvailabilityBlockRepository`, `TicketRepository`, `TicketCategoryRepository`, `ReviewRepository`, `AuditLogRepository`, `MessageRepository`, `BookingMessageRepository`, `LedgerRepository`) plus custom query implementations (`PropertySearchRepositoryImpl`, `AuditLogSearchRepositoryImpl`, `TicketQueueRepositoryImpl`) and two `JdbcTemplate`-based repositories (`JdbcMessageReadRepository`, `JdbcBookingMessageReadRepository`, `JdbcLedgerRepository`) |
+| `service/` | 13 service interfaces (`BookingService`, `ListingService`, `TicketService`, `DisputeSettlementService`, `DisputeQueryService`, `AccountGovernanceService`, `AvailabilityService`, `MessageService`, `BookingConversationService`, `ReviewService`, `WalletService`, `TransactionService`, `AuditService`, `ListingMetricsService`, `UserService`) and 14 value-object records |
+| `service/impl/` | 15 service implementations + `AuthorizationService` utility + `LedgerWriter` |
+| `service/requests/` | `NewTicketRequest`, `ResolutionRequest` — internal request types used by services |
+| `api/request/` | 16 request DTOs (Java records with `@Valid` and `@JsonIgnoreProperties(ignoreUnknown = false)`) |
+| `api/response/` | 21 response DTOs (Java records with `static from()` factory methods) |
+| `api/mapper/` | 3 mapper utilities: `ListingMapper`, `TicketMapper`, `SearchMapper` |
+| `db/migration/V003__domain_tables.sql` | ALTERs W-AUTH's `users`/`wallets` tables and creates 11 domain tables |
+| `db/migration/V004__seed_system_user.sql` | Seeds the SYSTEM user and platform-fee wallet |
+| `db/migration/V005__tighten_nightly_rate_constraint.sql` | Rejects zero nightly rate and enforces two-decimal precision |
+
+**Depends on.** Spring Data JPA and Hibernate on PostgreSQL 17 (Flyway V003–V005 on top of V001–V002); Spring's `@Transactional` and `ApplicationEventPublisher` replace the desktop's `TransactionManager` and `InProcessEventBus`.
+
+**Data model.** The 14 tables managed by Flyway V002–V005 (V002 creates `users` and `wallets`; V003 ALTERs them and creates the rest). All primary keys are `id UUID`.
+
+```mermaid
+erDiagram
+  users ||--o| wallets : "has (GUEST, HOST)"
+  users ||--o{ properties : "hosts"
+  users ||--o{ bookings : "books as guest"
+  users ||--o{ tickets : "raises"
+  users ||--o{ reviews : "writes"
+  properties ||--o{ bookings : "booked on"
+  properties ||--o{ availability_blocks : "blocked on"
+  bookings ||--o| availability_blocks : "sourced block"
+  bookings ||--o{ tickets : "disputed by"
+  bookings ||--o{ booking_messages : "chat"
+  bookings ||--o{ booking_message_reads : "read markers"
+  tickets ||--o{ messages : "threads"
+  tickets ||--o{ message_reads : "read markers"
+  bookings ||--o{ reviews : "reviewed"
+  users ||--o{ audit_log : "actor"
+```
+
+Left out for clarity: the `ticket_categories` lookup table (no FK from `tickets`, which stores the label text — D8); the self-referencing `assigned_agent_id` on `tickets`; and the `subject_user_id`, `booking_id` and `ticket_id` FKs on `audit_log`.
+
+**Invariants.**
+
+- JPA is configured with `ddl-auto: validate` (Hibernate checks the entity mappings against the Flyway-managed schema at startup) and `open-in-view: false` (no lazy loading outside a transaction).
+- Every entity uses `id` as the PK column name, matching W-AUTH's `users` and `wallets` convention (C99). The getter is `getId()`, not an entity-specific name.
+- All service implementations and JDBC repositories are annotated `@ConditionalOnBean(PropertyRepository.class)` so they do not load in test contexts that have no database (e.g. `ServerPortDefaultTest`).
+- Service implementations use entity-style getters (`.getField()`) and mutation via setters + `repository.save()`, not record accessors or new-record construction.
+- `BookingServiceImpl.submitRequest` runs at `Isolation.SERIALIZABLE` to prevent double-booking the same dates.
+- `WalletRepository.findByIdForUpdate` uses `@Lock(LockModeType.PESSIMISTIC_WRITE)` so concurrent money operations on the same wallet are serialised.
+- Wallet balance uses `NUMERIC(19,2)` (from W-AUTH's V002); other money columns (rates, amounts, adjustments) use `NUMERIC(19,4)` (C100).
+- `WalletTransaction` is a record, not a JPA entity — it is a projection from `audit_log` rows, read by `JdbcLedgerRepository`.
+- The domain enums in `domain/enums/` are copied verbatim from the desktop, with only the package declaration changed.
+- `LedgerWriter` is the single class that changes a wallet balance on the web, just as on the desktop ([4.16](#416-unified-ledger-ledgerwriter)). It posts audit rows and publishes `WalletTransactionRecordedEvent` via Spring's `ApplicationEventPublisher` after the transaction commits.
+- `AuthorizationService` checks that the acting user exists, is `ACTIVE`, and holds the required role; services delegate to it instead of repeating the check.
+- Request DTOs use Jakarta Bean Validation (`@NotNull`, `@NotBlank`, `@Positive`, `@DecimalMin`, `@Size`) and reject unknown JSON fields. Response DTOs expose a `static from(entity)` factory.
+
+**Deviations.** D45 (W-AUTH's V002 used `id` as the PK for `users` and `wallets` instead of entity-specific names, so the plan's V002 migration was restructured as V003 ALTER + CREATE, and all entity PK fields were renamed to `id`). D46 (the Flyway version numbers shifted: domain tables to V003, seed to V004, constraint to V005).
+
 ---
 
 ## 5. Requirements
@@ -1678,7 +1743,7 @@ they exist. It describes current behavior, including deliberate deferrals and co
 - **Host and Agent codes are reusable configuration values** — rotating one means changing the deployment setting.
 - **Web route guards are client-side** — the backend filters are the authority.
 - **Each API request checks Firebase token revocation** — request latency and availability depend on Firebase.
-- **The role pages are empty landing shells** — W-DOMAIN owns the domain persistence and wallet operations beyond registration-time provisioning.
+- **The role pages are empty landing shells** — the domain model and services are ported ([4.19](#419-domain-model-repositories-and-services-backend-domain-layer)) but no REST controllers expose them yet; the role workstreams (W-GUEST, W-HOST, W-AGENT) will add the endpoints and pages.
 - **The hosted dev backend sleeps when idle** — Render's free plan stops the service after a pause; the first request is slow and the page shows `Backend: unreachable` until `Re-check` (C85; `PROJECT_STATE.md` § Known Gaps).
 - **Vercel deploys from `development`** — its Production Branch stays `development` until the production deployment work re-points it at `main` (`PROJECT_STATE.md` § Known Gaps).
 - **Single-process only** — no multi-instance or distributed deployment support (`PROJECT_STATE.md` § Known Gaps).
@@ -1702,13 +1767,18 @@ they exist. It describes current behavior, including deliberate deferrals and co
 
 - **CF-Connecting-IP:** the request header Cloudflare sets to the real client address; with `SNOOZESHARE_TRUST_FORWARD_HEADERS=true` the backend uses it for rate limits and never reads `X-Forwarded-For`.
 - **Firebase ID token:** the signed token Firebase issues to a signed-in user; the frontend sends it as `Authorization: Bearer <token>` and the backend verifies it on each protected request.
-- **Flyway:** the database migration tool used by `backend/`; `V001__baseline.sql` is its first migration and `V002__auth_users_wallets.sql` its second.
+- **`@ConditionalOnBean(PropertyRepository.class)`:** the annotation on every domain service impl and JDBC repository that prevents them from loading in test contexts with no database.
+- **`ddl-auto: validate`:** the Hibernate setting that checks entity mappings against the Flyway-managed schema at startup without creating or altering tables.
+- **Flyway:** the database migration tool used by `backend/`; `V001__baseline.sql` through `V005__tighten_nightly_rate_constraint.sql` are its migrations (V001 baseline, V002 auth, V003 domain tables, V004 system-user seed, V005 nightly-rate constraint).
 - **Neon:** the hosted PostgreSQL service; the hosted dev backend uses its `dev` branch.
+- **`open-in-view: false`:** disables Hibernate's Open Session in View pattern, so lazy loading outside a `@Transactional` boundary throws instead of silently issuing queries.
 - **Registration code:** the secret a person enters to register as a Host or an Agent, set by `SNOOZESHARE_HOST_REGISTRATION_CODE` and `SNOOZESHARE_AGENT_REGISTRATION_CODE`; a Guest needs none.
 - **Render:** the host for the backend's Docker image, configured by `render.yaml`.
 - **Role namespace:** a URL prefix reserved for one role: `/api/guest/**`, `/api/host/**` or `/api/agent/**`.
+- **Spring Data JPA:** the persistence framework used by `backend/` for the domain layer (C99); repository interfaces extend `JpaRepository` and Hibernate maps entity classes to the Flyway-managed schema.
 - **Testcontainers:** the library that starts a throwaway Postgres 17 container for the backend tests.
 - **Vercel:** the host for the Next.js frontend.
+- **`AuthorizationService`:** a utility in `service/impl/` that checks the acting user exists, is `ACTIVE` and holds the required role; services delegate to it instead of repeating the check.
 - **Agent (Support Agent):** the platform-admin role. Agents triage tickets, settle disputes and maintain ticket categories.
 - **AGENT_OVERRIDE:** wallet transaction type written on the guest's wallet for a manual adjustment that refunds the guest.
 - **Action type:** the kind of change an audit row records, one `AuditAction` constant (for example `TICKET_RESOLVED`, `ESCROW_HOLD`). The Audit Log filters by a set of them.
@@ -1786,6 +1856,8 @@ measured for this guide.
 | End to end: `DisputeFlowEndToEndTest` | `AppContext` on a mock DB copy: agent works an open ticket from queue to resolution through the real services. |
 | Backend (`backend/src/test/java/com/snoozeshare`): `HealthEndpointTest`, `HealthOnKubernetesTest`, `FlywayBaselineTest`, `StartupFailureTest`, `ProfileDefaultsTest`, `ServerPortDefaultTest`, `ServerPortOverrideTest`, `ProdProfileTest`, `CorsPropertiesTest`, `CorsIntegrationTest` | Health body and status, no other actuator paths, DOWN and recovery when the database login is blocked, the baseline migration, fail-fast on an unreachable or missing database, the default profile and port, `prod` naming a missing variable, exact-origin CORS on the actuator and application endpoints. |
 | Backend authentication: `AuthMigrationTest`, `FirebaseConfigTest`, `FirebaseTokenVerifierTest`, `AuthSecurityIntegrationTest`, `AuthRegistrationIntegrationTest`, `AuthContractTest`, `RegistrationCodeValidationTest`, `RegistrationRateLimiterTest`, `PublicRegistrationRateLimiterTest`, `ClientIpResolverTest` | The `users` and `wallets` constraints, blank Firebase settings refused, token and project checks, `401` and `403` per route and role, registration (one wallet for a Guest and none for an Agent, same-role retry, inactive profile, concurrent registration), stable error shapes that leak no secret, the public pre-check and its limits (a correct code cannot beat an exhausted limit), and the client address (a forged `X-Forwarded-For` is ignored). A token-verifier double replaces Firebase, so no network is needed. |
+| Backend domain unit: `BookingStateMachineTest`, `TicketStateMachineTest`, `StayDatePolicyTest`, `DisputeWindowPolicyTest`, `SettlementCalculatorTest`, `DomainValidationTest` | The web-side copies of the desktop domain logic: every legal and illegal booking/ticket transition, past-date and inverted-range rejection, the day-7/day-8 boundary, escrow split maths and fee rounding, and field validation (postal codes, rates, required text). Pure unit tests, no Spring context. |
+| Backend domain repository integration: `UserRepositoryTest`, `BookingRepositoryTest`, `WalletRepositoryTest`, `TicketRepositoryTest`, `AuditLogRepositoryTest` | `@DataJpaTest` with Testcontainers Postgres 17: entity round trips, custom query methods (`findByFirebaseUid`, `findByIdForUpdate`, `findByGuestIdAndStatus`), the V003 schema constraints, and the audit-log search and indexing. Each test class starts its own application context with only JPA and Flyway. |
 | Frontend (`frontend/src`): `env.test.ts`, `BackendStatus.test.tsx` | Environment validation (including the six Firebase variables), and the status page for UP, each failure, the 5-second timeout, the disabled `Re-check` button and aborting on unmount. |
 | Frontend authentication: `firebase.test.ts`, `api.test.ts`, `AuthProvider.test.tsx`, `route-guards.test.tsx`, the `login`, `register` and `forgot-password` `page.test.tsx` files, `AuthHeader.test.tsx`, `RoleNavbar.test.tsx`, `RoleShell.test.tsx` | Firebase initialisation once, the bearer header and stable error mapping, the six provider states (a stale profile response after sign-out is ignored, a failed registration stays on the registration step, missing Firebase configuration shows an error instead of crashing), guard redirects, the register page's validate-before-signup order, safe `returnTo` handling, and the role shell. The Firebase client is mocked. |
 | Architecture: `LayerDependencyTest`, `UiDependencyTest` | `domain` has no JavaFX or `java.sql` imports; `ui` has no `com.snoozeshare.repository` or `java.sql` imports. |
@@ -1882,7 +1954,7 @@ measured for this guide.
 * [JUnit 5](https://junit.org/junit5/) provides the test framework, and [TestFX](https://github.com/TestFX/TestFX) drives the JavaFX smoke tests.
 * [Gradle](https://gradle.org/) and the [Gradle Wrapper](https://docs.gradle.org/current/userguide/gradle_wrapper.html) provide the build and dependency-management workflow. The project also uses the [Shadow](https://gradleup.com/shadow/) plugin to create a runnable fat JAR.
 * [Checkstyle](https://checkstyle.org/) enforces the source style checks run by `.\gradlew build`.
-* [Spring Boot](https://spring.io/projects/spring-boot), [Flyway](https://flywaydb.org/) and [Testcontainers](https://testcontainers.com/) provide the backend; [Next.js](https://nextjs.org/) and [Vitest](https://vitest.dev/) the frontend; [Render](https://render.com/), [Vercel](https://vercel.com/) and [Neon](https://neon.tech/) host the dev environment.
+* [Spring Boot](https://spring.io/projects/spring-boot), [Spring Data JPA](https://spring.io/projects/spring-data-jpa) with [Hibernate](https://hibernate.org/), [Flyway](https://flywaydb.org/) and [Testcontainers](https://testcontainers.com/) provide the backend; [Next.js](https://nextjs.org/) and [Vitest](https://vitest.dev/) the frontend; [Render](https://render.com/), [Vercel](https://vercel.com/) and [Neon](https://neon.tech/) host the dev environment.
 * [Jekyll](https://jekyllrb.com/) and [GitHub Pages](https://pages.github.com/) render the User Guide and this guide.
 * [Superpowers](https://github.com/obra/superpowers) supplied the agent skills for brainstorming, planning and subagent-driven development. The copies the project uses are committed in `.claude/skills/`.
 * Anthropic Claude (through Claude Code) and OpenAI Codex were the AI tools used during development. The project-specific conventions and constraints they worked under are recorded in `AGENTS.md`, and the session history is summarised in [Reflections](reflections/).
