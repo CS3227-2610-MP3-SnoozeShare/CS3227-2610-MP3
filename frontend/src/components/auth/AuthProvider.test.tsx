@@ -50,4 +50,24 @@ describe('AuthProvider', () => {
     resolveProfile({ role: 'GUEST' });
     await waitFor(() => expect(screen.getByText('signed_out')).toBeInTheDocument());
   });
+
+  it('stays on the registration step when registration fails with a live session', async () => {
+    // The /me lookup started by the sign-up is still in flight when registration fails; registering supersedes it.
+    fetchCurrentProfile.mockReturnValue(new Promise(() => undefined));
+    observeAuth.mockImplementation((callback: (user: { uid: string }) => void) => {
+      callback({ uid: 'firebase-user' });
+      return () => undefined;
+    });
+    registerProfile.mockRejectedValue(new Error('rate limited'));
+    function RegisterProbe() {
+      const { state, register } = useAuth();
+      return <><output>{state}</output><button onClick={() => void register({ role: 'GUEST' }).catch(() => undefined)}>Register</button></>;
+    }
+    render(<AuthProvider><RegisterProbe /></AuthProvider>);
+    await waitFor(() => expect(fetchCurrentProfile).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByRole('button', { name: 'Register' }));
+    await waitFor(() => expect(registerProfile).toHaveBeenCalled());
+    await waitFor(() => expect(screen.getByText('registering')).toBeInTheDocument());
+  });
 });

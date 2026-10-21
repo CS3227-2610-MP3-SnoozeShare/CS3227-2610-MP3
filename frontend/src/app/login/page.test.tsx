@@ -57,4 +57,35 @@ describe('login page', () => {
     view.rerender(<LoginPage />);
     await waitFor(() => expect(push).toHaveBeenCalledWith('/guest'));
   });
+
+  it.each([
+    ['a tab-split protocol-relative path', '/%09/evil.example'],
+    ['a newline-split protocol-relative path', '/%0A/evil.example'],
+    ['a protocol-relative path', '//evil.example'],
+    ['an absolute URL', 'https://evil.example'],
+  ])('ignores %s as a return path', async (_label, returnTo) => {
+    window.history.pushState({}, '', `/login?returnTo=${returnTo}`);
+    const view = render(<LoginPage />);
+    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'user@example.com' } });
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'password' } });
+    fireEvent.submit(screen.getByRole('button', { name: 'Sign in' }));
+    await waitFor(() => expect(signIn).toHaveBeenCalled());
+    auth.state = 'authenticated';
+    auth.profile = { role: 'GUEST' };
+    view.rerender(<LoginPage />);
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/guest'));
+  });
+
+  it('keeps a same-origin return path with its query', async () => {
+    window.history.pushState({}, '', '/login?returnTo=%2Fguest%2Ftrips%3Ftab%3Dupcoming');
+    const view = render(<LoginPage />);
+    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'user@example.com' } });
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'password' } });
+    fireEvent.submit(screen.getByRole('button', { name: 'Sign in' }));
+    await waitFor(() => expect(signIn).toHaveBeenCalled());
+    auth.state = 'authenticated';
+    auth.profile = { role: 'GUEST' };
+    view.rerender(<LoginPage />);
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/guest/trips?tab=upcoming'));
+  });
 });

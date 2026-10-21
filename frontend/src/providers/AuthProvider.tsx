@@ -72,7 +72,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async register(payload) {
       const generation = ++requestGeneration.current;
       setError(null);
-      const nextProfile = await registerProfile(payload);
+      let nextProfile: AuthProfile;
+      try {
+        nextProfile = await registerProfile(payload);
+      } catch (caught) {
+        // The Firebase session outlives a failed registration (E10); stay on the registration step so the
+        // guards do not treat the live session as signed out while the user retries.
+        if (generation === requestGeneration.current) setState('registering');
+        throw caught;
+      }
       if (generation !== requestGeneration.current) return;
       setProfile(nextProfile);
       setState('authenticated');

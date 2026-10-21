@@ -47,6 +47,14 @@ export default function LoginPage() {
   </form></main>;
 }
 
+/** Same-origin paths only. URL parsers drop tabs and newlines and read a backslash as a slash, so parse rather than pattern-match. */
 function safeReturnTo(value: string | null) {
-  return value && value.startsWith('/') && !value.startsWith('//') && !value.includes('\\') ? value : null;
+  if (!value || !value.startsWith('/')) return null;
+  try {
+    const parsed = new URL(value, window.location.origin);
+    if (parsed.origin !== window.location.origin) return null;
+    return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+  } catch {
+    return null;
+  }
 }
