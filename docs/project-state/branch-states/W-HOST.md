@@ -9,7 +9,7 @@ in after the branch merges.
 - **Owner:** project owner
 - **Status:** In review
 - **Approved:** —
-- **Last updated:** 2026-10-21 by GPT-5 — listing form parity verified, committed, and pushed; awaiting owner review
+- **Last updated:** 2026-10-21 by GPT-5 — listing form control/layout follow-up verified; awaiting owner review
 
 ---
 
@@ -42,7 +42,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | T4 follow-up verified: artifact field/card layout across full-width forms | guide out of date: W-HOST Host UI pages and Fall Light details |
+| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | T4 follow-up verified: select labels, independent cards, flush menus, tighter rows and spaced breadcrumbs | guide out of date: W-HOST Host UI pages and Fall Light details |
 
 ## 4. Architecture
 
@@ -92,3 +92,4 @@ None.
 | 2026-10-21 | Aligned New listing with the page title; removed status pills; centered five fixed-width card groups and added outlined calendar/edit actions; all 99 frontend tests, lint, build, and desktop/tablet browser checks pass | W-HOST | T9 |
 | 2026-10-21 | Kept the availability switch to the right of its label and compacted the five desktop card groups; all 99 frontend tests, lint, production build, and desktop browser check pass | W-HOST | T9 follow-up |
 | 2026-10-21 | Matched New/Edit listing forms to artifact card order, paired fields, six amenity rows, section styling, breadcrumbs, currency/time display, and action order while retaining full-width cards; 104 tests, lint, build, and browser checks pass | W-HOST | T4 follow-up |
+| 2026-10-21 | Added visible Property type/Status labels; independently sized cards; tightened form gaps; positioned select menus directly below fields; increased breadcrumb spacing; 105 tests, lint, build, and browser check pass | W-HOST | T4 follow-up |
