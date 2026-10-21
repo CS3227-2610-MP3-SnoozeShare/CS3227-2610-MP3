@@ -63,9 +63,9 @@ Batching these until the end of a session loses them, because sessions end unpre
 task is not complete until the branch state reflects it.**
 
 **Approval gate.** Branch state `Status` runs `Draft` → `In review` → `Approved` → `Folded`. Only
-the project owner sets `Approved`, with their name and the date; an agent never does. Do not merge
+the project owner sets `Approved`, with their name and the date; an agent never does on its own initiative, only by writing down the owner's yes (§ 8 Workflow gates). Do not merge
 a branch into `development` until it is `Approved` and its session table is empty. After the merge the owner runs
-`sync-project-state` by hand; a file still in `branch-states/` on `development` means a fold is pending.
+`sync-project-state` (§ 8: the agent asks first); a file still in `branch-states/` on `development` means a fold is pending.
 
 **IDs.** Permanent IDs (`C14`) are allocated only by `sync-project-state`. A branch mints
 provisional `~` IDs and never cites one outside its own branch state — not in a commit message or a
@@ -209,3 +209,40 @@ project owner, on `development`, and only after the Developer Guide holds the co
   Open it only to answer "why was X decided?".
 - **IDs continue across iterations.** `PROJECT_STATE.md` § Conventions records the highest ID
   used; never reuse one.
+
+## 8. Workflow gates: the agent asks, the operator decides
+
+The operator must never have to remember which skill comes next. Work moves through the gates
+below in order. At each one the agent **stops, says what is ready, and asks one question**; it
+does not start the next stage until the operator answers yes in chat. Silence, "looks fine so far",
+a yes to a different question, or a clean `lite-reviewer` / `code-review` report is not a yes. If
+the operator is unavailable, stop and put the question in § Needs a Human (the same rule as § 4).
+
+**Recording a yes.** On a yes the agent writes the approval marker itself, in the same write as the
+stage change: `Approved (<operator name>, <YYYY-MM-DD>)`, taking the name from the chat (ask if it
+is not known). That transcribes the operator's decision; it is not the agent's approval. A
+change after approval that is more than a typo (the spec, plan or branch changes in behaviour,
+scope or tasks) drops the marker back to `In review` and the agent asks again. A "no" or "change
+X" keeps the stage open: fix it, then ask again. Small changes (§ 3) skip gates 1 and 2 only.
+
+| Gate | The agent asks when | The question names | On yes | Not before |
+|---|---|---|---|---|
+| **1. Spec** | The spec files are written, `lint.mjs spec` passes, the review rounds are done, no `Q` is open | The spec path, risk tier, lenses run, decisions and rejected options | Spec index `Status: Approved (...)`; workstream `Spec'd`; Changes line; then start `writing-plans-lite` | Any plan |
+| **2. Plan** | The plan is written, `lint.mjs plan` passes, the reviewer round is done | The plan path, task count and waves, `GATE:` and `Post-merge` tasks | Plan `Status: Approved (...)` (add the line under the plan's title if it is missing); workstream `Planned`; then start `executing-plans-lite` | Any code |
+| **3. Review** | Every task is `Done` (or `Post-merge`), the build is green, the code review is run, and every known bug is fixed or recorded as a Deviation or Handover item; a state that is reasonable to hand over counts, but say what is left | What was built, the checks run and not run, open Deviations and Handover items | Branch state `Status: Approved`, `Approved: <name> <date>`; then ask separately whether to push and open the PR | Pushing, opening a PR, merging |
+| **4. Sync** | The branch is merged into `development` (the operator says so, or a non-archived branch state is found there at session start) | The branch state and the fold it would run | Run `sync-project-state` for it on `development`, or on a `sync/<slug>` branch if the operator prefers a reviewed fold; commit, never push | Any fold |
+| **5. Fold** | The fold commit exists | The ID map, sections touched, Handover items now in Upcoming | The operator's yes confirms the changes; then ask whether each folded `Done` workstream is confirmed for the guide | Any guide work |
+| **6. Guide** | The operator confirmed the workstream (Guide `Pending`) | The proposed sections and diagrams, with each claim checked against the code (§ 5) | Write the guide, set Guide `Documented YYYY-MM-DD`, add the Done ledger line; on a hold, keep `Pending` and note `guide held YYYY-MM-DD: <reason>` | Writing the guide |
+
+- **Gate 3 is the review that unblocks the PR.** The agent sets the branch state to `In review`
+  with an empty session table and asks the operator to review. The agent never pushes, opens a PR
+  or merges before the `Approved` line is written. The CI check (`check-branch-states.sh`) backs this up
+  and does not replace it: it only runs when the PR carries a branch state, so a PR without one is
+  not checked.
+- **"By hand" in the sync, refresh and update skills means the operator's yes in chat.** The agent
+  asks and then runs `sync-project-state` or `update-documentation`; the operator does not have to
+  invoke them. `refresh-project-state` is still never started by an agent (§ 7).
+- **At the start of every session** the agent finds where the work sits and raises any open gate
+  first: a spec or plan awaiting approval, a branch `In review`, a merged branch still in
+  `branch-states/`, a Guide cell of `Awaiting confirmation` or `Pending`. A held gate is mentioned
+  once per session, not repeated.

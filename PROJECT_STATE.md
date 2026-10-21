@@ -12,7 +12,7 @@ the branch state instead.
 - **Stack (target, not yet built):** the ported domain and services, REST controllers per role, and the NUS SOC LLM for AI features, on top of the W-INFRA skeletons. Persistence approach (Spring Data JPA or ported JDBC) is decided in the W-DOMAIN spec (C74). Source: [docs/Webapp-architecture-design.md](docs/Webapp-architecture-design.md)
 - **Branch:** `development` — this file describes `development` (the integration and default branch); `main` is the release branch and receives it by pull request. Branches record their changes in `docs/project-state/branch-states/` and `sync-project-state` folds them in after the merge into `development`
 - **Method:** TDD-first vertical slices; spec then plan for big changes (`AGENTS.md` § 3); small commits (`AGENTS.md` § 6)
-- **Last updated:** 2026-10-21 by Claude Sonnet 5.5 — folded W-AUTH and documented it in the guide
+- **Last updated:** 2026-10-22 by Claude Sonnet 5.5 — owner hotfix: workflow gates (C98, `AGENTS.md` § 8)
 - **Last verified against repo:** 2026-10-21
 - **Developer guide:** `docs/DeveloperGuide.md` documents W1–W16 and the MP3-0 fixes (last full update 2026-10-19) and, since 2026-10-20, the W-INFRA web skeletons and dev deployment (§ 3.2, § 4.17) and, since 2026-10-21, the W-AUTH web authentication (§ 4.18, with the auth parts of § 2, § 3.2, § 5–§ 7). Residual limitations stay in the guide's Known Limitations and § Known Gaps.
 
@@ -237,7 +237,7 @@ Decision rows below carry only the standing decisions; the full text of each is 
 
 ## 5. Conventions
 
-Highest IDs used before this iteration: **W16, C59, D38, Q3** (this iteration so far: C97, D44, Q6). Numbering continues; never reuse. `C11, C28–C31, C37, C39–C41` each have two meanings in the archive; cite the archive section when it matters.
+Highest IDs used before this iteration: **W16, C59, D38, Q3** (this iteration so far: C98, D44, Q6). Numbering continues; never reuse. `C11, C28–C31, C37, C39–C41` each have two meanings in the archive; cite the archive section when it matters.
 
 - `ui.*` never imports `repository.*` or `infra.db.*` — only `service.*`. Only `repository.jdbc.*` imports `java.sql.*`.
 - `BookingService`/`TicketService` are the only callers of `TransactionService`; UI never calls it, and never calls `WalletService.topUp/withdraw` inside a booking/ticket flow.
@@ -339,6 +339,7 @@ Standing process decisions. Architecture-shaping ones sit with their area in § 
 | C95 | 2026-10-21 | Production must fail startup unless security, Firebase, registration-code and Admin credential settings are explicitly configured; frontend browser Firebase values are deployment metadata and CI uses non-secret repository variables or safe fallbacks | Review found that an unset security toggle would otherwise expose a permit-all production chain and that CI secrets were unnecessary for public browser configuration | Review remediation, 2026-10-21 |
 | C96 | 2026-10-21 | Auth error responses carry a generated request ID that is logged with status, safe code and path; unexpected failures use `INTERNAL_ERROR` | Review found that returned request IDs had no correlation and database failures were mislabeled as validation errors | Review remediation, 2026-10-21 |
 | C97 | 2026-10-21 | Use the proxy-set `CF-Connecting-IP` address only when `SNOOZESHARE_TRUST_FORWARD_HEADERS=true`; never read `X-Forwarded-For`; local development ignores proxy headers and falls back to `getRemoteAddr()`. Amends the first version of this decision, which took the first `X-Forwarded-For` entry | The operator requested per-client Render rate limiting while preserving safe local testing. Review found the leftmost `X-Forwarded-For` entry is client-forgeable (Render's proxy appends to it), which let an attacker rotate fake IPs past every limiter; Render's guidance is to use `CF-Connecting-IP` | Project owner, 2026-10-21; review remediation |
+| C98 | 2026-10-22 | Workflow gates (`AGENTS.md` § 8): the agent stops and asks the operator for a yes at six points — spec approved before the plan, plan approved before any code, branch review before any push or PR, sync after the merge, fold confirmation, then the guide proposal — and writes the `Approved (<name>, <date>)` marker itself on that yes. "By hand" in the sync and guide skills now means the operator's yes in chat, so the operator no longer has to know which skill comes next. Rejected: leaving the skills operator-invoked; relying on the `check-branch-states.sh` CI check alone (it skips a PR that has no branch state) | Operator: W-AUTH was merged before its approval was recorded ("after the merge" in its Workstreams row) and the plan carried no approval marker, so nothing prompted the operator at the stage boundaries | `AGENTS.md` § 8; owner hotfix on `development` |
 
 ---
 
@@ -369,5 +370,5 @@ Live traps only; resolved ones are in the archive. Each is what, the consequence
 
 The Done ledger lives in **[`docs/project-state/done-ledger.md`](docs/project-state/done-ledger.md)** — every change, big or small, newest first.
 
-- **Latest entry:** 2026-10-21
-- **Entries:** 73 (iteration 2 started; earlier entries in the archive)
+- **Latest entry:** 2026-10-22
+- **Entries:** 74 (iteration 2 started; earlier entries in the archive)
