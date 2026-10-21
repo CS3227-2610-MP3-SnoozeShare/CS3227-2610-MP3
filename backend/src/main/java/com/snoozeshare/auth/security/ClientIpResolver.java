@@ -4,8 +4,16 @@ import java.util.regex.Pattern;
 
 import jakarta.servlet.http.HttpServletRequest;
 
-/** Resolves the address used for abuse limits without trusting local client headers. */
+/**
+ * Resolves the address used for abuse limits without trusting local client headers.
+ *
+ * <p>With forwarded headers trusted, the address comes from {@code CF-Connecting-IP}, which Cloudflare (in front
+ * of Render) overwrites on every request. {@code X-Forwarded-For} is never read: the proxy appends to a
+ * client-supplied value, so its leftmost entry is forgeable.
+ */
 public class ClientIpResolver {
+
+    static final String CLIENT_IP_HEADER = "CF-Connecting-IP";
 
     private static final Pattern IPV4 = Pattern.compile("\\d{1,3}(?:\\.\\d{1,3}){3}");
     private static final Pattern IPV6 = Pattern.compile("[0-9A-Fa-f:.]+");
@@ -21,11 +29,11 @@ public class ClientIpResolver {
         if (!trustForwardedHeaders) {
             return directPeer;
         }
-        String forwardedFor = request.getHeader("X-Forwarded-For");
-        if (forwardedFor == null || forwardedFor.isBlank()) {
+        String header = request.getHeader(CLIENT_IP_HEADER);
+        if (header == null || header.isBlank()) {
             return directPeer;
         }
-        String candidate = forwardedFor.split(",", 2)[0].trim();
+        String candidate = header.trim();
         return isIpAddress(candidate) ? candidate : directPeer;
     }
 
