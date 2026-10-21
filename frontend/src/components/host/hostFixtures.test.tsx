@@ -31,6 +31,12 @@ describe('Host fixture adapter', () => {
       'Refund not received',
     ]);
     expect(adapter.getStatement().data?.[0]).toMatchObject({ type: 'BOOKING_PAYOUT', amount: 349.2 });
+    expect(adapter.getStatement().data).toHaveLength(7);
+    expect(adapter.getStatement().data).toEqual(expect.arrayContaining([
+      expect.objectContaining({ type: 'ESCROW_HOLD', relatedTo: 'Booking #B-2255', amount: -210 }),
+      expect.objectContaining({ type: 'TICKET_REMEDY', relatedTo: 'Ticket #1031 (approved)', amount: 60 }),
+      expect.objectContaining({ type: 'WITHDRAWAL', amount: -300 }),
+    ]));
   });
 
   it('returns deterministic empty, loading, and error states', () => {
@@ -43,6 +49,13 @@ describe('Host fixture adapter', () => {
     expect(createHostFixtureAdapter('empty').getListings().data).toEqual([]);
     expect(createHostFixtureAdapter('loading').getListings().data).toBeUndefined();
     expect(createHostFixtureAdapter('error').getListings().error).toBe('Unable to load your listings.');
+  });
+
+  it('keeps the sample statement balances consistent across transactions', () => {
+    const statement = createHostFixtureAdapter().getStatement().data!;
+    for (let index = 0; index < statement.length - 1; index += 1) {
+      expect(statement[index + 1].balanceAfter + statement[index].amount).toBeCloseTo(statement[index].balanceAfter, 2);
+    }
   });
 
   it('returns not-found for unknown or partial listing IDs', () => {

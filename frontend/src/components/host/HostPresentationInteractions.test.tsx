@@ -52,6 +52,6 @@ describe('W-HOST local-only interactions', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Withdraw' }));
     await waitFor(() => expect(screen.getByRole('dialog')).toHaveTextContent('no real payout rail'));
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
-    expect(screen.getByText('Wallet: $3,920.50')).toBeInTheDocument();
+    expect(screen.getByText('AVAILABLE BALANCE')).toBeInTheDocument();
   });
 });

@@ -9,7 +9,7 @@ in after the branch merges.
 - **Owner:** project owner
 - **Status:** In review
 - **Approved:** —
-- **Last updated:** 2026-10-21 by GPT-5 — padded the resolved-conversation notice inside the composer footer
+- **Last updated:** 2026-10-22 by GPT-5 — centered Wallet actions against the balance panel
 
 ---
 
@@ -42,7 +42,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Resolved notice padded within composer footer; 135 tests, lint, isolated build pass | guide out of date: W-HOST Host UI pages and Fall Light details |
+| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Wallet actions vertically centered; 138 tests and lint pass | guide out of date: W-HOST Host UI pages and Fall Light details |
 
 ## 4. Architecture
 
@@ -74,6 +74,8 @@ None.
 | C~8 | 2026-10-21 | Reopened date picker must calculate its Sunday-first grid from the first of the selected month, not the selected date itself | Project owner reported selected dates shifted to incorrect weekdays after closing and reopening the picker | Operator conversation |
 | C~9 | 2026-10-21 | The booking calendar always renders six week rows; the date-range picker stages edits until Apply, Clear resets the draft without closing, outside click closes without applying, and picker/current-blocked ranges include the end year (both years across year boundaries) | Project owner specified the calendar layout, artifact-style picker controls, dismissal behavior, and range-year presentation | Operator conversation |
 | C~10 | 2026-10-21 | The current page name in every Host breadcrumb is bolded | Project owner requested consistent visual emphasis for the current page | Operator conversation |
+| C~11 | 2026-10-21 | Host wallet presentation follows the artifact’s inset balance panel, stacked controls, currency label, and bordered transaction table; fixture rows represent relevant booking and wallet events | Project owner approved matching the Wallet page to the artifact and requested sample data based on booking or other relevant examples | Operator conversation |
+| C~12 | 2026-10-22 | Vertically center the stacked Top up and Withdraw actions against the available-balance panel without changing their width or stack order | Project owner requested and approved the Wallet action alignment adjustment | Operator conversation |
 
 ## 9. Deviations
 
@@ -124,3 +126,5 @@ None.
 | 2026-10-21 | Message history scrolls to the newest message when a message is sent, and Enter sends the composer draft; 134 tests, lint, and isolated production build pass | W-HOST | Operator follow-up |
 | 2026-10-21 | Refined Messages to use the artifact’s wider compact thread list, divided warm chat surface, smaller message bubbles, and bordered composer footer; 135 tests, lint, and isolated production build pass | W-HOST | Operator follow-up |
 | 2026-10-21 | Padded the resolved/read-only notice inside the composer footer; updated the fixture title expectation to match the current in-progress Messages fixture shape; 135 tests, lint, isolated production build pass | W-HOST | Operator follow-up |
+| 2026-10-21 | Matched the wallet balance panel, stacked actions, SGD and ledger table styling; expanded the sample statement to seven reconciled booking/wallet transactions; 138 tests, lint, production build pass | W-HOST | Operator follow-up |
+| 2026-10-22 | Vertically centered the Top up/Withdraw stack against the available-balance panel; 138 tests and lint pass | W-HOST | Operator follow-up |

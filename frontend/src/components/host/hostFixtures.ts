@@ -72,6 +72,8 @@ const statement: StatementRow[] = [
   { date: 'Sep 7, 2026', type: 'BOOKING_PAYOUT', relatedTo: 'Booking #B-2255', amount: 203.7, balanceAfter: 3071.3 },
   { date: 'Aug 30, 2026', type: 'ESCROW_HOLD', relatedTo: 'Booking #B-2255', amount: -210, balanceAfter: 2867.6 },
   { date: 'Aug 20, 2026', type: 'WITHDRAWAL', relatedTo: '—', amount: -300, balanceAfter: 3077.6 },
+  { date: 'Aug 6, 2026', type: 'TICKET_REMEDY', relatedTo: 'Ticket #1031 (approved)', amount: 60, balanceAfter: 3377.6 },
+  { date: 'Jul 2, 2026', type: 'ESCROW_REFUND', relatedTo: 'Booking #B-2204 (completed)', amount: 0, balanceAfter: 3317.6 },
 ];
 
 const calendar: CalendarData = {

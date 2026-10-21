@@ -93,11 +93,36 @@ describe('Host messages and wallet', () => {
     expect(composer).toHaveValue('');
   });
 
-  it('renders wallet balance, statement, and mocked local controls', async () => {
+  it('matches the artifact balance panel and stacked wallet controls', () => {
     const adapter = createHostFixtureAdapter();
     render(<HostWalletPanel wallet={adapter.getWalletSummary().data!} statement={adapter.getStatement().data!} />);
-    expect(screen.getByText('Wallet: $3,920.50')).toBeInTheDocument();
-    expect(screen.getAllByText('BOOKING_PAYOUT').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('$3,920.50')).toHaveLength(2);
+    expect(screen.getByText('SGD')).toBeInTheDocument();
+    expect(screen.getByText('AVAILABLE BALANCE').parentElement).toHaveClass('bg-[var(--surface-inset)]');
+    expect(screen.getByRole('button', { name: 'Top up' }).parentElement).toHaveClass('flex-col');
+    expect(screen.getByRole('button', { name: 'Top up' }).parentElement?.parentElement).toHaveClass('sm:grid-cols-[minmax(0,5fr)_minmax(160px,1fr)]');
+    expect(screen.getByRole('button', { name: 'Top up' }).parentElement?.parentElement).toHaveClass('items-center');
+  });
+
+  it('formats wallet transactions in an artifact-style bordered table', () => {
+    const adapter = createHostFixtureAdapter();
+    render(<HostWalletPanel wallet={adapter.getWalletSummary().data!} statement={adapter.getStatement().data!} />);
+    const table = screen.getByRole('table');
+    expect(table).toHaveClass('text-xs');
+    expect(screen.getByRole('heading', { name: 'Transaction statement' })).toHaveClass('text-base');
+    expect(table.querySelector('tbody td')).toHaveClass('py-2.5');
+    expect(table.parentElement?.parentElement).toHaveClass('overflow-hidden', 'rounded-xl', 'border');
+    expect(screen.getByText('DATE').parentElement?.parentElement).toHaveClass('bg-[var(--surface-inset)]');
+    expect(screen.getByText('ESCROW_HOLD')).toHaveClass('rounded-full');
+    expect(screen.getByText('TOP_UP')).toHaveClass('rounded-full');
+    expect(screen.getByText('-$210.00')).toBeInTheDocument();
+    expect(screen.getByText('+$349.20')).toBeInTheDocument();
+    expect(table.querySelectorAll('tbody tr')).toHaveLength(7);
+  });
+
+  it('retains mocked local wallet controls', async () => {
+    const adapter = createHostFixtureAdapter();
+    render(<HostWalletPanel wallet={adapter.getWalletSummary().data!} statement={adapter.getStatement().data!} />);
     fireEvent.click(screen.getByRole('button', { name: 'Top up' }));
     await waitFor(() => expect(screen.getByRole('dialog')).toHaveTextContent('no real payment gateway'));
   });
