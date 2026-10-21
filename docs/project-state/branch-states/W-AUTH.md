@@ -5,7 +5,7 @@
 - **Branch:** W-AUTH (from `development` at `a785e75`)
 - **Base:** `a785e75`
 - **Owner:** project owner
-- **Status:** Building
+- **Status:** In review
 - **Approved:** —
 - **Last updated:** 2026-10-21 by Codex — W-AUTH implementation and close-out complete
 
@@ -32,7 +32,6 @@ cd ../backend && ./gradlew test
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| Codex | 2026-10-21 | — | W-AUTH remediation | Building | Implementing review fixes | Add failing tests for production fail-closed config, limiter ordering/reset, auth races, redirects and Firebase absence | 2026-10-21 |
 
 **Remaining**
 
@@ -42,7 +41,7 @@ cd ../backend && ./gradlew test
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AUTH | Firebase authentication and role authorization | Building | [spec](docs/superpowers/specs/2026-10-20-w-auth-design.md); [registration pre-validation spec](docs/superpowers/specs/2026-10-21-w-auth-registration-prevalidation-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-auth-registration-prevalidation.md) | Review remediation implemented; backend/frontend verification green; final diff review remains | — |
+| W-AUTH | Firebase authentication and role authorization | In review | [spec](docs/superpowers/specs/2026-10-20-w-auth-design.md); [registration pre-validation spec](docs/superpowers/specs/2026-10-21-w-auth-registration-prevalidation-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-auth-registration-prevalidation.md) | Review remediation implemented; backend/frontend verification green; owner review and trusted-IP decision remain | — |
 
 ## 4. Architecture
 
