@@ -21,10 +21,10 @@
 | Task | Depends on | Can run concurrently with | Wave | Status |
 |---|---|---|---|---|
 | T1 Core types and configuration | - | - | 1 | Done |
-| T2 Audit actions and writer | T1 | T3, T4, T5 | 2 | Not started |
-| T3 Guardrails | T1 | T2, T4, T5 | 2 | Not started |
-| T4 Limits and resilience | T1 | T2, T3, T5 | 2 | Not started |
-| T5 SoCLaaS client | T1 | T2, T3, T4 | 2 | Not started |
+| T2 Audit actions and writer | T1 | T3, T4, T5 | 2 | Done |
+| T3 Guardrails | T1 | T2, T4, T5 | 2 | Done |
+| T4 Limits and resilience | T1 | T2, T3, T5 | 2 | Done |
+| T5 SoCLaaS client | T1 | T2, T3, T4 | 2 | Done |
 | T6 Gateway facade | T2, T3, T4, T5 | - | 3 | Not started |
 | T7 Integration tests, boundary test and docs | T6 | - | 4 | Not started |
 | T8 Live verification | T7 | - | 5 | Post-merge |
@@ -192,16 +192,16 @@ if (aiEnabled) {
 | Test | `backend/src/test/java/com/snoozeshare/ai/audit/AiAuditWriterTest.java` | E13, E30, E31, E47, E55 (global reserve), E56, E59 |
 
 **Checklist**
-- [ ] 1. Write failing `AiAuditWriterTest` on a Postgres Testcontainer. Reuse the container setup of `AuditLogRepositoryTest` but mark the class `@Transactional(propagation = Propagation.NOT_SUPPORTED)` so seed rows are committed and visible to worker threads, create every actor with `AiTestUsers`, and delete the rows and users in `@AfterEach` (the global count spans all users). Build `AiAuditWriter` with a real `AuditServiceImpl(entries, users, clock)`; for the failure cases wrap `AuditService` or the repository in a Mockito spy that throws: `capsUnderParallelBurst` (195 `AI_CALL` rows today, 50 yesterday, 30 R rows, 10 threads released together: exactly 5 reserve), `utcDay` (Singapore-zone clock at 23:59:59 UTC and 00:00:01 UTC), `globalReserve` (priority 2 stops at 80 percent of the global cap, priority 0 runs to 100), `countFailureFailsClosed`. Expect FAIL.
-- [ ] 2. Add the enum constants and the two count methods; run `AuditLogRepositoryTest` to confirm nothing else breaks.
-- [ ] 3. Implement `reserve(UUID userId, int priority)` per the snippet and `release(UUID userId, boolean keepCounted)`.
-- [ ] 4. Implement `write(...)`: build the metadata line of data-model.md, call `AuditServiceImpl`-backed `AuditService.record` through `AuditRecord.builder(...).status(null, metadata).reason(code).subject(...).booking(...).ticket(...).build()`; return false when it throws.
-- [ ] 5. Implement R-row coalescing (one row per user and code per 10 minutes, kept in a map cleaned on each call).
-- [ ] 6. Write and pass `writerFailures` (writer throws, a nonexistent ticket id), `coalescing` (20 DAILY_CAP refusals give one row), `noPromptText` (marker strings absent from every column) and `failedAuditStaysCounted`.
-- [ ] 7. Run the test command, then Checkstyle separately; expect PASS and no violations.
-- [ ] 8. Run `.\gradlew build`; expect green.
-- [ ] 9. Update the branch state: Progress, a Changes line.
-- [ ] 10. Commit: `feat: add AI audit actions, cap counts and audit writer (W-AI-GATEWAY)`.
+- [x] 1. Write failing `AiAuditWriterTest` on a Postgres Testcontainer. Reuse the container setup of `AuditLogRepositoryTest` but mark the class `@Transactional(propagation = Propagation.NOT_SUPPORTED)` so seed rows are committed and visible to worker threads, create every actor with `AiTestUsers`, and delete the rows and users in `@AfterEach` (the global count spans all users). Build `AiAuditWriter` with a real `AuditServiceImpl(entries, users, clock)`; for the failure cases wrap `AuditService` or the repository in a Mockito spy that throws: `capsUnderParallelBurst` (195 `AI_CALL` rows today, 50 yesterday, 30 R rows, 10 threads released together: exactly 5 reserve), `utcDay` (Singapore-zone clock at 23:59:59 UTC and 00:00:01 UTC), `globalReserve` (priority 2 stops at 80 percent of the global cap, priority 0 runs to 100), `countFailureFailsClosed`. Expect FAIL.
+- [x] 2. Add the enum constants and the two count methods; run `AuditLogRepositoryTest` to confirm nothing else breaks.
+- [x] 3. Implement `reserve(UUID userId, int priority)` per the snippet and `release(UUID userId, boolean keepCounted)`.
+- [x] 4. Implement `write(...)`: build the metadata line of data-model.md, call `AuditServiceImpl`-backed `AuditService.record` through `AuditRecord.builder(...).status(null, metadata).reason(code).subject(...).booking(...).ticket(...).build()`; return false when it throws.
+- [x] 5. Implement R-row coalescing (one row per user and code per 10 minutes, kept in a map cleaned on each call).
+- [x] 6. Write and pass `writerFailures` (writer throws, a nonexistent ticket id), `coalescing` (20 DAILY_CAP refusals give one row), `noPromptText` (marker strings absent from every column) and `failedAuditStaysCounted`.
+- [x] 7. Run the test command, then Checkstyle separately; expect PASS and no violations.
+- [x] 8. Run `.\gradlew build`; expect green.
+- [x] 9. Update the branch state: Progress, a Changes line.
+- [x] 10. Commit: `feat: add AI audit actions, cap counts and audit writer (W-AI-GATEWAY)`.
 
 ```java
 // AiAuditWriter.reserve - one lock across the reads and the reservation (spec api.md step 8)
@@ -246,16 +246,16 @@ public CapResult reserve(UUID userId, int priority) {
 | Test | `backend/src/test/java/com/snoozeshare/ai/guard/OutputValidatorTest.java` | E24, E25, E26, E41 (validator side) |
 
 **Checklist**
-- [ ] 1. Write failing `InputSanitizerTest`, `PiiRedactorTest`, `InjectionDetectorTest`: every scenario of E1, E2 (all six tag variants), E6 (including `6011 1111 1111 1111` and 100,000 characters of `a@a@a@` under 200 ms), E7 (including the benign "you are now confirmed"), E52, E58. Expect FAIL.
-- [ ] 2. Implement `InputSanitizer`, `PiiRedactor`, `InjectionDetector`; run those tests; expect PASS.
-- [ ] 3. Write failing `PromptBuilderTest`: `layout` (exact message list), `keepsLastTurnsAndStartsWithUser`, `blankLastUserTurn`, `untrustedContextTags`, `oversizedContexts`, and a golden `promptHash` for a fixed prompt.
-- [ ] 4. Implement `PromptBuilder`; expect PASS.
-- [ ] 5. Write failing `OutputValidatorTest`: `unusableBodies`, `leakAndLinks` (including the `\u`-escaped link, tag and key inside a JSON string and the fullwidth link), `refusal` for text and JSON features.
-- [ ] 6. Implement `OutputValidator`; expect PASS.
-- [ ] 7. Run Checkstyle separately; expect no violations.
-- [ ] 8. Run `.\gradlew build`; expect green.
-- [ ] 9. Update the branch state: Progress, a Changes line.
-- [ ] 10. Commit: `feat: add AI input and output guardrails (W-AI-GATEWAY)`.
+- [x] 1. Write failing `InputSanitizerTest`, `PiiRedactorTest`, `InjectionDetectorTest`: every scenario of E1, E2 (all six tag variants), E6 (including `6011 1111 1111 1111` and 100,000 characters of `a@a@a@` under 200 ms), E7 (including the benign "you are now confirmed"), E52, E58. Expect FAIL.
+- [x] 2. Implement `InputSanitizer`, `PiiRedactor`, `InjectionDetector`; run those tests; expect PASS.
+- [x] 3. Write failing `PromptBuilderTest`: `layout` (exact message list), `keepsLastTurnsAndStartsWithUser`, `blankLastUserTurn`, `untrustedContextTags`, `oversizedContexts`, and a golden `promptHash` for a fixed prompt.
+- [x] 4. Implement `PromptBuilder`; expect PASS.
+- [x] 5. Write failing `OutputValidatorTest`: `unusableBodies`, `leakAndLinks` (including the `\u`-escaped link, tag and key inside a JSON string and the fullwidth link), `refusal` for text and JSON features.
+- [x] 6. Implement `OutputValidator`; expect PASS.
+- [x] 7. Run Checkstyle separately; expect no violations.
+- [x] 8. Run `.\gradlew build`; expect green.
+- [x] 9. Update the branch state: Progress, a Changes line.
+- [x] 10. Commit: `feat: add AI input and output guardrails (W-AI-GATEWAY)`.
 
 ```java
 // InputSanitizer.sanitize - order is the contract (conventions.md)
@@ -294,16 +294,16 @@ return new Sanitized(t, cut);
 | Test | `backend/src/test/java/com/snoozeshare/ai/limit/BackoffTest.java` | E18 arithmetic |
 
 **Checklist**
-- [ ] 1. Write failing `SchedulerCoreTest` on a fake clock: `ceilingsAndPriority` (200 jobs, `max-rpm` 55, `max-concurrent` 4; windows of (t-60 s, t]; priority 0 first; priority 1 and 2 use at most 3 slots), `queueFull`, `queueTimeout`, `retriesKeepArrival`, `priorityZeroReserve` (a full queue and a priority 0 job displaces the youngest priority 2 job). Expect FAIL.
-- [ ] 2. Implement `SchedulerCore` per the snippet; expect PASS.
-- [ ] 3. Write failing `UserThrottleTest` (E12: 6 at t, 3 refused at t+10 s consuming nothing, refused at t+59.999 s, allowed at t+60 s; E53 in-flight limit 2 of 5 parallel and release after an exception) and `BackoffTest` (500 and 1,000 ms at jitter 1.0; `Retry-After` 30 capped at 10 s; HTTP-date ignored; jitter clamped).
-- [ ] 4. Implement `UserThrottle`, `Backoff`, `Sleeper`, `Jitter`; expect PASS.
-- [ ] 5. Write failing `CircuitBreakerTest` (one user never opens; two users keep counting; a third opens at once; one probe; probe success closes, failure re-opens; a response below 500 resets count and users; `probes`) and `BudgetBlockTest` (block, repeat on a second budget 429, probe after the window, cap at 00:00 UTC, `utcBoundary` with a Singapore-zone clock).
-- [ ] 6. Implement `CircuitBreaker`, `BudgetBlock`; expect PASS.
-- [ ] 7. Write `LlmSchedulerTest` (a waiting job wakes when a permit is released; an interrupt restores the flag and releases state), implement `LlmScheduler`; expect PASS.
-- [ ] 8. Run Checkstyle separately, then `.\gradlew build`; expect green.
-- [ ] 9. Update the branch state: Progress, a Changes line.
-- [ ] 10. Commit: `feat: add AI scheduler, user throttle, circuit breaker, budget block and backoff (W-AI-GATEWAY)`.
+- [x] 1. Write failing `SchedulerCoreTest` on a fake clock: `ceilingsAndPriority` (200 jobs, `max-rpm` 55, `max-concurrent` 4; windows of (t-60 s, t]; priority 0 first; priority 1 and 2 use at most 3 slots), `queueFull`, `queueTimeout`, `retriesKeepArrival`, `priorityZeroReserve` (a full queue and a priority 0 job displaces the youngest priority 2 job). Expect FAIL.
+- [x] 2. Implement `SchedulerCore` per the snippet; expect PASS.
+- [x] 3. Write failing `UserThrottleTest` (E12: 6 at t, 3 refused at t+10 s consuming nothing, refused at t+59.999 s, allowed at t+60 s; E53 in-flight limit 2 of 5 parallel and release after an exception) and `BackoffTest` (500 and 1,000 ms at jitter 1.0; `Retry-After` 30 capped at 10 s; HTTP-date ignored; jitter clamped).
+- [x] 4. Implement `UserThrottle`, `Backoff`, `Sleeper`, `Jitter`; expect PASS.
+- [x] 5. Write failing `CircuitBreakerTest` (one user never opens; two users keep counting; a third opens at once; one probe; probe success closes, failure re-opens; a response below 500 resets count and users; `probes`) and `BudgetBlockTest` (block, repeat on a second budget 429, probe after the window, cap at 00:00 UTC, `utcBoundary` with a Singapore-zone clock).
+- [x] 6. Implement `CircuitBreaker`, `BudgetBlock`; expect PASS.
+- [x] 7. Write `LlmSchedulerTest` (a waiting job wakes when a permit is released; an interrupt restores the flag and releases state), implement `LlmScheduler`; expect PASS.
+- [x] 8. Run Checkstyle separately, then `.\gradlew build`; expect green.
+- [x] 9. Update the branch state: Progress, a Changes line.
+- [x] 10. Commit: `feat: add AI scheduler, user throttle, circuit breaker, budget block and backoff (W-AI-GATEWAY)`.
 
 ```java
 // SchedulerCore.canStart - the contract the tests pin
@@ -328,15 +328,15 @@ boolean canStart(Job job, Instant now) {
 | Test | `backend/src/test/java/com/snoozeshare/ai/client/SoclaasClientTest.java` | E21, E22 (client side), E23, E37, E46, E60, 429 classification of E18 and E19 |
 
 **Checklist**
-- [ ] 1. Create `StubSoclaasServer` (scripted status, headers, body, delay; captures method, path, headers, body).
-- [ ] 2. Write failing `SoclaasClientTest`: `requestShape` (Bearer header, tier model, `max_tokens`, `temperature`, no `stream`, `response_format` and `reasoning_effort` only when set, key absent from the body, HTTP/1.1), `statusClasses` (400, 401, 403, 404, 409, 413, 422, 204, a 302 to a second stub that must receive nothing), `connectionRefused`, `timeout`, `bodySizeCaps` (1 MiB 429 body classified from its first 4,096 bytes; 300,000-byte 200 body is INVALID_OUTPUT), `errorBodyNeverLogged`, and the 429 rule: `{"error":"Daily quota exceeded"}` budget; "rate limit exceeded", "separate generated text", non-JSON, empty are RATE_LIMITED; `Retry-After` in seconds parsed, an HTTP-date ignored. Expect FAIL.
-- [ ] 3. Implement `SoclaasClient.attempt`: build the JSON body with Jackson, send with `HttpRequest.timeout`, read at most 262,144 bytes, classify per api.md § Error codes.
-- [ ] 4. Implement `listModels` reading `data[].id`.
-- [ ] 5. Run the tests; expect PASS.
-- [ ] 6. Run Checkstyle separately; expect no violations.
-- [ ] 7. Run `.\gradlew build`; expect green.
-- [ ] 8. Update the branch state: Progress, a Changes line.
-- [ ] 9. Commit: `feat: add the SoCLaaS client with response classification (W-AI-GATEWAY)`.
+- [x] 1. Create `StubSoclaasServer` (scripted status, headers, body, delay; captures method, path, headers, body).
+- [x] 2. Write failing `SoclaasClientTest`: `requestShape` (Bearer header, tier model, `max_tokens`, `temperature`, no `stream`, `response_format` and `reasoning_effort` only when set, key absent from the body, HTTP/1.1), `statusClasses` (400, 401, 403, 404, 409, 413, 422, 204, a 302 to a second stub that must receive nothing), `connectionRefused`, `timeout`, `bodySizeCaps` (1 MiB 429 body classified from its first 4,096 bytes; 300,000-byte 200 body is INVALID_OUTPUT), `errorBodyNeverLogged`, and the 429 rule: `{"error":"Daily quota exceeded"}` budget; "rate limit exceeded", "separate generated text", non-JSON, empty are RATE_LIMITED; `Retry-After` in seconds parsed, an HTTP-date ignored. Expect FAIL.
+- [x] 3. Implement `SoclaasClient.attempt`: build the JSON body with Jackson, send with `HttpRequest.timeout`, read at most 262,144 bytes, classify per api.md § Error codes.
+- [x] 4. Implement `listModels` reading `data[].id`.
+- [x] 5. Run the tests; expect PASS.
+- [x] 6. Run Checkstyle separately; expect no violations.
+- [x] 7. Run `.\gradlew build`; expect green.
+- [x] 8. Update the branch state: Progress, a Changes line.
+- [x] 9. Commit: `feat: add the SoCLaaS client with response classification (W-AI-GATEWAY)`.
 
 ```java
 // classification of a non-2xx response (api.md § Error codes)

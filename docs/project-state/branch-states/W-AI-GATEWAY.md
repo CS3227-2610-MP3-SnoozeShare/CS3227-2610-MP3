@@ -31,7 +31,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-22 | Claude Sonnet 5.5 | W~1 | Active | Executing inline, T1 done | T2 step 1 of `docs/superpowers/plans/2026-10-22-w-ai-gateway.md` (T2 to T5 may run concurrently) | 2026-10-22 |
+| S1 | 2026-10-22 | Claude Sonnet 5.5 | W~1 | Active | Wave 2 done, build green | T6 step 1 of `docs/superpowers/plans/2026-10-22-w-ai-gateway.md` | 2026-10-22 |
 
 **Remaining**
 
@@ -47,7 +47,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W~1 | W-AI-GATEWAY: shared SoCLaaS LLM gateway | Building | [spec](docs/superpowers/specs/2026-10-22-w-ai-gateway-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-ai-gateway.md) | Task 1/8 done; T2 to T5 next (wave 2) | — |
+| W~1 | W-AI-GATEWAY: shared SoCLaaS LLM gateway | Building | [spec](docs/superpowers/specs/2026-10-22-w-ai-gateway-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-ai-gateway.md) | Tasks 1-5/8 done; T6 gateway facade next | — |
 
 ---
 
@@ -121,7 +121,11 @@ No change. Resolves, on fold, the SoCLaaS-contract half of `PROJECT_STATE.md` Q6
 
 ## 9. Deviations
 
-No change.
+- **Wave 2 (T1 to T5) wrote implementation and tests together, not test-first.** The tests are committed with the code and pass; no red run was recorded.
+- **T3 output validation is stricter than conventions.md in three places:** `data:` and `javascript:` links match on a word boundary (so "metadata:" passes); Unicode format characters (zero-width, bidi) are stripped before the key, tag and link checks; leak checks also cover JSON keys, not only values. A fence with no newline after the opening fence is not unwrapped.
+- **T5:** `AttemptResult.Failure` carries an extra `httpStatus` for the WARN line; a 429 body over 4,096 bytes is cut mid-JSON and so classed RATE_LIMITED; the request timeout bounds time to headers only, so T6's deadline is the backstop for a stalled body, and T6 must check the interrupt flag after each attempt.
+- **T4:** the gateway (T6) must call `abandonProbe()` on the breaker or budget block that issued a `PROBE` when the call ends without an outcome; none of the `ai.limit` classes is a Spring bean yet, so T6 wires them.
+- **T2:** tests build `LlmProperties` with `enabled=false` (enabled demands a URL and key).
 
 ---
 
@@ -135,3 +139,7 @@ No change.
 | 2026-10-22 | Plan written (8 tasks plus close-out) and reviewed; test infrastructure fixes merged | W~1 | — |
 | 2026-10-22 | Plan approved by Xiao-Congchen (gate 2); workstream Planned | W~1 | — |
 | 2026-10-22 | T1 done: `ai` core types, validated `LlmProperties`, `AiFeatureRegistry`, prod guard rules, `SNOOZESHARE_AI_ENABLED` in yml and `render.yaml` | W~1 | — |
+| 2026-10-22 | T2 done: `AI_CALL` and `AI_CALL_REJECTED` audit actions, cap count queries, `AiAuditWriter` (reservations, R-row coalescing) | W~1 | — |
+| 2026-10-22 | T3 done: `InputSanitizer`, `PiiRedactor`, `InjectionDetector`, `PromptBuilder`, `OutputValidator` | W~1 | — |
+| 2026-10-22 | T4 done: `SchedulerCore`, `LlmScheduler`, `UserThrottle`, `CircuitBreaker`, `BudgetBlock`, `Backoff`, `Sleeper`, `Jitter` | W~1 | — |
+| 2026-10-22 | T5 done: `SoclaasClient` and `AttemptResult` | W~1 | — |
