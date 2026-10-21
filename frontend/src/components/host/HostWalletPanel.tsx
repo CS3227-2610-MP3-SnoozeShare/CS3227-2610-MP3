@@ -18,8 +18,8 @@ function transactionTypeClass(type: string) {
 export function HostWalletPanel({ wallet, statement }: { wallet: WalletSummary; statement: StatementRow[] }) {
   const [action, setAction] = useState<'Top up' | 'Withdraw' | null>(null);
   return (
-    <div className="space-y-5">
-      <div className="grid grid-cols-1 items-center gap-4 sm:grid-cols-[minmax(0,5fr)_minmax(160px,1fr)]">
+    <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-hidden">
+      <div className="grid shrink-0 grid-cols-1 items-center gap-4 sm:grid-cols-[minmax(0,5fr)_minmax(160px,1fr)]">
         <div className="rounded-xl bg-[var(--surface-inset)] p-5">
           <p className="text-xs font-bold tracking-wide text-[var(--text-subtle)]">AVAILABLE BALANCE</p>
           <p className="mt-2 flex items-baseline gap-2 text-3xl font-bold">
@@ -33,12 +33,12 @@ export function HostWalletPanel({ wallet, statement }: { wallet: WalletSummary; 
           <button className="w-full rounded-lg border border-[var(--border-muted)] bg-card px-3 py-2 text-sm hover:bg-[var(--surface-inset)]" onClick={() => setAction('Withdraw')} type="button">Withdraw</button>
         </div>
       </div>
-      <section>
-        <h2 className="mb-3 text-base font-semibold">Transaction statement</h2>
+      <section className="flex min-h-0 flex-1 flex-col">
+        <h2 className="mb-3 shrink-0 text-base font-semibold">Transaction statement</h2>
         {statement.length ? (
-          <div className="overflow-hidden rounded-xl border border-[var(--border-muted)] bg-card">
-            <Table className="text-xs">
-              <Thead className="bg-[var(--surface-inset)]">
+          <div aria-label="Transaction statement table" className="min-h-0 flex-1 overflow-auto rounded-xl border border-[var(--border-muted)] bg-card">
+            <Table className="text-xs" scrollX={false}>
+              <Thead className="sticky top-0 z-10 bg-[var(--surface-inset)]">
                 <Tr><Th>DATE</Th><Th>TYPE</Th><Th>RELATED TO</Th><Th>AMOUNT</Th><Th>BALANCE AFTER</Th></Tr>
               </Thead>
               <Tbody>

@@ -10,7 +10,7 @@ describe('Host requests page', () => {
     const titleGroup = title.parentElement!;
 
     expect(titleGroup).toHaveClass('inline-flex', 'items-center', 'gap-2');
-    expect(titleGroup).toContainElement(screen.getByText('3 pending'));
+    expect(titleGroup).toContainElement(screen.getByText('8 pending'));
     expect(screen.queryByRole('heading', { name: 'Pending requests' })).not.toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'PAST REQUESTS' })).toBeInTheDocument();
   });

@@ -14,20 +14,20 @@ function money(amount: number) {
 export function HostRequestsTable({ requests }: { requests: RequestData }) {
   const [decision, setDecision] = useState<Decision>(null);
   const table = (rows: BookingRequest[], pending = false) => (
-    <div className="overflow-hidden rounded-xl border border-border bg-white">
-      <Table>
-        <Thead className="bg-[var(--surface-inset)]">
+    <div aria-label={pending ? 'Pending requests table' : 'Past requests table'} className={`rounded-xl border border-border bg-white ${pending ? 'max-h-[244px] overflow-auto' : 'min-h-0 flex-1 overflow-auto'}`}>
+      <Table scrollX={false}>
+        <Thead className={`sticky top-0 z-10 bg-[var(--surface-inset)] ${pending ? 'whitespace-nowrap' : ''}`}>
           <Tr><Th>GUEST</Th><Th>LISTING</Th><Th>DATES</Th><Th>NIGHTS</Th>{pending ? <><Th>GROSS</Th><Th>NET EARNING</Th><Th>GUEST RATING</Th><Th>ACTION</Th></> : <><Th>TOTAL</Th><Th>STATUS</Th></>}</Tr>
         </Thead>
         <Tbody>
           {rows.map((request) => (
-            <Tr key={request.id}>
-              <Td className="font-semibold">{request.guest}</Td><Td>{request.listing}</Td><Td>{request.dates}</Td><Td>{request.nights}</Td>
-              <Td className={!pending ? 'font-semibold' : undefined}>{money(request.gross)}</Td>
+            <Tr className={pending ? 'whitespace-nowrap' : undefined} key={request.id}>
+              <Td className={`font-semibold ${pending ? 'whitespace-nowrap py-2' : ''}`}>{request.guest}</Td><Td className={pending ? 'whitespace-nowrap py-2' : undefined}>{request.listing}</Td><Td className={pending ? 'whitespace-nowrap py-2' : undefined}>{request.dates}</Td><Td className={pending ? 'whitespace-nowrap py-2' : undefined}>{request.nights}</Td>
+              <Td className={`${!pending ? 'font-semibold' : ''} ${pending ? 'whitespace-nowrap py-2' : ''}`}>{money(request.gross)}</Td>
               {pending ? <>
-                <Td className="font-semibold text-primary">{request.net == null ? '—' : money(request.net)}</Td>
-                <Td>{request.rating == null ? 'No ratings yet' : `${request.rating.toFixed(1)} ★`}</Td>
-                <Td><div className="flex gap-2">
+                <Td className="whitespace-nowrap py-2 font-semibold text-primary">{request.net == null ? '—' : money(request.net)}</Td>
+                <Td className="whitespace-nowrap py-2">{request.rating == null ? 'No ratings yet' : `${request.rating.toFixed(1)} ★`}</Td>
+                <Td className="whitespace-nowrap py-2"><div className="flex gap-2">
                   <button className="cursor-pointer rounded-lg bg-[var(--success)] px-3 py-1.5 text-sm font-semibold text-white hover:opacity-90" onClick={() => setDecision({ request, action: 'Approve' })} type="button">Approve</button>
                   <button className="cursor-pointer rounded-lg border border-destructive px-3 py-1.5 text-sm font-semibold text-destructive hover:bg-destructive/5" onClick={() => setDecision({ request, action: 'Reject' })} type="button">Reject</button>
                 </div></Td>
@@ -45,13 +45,13 @@ export function HostRequestsTable({ requests }: { requests: RequestData }) {
     ? 'The booking moves to CONFIRMED and the guest is notified. Funds stay held in escrow until check-in.'
     : 'The guest will be notified and the held funds fully refunded (ESCROW_REFUND) — no fee is charged for a host rejection.';
 
-  return <div className="space-y-6">
-    <section aria-label="Pending requests">
+  return <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-hidden">
+    <section aria-label="Pending requests" className="shrink-0">
       {requests.pending.length ? table(requests.pending, true) : <div className="ss-card p-6 text-center text-[var(--text-subtle)]">No pending requests</div>}
       <p className="mt-2 text-xs text-[var(--text-subtle)]">Net earning = gross − 3% platform fee. Guest rating is their average review score, or &quot;No ratings yet&quot;.</p>
     </section>
-    <section>
-      <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-[var(--text-subtle)]">PAST REQUESTS</h2>
+    <section aria-label="Past requests" className="flex min-h-0 flex-1 flex-col">
+      <h2 className="mb-2 shrink-0 text-sm font-bold uppercase tracking-wide text-[var(--text-subtle)]">PAST REQUESTS</h2>
       {requests.past.length ? table(requests.past) : <div className="ss-card p-6 text-center text-[var(--text-subtle)]">No past requests</div>}
     </section>
     <Modal

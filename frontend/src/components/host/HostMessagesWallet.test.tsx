@@ -111,13 +111,15 @@ describe('Host messages and wallet', () => {
     expect(table).toHaveClass('text-xs');
     expect(screen.getByRole('heading', { name: 'Transaction statement' })).toHaveClass('text-base');
     expect(table.querySelector('tbody td')).toHaveClass('py-2.5');
-    expect(table.parentElement?.parentElement).toHaveClass('overflow-hidden', 'rounded-xl', 'border');
+    expect(screen.getByLabelText('Transaction statement table')).toHaveClass('min-h-0', 'flex-1', 'overflow-auto');
+    expect(table.querySelector('thead')).toHaveClass('sticky', 'top-0');
+    expect(table.parentElement?.parentElement).toHaveClass('overflow-auto', 'rounded-xl', 'border');
     expect(screen.getByText('DATE').parentElement?.parentElement).toHaveClass('bg-[var(--surface-inset)]');
     expect(screen.getByText('ESCROW_HOLD')).toHaveClass('rounded-full');
     expect(screen.getByText('TOP_UP')).toHaveClass('rounded-full');
     expect(screen.getByText('-$210.00')).toBeInTheDocument();
     expect(screen.getByText('+$349.20')).toBeInTheDocument();
-    expect(table.querySelectorAll('tbody tr')).toHaveLength(7);
+    expect(table.querySelectorAll('tbody tr')).toHaveLength(31);
   });
 
   it('retains mocked local wallet controls', async () => {

@@ -145,8 +145,8 @@ describe('Host calendar and requests', () => {
     expect(within(pastTable).getByText('TOTAL')).toBeInTheDocument();
     expect(within(pastTable).getByText('STATUS')).toBeInTheDocument();
     expect(within(pastTable).getByText('$630.00')).toBeInTheDocument();
-    expect(within(pastTable).getAllByText('CONFIRMED')).toHaveLength(2);
-    expect(within(pastTable).getByText('REJECTED')).toBeInTheDocument();
+    expect(within(pastTable).getAllByText('CONFIRMED')).toHaveLength(7);
+    expect(within(pastTable).getAllByText('REJECTED')).toHaveLength(3);
     expect(within(pastTable).queryByText('NET EARNING')).not.toBeInTheDocument();
     expect(within(pastTable).getAllByText('CONFIRMED')[0]).toHaveClass('ss-pill', 'ss-status-success');
     expect(within(pastTable).getByText('$630.00')).toHaveClass('font-semibold');
@@ -165,6 +165,20 @@ describe('Host calendar and requests', () => {
     expect(earningCell).toHaveClass('font-semibold', 'text-primary');
     expect(within(pendingTable).getAllByRole('button', { name: 'Approve' })[0]).toHaveClass('bg-[var(--success)]');
     expect(within(pendingTable).getAllByRole('button', { name: 'Reject' })[0]).toHaveClass('border', 'border-destructive');
+  });
+
+  it('caps pending requests and lets the past-request table fill and scroll within remaining height', () => {
+    render(<HostRequestsTable requests={createHostFixtureAdapter().getRequests().data!} />);
+
+    const pendingScroll = screen.getByLabelText('Pending requests table');
+    const pastScroll = screen.getByLabelText('Past requests table');
+    expect(pendingScroll).toHaveClass('max-h-[244px]', 'overflow-auto');
+    expect(pendingScroll.querySelectorAll('tbody tr')).toHaveLength(8);
+    expect(pendingScroll.querySelector('tbody tr')).toHaveClass('whitespace-nowrap');
+    expect(pendingScroll.querySelector('tbody tr td')).toHaveClass('py-2');
+    expect(pastScroll).toHaveClass('min-h-0', 'flex-1', 'overflow-auto');
+    expect(pendingScroll.querySelector('thead')).toHaveClass('sticky', 'top-0');
+    expect(pastScroll.querySelector('thead')).toHaveClass('sticky', 'top-0');
   });
 
   it('shows contextual rejection details and an optional message field', () => {

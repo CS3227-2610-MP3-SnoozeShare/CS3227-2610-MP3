@@ -7,6 +7,14 @@ const listings: HostListing[] = [
   { id: 'downtown-loft', title: 'Downtown Loft', type: 'Apartment', city: 'Lakeview', region: 'WI', rate: 95, bookings: 11, rating: 4.6, status: 'active' },
   { id: 'garden-studio', title: 'Garden Studio', type: 'Private room', city: 'Lakeview', region: 'WI', rate: 58, bookings: 4, rating: 4.9, status: 'inactive' },
   { id: 'hilltop-house', title: 'Hilltop House', type: 'House', city: 'Millbrook', region: 'WI', rate: 210, bookings: 7, rating: 4.7, status: 'active' },
+  { id: 'cedar-cottage', title: 'Cedar Cottage', type: 'Cottage', city: 'Pine Grove', region: 'WI', rate: 135, bookings: 12, rating: 4.8, status: 'active' },
+  { id: 'riverside-retreat', title: 'Riverside Retreat', type: 'House', city: 'Millbrook', region: 'WI', rate: 185, bookings: 9, rating: 4.9, status: 'active' },
+  { id: 'market-flat', title: 'Market Street Flat', type: 'Apartment', city: 'Lakeview', region: 'WI', rate: 105, bookings: 15, rating: 4.5, status: 'inactive' },
+  { id: 'maple-guesthouse', title: 'Maple Guesthouse', type: 'Guesthouse', city: 'Oak Harbor', region: 'WI', rate: 88, bookings: 6, rating: 4.7, status: 'active' },
+  { id: 'orchard-bungalow', title: 'Orchard Bungalow', type: 'House', city: 'Pine Grove', region: 'WI', rate: 160, bookings: 10, rating: 4.8, status: 'active' },
+  { id: 'harbor-view', title: 'Harbor View Suite', type: 'Apartment', city: 'Oak Harbor', region: 'WI', rate: 125, bookings: 8, rating: 4.6, status: 'active' },
+  { id: 'birch-hideaway', title: 'Birch Hideaway', type: 'Cabin', city: 'Millbrook', region: 'WI', rate: 145, bookings: 5, rating: 5.0, status: 'inactive' },
+  { id: 'sunroom-studio', title: 'Sunroom Studio', type: 'Private room', city: 'Lakeview', region: 'WI', rate: 72, bookings: 13, rating: 4.7, status: 'active' },
 ];
 
 const lakeside: ListingDetail = {
@@ -24,11 +32,23 @@ const requests: RequestData = {
     { id: 'request-jane', guest: 'Jane G.', listing: 'Lakeside Cabin', dates: 'Oct 3–6', nights: 3, gross: 360, net: 349.2, rating: 4.9, status: 'pending' },
     { id: 'request-marcus', guest: 'Marcus T.', listing: 'Downtown Loft', dates: 'Oct 10–12', nights: 2, gross: 190, net: 184.3, rating: null, status: 'pending' },
     { id: 'request-priya', guest: 'Priya S.', listing: 'Lakeside Cabin', dates: 'Oct 18–22', nights: 4, gross: 480, net: 465.6, rating: 4.7, status: 'pending' },
+    { id: 'request-oliver', guest: 'Oliver P.', listing: 'Cedar Cottage', dates: 'Oct 24–27', nights: 3, gross: 405, net: 392.85, rating: 4.8, status: 'pending' },
+    { id: 'request-sofia', guest: 'Sofia M.', listing: 'Riverside Retreat', dates: 'Oct 28–Nov 1', nights: 4, gross: 740, net: 717.8, rating: 4.9, status: 'pending' },
+    { id: 'request-noah', guest: 'Noah B.', listing: 'Market Street Flat', dates: 'Nov 3–5', nights: 2, gross: 210, net: 203.7, rating: 4.6, status: 'pending' },
+    { id: 'request-amara', guest: 'Amara D.', listing: 'Orchard Bungalow', dates: 'Nov 8–12', nights: 4, gross: 640, net: 620.8, rating: 5.0, status: 'pending' },
+    { id: 'request-ethan', guest: 'Ethan C.', listing: 'Harbor View Suite', dates: 'Nov 15–17', nights: 2, gross: 250, net: 242.5, rating: null, status: 'pending' },
   ],
   past: [
     { id: 'request-wei', guest: 'Wei L.', listing: 'Hilltop House', dates: 'Sep 1–4', nights: 3, gross: 630, net: null, rating: null, status: 'confirmed' },
     { id: 'request-ana', guest: 'Ana R.', listing: 'Lakeside Cabin', dates: 'Aug 20–22', nights: 2, gross: 240, net: null, rating: null, status: 'rejected' },
     { id: 'request-dana', guest: 'Dana K.', listing: 'Downtown Loft', dates: 'Aug 12–15', nights: 3, gross: 285, net: null, rating: null, status: 'confirmed' },
+    { id: 'request-luca', guest: 'Luca W.', listing: 'Cedar Cottage', dates: 'Aug 5–8', nights: 3, gross: 405, net: null, rating: null, status: 'confirmed' },
+    { id: 'request-emma', guest: 'Emma V.', listing: 'Riverside Retreat', dates: 'Jul 29–Aug 1', nights: 3, gross: 555, net: null, rating: null, status: 'rejected' },
+    { id: 'request-ryan', guest: 'Ryan H.', listing: 'Market Street Flat', dates: 'Jul 21–23', nights: 2, gross: 210, net: null, rating: null, status: 'confirmed' },
+    { id: 'request-nina', guest: 'Nina F.', listing: 'Maple Guesthouse', dates: 'Jul 14–17', nights: 3, gross: 264, net: null, rating: null, status: 'confirmed' },
+    { id: 'request-jay', guest: 'Jay S.', listing: 'Orchard Bungalow', dates: 'Jul 7–10', nights: 3, gross: 480, net: null, rating: null, status: 'rejected' },
+    { id: 'request-zoe', guest: 'Zoe K.', listing: 'Harbor View Suite', dates: 'Jun 30–Jul 2', nights: 2, gross: 250, net: null, rating: null, status: 'confirmed' },
+    { id: 'request-isaac', guest: 'Isaac R.', listing: 'Birch Hideaway', dates: 'Jun 22–25', nights: 3, gross: 435, net: null, rating: null, status: 'confirmed' },
   ],
 };
 
@@ -66,6 +86,22 @@ const messages: Conversation[] = [
 ];
 
 const wallet: WalletSummary = { balance: 3920.5, escrowNote: 'Pending booking funds are held in escrow until the stay is complete.' };
+let historicalBalance = 3317.6;
+let newerAmount = 0;
+const historicalStatement: StatementRow[] = Array.from({ length: 24 }, (_, index) => {
+  const amount = index % 3 === 0 ? 120 + index * 2 : index % 3 === 1 ? -85 - index : 0;
+  const balanceAfter = historicalBalance - newerAmount;
+  const row: StatementRow = {
+    date: `${['Jun', 'May', 'Apr', 'Mar', 'Feb', 'Jan'][Math.floor(index / 4)]} ${24 - (index % 4) * 5}, 2026`,
+    type: amount > 0 ? 'BOOKING_PAYOUT' : amount < 0 ? 'WITHDRAWAL' : 'ESCROW_REFUND',
+    relatedTo: amount === 0 ? `Booking #B-${2190 - index}` : amount > 0 ? `Booking #B-${2188 - index}` : '—',
+    amount,
+    balanceAfter,
+  };
+  historicalBalance = row.balanceAfter;
+  newerAmount = amount;
+  return row;
+});
 const statement: StatementRow[] = [
   { date: 'Sep 24, 2026', type: 'BOOKING_PAYOUT', relatedTo: 'Booking #B-2291', amount: 349.2, balanceAfter: 3920.5 },
   { date: 'Sep 20, 2026', type: 'TOP_UP', relatedTo: '—', amount: 500, balanceAfter: 3571.3 },
@@ -74,6 +110,7 @@ const statement: StatementRow[] = [
   { date: 'Aug 20, 2026', type: 'WITHDRAWAL', relatedTo: '—', amount: -300, balanceAfter: 3077.6 },
   { date: 'Aug 6, 2026', type: 'TICKET_REMEDY', relatedTo: 'Ticket #1031 (approved)', amount: 60, balanceAfter: 3377.6 },
   { date: 'Jul 2, 2026', type: 'ESCROW_REFUND', relatedTo: 'Booking #B-2204 (completed)', amount: 0, balanceAfter: 3317.6 },
+  ...historicalStatement,
 ];
 
 const calendar: CalendarData = {

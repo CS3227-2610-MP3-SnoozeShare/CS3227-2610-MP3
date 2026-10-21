@@ -1,8 +1,8 @@
 import type { HTMLAttributes, TableHTMLAttributes } from 'react';
 import { cn } from 'cn';
 
-export function Table({ className, ...props }: TableHTMLAttributes<HTMLTableElement>) {
-  return <div className="w-full overflow-x-auto"><table className={cn('w-full text-left text-sm', className)} {...props} /></div>;
+export function Table({ className, scrollX = true, ...props }: TableHTMLAttributes<HTMLTableElement> & { scrollX?: boolean }) {
+  return <div className={cn('w-full', scrollX ? 'overflow-x-auto' : 'overflow-visible')}><table className={cn('w-full text-left text-sm', className)} {...props} /></div>;
 }
 
 export function Thead({ className, ...props }: HTMLAttributes<HTMLTableSectionElement>) {

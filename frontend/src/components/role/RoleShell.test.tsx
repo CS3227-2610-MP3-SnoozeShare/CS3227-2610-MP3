@@ -18,6 +18,12 @@ describe('RoleShell', () => {
     expect(screen.getByRole('navigation').parentElement).toHaveClass('h-screen', 'overflow-hidden');
   });
 
+  it.each(['/host/listings', '/host/requests', '/host/wallet'])('constrains %s to the viewport for internal scrolling', (activePath) => {
+    render(<RoleShell role="HOST" activePath={activePath}><main /></RoleShell>);
+
+    expect(screen.getByRole('navigation').parentElement).toHaveClass('h-screen', 'overflow-hidden');
+  });
+
   it('signs out from the role navbar', () => {
     render(<RoleShell role="GUEST"><main /></RoleShell>);
     screen.getByRole('button', { name: 'Log out' }).click();

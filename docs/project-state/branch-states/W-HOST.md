@@ -9,7 +9,7 @@ in after the branch merges.
 - **Owner:** project owner
 - **Status:** In review
 - **Approved:** —
-- **Last updated:** 2026-10-22 by GPT-5 — centered Wallet actions against the balance panel
+- **Last updated:** 2026-10-22 by GPT-5 — verified four complete pending rows in the live page
 
 ---
 
@@ -42,7 +42,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Wallet actions vertically centered; 138 tests and lint pass | guide out of date: W-HOST Host UI pages and Fall Light details |
+| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Listings, requests, and wallet scroll within viewport; 143 tests, lint and build pass | guide out of date: W-HOST Host UI pages and Fall Light details |
 
 ## 4. Architecture
 
@@ -50,7 +50,7 @@ No boundary changes. Host pages remain fixture-backed and independent of W-DOMAI
 
 ## 5. Conventions
 
-Host route content uses a full-width page frame; input value text is normal-weight, while field labels remain emphasized.
+Host route content uses a full-width page frame; input value text is normal-weight, while field labels remain emphasized. Listings, requests, messages, and wallet keep the navbar fixed to the viewport and scroll long content internally; requests cap pending rows at four and let past rows use remaining height, while the wallet statement uses remaining height. Scrollable Host tables keep their header visible, including on horizontal overflow.
 
 ## 6. Known Gaps
 
@@ -76,6 +76,8 @@ None.
 | C~10 | 2026-10-21 | The current page name in every Host breadcrumb is bolded | Project owner requested consistent visual emphasis for the current page | Operator conversation |
 | C~11 | 2026-10-21 | Host wallet presentation follows the artifact’s inset balance panel, stacked controls, currency label, and bordered transaction table; fixture rows represent relevant booking and wallet events | Project owner approved matching the Wallet page to the artifact and requested sample data based on booking or other relevant examples | Operator conversation |
 | C~12 | 2026-10-22 | Vertically center the stacked Top up and Withdraw actions against the available-balance panel without changing their width or stack order | Project owner requested and approved the Wallet action alignment adjustment | Operator conversation |
+| C~13 | 2026-10-22 | Keep Host listings, booking requests, and wallet within the viewport below the navbar; scroll listing results, cap pending requests at four rows, and let past requests and wallet statement use the remaining height | Project owner requested the three page-specific scrolling behaviors to avoid long content pushing pages beyond the screen | Operator conversation |
+| C~14 | 2026-10-22 | Populate enough sample data to exercise each scroll region (12 listings, 8 pending requests, 10 past requests, 31 wallet transactions) and keep table headers visible while scrolling | Project owner requested overflow-ready sample data and sticky headers after reviewing the initial scroll behavior | Operator conversation |
 
 ## 9. Deviations
 
@@ -128,3 +130,7 @@ None.
 | 2026-10-21 | Padded the resolved/read-only notice inside the composer footer; updated the fixture title expectation to match the current in-progress Messages fixture shape; 135 tests, lint, isolated production build pass | W-HOST | Operator follow-up |
 | 2026-10-21 | Matched the wallet balance panel, stacked actions, SGD and ledger table styling; expanded the sample statement to seven reconciled booking/wallet transactions; 138 tests, lint, production build pass | W-HOST | Operator follow-up |
 | 2026-10-22 | Vertically centered the Top up/Withdraw stack against the available-balance panel; 138 tests and lint pass | W-HOST | Operator follow-up |
+| 2026-10-22 | Added viewport-contained scroll regions for 12 listings, four-visible pending requests, past requests, and 31 wallet transactions; table headers stay visible; 143 tests, lint, and production build pass | W-HOST | Operator follow-up |
+| 2026-10-22 | Prevented pending request cells from wrapping and adjusted the scroll cap so four complete rows fit before scrolling; 143 tests and lint pass | W-HOST | Operator follow-up |
+| 2026-10-22 | Inspected the live Requests page; reduced pending-cell padding and set a 224px cap so four complete single-line rows fit before scrolling; 143 tests and lint pass | W-HOST | Operator follow-up |
+| 2026-10-22 | Confirmed the fourth row clipped at 224px in the live screenshot; raised the pending-table cap to 244px and verified all four rows fully show before scrolling; requests tests and lint pass | W-HOST | Operator follow-up |
