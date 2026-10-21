@@ -5,11 +5,11 @@ read it for context and write here instead of editing it. `sync-project-state` f
 in after the branch merges.
 
 - **Branch:** W-HOST (from `development` at `8702e88`)
-- **Base:** `8702e88`
+- **Base:** `4257d4b`
 - **Owner:** project owner
 - **Status:** In review
 - **Approved:** —
-- **Last updated:** 2026-10-22 by GPT-5 — verified four complete pending rows in the live page
+- **Last updated:** 2026-10-22 by GPT-5 — merged current `development` into W-HOST and verified a clean result
 
 ---
 
@@ -134,3 +134,4 @@ None.
 | 2026-10-22 | Prevented pending request cells from wrapping and adjusted the scroll cap so four complete rows fit before scrolling; 143 tests and lint pass | W-HOST | Operator follow-up |
 | 2026-10-22 | Inspected the live Requests page; reduced pending-cell padding and set a 224px cap so four complete single-line rows fit before scrolling; 143 tests and lint pass | W-HOST | Operator follow-up |
 | 2026-10-22 | Confirmed the fourth row clipped at 224px in the live screenshot; raised the pending-table cap to 244px and verified all four rows fully show before scrolling; requests tests and lint pass | W-HOST | Operator follow-up |
+| 2026-10-22 | Merged current `development` into W-HOST with the `ort` strategy; no conflicts or conflict markers; branch state base advanced to `4257d4b` | W-HOST | `6709cc8` |
