@@ -32,19 +32,19 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| 2026-10-22 backend phase | 2026-10-22 | GPT-5 | W-HOST-API | Building | Operator reversed wallet-idempotency default; spec now treats each accepted wallet mutation as a distinct operation and removes key/table/replay contract | Run spec lint and self-check, then request Gate 1 spec approval before writing the plan | 2026-10-22 |
+| 2026-10-22 backend phase | 2026-10-22 | GPT-5 | W-HOST-API | Building | Operator approved the amended spec; 10-task plan drafted and linted, Implementer review in progress | Address review findings, then request Gate 2 plan approval; no code before approval | 2026-10-22 |
 
 **Remaining**
 
 - [ ] Owner review and approval remain for the completed fixture-backed UI phase.
-- [ ] Backend-integration spec and plan require owner approval before implementation.
+- [ ] Backend-integration plan requires owner approval before implementation.
 
 ## 3. Workstreams
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
 | W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Listings, requests, and wallet scroll within viewport; 143 tests, lint and build pass | guide out of date: W-HOST Host UI pages and Fall Light details |
-| W-HOST-API | Replace Host fixtures with authenticated backend integration | Spec'd | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | — | High-risk contracts selected; wallet idempotency removed by C~16; bounded database paging specified | — |
+| W-HOST-API | Replace Host fixtures with authenticated backend integration | Spec'd | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [draft plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | Spec approved; 10-task plan drafted; wallet idempotency removed by C~16; Implementer review in progress | — |
 
 ## 4. Architecture
 
@@ -146,3 +146,4 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | 2026-10-22 | Drafted W-HOST-API spec; lint passed, but Implementer/Tester/Maintainer/Attacker review found unresolved High-risk contract blockers recorded under Q~1 | W-HOST-API | `2026-10-22` |
 | 2026-10-22 | Resolved user-approved W-HOST-API defaults; fixed second-round findings by aligning idempotency uniqueness/hash scope and defining bounded database paging for summaries, histories, and wallet statements | W-HOST-API | `2026-10-22` |
 | 2026-10-22 | Removed wallet idempotency table, key/replay API, and deduplication requirements per C~16; retained atomic wallet ledger/audit behavior and specified refresh instead of automatic retry | W-HOST-API | `2026-10-22` |
+| 2026-10-22 | Recorded operator approval of the amended W-HOST-API spec and drafted its ten-task implementation plan; plan review and Gate 2 approval remain pending | W-HOST-API | `2026-10-22` |

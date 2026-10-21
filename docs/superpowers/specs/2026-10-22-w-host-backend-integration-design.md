@@ -1,6 +1,6 @@
 # W-HOST Backend Integration Design
 
-- **Status:** Draft
+- **Status:** Approved (teleifo, 2026-10-22)
 - **Risk tier:** High - this crosses authenticated role authorization, host tenancy, booking state, messaging, and wallet operations.
 - **Workstream:** W-HOST-API | **Plan:** —
 - **Constraints consulted:** C67, C70, C73, C75, C78, C79, C89, C92; § Known Gaps (mocked top-up/withdraw, backend authorization authoritative); § Conventions (audit, money, service authorization, Testcontainers)
