@@ -199,3 +199,4 @@ No open questions.
 | 2026-10-22 | Added distinct authenticated booking/ticket message routes, database-bounded summary/history paging, transactional read/post operations, after-commit events and rollback tests; fixed unread-count timestamp comparison; Checkstyle/build pass | W-HOST-API | T5 |
 | 2026-10-22 | Committed Host booking and ticket messaging APIs as `0b1f0ef`; starting T6 wallet API | W-HOST-API | T5/T6 |
 | 2026-10-22 | Added authenticated wallet balance, bounded newest-first statement and separate mocked top-up/withdraw operations; fixed stale-row locking, PostgreSQL timestamp mapping and after-commit event dispatch; five wallet integration tests, Checkstyle and backend build pass | W-HOST-API | T6 |
+| 2026-10-22 | Committed T6 wallet API as `ba67ad4`; beginning T7 authenticated frontend API adapter | W-HOST-API | T6/T7 |

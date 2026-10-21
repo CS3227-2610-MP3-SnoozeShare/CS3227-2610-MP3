@@ -254,7 +254,7 @@
 - [x] 2. Implement routes and response DTOs with no schema migration, request key, payload hash, or replay response; use existing wallet row locking and ledger transaction.
 - [x] 3. Run tests; verify every received mutation is a separate operation, concurrent balance changes serialize, invalid/insufficient requests roll back, and no wallet payload is logged.
 - [x] 4. Run backend Checkstyle (`./gradlew checkstyleMain checkstyleTest`) and build.
-- [x] 5. Update branch state; commit `feat: expose Host wallet API`.
+- [x] 5. Update branch state; commit `feat: expose Host wallet API` (`ba67ad4`).
 
 ### T7: Add authenticated frontend Host API adapter
 
