@@ -16,3 +16,11 @@ snoozeshare:
   registration:
     host-code: ${SNOOZESHARE_HOST_REGISTRATION_CODE:}
     agent-code: ${SNOOZESHARE_AGENT_REGISTRATION_CODE:}
+  ai:
+    enabled: ${SNOOZESHARE_AI_ENABLED:false}
+    mock: ${SNOOZESHARE_AI_MOCK:false}
+    base-url: ${SOCLAAS_BASE_URL:}
+    api-key: ${SOCLAAS_API_KEY:}
+    model-fast: ${SNOOZESHARE_AI_MODEL_FAST:llama3.1:8b}
+    model-standard: ${SNOOZESHARE_AI_MODEL_STANDARD:qwen3.5:9b}
+    model-strong: ${SNOOZESHARE_AI_MODEL_STRONG:gemma4:26b}

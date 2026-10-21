@@ -31,7 +31,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-22 | Claude Sonnet 5.5 | W~1 | Active | Executing T1 inline | T1 step 1 of `docs/superpowers/plans/2026-10-22-w-ai-gateway.md` | 2026-10-22 |
+| S1 | 2026-10-22 | Claude Sonnet 5.5 | W~1 | Active | Executing inline, T1 done | T2 step 1 of `docs/superpowers/plans/2026-10-22-w-ai-gateway.md` (T2 to T5 may run concurrently) | 2026-10-22 |
 
 **Remaining**
 
@@ -47,7 +47,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W~1 | W-AI-GATEWAY: shared SoCLaaS LLM gateway | Planned | [spec](docs/superpowers/specs/2026-10-22-w-ai-gateway-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-ai-gateway.md) | Plan approved 2026-10-22; T1 in flight | — |
+| W~1 | W-AI-GATEWAY: shared SoCLaaS LLM gateway | Building | [spec](docs/superpowers/specs/2026-10-22-w-ai-gateway-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-ai-gateway.md) | Task 1/8 done; T2 to T5 next (wave 2) | — |
 
 ---
 
@@ -134,3 +134,4 @@ No change.
 | 2026-10-22 | Spec approved by Xiao-Congchen (gate 1) | W~1 | — |
 | 2026-10-22 | Plan written (8 tasks plus close-out) and reviewed; test infrastructure fixes merged | W~1 | — |
 | 2026-10-22 | Plan approved by Xiao-Congchen (gate 2); workstream Planned | W~1 | — |
+| 2026-10-22 | T1 done: `ai` core types, validated `LlmProperties`, `AiFeatureRegistry`, prod guard rules, `SNOOZESHARE_AI_ENABLED` in yml and `render.yaml` | W~1 | — |

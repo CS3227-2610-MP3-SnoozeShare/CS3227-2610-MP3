@@ -9,6 +9,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 
+import com.snoozeshare.ai.config.LlmProperties;
+
 /**
  * Fails startup under the {@code prod} profile when a required variable is unset, naming it.
  *
@@ -32,6 +34,7 @@ public class ProdEnvironmentGuard implements BeanFactoryPostProcessor, Environme
         "snoozeshare.firebase.project-id",
         "snoozeshare.registration.host-code",
         "snoozeshare.registration.agent-code",
+        "snoozeshare.ai.enabled",
         "GOOGLE_APPLICATION_CREDENTIALS");
 
     private Environment environment;
@@ -48,6 +51,29 @@ public class ProdEnvironmentGuard implements BeanFactoryPostProcessor, Environme
         }
         requireTrue("snoozeshare.security.enabled");
         requireTrue("snoozeshare.firebase.enabled");
+        checkAi();
+    }
+
+    /** The AI gateway may be off in production, but never mocked, and when on it needs a key and an https URL. */
+    private void checkAi() {
+        if (Boolean.parseBoolean(environment.getProperty("snoozeshare.ai.mock", "false"))) {
+            throw new IllegalStateException("snoozeshare.ai.mock must be false in the prod profile");
+        }
+        if (Boolean.parseBoolean(environment.getRequiredProperty("snoozeshare.ai.enabled"))) {
+            requireNotBlank("snoozeshare.ai.base-url");
+            requireNotBlank("snoozeshare.ai.api-key");
+            if (!environment.getRequiredProperty("snoozeshare.ai.base-url").startsWith("https://")) {
+                throw new IllegalStateException("snoozeshare.ai.base-url must be https in the prod profile");
+            }
+        }
+    }
+
+    private void requireNotBlank(String key) {
+        String value = environment.getProperty(key);
+        if (LlmProperties.isBlankOrPlaceholder(value)) {
+            throw new IllegalStateException(
+                key + " must be set in the prod profile when snoozeshare.ai.enabled is true");
+        }
     }
 
     private void requireTrue(String key) {

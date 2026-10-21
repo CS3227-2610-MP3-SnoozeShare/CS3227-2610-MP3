@@ -20,7 +20,7 @@
 
 | Task | Depends on | Can run concurrently with | Wave | Status |
 |---|---|---|---|---|
-| T1 Core types and configuration | - | - | 1 | Not started |
+| T1 Core types and configuration | - | - | 1 | Done |
 | T2 Audit actions and writer | T1 | T3, T4, T5 | 2 | Not started |
 | T3 Guardrails | T1 | T2, T4, T5 | 2 | Not started |
 | T4 Limits and resilience | T1 | T2, T3, T5 | 2 | Not started |
@@ -152,16 +152,16 @@ Test classes are under `backend/src/test/java/com/snoozeshare/ai/` unless a path
 | Test | `backend/src/test/java/com/snoozeshare/ai/config/ProdEnvironmentGuardAiTest.java` | E34 prod cases through `MockEnvironment` |
 
 **Checklist**
-- [ ] 1. Write failing `LlmCallTest.shapeErrors` (null feature, `userId`, `role`, `turns`, null element or text, empty list, last turn ASSISTANT each throw `IllegalArgumentException`) and `LlmPropertiesTest` (each invalid value of E34 names its key; `toString` prints `***` for the key; a value containing `${` counts as blank). Run `.\gradlew test --tests "com.snoozeshare.ai.*"`; expect FAIL because the classes do not exist.
-- [ ] 2. Create the types listed above; `LlmCall.checkShape()` implements api.md step 1.
-- [ ] 3. Create `LlmProperties`; do range and cross-field checks in the compact constructor with a helper that throws `IllegalArgumentException("snoozeshare.ai.<key> ...")`; override `toString`.
-- [ ] 4. Create `AiFeature.validate` and `AiFeatureRegistry`; write `AiFeatureRegistryTest` first: SYSTEM or empty role set, bad id, `maxTokens` 0, non-record JSON class, `maxInputChars x (maxTurns + 1) + 15000` above `max-prompt-chars`, duplicate id (all fail startup naming the feature id and the field), no beans (succeeds).
-- [ ] 5. Add the guard rules and YAML below; write `ProdEnvironmentGuardAiTest`: unset enabled names `SNOOZESHARE_AI_ENABLED`; enabled with blank key or base URL names the key; `mock=true` fails with enabled true and false; disabled with no key passes; prod base URL must start `https://`.
-- [ ] 6. Update `ProdProfileTest`, `render.yaml`; run `.\gradlew test --tests "com.snoozeshare.ai.*"` and, as a second invocation, `.\gradlew test --tests "com.snoozeshare.ProdProfileTest"`; expect PASS.
-- [ ] 7. Run `.\gradlew checkstyleMain checkstyleTest` as its own invocation; expect no violations.
-- [ ] 8. Run `.\gradlew build`; expect green.
-- [ ] 9. Update the branch state: Progress `Task 1/8 done`, a Changes line.
-- [ ] 10. Commit: `feat: add AI gateway types, validated configuration and prod guard rules (W-AI-GATEWAY)`.
+- [x] 1. Write failing `LlmCallTest.shapeErrors` (null feature, `userId`, `role`, `turns`, null element or text, empty list, last turn ASSISTANT each throw `IllegalArgumentException`) and `LlmPropertiesTest` (each invalid value of E34 names its key; `toString` prints `***` for the key; a value containing `${` counts as blank). Run `.\gradlew test --tests "com.snoozeshare.ai.*"`; expect FAIL because the classes do not exist.
+- [x] 2. Create the types listed above; `LlmCall.checkShape()` implements api.md step 1.
+- [x] 3. Create `LlmProperties`; do range and cross-field checks in the compact constructor with a helper that throws `IllegalArgumentException("snoozeshare.ai.<key> ...")`; override `toString`.
+- [x] 4. Create `AiFeature.validate` and `AiFeatureRegistry`; write `AiFeatureRegistryTest` first: SYSTEM or empty role set, bad id, `maxTokens` 0, non-record JSON class, `maxInputChars x (maxTurns + 1) + 15000` above `max-prompt-chars`, duplicate id (all fail startup naming the feature id and the field), no beans (succeeds).
+- [x] 5. Add the guard rules and YAML below; write `ProdEnvironmentGuardAiTest`: unset enabled names `SNOOZESHARE_AI_ENABLED`; enabled with blank key or base URL names the key; `mock=true` fails with enabled true and false; disabled with no key passes; prod base URL must start `https://`.
+- [x] 6. Update `ProdProfileTest`, `render.yaml`; run `.\gradlew test --tests "com.snoozeshare.ai.*"` and, as a second invocation, `.\gradlew test --tests "com.snoozeshare.ProdProfileTest"`; expect PASS.
+- [x] 7. Run `.\gradlew checkstyleMain checkstyleTest` as its own invocation; expect no violations.
+- [x] 8. Run `.\gradlew build`; expect green.
+- [x] 9. Update the branch state: Progress `Task 1/8 done`, a Changes line.
+- [x] 10. Commit: `feat: add AI gateway types, validated configuration and prod guard rules (W-AI-GATEWAY)`.
 
 Intended shape of the guard additions (the implementer keeps them test-driven):
 ```java
