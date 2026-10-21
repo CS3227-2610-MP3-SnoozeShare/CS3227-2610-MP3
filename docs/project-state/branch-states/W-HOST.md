@@ -9,7 +9,7 @@ in after the branch merges.
 - **Owner:** project owner
 - **Status:** In review
 - **Approved:** —
-- **Last updated:** 2026-10-21 by GPT-5 — listing field placeholders verified; awaiting owner review
+- **Last updated:** 2026-10-21 by GPT-5 — button cursor and outline hover treatment verified; awaiting owner review
 
 ---
 
@@ -42,7 +42,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | T4 placeholder follow-up complete: examples across text, location, capacity, and rate fields; 107 tests, lint, build pass | guide out of date: W-HOST Host UI pages and Fall Light details |
+| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | T1 interaction follow-up complete: global pointer cursors and outlined hover feedback; 108 tests, lint, build pass | guide out of date: W-HOST Host UI pages and Fall Light details |
 
 ## 4. Architecture
 
@@ -75,7 +75,7 @@ None.
 | ID | Date | Deviation | Consequence / action |
 |---|---|---|---|
 | D~1 | 2026-10-21 | Initial T8 comparison was blocked by missing Host authentication; operator subsequently logged in and enabled a live route comparison | Resolved. Authenticated artifact comparison completed; all eight Host content routes were checked at 1680×945, 1280×800, and 768×1024 with no horizontal overflow |
-| D~2 | 2026-10-21 | Next.js production build passed once after the breadcrumb implementation, but subsequent reruns intermittently failed during page-data collection with `Invariant: no direct app page entry found for /_not-found` | Source compilation, type checking, 106 tests, and lint pass; build output is inconsistent and should be rechecked if it recurs |
+| D~2 | 2026-10-21 | Next.js production build intermittently failed during page-data collection with `Invariant: no direct app page entry found for /_not-found` after the breadcrumb implementation | Resolved on 2026-10-21: a later standalone build passed; recheck only if the invariant recurs |
 
 ## 10. Changes
 
@@ -97,3 +97,4 @@ None.
 | 2026-10-21 | Split New/Edit listing cards into top-aligned desktop stacks, kept the narrow-screen card sequence, tightened vertical field/card gaps, and normalized select trigger weight; 105 tests and lint pass | W-HOST | T4 follow-up |
 | 2026-10-21 | Applied shared chevron breadcrumbs to New, Edit, listing detail, and booking calendar routes; expanded route regression coverage; 106 tests and lint pass | W-HOST | T4 follow-up |
 | 2026-10-21 | Added entry-example placeholders to New/Edit title, description, address, location, capacity, and rate inputs; 107 tests, lint, and production build pass | W-HOST | T4 follow-up |
+| 2026-10-21 | Added pointer cursors for enabled buttons and hover feedback for outlined buttons and links | W-HOST | T1 follow-up |

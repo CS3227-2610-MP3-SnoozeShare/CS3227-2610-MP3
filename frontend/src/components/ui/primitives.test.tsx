@@ -54,6 +54,13 @@ describe('Fall Light primitives', () => {
     expect(screen.getByRole('table')).toHaveTextContent('Jane G');
   });
 
+  it('gives shared buttons pointer cursors and outlined buttons hover feedback', () => {
+    render(<><Button>Save</Button><Button variant="outline">Cancel</Button></>);
+
+    expect(screen.getByRole('button', { name: 'Save' })).toHaveClass('cursor-pointer');
+    expect(screen.getByRole('button', { name: 'Cancel' })).toHaveClass('cursor-pointer', 'hover:bg-muted');
+  });
+
   it('renders labelled statuses, modal semantics, and calendar day states', () => {
     render(
       <>

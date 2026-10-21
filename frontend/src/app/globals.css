@@ -146,6 +146,16 @@
     font: inherit;
   }
 
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [role="button"][aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+
   :focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 2px;
@@ -179,5 +189,12 @@
 
   .ss-status-neutral {
     @apply bg-muted text-muted-foreground;
+  }
+
+  button[class~="border"]:not(:disabled):hover,
+  button[class*="border-border"]:not(:disabled):hover,
+  a[href][class~="border"]:hover,
+  a[href][class*="border-border"]:hover {
+    background-color: var(--surface-inset);
   }
 }
