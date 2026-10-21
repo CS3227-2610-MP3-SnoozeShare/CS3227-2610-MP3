@@ -35,7 +35,7 @@ No change.
 
 **Remaining**
 
-- [ ] Commit and push the verified W-HOST changes; then owner review and approval. Only after approval can W-HOST be integrated. Keep domain-dependent contracts provisional until W-DOMAIN settles them.
+- [ ] Push the verified W-HOST commits; then owner review and approval. Only after approval can W-HOST be integrated. Keep domain-dependent contracts provisional until W-DOMAIN settles them.
 
 ## 3. Workstreams
 
@@ -84,4 +84,4 @@ None.
 | 2026-10-21 | Added calendar precedence, booking block presentation, and pending/history request screens | W-HOST | T5 |
 | 2026-10-21 | Added Host messages, resolved-thread behavior, wallet statement, and mocked wallet controls | W-HOST | T6 |
 | 2026-10-21 | Added cross-screen local-only interaction tests and no-network guarantees | W-HOST | T7 |
-| 2026-10-21 | Corrected full-width Host framing, listing/detail/calendar/request parity, and edit-form typography; no Host New Ticket action; all 95 frontend tests, lint, build, and three-viewport route checks pass | W-HOST | T8 |
+| 2026-10-21 | Corrected full-width Host framing, listing/detail/calendar/request parity, and edit-form typography; no Host New Ticket action; fixed inactive switch token and modal keyboard focus; all 97 frontend tests, lint, build, and three-viewport route checks pass | W-HOST | T8 |
