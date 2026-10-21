@@ -5,8 +5,8 @@
 - **Branch:** W-AUTH (from `development` at `a785e75`)
 - **Base:** `0bfd04d`
 - **Owner:** project owner
-- **Status:** In review
-- **Approved:** —
+- **Status:** Approved
+- **Approved:** Xiao-Congchen, 2026-10-21 (recorded by Claude Sonnet 5.5 at the owner's instruction, after the PR had already merged)
 - **Last updated:** 2026-10-21 by Claude Sonnet 5.5 — review fixes: client IP from `CF-Connecting-IP`, `returnTo` parsing, register-failure state
 
 ---
