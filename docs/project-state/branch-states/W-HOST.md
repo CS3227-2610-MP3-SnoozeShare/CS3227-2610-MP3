@@ -9,7 +9,7 @@ in after the branch merges.
 - **Owner:** project owner
 - **Status:** Draft
 - **Approved:** —
-- **Last updated:** 2026-10-21 by GPT-5 — T7 complete; T8 started
+- **Last updated:** 2026-10-21 by GPT-5 — T8 blocked at authenticated visual comparison
 
 ---
 
@@ -32,17 +32,17 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-21 15:10 | GPT-5 (lead) | W-HOST | Active | T8 in progress: visual and accessibility verification | Add source-level visual contract tests, then inspect required viewports against the Claude artifact | 2026-10-21 18:30 |
+| S1 | 2026-10-21 15:10 | GPT-5 (lead) | W-HOST | Blocked — needs human | T8 blocked: browser has no authenticated Host session for visual comparison | Provide an authenticated Host browser session or explicitly accept source/test-only visual verification, then inspect 1680×945, 1280×800, and 768×1024 | 2026-10-21 18:45 |
 
 **Remaining**
 
-- [ ] **Handover:** Continue T1–T8 in order; keep domain-dependent contracts provisional until W-DOMAIN settles them.
+- [ ] **Handover:** Provide an authenticated Host browser session or owner acceptance of source/test-only visual verification, then complete T8 manual comparison and close-out; keep domain-dependent contracts provisional until W-DOMAIN settles them.
 
 ## 3. Workstreams
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | Building | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | T8 in flight: visual and accessibility verification | — |
+| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | Building | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | T8 blocked: authenticated browser comparison unavailable | — |
 
 ## 4. Architecture
 
@@ -58,7 +58,7 @@ No change: existing W-DOMAIN dependency and accepted gaps remain in force.
 
 ## 7. Needs a Human
 
-No change.
+- Provide an authenticated Host browser session for visual comparison, or explicitly accept source/test-only visual verification in place of the required manual check.
 
 ## 8. Decisions
 
@@ -68,7 +68,9 @@ No change.
 
 ## 9. Deviations
 
-No change.
+| ID | Date | Deviation | Consequence / action |
+|---|---|---|---|
+| D~1 | 2026-10-21 | T8 browser comparison could not render authenticated Host routes because the local browser remained in W-AUTH `Loading…` without a Host session | Source visual-contract tests, full frontend tests, lint, and production build pass; manual artifact comparison remains outstanding |
 
 ## 10. Changes
 
@@ -82,3 +84,4 @@ No change.
 | 2026-10-21 | Added calendar precedence, booking block presentation, and pending/history request screens | W-HOST | T5 |
 | 2026-10-21 | Added Host messages, resolved-thread behavior, wallet statement, and mocked wallet controls | W-HOST | T6 |
 | 2026-10-21 | Added cross-screen local-only interaction tests and no-network guarantees | W-HOST | T7 |
+| 2026-10-21 | Added source-level visual/accessibility contract checks; full automated verification passes, but authenticated viewport comparison is blocked | W-HOST | T8 partial |
