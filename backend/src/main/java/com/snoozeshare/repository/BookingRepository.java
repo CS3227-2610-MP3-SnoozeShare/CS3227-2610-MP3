@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.snoozeshare.domain.enums.BookingStatus;
 import com.snoozeshare.domain.model.Booking;
 
 /** Spring Data JPA repository for bookings. */
@@ -27,6 +28,9 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
     List<Booking> findByGuestId(UUID guestId);
 
     List<Booking> findByListingId(UUID listingId);
+
+    List<Booking> findByListingIdAndStatusInAndStartDateLessThanAndEndDateGreaterThanOrderByStartDateAscIdAsc(
+            UUID listingId, List<BookingStatus> statuses, LocalDate endDate, LocalDate startDate);
 
     @Query("SELECT b FROM Booking b WHERE b.listingId IN "
             + "(SELECT p.id FROM Property p WHERE p.hostId = :hostId) "

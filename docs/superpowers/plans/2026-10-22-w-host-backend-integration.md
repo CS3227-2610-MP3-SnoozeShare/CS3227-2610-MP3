@@ -22,7 +22,7 @@
 | T0 Activate W-DOMAIN service beans deterministically | - | T1 | 1 | Done |
 | T1 Add Host identity resolver and stable error boundary | - | T0 | 1 | Done |
 | T2 Add listing API and detail projection | T0,T1 | T3 | 2 | Done |
-| T3 Make calendar mutations atomic and expose calendar API | T0,T1 | T2 | 2 | Not started |
+| T3 Make calendar mutations atomic and expose calendar API | T0,T1 | T2 | 2 | Done |
 | T4 Serialize Host booking decisions | T0,T1 | T5,T6 | 2 | Not started |
 | T5 Add distinct Host conversation APIs | T0,T1 | T4,T6 | 2 | Not started |
 | T6 Add Host wallet API | T0,T1 | T4,T5 | 2 | Not started |
@@ -170,16 +170,18 @@
 |---|---|---|
 | Create | `backend/src/main/java/com/snoozeshare/api/controller/HostCalendarController.java` | Host-owned month read, block creation, and deletion routes. |
 | Create | `backend/src/main/java/com/snoozeshare/api/response/HostCalendarResponse.java` | Month/day and inclusive blocked-range response values. |
+| Create | `backend/src/main/java/com/snoozeshare/api/request/CreateHostBlockRequest.java` | Validate ISO date values and the 240-code-point optional reason limit. |
 | Modify | `backend/src/main/java/com/snoozeshare/service/AvailabilityService.java` and `backend/src/main/java/com/snoozeshare/service/impl/AvailabilityServiceImpl.java` (`createHostBlock`, `removeHostBlock`) | Apply one `SERIALIZABLE` transaction to overlap-check/write/delete and audit; retry SQLSTATE `40001` once in a fresh transaction, mapping a second failure to 409. |
 | Modify | `backend/src/main/java/com/snoozeshare/repository/AvailabilityBlockRepository.java` and `backend/src/main/java/com/snoozeshare/repository/BookingRepository.java` | Add bounded date/month projections needed for owned calendar results, including existing bookings that produce synthetic calendar blocks. |
-| Test | `backend/src/test/java/com/snoozeshare/api/host/HostCalendarIntegrationTest.java` | Inclusive wire/exclusive stored dates, precedence, ownership, overlap, audit, and concurrent serialization outcomes (E3,E6,E18). |
+| Modify | `backend/src/main/java/com/snoozeshare/domain/enums/AuditAction.java` | Add explicit audit actions for Host block creation/removal. |
+| Test | `backend/src/test/java/com/snoozeshare/api/host/HostCalendarIntegrationTest.java` | Inclusive wire/exclusive stored dates, precedence, ownership, overlap, audit, and concurrent same-owner requests for one listing (E3,E6,E18). |
 
 **Checklist**
 
-- [ ] 1. Write failing tests for E6 and E18; cover malformed/past/reversed/overlapping ranges and two concurrent overlapping blocks.
-- [ ] 2. Add the month DTO/controller and transactional mutation retry; convert inclusive API end dates to the existing half-open service representation exactly once.
-- [ ] 3. Run tests; assert one overlapping block at most, expected 422 after retry, 409 after a second serialization failure, and audit only for committed writes.
-- [ ] 4. Run backend Checkstyle (`./gradlew checkstyleMain checkstyleTest`) and build.
+- [x] 1. Write failing tests for E3,E6,E18; cover malformed/past/reversed/overlapping ranges, cross-host 404s, and two concurrent overlapping requests by the authorized listing owner (two distinct owners cannot both be authorized for one listing).
+- [x] 2. Add the month DTO/controller and transactional mutation retry; convert inclusive API end dates to the existing half-open service representation exactly once.
+- [x] 3. Run tests; assert one overlapping block at most, expected 422 after retry, 409 after a second serialization failure, and audit only for committed writes.
+- [x] 4. Run backend Checkstyle (`./gradlew checkstyleMain checkstyleTest`) and build.
 - [ ] 5. Update branch state; commit `feat: expose atomic Host calendar API`.
 
 ### T4: Serialize Host booking decisions

@@ -18,5 +18,9 @@ public interface AvailabilityService {
 
     void removeHostBlock(UUID blockId, UUID hostId);
 
+    AvailabilityBlock getBlock(UUID blockId);
+
+    List<AvailabilityBlock> blocksFor(UUID propertyId, LocalDate start, LocalDate endExclusive);
+
     List<AvailabilityBlock> blocksFor(UUID propertyId);
 }
