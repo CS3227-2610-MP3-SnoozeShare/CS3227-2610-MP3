@@ -9,7 +9,7 @@ in after the branch merges.
 - **Owner:** project owner
 - **Status:** In review
 - **Approved:** —
-- **Last updated:** 2026-10-21 by GPT-5 — listing card narrow-viewport layout fixed; awaiting owner review
+- **Last updated:** 2026-10-21 by GPT-5 — booking calendar aligned with artifact; awaiting owner review
 
 ---
 
@@ -42,7 +42,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Fixed listing-card wrapping at 628px; 111 tests, lint, production build pass | guide out of date: W-HOST Host UI pages and Fall Light details |
+| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Aligned booking calendar composition, state colors, and local override control; 114 tests, lint, build pass | guide out of date: W-HOST Host UI pages and Fall Light details |
 
 ## 4. Architecture
 
@@ -104,3 +104,4 @@ None.
 | 2026-10-21 | Increased detail/address typography; added review spacing; aligned Performance beside title/metrics at ~40% content width; top-aligned breadcrumb with shared Host placement; 111 tests, lint, isolated production build pass | W-HOST | Operator follow-up |
 | 2026-10-21 | Simplified outlined listing-card action-link styles while retaining the shared hover background; 111 tests and lint pass | W-HOST | Operator follow-up |
 | 2026-10-21 | Added an intermediate three-column card-info layout to prevent the Edit action being stranded at narrow viewport widths; 111 tests, lint, production build, and 628px browser check pass | W-HOST | Operator follow-up |
+| 2026-10-21 | Matched the calendar split panel, month/legend row, day colors and sizing, sample bookings, block form, and removable override; 114 tests, lint, production build, and browser check pass | W-HOST | Operator follow-up |

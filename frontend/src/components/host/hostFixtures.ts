@@ -55,7 +55,7 @@ const calendar: CalendarData = {
     return {
       date: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
       month: inCurrentMonth ? 'current' : 'other',
-      booked: inCurrentMonth && day === 11,
+      booked: inCurrentMonth && (day === 4 || day === 5),
       blocked: inCurrentMonth && day >= 15 && day <= 17,
     };
   }),

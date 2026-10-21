@@ -3,19 +3,20 @@
 import { useState } from 'react';
 import { CalendarGrid, type CalendarDay as GridDay } from '@/components/ui/calendar-grid';
 import { Modal } from '@/components/ui/modal';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { resolveCalendarState, calendarDayLabel } from './calendarState';
 import type { CalendarData } from './hostTypes';
 
 export function HostCalendarPanel({ calendar }: { calendar: CalendarData }) {
   const [monthOffset, setMonthOffset] = useState(0);
   const [open, setOpen] = useState(false);
-  const [from, setFrom] = useState('');
-  const [to, setTo] = useState('');
+  const [from, setFrom] = useState('2026-09-15');
+  const [to, setTo] = useState('2026-09-17');
   const [error, setError] = useState('');
+  const [overrides, setOverrides] = useState(calendar.overrides);
   const monthDate = new Date(`${calendar.days.find((day) => day.month === 'current')?.date ?? '2026-09-01'}T12:00:00`);
   monthDate.setMonth(monthDate.getMonth() + monthOffset);
   const monthLabel = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(monthDate);
+  const formatDate = (value: string) => value ? new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(new Date(`${value}T12:00:00`)) : 'Select date';
   const days: GridDay[] = (() => {
     const first = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
     const gridStart = new Date(first.getFullYear(), first.getMonth(), 1 - first.getDay());
@@ -28,5 +29,47 @@ export function HostCalendarPanel({ calendar }: { calendar: CalendarData }) {
     });
   })();
   const block = () => { if (!from || !to || from > to) { setError('End date must be on or after start date'); return; } setOpen(true); };
-  return <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]"><Card><CardHeader className="flex-row items-center justify-between"><button aria-label="Previous month" className="rounded-md border border-border px-2 py-1" onClick={() => setMonthOffset((offset) => offset - 1)} type="button">‹</button><CardTitle>{monthLabel}</CardTitle><button aria-label="Next month" className="rounded-md border border-border px-2 py-1" onClick={() => setMonthOffset((offset) => offset + 1)} type="button">›</button></CardHeader><CardContent><CalendarGrid monthLabel={monthLabel} days={days} /><div className="mt-4 flex flex-wrap gap-3 text-xs">{(['available', 'booked', 'blocked', 'other'] as const).map((state) => <span className="flex items-center gap-1" key={state}><span className={`h-3 w-3 rounded-full ss-status-${state === 'available' ? 'success' : state === 'booked' ? 'danger' : state === 'blocked' ? 'warning' : 'neutral'}`} />{calendarDayLabel(state)}</span>)}</div></CardContent></Card><Card><CardHeader><CardTitle>Block dates</CardTitle></CardHeader><CardContent className="space-y-3"><label className="flex flex-col gap-1 text-xs font-semibold" htmlFor="from">FROM<input className="h-9 rounded-lg border border-input bg-background px-2 text-sm font-normal" id="from" type="date" value={from} onChange={(event) => setFrom(event.target.value)} /></label><label className="flex flex-col gap-1 text-xs font-semibold" htmlFor="to">TO<input className="h-9 rounded-lg border border-input bg-background px-2 text-sm font-normal" id="to" type="date" value={to} onChange={(event) => setTo(event.target.value)} /></label><label className="flex flex-col gap-1 text-xs font-semibold" htmlFor="reason">Reason (optional)<input className="h-9 rounded-lg border border-input bg-background px-2 text-sm font-normal" id="reason" /></label>{error && <p className="text-xs text-destructive">{error}</p>}<button className="w-full rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground" onClick={block} type="button">Block these dates</button><h3 className="pt-3 text-xs font-bold tracking-wide text-[var(--text-subtle)]">CURRENT OVERRIDES</h3>{calendar.overrides.length ? calendar.overrides.map((override) => <p className="text-sm" key={override}>{override}</p>) : <p className="text-sm text-[var(--text-subtle)]">No current overrides</p>}</CardContent></Card><Modal open={open} title="Block these dates?" description="This is a presentation-only Host control. No booking availability will be changed." onClose={() => setOpen(false)} onConfirm={() => setOpen(false)} confirmLabel="Confirm" /></div>;
+  return (
+    <section aria-label="Booking calendar and date blocking" className="grid overflow-hidden rounded-xl border border-border bg-white shadow-sm lg:grid-cols-[minmax(0,2.6fr)_minmax(300px,1fr)]">
+      <div className="bg-[var(--canvas)] px-4 py-5 md:px-6">
+        <div aria-label="Calendar month and status legend" className="mb-4 flex flex-wrap items-center justify-between gap-4" role="group">
+          <div className="flex items-center gap-3">
+            <button aria-label="Previous month" className="grid h-7 w-7 place-items-center rounded-md border border-border text-base leading-none hover:bg-[var(--surface-inset)]" onClick={() => setMonthOffset((offset) => offset - 1)} type="button">‹</button>
+            <h2 className="text-base font-semibold leading-tight">{monthLabel}</h2>
+            <button aria-label="Next month" className="grid h-7 w-7 place-items-center rounded-md border border-border text-base leading-none hover:bg-[var(--surface-inset)]" onClick={() => setMonthOffset((offset) => offset + 1)} type="button">›</button>
+          </div>
+          <div aria-label="Calendar status legend" className="flex flex-wrap gap-x-3 gap-y-2 text-xs" role="list">
+            {(['available', 'booked', 'blocked', 'other'] as const).map((state) => (
+              <span className="flex items-center gap-1" key={state} role="listitem">
+                <span aria-hidden="true" className={`h-3 w-3 rounded-sm border ${state === 'available' ? 'border-[#b8c98c] bg-white' : state === 'booked' ? 'border-[#d5e4b7] bg-[#eaf2d8]' : state === 'blocked' ? 'border-[#e9c2c4] bg-[#f4dfe0]' : 'border-[#d0d0d0] bg-[#dedede]'}`} />
+                {calendarDayLabel(state)}
+              </span>
+            ))}
+          </div>
+        </div>
+        <CalendarGrid className="rounded-lg" monthLabel={monthLabel} days={days} />
+      </div>
+
+      <aside className="border-t border-border bg-white px-5 py-5 lg:border-l lg:border-t-0">
+        <h2 className="mb-4 text-base font-semibold">Block dates</h2>
+        <div className="space-y-3">
+          <label className="flex flex-col gap-1 text-xs font-semibold" htmlFor="from">From<div className="relative h-9 rounded-lg border border-input bg-background px-2 text-sm font-normal has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring"><span aria-hidden="true" className="flex h-full items-center">{formatDate(from)}</span><input aria-label="From" className="absolute inset-0 h-full w-full cursor-pointer opacity-0" id="from" type="date" value={from} onChange={(event) => setFrom(event.target.value)} /></div></label>
+          <label className="flex flex-col gap-1 text-xs font-semibold" htmlFor="to">To<div className="relative h-9 rounded-lg border border-input bg-background px-2 text-sm font-normal has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring"><span aria-hidden="true" className="flex h-full items-center">{formatDate(to)}</span><input aria-label="To" className="absolute inset-0 h-full w-full cursor-pointer opacity-0" id="to" type="date" value={to} onChange={(event) => setTo(event.target.value)} /></div></label>
+          <label className="flex flex-col gap-1 text-xs font-semibold" htmlFor="reason">Reason (optional)<input className="h-9 rounded-lg border border-input bg-background px-2 text-sm font-normal" id="reason" placeholder="e.g. personal use" /></label>
+          {error && <p className="text-xs text-destructive">{error}</p>}
+          <button className="w-full rounded-lg bg-[#941f26] px-3 py-2 text-sm font-semibold text-white hover:bg-[#7f1c22]" onClick={block} type="button">Block these dates</button>
+        </div>
+        <div className="mt-4 border-t border-border pt-4">
+          <h3 className="mb-2 text-sm font-semibold">Current overrides</h3>
+          {overrides.length ? overrides.map((override) => (
+            <div className="flex items-center justify-between gap-3 text-sm" key={override}>
+              <span>{override}</span>
+              <button aria-label={`Remove override ${override}`} className="text-xs text-[var(--primary)] underline-offset-2 hover:underline" onClick={() => setOverrides((current) => current.filter((item) => item !== override))} type="button">remove</button>
+            </div>
+          )) : <p className="text-sm text-[var(--text-subtle)]">No current overrides</p>}
+        </div>
+      </aside>
+      <Modal open={open} title="Block these dates?" description="This is a presentation-only Host control. No booking availability will be changed." onClose={() => setOpen(false)} onConfirm={() => setOpen(false)} confirmLabel="Confirm" />
+    </section>
+  );
 }

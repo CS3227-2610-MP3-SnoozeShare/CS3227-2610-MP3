@@ -23,6 +23,43 @@ describe('Host calendar and requests', () => {
     await waitFor(() => expect(screen.getByRole('dialog')).toHaveTextContent('presentation-only'));
   });
 
+  it('shows the artifact sample dates and removes a current override locally', () => {
+    const calendar = createHostFixtureAdapter().getCalendar('lakeside-cabin').data!;
+    render(<HostCalendarPanel calendar={calendar} />);
+
+    expect(screen.getByRole('gridcell', { name: '4, Booked' })).toBeInTheDocument();
+    expect(screen.getByRole('gridcell', { name: '5, Booked' })).toBeInTheDocument();
+    expect(screen.getByRole('gridcell', { name: '11, Available' })).toBeInTheDocument();
+    expect(screen.getByLabelText('From')).toHaveValue('2026-09-15');
+    expect(screen.getByLabelText('To')).toHaveValue('2026-09-17');
+    expect(screen.getByText('Sep 15')).toBeInTheDocument();
+    expect(screen.getByText('Sep 17')).toBeInTheDocument();
+    expect(screen.getByLabelText('Reason (optional)')).toHaveAttribute('placeholder', 'e.g. personal use');
+    fireEvent.click(screen.getByRole('button', { name: 'Remove override Oct 3 – Oct 5' }));
+    expect(screen.queryByText('Oct 3 – Oct 5')).not.toBeInTheDocument();
+  });
+
+  it('uses the artifact calendar-state colors and taller day cells', () => {
+    const calendar = createHostFixtureAdapter().getCalendar('lakeside-cabin').data!;
+    render(<HostCalendarPanel calendar={calendar} />);
+
+    expect(screen.getByRole('gridcell', { name: '3, Available' })).toHaveClass('min-h-[88px]', 'bg-white');
+    expect(screen.getByRole('gridcell', { name: '4, Booked' })).toHaveClass('bg-[#eaf2d8]');
+    expect(screen.getByRole('gridcell', { name: '15, Blocked' })).toHaveClass('bg-[#f4dfe0]');
+    expect(screen.getByRole('gridcell', { name: '30, Other month' })).toHaveClass('bg-[#dedede]');
+  });
+
+  it('places month navigation and the legend together above the calendar grid', () => {
+    const calendar = createHostFixtureAdapter().getCalendar('lakeside-cabin').data!;
+    render(<HostCalendarPanel calendar={calendar} />);
+
+    const header = screen.getByRole('group', { name: 'Calendar month and status legend' });
+    expect(header).toContainElement(screen.getByRole('heading', { name: 'September 2026' }));
+    expect(header).toContainElement(screen.getByText('Available'));
+    expect(header.compareDocumentPosition(screen.getByRole('grid')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByRole('region', { name: 'Booking calendar and date blocking' })).toHaveClass('lg:grid-cols-[minmax(0,2.6fr)_minmax(300px,1fr)]');
+  });
+
   it('renders a complete five-week calendar with weekday headings', () => {
     const calendar = createHostFixtureAdapter().getCalendar('lakeside-cabin').data!;
     render(<HostCalendarPanel calendar={calendar} />);

@@ -19,7 +19,7 @@ describe('W-HOST visual and accessibility contract', () => {
 
   it('keeps required visible labels and no-image fallback in source', () => {
     const source = hostFiles.map((file) => readFileSync(join(root, file), 'utf8')).join('\n');
-    for (const label of ['AMENITIES', 'REVIEWS', 'BOOKINGS', 'RATING', 'CURRENT OVERRIDES', 'Transaction statement']) {
+    for (const label of ['AMENITIES', 'REVIEWS', 'BOOKINGS', 'RATING', 'Current overrides', 'Transaction statement']) {
       expect(source).toContain(label);
     }
     expect(source).toContain('aria-label');

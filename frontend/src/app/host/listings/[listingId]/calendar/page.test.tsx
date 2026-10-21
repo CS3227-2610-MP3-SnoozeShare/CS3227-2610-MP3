@@ -6,5 +6,11 @@ import { HostFixtureProvider } from '@/components/host/HostFixtureProvider';
 vi.mock('next/navigation', () => ({ useParams: () => ({ listingId: 'lakeside-cabin' }) }));
 
 describe('Host calendar page', () => {
-  it('renders the populated calendar fixture', () => { render(<HostFixtureProvider><HostCalendarPage /></HostFixtureProvider>); expect(screen.getByText('September 2026')).toBeInTheDocument(); expect(screen.getByText('Block dates')).toBeInTheDocument(); });
+  it('renders the calendar without a duplicate page title', () => {
+    render(<HostFixtureProvider><HostCalendarPage /></HostFixtureProvider>);
+    expect(screen.getByRole('heading', { name: 'September 2026' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Booking Calendar' })).not.toBeInTheDocument();
+    expect(screen.getByRole('navigation', { name: 'Breadcrumb' })).toHaveTextContent('Listings');
+    expect(screen.getByRole('heading', { name: 'Block dates' })).toBeInTheDocument();
+  });
 });

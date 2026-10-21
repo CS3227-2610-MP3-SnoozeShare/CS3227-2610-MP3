@@ -11,8 +11,8 @@ export default function HostCalendarPage() {
   const fixtures = useHostFixtures();
   const result = fixtures.getCalendar(id);
   const listing = fixtures.getListing(id);
-  if (result.state === 'loading') return <HostPageFrame title="Booking Calendar"><div className="ss-card h-64 animate-pulse bg-[var(--surface-inset)]" /></HostPageFrame>;
-  if (result.state === 'error') return <HostPageFrame title="Booking Calendar"><div className="ss-card p-8 text-center">{result.error}</div></HostPageFrame>;
+  if (result.state === 'loading') return <HostPageFrame title=""><div className="ss-card h-64 animate-pulse bg-[var(--surface-inset)]" /></HostPageFrame>;
+  if (result.state === 'error') return <HostPageFrame title=""><div className="ss-card p-8 text-center">{result.error}</div></HostPageFrame>;
   const listingTitle = listing.state === 'populated' || listing.state === 'empty' ? listing.data.title : 'Listing details';
-  return <HostPageFrame title="Booking Calendar" breadcrumbs={<HostBreadcrumbs items={[{ label: 'Listings', href: '/host/listings' }, { label: listingTitle, href: `/host/listings/${id}` }, { label: 'Booking Calendar' }]} />}><HostCalendarPanel calendar={result.data!} /></HostPageFrame>;
+  return <HostPageFrame title="" breadcrumbs={<HostBreadcrumbs items={[{ label: 'Listings', href: '/host/listings' }, { label: listingTitle, href: `/host/listings/${id}` }, { label: 'Booking Calendar' }]} />}><HostCalendarPanel calendar={result.data!} /></HostPageFrame>;
 }

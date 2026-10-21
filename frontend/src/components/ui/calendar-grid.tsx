@@ -15,7 +15,7 @@ export function CalendarGrid({ monthLabel, days, className, ...props }: { monthL
         <div className="border-b border-r border-[var(--border-muted)] bg-[var(--surface-inset)] px-2 py-2 text-center text-[11px] font-semibold text-[var(--text-subtle)]" key={weekday} role="columnheader">{weekday}</div>
       ))}
       {days.map((day) => (
-        <div aria-label={`${day.label}, ${stateLabels[day.state]}`} className={cn('min-h-[72px] border-b border-r border-[var(--border-muted)] p-2 text-sm', day.state === 'available' && 'bg-[#eaf2d8]', day.state === 'booked' && 'bg-[#f4dfe0]', day.state === 'blocked' && 'bg-[#f6e5df]', day.state === 'other' && 'bg-[var(--surface-inset)] text-[var(--text-subtle)]')} data-state={day.state} key={day.date} role="gridcell">
+        <div aria-label={`${day.label}, ${stateLabels[day.state]}`} className={cn('min-h-[88px] border-b border-r border-[var(--border-muted)] p-2 text-sm', day.state === 'available' && 'bg-white', day.state === 'booked' && 'bg-[#eaf2d8]', day.state === 'blocked' && 'bg-[#f4dfe0]', day.state === 'other' && 'bg-[#dedede] text-[var(--text-subtle)]')} data-state={day.state} key={day.date} role="gridcell">
           <span>{day.label}</span>
         </div>
       ))}
