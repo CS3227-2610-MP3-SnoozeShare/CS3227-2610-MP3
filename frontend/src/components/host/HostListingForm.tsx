@@ -11,6 +11,18 @@ import { SelectField } from '@/components/ui/select';
 const blank: ListingFormValues = { title: '', description: '', propertyType: 'House', status: 'active', streetAddress: '', city: '', region: '', postalCode: '', maxGuests: '', bedrooms: '', bathrooms: '', rate: '', checkIn: '', checkOut: '' };
 const propertyTypes = ['House', 'Apartment', 'Condo', 'Private room'];
 const amenities = ['Wifi', 'Parking', 'Air Conditioning', 'Kitchen', 'Washer', 'Work Desk'];
+const fieldPlaceholders: Partial<Record<keyof ListingFormValues, string>> = {
+  title: 'e.g., Lakeside Cabin',
+  description: 'Describe your property and what guests can expect.',
+  streetAddress: 'e.g., 123 Shoreline Dr',
+  city: 'e.g., Lakeview',
+  region: 'e.g., WI',
+  postalCode: 'e.g., 53211',
+  maxGuests: 'e.g., 4',
+  bedrooms: 'e.g., 2',
+  bathrooms: 'e.g., 1',
+  rate: 'e.g., 120.00',
+};
 function toTimeInputValue(value: string): string {
   const match = value.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
   if (!match) return value;
@@ -26,8 +38,8 @@ export function HostListingForm({ listing }: { listing?: ListingDetail }) {
   const [errors, setErrors] = useState<Partial<Record<keyof ListingFormValues, string>>>({});
   const update = (key: keyof ListingFormValues, value: string) => setValues((current) => ({ ...current, [key]: value }));
   const submit = (event: React.FormEvent) => { event.preventDefault(); const nextErrors = validateListing(values); setErrors(nextErrors); if (!Object.keys(nextErrors).length) router.push(listing ? `/host/listings/${listing.id}` : '/host/listings'); };
-  const field = (key: keyof ListingFormValues, label: string, type = 'text') => <div><Field label={label} name={key} type={type} value={values[key]} onChange={(event) => update(key, event.target.value)} aria-invalid={Boolean(errors[key])} /><p aria-live="polite" className="mt-1 min-h-4 text-xs text-destructive">{errors[key]}</p></div>;
-  const rateField = <div><label className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--text-muted)]" htmlFor="rate"><span>Rate / night</span><span className="relative"><span aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-normal text-foreground">$</span><input aria-label="Rate / night" aria-invalid={Boolean(errors.rate)} className="h-9 w-full rounded-lg border border-input bg-background pl-5 pr-3 text-sm font-normal outline-none transition-colors focus:border-ring focus:ring-3 focus:ring-ring/20" id="rate" inputMode="decimal" name="rate" onChange={(event) => update('rate', event.target.value)} type="text" value={values.rate} /></span></label><p aria-live="polite" className="mt-1 min-h-4 text-xs text-destructive">{errors.rate}</p></div>;
+  const field = (key: keyof ListingFormValues, label: string, type = 'text') => <div><Field label={label} name={key} type={type} value={values[key]} placeholder={fieldPlaceholders[key]} onChange={(event) => update(key, event.target.value)} aria-invalid={Boolean(errors[key])} /><p aria-live="polite" className="mt-1 min-h-4 text-xs text-destructive">{errors[key]}</p></div>;
+  const rateField = <div><label className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--text-muted)]" htmlFor="rate"><span>Rate / night</span><span className="relative"><span aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-normal text-foreground">$</span><input aria-label="Rate / night" aria-invalid={Boolean(errors.rate)} className="h-9 w-full rounded-lg border border-input bg-background pl-5 pr-3 text-sm font-normal outline-none transition-colors focus:border-ring focus:ring-3 focus:ring-ring/20" id="rate" inputMode="decimal" name="rate" placeholder={fieldPlaceholders.rate} onChange={(event) => update('rate', event.target.value)} type="text" value={values.rate} /></span></label><p aria-live="polite" className="mt-1 min-h-4 text-xs text-destructive">{errors.rate}</p></div>;
   return (
     <form className="w-full space-y-4" onSubmit={submit} noValidate>
       <div className="grid w-full items-start gap-x-4 gap-y-2 lg:grid-cols-2">
@@ -36,7 +48,7 @@ export function HostListingForm({ listing }: { listing?: ListingDetail }) {
             <CardHeader><CardTitle className="text-sm font-bold leading-tight text-primary">BASIC DETAILS</CardTitle></CardHeader>
             <CardContent className="space-y-2">
               {field('title', 'Title')}
-              <label className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--text-muted)]" htmlFor="description"><span>Description</span><textarea className="min-h-28 rounded-lg border border-input bg-background p-3 text-sm font-normal outline-none focus:border-ring focus:ring-3 focus:ring-ring/20" id="description" name="description" value={values.description} onChange={(event) => update('description', event.target.value)} /></label>
+              <label className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--text-muted)]" htmlFor="description"><span>Description</span><textarea className="min-h-28 rounded-lg border border-input bg-background p-3 text-sm font-normal outline-none focus:border-ring focus:ring-3 focus:ring-ring/20" id="description" name="description" placeholder={fieldPlaceholders.description} value={values.description} onChange={(event) => update('description', event.target.value)} /></label>
               <p className="-mt-2 min-h-4 text-xs text-destructive">{errors.description}</p>
               <div className="grid gap-2 sm:grid-cols-2">
                 <label className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--text-muted)]"><span>Property type</span><SelectField aria-label="Property type" name="propertyType" value={values.propertyType} options={propertyTypes.map((value) => ({ value, label: value }))} onValueChange={(value) => update('propertyType', value)} /></label>

@@ -125,6 +125,31 @@ describe('Host listing components', () => {
     expect(screen.getByLabelText('Check-out time')).toHaveValue('11:00');
   });
 
+  it('shows entry examples in the new and edit listing text fields', () => {
+    const expectedPlaceholders = {
+      Title: 'e.g., Lakeside Cabin',
+      Description: 'Describe your property and what guests can expect.',
+      'Street address': 'e.g., 123 Shoreline Dr',
+      City: 'e.g., Lakeview',
+      Region: 'e.g., WI',
+      'Postal code': 'e.g., 53211',
+      'Max guests': 'e.g., 4',
+      Bedrooms: 'e.g., 2',
+      Bathrooms: 'e.g., 1',
+      'Rate / night': 'e.g., 120.00',
+    };
+    const { rerender } = render(<HostFixtureProvider><NewListingPage /></HostFixtureProvider>);
+
+    for (const [label, placeholder] of Object.entries(expectedPlaceholders)) {
+      expect(screen.getByLabelText(label)).toHaveAttribute('placeholder', placeholder);
+    }
+
+    rerender(<HostFixtureProvider><EditListingPage /></HostFixtureProvider>);
+    for (const [label, placeholder] of Object.entries(expectedPlaceholders)) {
+      expect(screen.getByLabelText(label)).toHaveAttribute('placeholder', placeholder);
+    }
+  });
+
   it('keeps related cards in independent desktop stacks and preserves narrow-screen order', () => {
     render(<HostFixtureProvider><NewListingPage /></HostFixtureProvider>);
     const form = screen.getByRole('button', { name: 'Save listing' }).closest('form')!;
@@ -196,7 +221,7 @@ describe('Host listing components', () => {
 
     rerender(<HostFixtureProvider><HostCalendarPage /></HostFixtureProvider>);
     breadcrumb = screen.getByRole('navigation', { name: 'Breadcrumb' });
-    expect(breadcrumb).toHaveTextContent(/Listings\s*›\s*Lakeside Cabin\s*›\s*Booking calendar/);
+    expect(breadcrumb).toHaveTextContent(/Listings\s*›\s*Lakeside Cabin\s*›\s*Booking Calendar/);
     expect(breadcrumb).toHaveClass('mb-4', 'gap-2', 'text-xs', 'text-[var(--text-subtle)]');
     expect(breadcrumb.querySelectorAll('[aria-hidden="true"]')).toHaveLength(2);
   });
