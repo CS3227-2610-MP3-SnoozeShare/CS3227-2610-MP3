@@ -10,6 +10,7 @@
 | T6 | Messages and wallet screens | Shared Host inbox/thread and wallet/statement presentation | F8 |
 | T7 | Local presentation interactions and non-domain states | Navigation, modal open/close, fixture-only control behaviour, error/empty states, and no-network guarantees | F9, E1–E11, E16–E17 |
 | T8 | Visual and accessibility verification | Screenshot comparison at 1680×945 plus responsive checks at 1280×800 and 768×1024; visual pass allows only anti-aliasing differences up to 2px at edges | N1, N3, N4, N5, E12–E15 |
+| T9 | Listings page composition refinement | Align the create action with the heading; remove status pills; center five width-stable card groups and outline calendar/edit actions | F3 |
 
 ## Dependencies
 
@@ -23,5 +24,6 @@
 | T6 Messages and wallet | T1, T2, T3 | T4, T5 | 3 |
 | T7 Local presentation interactions | T4, T5, T6 | - | 4 |
 | T8 Visual and accessibility verification | T7 | - | 5 |
+| T9 Listings page composition refinement | T8 | - | 6 |
 
 Shared-file hazards: T1 and T3 both edit the shared shell styling; serialize them. T4, T5, and T6 may run concurrently only after T3 and must keep page-specific styling in their own component files; any shared primitive changes return to T1 and are serialized.

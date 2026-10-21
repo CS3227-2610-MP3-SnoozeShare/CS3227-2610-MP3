@@ -63,9 +63,9 @@ The populated Messages fixture contains exactly two list rows: `Lakeside Cabin Â
 | Empty | Heading `My listings`, no rows, centered empty card | `+ New listing` | `You don't have any listings yet.` | HOST |
 | Loading | Shell plus heading and four listing-row skeletons | None | No fixture values | HOST |
 | Error | Shell plus page-level error card | Retry | `Unable to load your listings.` | HOST |
-| Populated | Heading, `+ New listing`, four horizontal listing cards. Each card has warm thumbnail tile, title, type/location/rate, bookings, rating, active toggle/status, `Open Booking Calendar`, and `Edit` | New listing, toggle presentation, calendar link, edit link | `My listings`, `+ New listing`, `BOOKINGS`, `RATING`, `ACTIVE`, `INACTIVE` | HOST |
+| Populated | Heading and `+ New listing` on one row; four horizontal listing cards. Each card has warm thumbnail tile, title, type/location/rate, then five centered, width-stable right-side groups: bookings, rating, active/inactive label plus switch, outlined `Open Booking Calendar`, and outlined `Edit`. No active/inactive pill appears beside the title. | New listing, toggle presentation, calendar link, edit link | `My listings`, `+ New listing`, `BOOKINGS`, `RATING`, `ACTIVE`, `INACTIVE` | HOST |
 
-Rows use the artifact fixture content: Lakeside Cabin, Downtown Loft, Garden Studio, and Hilltop House. The row layout is a single bordered card with compact metrics aligned to the right.
+Rows use the artifact fixture content: Lakeside Cabin, Downtown Loft, Garden Studio, and Hilltop House. Each row is one full-width bordered card; booking and rating values are horizontally centered within their own groups, and the availability group's fixed width prevents the label change from shifting other content.
 
 ## Host â€” Listing detail (`/host/listings/:listingId`)
 
