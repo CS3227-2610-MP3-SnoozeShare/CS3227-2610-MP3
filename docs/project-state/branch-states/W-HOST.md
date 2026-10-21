@@ -9,7 +9,7 @@ in after the branch merges.
 - **Owner:** project owner
 - **Status:** In review
 - **Approved:** —
-- **Last updated:** 2026-10-21 by GPT-5 — listing cards link to their detail pages; awaiting owner review
+- **Last updated:** 2026-10-21 by GPT-5 — listing detail aligned to artifact; awaiting owner review
 
 ---
 
@@ -42,7 +42,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Listing cards now link to details with nested controls preserved; 109 tests, lint, build pass | guide out of date: W-HOST Host UI pages and Fall Light details |
+| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Listing detail artifact parity implemented; 111 tests, lint, isolated production build pass | guide out of date: W-HOST Host UI pages and Fall Light details |
 
 ## 4. Architecture
 
@@ -75,7 +75,7 @@ None.
 | ID | Date | Deviation | Consequence / action |
 |---|---|---|---|
 | D~1 | 2026-10-21 | Initial T8 comparison was blocked by missing Host authentication; operator subsequently logged in and enabled a live route comparison | Resolved. Authenticated artifact comparison completed; all eight Host content routes were checked at 1680×945, 1280×800, and 768×1024 with no horizontal overflow |
-| D~2 | 2026-10-21 | Next.js production build intermittently failed during page-data collection with `Invariant: no direct app page entry found for /_not-found` after the breadcrumb implementation | Resolved on 2026-10-21: a later standalone build passed; recheck only if the invariant recurs |
+| D~2 | 2026-10-21 | Next.js production build intermittently failed during page-data collection with `Invariant: no direct app page entry found for /_not-found` after the breadcrumb implementation | Build passed from an isolated frontend copy while the local dev server remained active; shared `.next` state may explain the earlier failure, but cause is not proven. Recheck from a clean isolated build if it recurs |
 
 ## 10. Changes
 
@@ -100,3 +100,4 @@ None.
 | 2026-10-21 | Added pointer cursors for enabled buttons and hover feedback for outlined buttons and links | W-HOST | T1 follow-up |
 | 2026-10-21 | Refined listing action link colors and listing-detail actions; restored page-title tracking style | W-HOST | Operator follow-up |
 | 2026-10-21 | Made each listing card surface navigate to its detail page while preserving independent availability, calendar, and edit controls; 109 tests, lint, and build pass | W-HOST | Operator follow-up |
+| 2026-10-21 | Matched listing detail to the artifact with a gradient hero, six metrics, compact inline reviews/performance, and breadcrumb-row actions; 111 tests, lint, and isolated production build pass | W-HOST | Operator follow-up |

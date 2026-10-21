@@ -14,5 +14,5 @@ export default function HostListingPage() {
   if (result.state === 'loading') return <HostPageFrame title="Loading…"><div className="ss-card h-56 animate-pulse bg-[var(--surface-inset)]" /></HostPageFrame>;
   if (result.state === 'error') return <HostPageFrame title="Listing error"><div className="ss-card p-8 text-center">{result.error}</div></HostPageFrame>;
   if (result.state !== 'populated' && result.state !== 'empty') return null;
-  return <HostPageFrame title="" breadcrumbs={<HostBreadcrumbs items={[{ label: 'Listings', href: '/host/listings' }, { label: result.data.title }]} />}><HostListingDetail listing={result.data} /></HostPageFrame>;
+  return <HostPageFrame title="" breadcrumbs={<HostBreadcrumbs items={[{ label: 'Listings', href: '/host/listings' }, { label: result.data.title }]} />} breadcrumbActions={<><Link className="rounded-lg border border-border px-3 py-2 text-xs" href={`/host/listings/${result.data.id}/calendar`}>Open Booking Calendar</Link><Link className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground" href={`/host/listings/${result.data.id}/edit`}>Edit listing</Link></>}><HostListingDetail listing={result.data} /></HostPageFrame>;
 }

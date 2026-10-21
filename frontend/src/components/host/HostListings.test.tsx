@@ -99,12 +99,44 @@ describe('Host listing components', () => {
   it('renders exact Lakeside detail and performance content', () => {
     const listing = createHostFixtureAdapter().getListing('lakeside-cabin').data!;
     render(<HostListingDetail listing={listing} />);
+    expect(screen.getByRole('img', { name: 'Lakeside Cabin cover image' })).toBeInTheDocument();
     expect(screen.getByText('142 Shoreline Dr, Lakeview, WI 53211')).toBeInTheDocument();
+    expect(screen.getByText('MAX GUESTS').parentElement).toHaveTextContent('4');
+    expect(screen.getByText('BEDROOMS').parentElement).toHaveTextContent('2');
+    expect(screen.getByText('BATHROOMS').parentElement).toHaveTextContent('1');
+    expect(screen.getByText('PER NIGHT').parentElement).toHaveTextContent('$120');
+    expect(screen.getByText('CHECK-IN').parentElement).toHaveTextContent('3:00 PM');
+    expect(screen.getByText('CHECK-OUT').parentElement).toHaveTextContent('11:00 AM');
     expect(screen.getByText('AMENITIES')).toBeInTheDocument();
     expect(screen.getByText('62%')).toBeInTheDocument();
     expect(screen.getByText('$1,860.00')).toBeInTheDocument();
-    expect(screen.getByText('Exactly as pictured, host was very responsive.')).toBeInTheDocument();
-    expect(screen.getByText('Loved the dock. Would book again.')).toBeInTheDocument();
+    expect(screen.getByText(/Exactly as pictured, host was very responsive\./)).toBeInTheDocument();
+    expect(screen.getByText(/Loved the dock\. Would book again\./)).toBeInTheDocument();
+  });
+
+  it('aligns listing-detail actions with the breadcrumb and matches their artifact emphasis', () => {
+    render(<HostFixtureProvider><HostListingPage /></HostFixtureProvider>);
+    const breadcrumb = screen.getByRole('navigation', { name: 'Breadcrumb' });
+    const actionRow = breadcrumb.parentElement!;
+    const calendarLink = screen.getByRole('link', { name: 'Open Booking Calendar' });
+    const editLink = screen.getByRole('link', { name: 'Edit listing' });
+
+    expect(calendarLink.parentElement?.parentElement).toBe(actionRow);
+    expect(editLink.parentElement?.parentElement).toBe(actionRow);
+    expect(calendarLink).toHaveClass('border');
+    expect(editLink).toHaveClass('bg-primary');
+  });
+
+  it('keeps detail reviews inline and the performance summary compact', () => {
+    const listing = createHostFixtureAdapter().getListing('lakeside-cabin').data!;
+    render(<HostListingDetail listing={listing} />);
+    const reviews = screen.getByRole('region', { name: /REVIEWS/ });
+    const performance = screen.getByRole('complementary', { name: 'Performance' });
+
+    expect(within(reviews).getAllByRole('listitem')).toHaveLength(2);
+    expect(within(reviews).getByText(/Exactly as pictured, host was very responsive\./)).toBeInTheDocument();
+    expect(performance).toHaveClass('self-start');
+    expect(performance).toHaveClass('ss-card');
   });
 
   it('renders form sections and exact required-field validation', async () => {
@@ -231,7 +263,8 @@ describe('Host listing components', () => {
     const { rerender } = render(<HostFixtureProvider><HostListingPage /></HostFixtureProvider>);
     let breadcrumb = screen.getByRole('navigation', { name: 'Breadcrumb' });
     expect(breadcrumb).toHaveTextContent(/Listings\s*›\s*Lakeside Cabin/);
-    expect(breadcrumb).toHaveClass('mb-4', 'gap-2', 'text-xs', 'text-[var(--text-subtle)]');
+    expect(breadcrumb).toHaveClass('gap-2', 'text-xs', 'text-[var(--text-subtle)]');
+    expect(breadcrumb.parentElement).toHaveClass('mb-4', 'justify-between');
     expect(breadcrumb.querySelectorAll('[aria-hidden="true"]')).toHaveLength(1);
 
     rerender(<HostFixtureProvider><HostCalendarPage /></HostFixtureProvider>);

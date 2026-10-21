@@ -4,15 +4,9 @@ import Link from 'next/link';
 import type { HostListing } from './hostTypes';
 
 export function HostListingCard({ listing, onToggle }: { listing: HostListing; onToggle?: () => void }) {
-  const thumbnailColors: Record<string, string> = {
-    'lakeside-cabin': 'linear-gradient(135deg, #bd8058, #e0c4a0)',
-    'downtown-loft': 'linear-gradient(135deg, #c7a585, #eee1cc)',
-    'garden-studio': 'linear-gradient(135deg, #88705a, #d8c7a6)',
-    'hilltop-house': 'linear-gradient(135deg, #a94d27, #e4b381)',
-  };
   return (
     <article className="ss-card relative grid gap-x-6 gap-y-4 p-4 md:grid-cols-[72px_minmax(0,1fr)] md:items-center xl:grid-cols-[72px_minmax(0,1fr)_max-content]">
-      <div aria-label={`${listing.title} thumbnail`} className="h-[72px] rounded-md bg-[var(--surface-inset)]" role="img" style={{ backgroundImage: thumbnailColors[listing.id] }} />
+      <div aria-label={`${listing.title} thumbnail`} className="h-[72px] rounded-md bg-[var(--surface-inset)]" role="img" style={{ backgroundImage: 'linear-gradient(110deg, #cf754d 0%, #b59a7e 100%)' }} />
       <div className="min-w-0">
         <h2 className="truncate text-base font-semibold"><Link className="text-inherit no-underline after:absolute after:inset-0 after:content-[''] focus-visible:rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" href={`/host/listings/${listing.id}`}>{listing.title}</Link></h2>
         <p className="mt-1 text-sm text-[var(--text-subtle)]">{listing.type} · {listing.city}, {listing.region}</p>
