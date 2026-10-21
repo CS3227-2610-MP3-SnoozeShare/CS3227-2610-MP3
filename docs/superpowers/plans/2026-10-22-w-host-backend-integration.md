@@ -27,7 +27,7 @@
 | T5 Add distinct Host conversation APIs | T0,T1 | T4,T6 | 2 | Done |
 | T6 Add Host wallet API | T0,T1 | T4,T5 | 2 | Done |
 | T7 Add authenticated frontend Host API adapter | T0,T1,T2,T3,T4,T5,T6 | - | 3 | Done |
-| T8 Wire listing, calendar, and request screens | T2,T3,T4,T7 | - | 4 | In progress |
+| T8 Wire listing, calendar, and request screens | T2,T3,T4,T7 | - | 4 | Done |
 | T9 Wire messages and wallet screens | T5,T6,T7,T8 | - | 5 | Not started |
 | T10 Verify integration and close the phase | T9 | - | 6 | Not started |
 
@@ -297,9 +297,9 @@
 **Checklist**
 
 - [x] 1. Write failing route tests for E3-E7, E11, E17, E21, and E23 against the API provider.
-- [ ] 2. Wire list/detail/forms, month calendar, and pending/history screens to T7 provider calls; send no host ID and keep mutation results server-authoritative.
-- [ ] 3. Run affected route/component tests; verify existing visual checks and keyboard flows remain intact.
-- [ ] 4. Run frontend lint and production build.
+- [x] 2. Wire list/detail/forms, month calendar, and pending/history screens to T7 provider calls; send no host ID and keep mutation results server-authoritative.
+- [x] 3. Run affected route/component tests; verify existing visual checks and keyboard flows remain intact.
+- [x] 4. Run frontend lint and production build.
 - [ ] 5. Update branch state; commit `feat: connect Host listings calendar and requests`.
 
 ### T9: Wire messages and wallet screens

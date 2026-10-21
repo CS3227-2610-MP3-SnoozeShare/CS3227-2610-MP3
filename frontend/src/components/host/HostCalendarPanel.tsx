@@ -6,8 +6,10 @@ import { CalendarGrid, type CalendarDay as GridDay } from '@/components/ui/calen
 import { Modal } from '@/components/ui/modal';
 import { resolveCalendarState, calendarDayLabel } from './calendarState';
 import type { CalendarData } from './hostTypes';
+import { hostSafeErrorMessage } from '@/lib/hostApi';
 
-export function HostCalendarPanel({ calendar }: { calendar: CalendarData }) {
+type BlockInput = { startDate: string; endDate: string; reason: string };
+export function HostCalendarPanel({ calendar, onCreateBlock, onDeleteBlock, onMonthChange }: { calendar: CalendarData; onCreateBlock?: (block: BlockInput) => Promise<void>; onDeleteBlock?: (block: CalendarData['blockedDates'][number]) => Promise<void>; onMonthChange?: (year: number, month: number) => void }) {
   const [monthOffset, setMonthOffset] = useState(0);
   const [open, setOpen] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
@@ -23,6 +25,28 @@ export function HostCalendarPanel({ calendar }: { calendar: CalendarData }) {
   const datePickerRef = useRef<HTMLDivElement>(null);
   const monthDate = new Date(`${calendar.days.find((day) => day.month === 'current')?.date ?? '2026-09-01'}T12:00:00`);
   monthDate.setMonth(monthDate.getMonth() + monthOffset);
+  const apiMode = Boolean(onCreateBlock);
+  useEffect(() => {
+    setMonthOffset(0);
+    setBlockedDates(calendar.blockedDates);
+    if (!apiMode) return;
+    const firstDay = calendar.days.find((day) => day.month === 'current')?.date;
+    if (!firstDay) return;
+    const [year, month] = firstDay.split('-').map(Number);
+    const today = new Date();
+    const startDay = year === today.getFullYear() && month === today.getMonth() + 1
+      ? Math.max(2, today.getDate() + 1)
+      : 2;
+    const lastDay = new Date(year, month, 0).getDate();
+    const endDay = Math.min(startDay + 2, lastDay);
+    const nextFrom = `${year}-${String(month).padStart(2, '0')}-${String(startDay).padStart(2, '0')}`;
+    const nextTo = `${year}-${String(month).padStart(2, '0')}-${String(endDay).padStart(2, '0')}`;
+    setFrom(nextFrom);
+    setTo(nextTo);
+    setDraftFrom(nextFrom);
+    setDraftTo(nextTo);
+    setPickerMonth(new Date(year, month - 1, 1));
+  }, [apiMode, calendar]);
   const monthLabel = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(monthDate);
   const formatDate = (value: string, includeYear = false) => value ? new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', ...(includeYear ? { year: 'numeric' as const } : {}) }).format(new Date(`${value}T12:00:00`)) : 'Select date';
   const days: GridDay[] = (() => {
@@ -96,14 +120,39 @@ export function HostCalendarPanel({ calendar }: { calendar: CalendarData }) {
     setError('');
     setOpen(true);
   };
+  const confirmBlock = async () => {
+    try {
+      if (onCreateBlock) await onCreateBlock({ startDate: from, endDate: to, reason: reason.trim() });
+      setOpen(false);
+    } catch (caught) {
+      setError(hostSafeErrorMessage(caught));
+    }
+  };
+  const removeBlock = async (item: CalendarData['blockedDates'][number]) => {
+    if (!onDeleteBlock) {
+      setBlockedDates((current) => current.filter((entry) => entry !== item));
+      return;
+    }
+    try {
+      await onDeleteBlock(item);
+    } catch (caught) {
+      setError(hostSafeErrorMessage(caught));
+    }
+  };
+  const changeMonth = (delta: number) => {
+    if (onMonthChange) {
+      const next = new Date(monthDate.getFullYear(), monthDate.getMonth() + delta, 1);
+      onMonthChange(next.getFullYear(), next.getMonth() + 1);
+    } else setMonthOffset((offset) => offset + delta);
+  };
   return (
     <section aria-label="Booking calendar and date blocking" className="grid overflow-hidden rounded-xl border border-border bg-white shadow-sm lg:grid-cols-[minmax(0,2.6fr)_minmax(300px,1fr)]">
       <div className="bg-[var(--canvas)] px-4 py-5 md:px-6">
         <div aria-label="Calendar month and status legend" className="mb-4 flex flex-wrap items-center justify-between gap-4" role="group">
           <div className="grid w-52 shrink-0 grid-cols-[2rem_minmax(0,1fr)_2rem] items-center">
-            <button aria-label="Previous month" className="grid h-7 w-7 place-items-center rounded-md border border-border text-base leading-none hover:bg-[var(--surface-inset)]" onClick={() => setMonthOffset((offset) => offset - 1)} type="button">‹</button>
+            <button aria-label="Previous month" className="grid h-7 w-7 place-items-center rounded-md border border-border text-base leading-none hover:bg-[var(--surface-inset)]" onClick={() => changeMonth(-1)} type="button">‹</button>
             <h2 className="text-center text-base font-semibold leading-tight">{monthLabel}</h2>
-            <button aria-label="Next month" className="grid h-7 w-7 place-items-center rounded-md border border-border text-base leading-none hover:bg-[var(--surface-inset)]" onClick={() => setMonthOffset((offset) => offset + 1)} type="button">›</button>
+            <button aria-label="Next month" className="grid h-7 w-7 place-items-center rounded-md border border-border text-base leading-none hover:bg-[var(--surface-inset)]" onClick={() => changeMonth(1)} type="button">›</button>
           </div>
           <div aria-label="Calendar status legend" className="flex flex-wrap gap-x-3 gap-y-2 text-xs" role="list">
             {(['available', 'booked', 'blocked', 'other'] as const).map((state) => (
@@ -155,13 +204,13 @@ export function HostCalendarPanel({ calendar }: { calendar: CalendarData }) {
           {blockedDates.length ? blockedDates.map((item) => {
             const blockedRange = formatDateRange(item.startDate, item.endDate);
             return <div className="mb-3 text-sm" key={`${item.reason}-${item.startDate}-${item.endDate}`}>
-              <div className="flex items-center justify-between gap-3"><strong>{item.reason}</strong><button aria-label={`Remove blocked dates for ${item.reason}, ${blockedRange}`} className="text-xs text-[var(--primary)] underline-offset-2 hover:underline" onClick={() => setBlockedDates((current) => current.filter((entry) => entry !== item))} type="button">remove</button></div>
+              <div className="flex items-center justify-between gap-3"><strong>{item.reason}</strong><button aria-label={`Remove blocked dates for ${item.reason}, ${blockedRange}`} className="text-xs text-[var(--primary)] underline-offset-2 hover:underline" onClick={() => void removeBlock(item)} type="button">remove</button></div>
               <p>{blockedRange}</p>
             </div>
           }) : <p className="text-sm text-[var(--text-subtle)]">No current blocked dates</p>}
         </div>
       </aside>
-      <Modal open={open} title="Block these dates?" description="This is a presentation-only Host control. No booking availability will be changed." onClose={() => setOpen(false)} onConfirm={() => setOpen(false)} confirmLabel="Confirm" />
+      <Modal open={open} title="Block these dates?" description={onCreateBlock ? 'These dates will be blocked on your booking calendar.' : 'This is a presentation-only Host control. No booking availability will be changed.'} onClose={() => setOpen(false)} onConfirm={() => void confirmBlock()} confirmLabel="Confirm" />
     </section>
   );
 }

@@ -9,7 +9,7 @@ in after the branch merges.
 - **Owner:** project owner
 - **Status:** Draft
 - **Approved:** —
-- **Last updated:** 2026-10-22 by GPT-5 — T8 listing routes/forms verified; calendar and requests implementation continues
+- **Last updated:** 2026-10-22 by GPT-5 — T8 verified; preparing the calendar/requests commit and starting T9
 
 ---
 
@@ -32,7 +32,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| 2026-10-22 backend phase | 2026-10-22 | GPT-5 | W-HOST-API | Active | T8 step 2/3: complete calendar and request flows | Finish the calendar/request component tests and run the frontend wave checks, then commit the remaining T8 files | 2026-10-22 |
+| 2026-10-22 backend phase | 2026-10-22 | GPT-5 | W-HOST-API | Active | T9 step 1: write message/wallet screen integration tests | Add API-mode tests for separate booking/ticket channels, wallet paging/mutations, ambiguous failure refresh and no auto-retry | 2026-10-22 |
 
 **Remaining**
 
@@ -41,14 +41,15 @@ No change.
 - [x] T5 Host booking/ticket message APIs: distinct authenticated routes, database-bounded summaries/history, after-commit events and rollback coverage complete.
 - [x] T6 Host wallet API: authenticated balance, paged statement and mocked mutation routes; five PostgreSQL integration tests pass.
 - [x] T7 authenticated frontend Host API adapter and provider; 154 tests, lint and production build pass.
-- [ ] T8 wire listing, calendar, and request screens to the API provider; route reads and listing form/status mutations are implemented, calendar and decision behaviors need final tests.
+- [x] T8 wire listing, calendar, and request screens to the API provider; 166 frontend tests, lint and production build pass.
+- [ ] T9 wire Host messages and wallet screens to the API provider.
 
 ## 3. Workstreams
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
 | W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Listings, requests, and wallet scroll within viewport; 143 tests, lint and build pass | guide out of date: W-HOST Host UI pages and Fall Light details |
-| W-HOST-API | Replace Host fixtures with authenticated backend integration | Building | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T7 done: authenticated typed adapter/provider; T8 listing/calendar/request routes next | — |
+| W-HOST-API | Replace Host fixtures with authenticated backend integration | Building | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T8 done: listings, calendar and requests API-wired; T9 messages/wallet next | — |
 
 ## 4. Architecture
 
@@ -58,7 +59,7 @@ No change.
 |---|---|
 | C~17 | Persistence-backed services and adapters use the explicit property gate. |
 
-**Host API — Now:** Protected Host controllers register only when `snoozeshare.security.enabled=true`, matching `HostIdentityResolver`; listing, calendar, booking decision, conversation, and wallet routes resolve host identity server-side and call services rather than repositories. The authenticated frontend adapter routes requests through `authenticatedFetch`; listing collection/detail/forms/status, calendar reads/block changes, and booking request pages/decisions are being moved to API-backed state, while messages and wallet screens remain fixture-backed. The shared provider caches the wallet summary, pages its statement on demand, and refreshes after ambiguous wallet failures without retrying. Wallet mutations use the existing ledger transaction and wallet row lock, with events after commit.
+**Host API — Now:** Protected Host controllers register only when `snoozeshare.security.enabled=true`, matching `HostIdentityResolver`; listing, calendar, booking decision, conversation, and wallet routes resolve host identity server-side and call services rather than repositories. The authenticated frontend adapter routes requests through `authenticatedFetch`; listing collection/detail/forms/status, calendar reads/block changes, and booking request pages/decisions now use API-backed state, while messages and wallet screens remain fixture-backed. The shared provider caches the wallet summary, pages its statement on demand, and refreshes after ambiguous wallet failures without retrying. Wallet mutations use the existing ledger transaction and wallet row lock, with events after commit.
 
 | Source | Standing choice |
 |---|---|
@@ -127,6 +128,7 @@ No open questions.
 | D~15 | 2026-10-22 | T6's first bounded statement read exposed `JdbcLedgerRepository` using `ResultSet.getObject(..., Instant.class)`, unsupported by the PostgreSQL JDBC driver for `timestamptz` | Map via `getTimestamp(...).toInstant()` and exercise real PostgreSQL statement reads in the Host wallet integration test |
 | D~16 | 2026-10-22 | T6's event-contract review found `LedgerWriter` publishes `WalletTransactionRecordedEvent` before transaction commit, contrary to the approved API spec | Register wallet event dispatch with transaction synchronization and test that rolled-back operations publish no event |
 | D~17 | 2026-10-22 | A direct frontend `npx tsc --noEmit` check includes existing test files and reports unrelated typing errors in `HostListings.test.tsx` and `api.test.ts` | The required Next.js production build type-checks successfully; errors remain confined to untouched test lines and were not changed or suppressed |
+| D~18 | 2026-10-22 | The fixture calendar's fixed September 15–17 default range would be in the past once the API calendar followed the current month | API mode now defaults to a valid upcoming range in the selected month; fixture presentation defaults remain unchanged |
 
 ## 10. Changes
 
@@ -205,3 +207,4 @@ No open questions.
 | 2026-10-22 | Added authenticated typed Host API route wrappers, bounded page validation, DTO mapping, shared async resource states, safe errors and token-rejection sign-out; cached wallet summary, lazy statement paging and no-retry ambiguous-failure refresh; 154 frontend tests, lint and production build pass | W-HOST-API | T7 |
 | 2026-10-22 | Committed T7 authenticated Host API adapter as `1d0adda`; starting T8 listing, calendar and request route tests | W-HOST-API | T7/T8 |
 | 2026-10-22 | Connected Host listing collection/detail and create/edit/status mutations to server data; API-mode route/form tests pass while fixture-backed visual tests remain supported | W-HOST-API | T8 in progress |
+| 2026-10-22 | Connected calendar month reads, audited block create/remove, bounded pending/history pages and server-authoritative booking decisions; full frontend suite 166 tests, lint and production build pass | W-HOST-API | T8 |

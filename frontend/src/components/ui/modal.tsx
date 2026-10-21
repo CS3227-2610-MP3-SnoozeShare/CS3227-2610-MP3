@@ -8,12 +8,13 @@ type ModalProps = {
   onConfirm: () => void;
   confirmLabel?: string;
   confirmTone?: 'primary' | 'success' | 'danger';
+  confirmDisabled?: boolean;
   layout?: 'default' | 'decision';
   summary?: ReactNode;
   children?: ReactNode;
 };
 
-export function Modal({ open, title, description, onClose, onConfirm, confirmLabel = 'Confirm', confirmTone = 'primary', layout = 'default', summary, children }: ModalProps) {
+export function Modal({ open, title, description, onClose, onConfirm, confirmLabel = 'Confirm', confirmTone = 'primary', confirmDisabled = false, layout = 'default', summary, children }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
   const backdropPointerDown = useRef(false);
@@ -80,7 +81,7 @@ export function Modal({ open, title, description, onClose, onConfirm, confirmLab
         {children}
         <div className={`${decisionLayout ? 'mt-4' : 'mt-5'} flex justify-end gap-2`}>
           <button className="cursor-pointer rounded-md border border-border px-3 py-2 text-sm" onClick={onClose} type="button">Cancel</button>
-          <button className={`cursor-pointer rounded-md px-3 py-2 text-sm font-semibold ${confirmStyle}`} onClick={onConfirm} type="button">{confirmLabel}</button>
+          <button className={`cursor-pointer rounded-md px-3 py-2 text-sm font-semibold ${confirmStyle}`} disabled={confirmDisabled} onClick={onConfirm} type="button">{confirmLabel}</button>
         </div>
       </div>
     </div>
