@@ -9,7 +9,7 @@ in after the branch merges.
 - **Owner:** project owner
 - **Status:** Draft
 - **Approved:** —
-- **Last updated:** 2026-10-22 by GPT-5 — implemented and verified T3 calendar API; preparing task commit
+- **Last updated:** 2026-10-22 by GPT-5 — T4 request API and serialized decisions implemented; PostgreSQL tests and backend build pass
 
 ---
 
@@ -32,19 +32,20 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| 2026-10-22 backend phase | 2026-10-22 | GPT-5 | W-HOST-API | Active | T3 implementation and tests pass; full Checkstyle/build green | Commit T3, then start T4 booking-decision concurrency tests | 2026-10-22 |
+| 2026-10-22 backend phase | 2026-10-22 | GPT-5 | W-HOST-API | Active | T4 implementation, integration/concurrency tests, Checkstyle and backend build pass | Commit T4, then begin T5 booking/ticket message APIs | 2026-10-22 |
 
 **Remaining**
 
 - [ ] Owner review and approval remain for the completed fixture-backed UI phase.
-- [ ] T4 booking decisions: add owner-scoped API and row-lock concurrency coverage; T5-T6 remain after it.
+- [x] T4 booking decisions: owner-scoped database paging, authenticated API, row-lock decision and concurrency tests are complete.
+- [ ] T5-T6 Host messaging and wallet APIs remain; begin T5 after committing T4.
 
 ## 3. Workstreams
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
 | W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Listings, requests, and wallet scroll within viewport; 143 tests, lint and build pass | guide out of date: W-HOST Host UI pages and Fall Light details |
-| W-HOST-API | Replace Host fixtures with authenticated backend integration | Building | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T3 done; T4 booking-decision API and concurrency tests next | — |
+| W-HOST-API | Replace Host fixtures with authenticated backend integration | Building | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T4 done: bounded request pages and row-locked decisions; T5 next | — |
 
 ## 4. Architecture
 
@@ -115,6 +116,7 @@ No open questions.
 | D~7 | 2026-10-22 | The partial `ListingServiceImpl.findByHostId` used `PageRequest.of(page, size + 1)`, whose offset is `page * (size + 1)` and skips rows on later pages | Resolved in T2 with `OffsetLimitPageable` and repository plus controller page-continuity regression tests |
 | D~8 | 2026-10-22 | The partial `HostListingController` was unconditional while `HostIdentityResolver` is gated by `snoozeshare.security.enabled`, making the default auth-disabled profile fail startup | T2 now gates the controller on the same security property; DB-backed controller integration enables security, while dev and DB-free contexts omit the protected Host route |
 | D~9 | 2026-10-22 | T3's approved file list omitted the create-block request DTO and audit-action enum; E18 described two different Hosts writing the same listing, which ownership rules make impossible | Plan now includes the missing files; the concurrency regression will issue two simultaneous requests as the listing's single authorized Host, preserving both E3 ownership and the overlap invariant |
+| D~10 | 2026-10-22 | The first complete T4 backend check hit a Gradle test-worker `EOFException` despite the focused new tests passing | Re-running the same full backend Checkstyle/build completed successfully; no code or test changes were needed to clear it |
 
 ## 10. Changes
 
@@ -183,3 +185,5 @@ No open questions.
 | 2026-10-22 | Implemented Host listing collection/detail/create/update/status routes and metrics projection; fixed status-omitting update validation and verified page continuity | W-HOST-API | T2 |
 | 2026-10-22 | Committed T0 deterministic service activation as `9ba4ce2` and T2 Host listing API as `b57b096`; post-commit backend Checkstyle and build pass | W-HOST-API | T0/T2 |
 | 2026-10-22 | Added the authenticated Host calendar API, bounded month projection, inclusive range responses, audited block mutations, and serializable retry; focused tests and full backend checks pass | W-HOST-API | T3 |
+| 2026-10-22 | Committed the atomic Host calendar API as `fb4188a`; starting T4 booking-request paging and decision serialization | W-HOST-API | T3/T4 |
+| 2026-10-22 | Added authenticated pending/history booking pages, 500-code-point decision validation, row-locked one-shot decisions, transactional decision audit and after-commit events; PostgreSQL tests and backend Checkstyle/build pass | W-HOST-API | T4 |

@@ -16,8 +16,11 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.snoozeshare.domain.enums.AccountStatus;
+import com.snoozeshare.domain.enums.AuditAction;
 import com.snoozeshare.domain.enums.BookingStatus;
 import com.snoozeshare.domain.enums.ListingStatus;
 import com.snoozeshare.domain.enums.Role;
@@ -37,11 +40,14 @@ import com.snoozeshare.infra.events.BookingCancelledEvent;
 import com.snoozeshare.infra.events.BookingConfirmedEvent;
 import com.snoozeshare.repository.AvailabilityBlockRepository;
 import com.snoozeshare.repository.BookingRepository;
+import com.snoozeshare.repository.OffsetLimitPageable;
 import com.snoozeshare.repository.PropertyRepository;
 import com.snoozeshare.repository.ReviewRepository;
 import com.snoozeshare.repository.TicketRepository;
 import com.snoozeshare.repository.UserRepository;
 import com.snoozeshare.repository.WalletRepository;
+import com.snoozeshare.service.AuditRecord;
+import com.snoozeshare.service.AuditService;
 import com.snoozeshare.service.BookingService;
 import com.snoozeshare.service.CancellationRefund;
 import com.snoozeshare.service.HostBookingRow;
@@ -66,6 +72,7 @@ public class BookingServiceImpl implements BookingService {
     private final DisputeWindowPolicy disputeWindow;
     private final StayDatePolicy stayDates;
     private final Clock clock;
+    private final AuditService audit;
 
     @SuppressWarnings("checkstyle:ParameterNumber")
     public BookingServiceImpl(BookingRepository bookings,
@@ -78,7 +85,8 @@ public class BookingServiceImpl implements BookingService {
                               TransactionService transactionService,
                               TicketRepository tickets,
                               ApplicationEventPublisher publisher,
-                              Clock clock) {
+                              Clock clock,
+                              AuditService audit) {
         this.bookings = bookings;
         this.properties = properties;
         this.blocks = blocks;
@@ -90,6 +98,7 @@ public class BookingServiceImpl implements BookingService {
         this.tickets = tickets;
         this.publisher = publisher;
         this.clock = clock;
+        this.audit = audit;
         this.disputeWindow = new DisputeWindowPolicy(clock);
         this.stayDates = new StayDatePolicy(clock);
     }
@@ -157,8 +166,22 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<HostBookingRow> pendingRequestRowsFor(UUID hostId, int page, int size) {
+        return toHostRows(bookings.findPendingByHostPage(hostId,
+                new OffsetLimitPageable(page, size)));
+    }
+
+    @Override
     public List<HostBookingRow> historyRowsFor(UUID hostId) {
         return toHostRows(bookings.findByHost(hostId));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<HostBookingRow> historyRowsFor(UUID hostId, int page, int size) {
+        return toHostRows(bookings.findHistoryByHostPage(hostId,
+                new OffsetLimitPageable(page, size)));
     }
 
     private List<HostBookingRow> toHostRows(List<Booking> source) {
@@ -180,6 +203,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional
     public Booking decide(UUID bookingId, boolean approve, UUID hostId) {
         return decide(bookingId, approve, hostId, null);
     }
@@ -188,7 +212,7 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public Booking decide(UUID bookingId, boolean approve, UUID hostId,
                           String hostDecisionMessage) {
-        Booking booking = bookings.findById(bookingId)
+        Booking booking = bookings.findByIdForUpdate(bookingId)
                 .orElseThrow(() -> new IllegalArgumentException("Booking does not exist"));
         Property property = properties.findById(booking.getListingId())
                 .orElseThrow(() -> new IllegalArgumentException("Property does not exist"));
@@ -210,6 +234,10 @@ public class BookingServiceImpl implements BookingService {
         booking.setDecidedAt(now);
         booking.setHostDecisionMessage(message);
         bookings.save(booking);
+        audit.record(AuditRecord.builder(hostId,
+                approve ? AuditAction.BOOKING_CONFIRMED : AuditAction.BOOKING_REJECTED,
+                "Booking", bookingId).status(BookingStatus.PENDING, target)
+                .reason(message).subject(booking.getGuestId()).booking(bookingId).at(now).build());
         if (!approve) {
             blocks.deleteByBookingId(bookingId);
             Wallet wallet = wallets.findByUserId(booking.getGuestId())
@@ -218,14 +246,23 @@ public class BookingServiceImpl implements BookingService {
             ledger.post(wallet.getId(), WalletTransactionType.ESCROW_REFUND,
                     booking.getTotalAmount(), hostId, bookingId, null, null, now);
         }
-        if (approve) {
-            publisher.publishEvent(new BookingConfirmedEvent(bookingId, hostId,
-                    Instant.now()));
-        } else {
-            publisher.publishEvent(new BookingCancelledEvent(bookingId, hostId,
-                    Instant.now()));
-        }
+        publishAfterCommit(approve
+                ? new BookingConfirmedEvent(bookingId, hostId, now)
+                : new BookingCancelledEvent(bookingId, hostId, now));
         return booking;
+    }
+
+    private void publishAfterCommit(Object event) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            publisher.publishEvent(event);
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                publisher.publishEvent(event);
+            }
+        });
     }
 
     @Override

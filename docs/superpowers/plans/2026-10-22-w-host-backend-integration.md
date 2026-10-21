@@ -23,7 +23,7 @@
 | T1 Add Host identity resolver and stable error boundary | - | T0 | 1 | Done |
 | T2 Add listing API and detail projection | T0,T1 | T3 | 2 | Done |
 | T3 Make calendar mutations atomic and expose calendar API | T0,T1 | T2 | 2 | Done |
-| T4 Serialize Host booking decisions | T0,T1 | T5,T6 | 2 | Not started |
+| T4 Serialize Host booking decisions | T0,T1 | T5,T6 | 2 | Done |
 | T5 Add distinct Host conversation APIs | T0,T1 | T4,T6 | 2 | Not started |
 | T6 Add Host wallet API | T0,T1 | T4,T5 | 2 | Not started |
 | T7 Add authenticated frontend Host API adapter | T0,T1,T2,T3,T4,T5,T6 | - | 3 | Not started |
@@ -182,7 +182,7 @@
 - [x] 2. Add the month DTO/controller and transactional mutation retry; convert inclusive API end dates to the existing half-open service representation exactly once.
 - [x] 3. Run tests; assert one overlapping block at most, expected 422 after retry, 409 after a second serialization failure, and audit only for committed writes.
 - [x] 4. Run backend Checkstyle (`./gradlew checkstyleMain checkstyleTest`) and build.
-- [ ] 5. Update branch state; commit `feat: expose atomic Host calendar API`.
+- [x] 5. Update branch state; commit `feat: expose atomic Host calendar API` (`fb4188a`).
 
 ### T4: Serialize Host booking decisions
 
@@ -200,11 +200,11 @@
 
 **Checklist**
 
-- [ ] 1. Write failing request/query and concurrency tests for E3, E7, E17, and E19.
-- [ ] 2. Add Host-page repository methods and row locking; keep state-machine, escrow, ledger, audit, and event work in the existing service transaction.
-- [ ] 3. Run the tests; verify one decision changes state and writes ledger/audit/event once, while the concurrent loser receives 409 `STATE_CONFLICT`.
-- [ ] 4. Run backend Checkstyle (`./gradlew checkstyleMain checkstyleTest`) and build.
-- [ ] 5. Update branch state; commit `feat: serialize Host booking decisions`.
+- [x] 1. Write failing request/query and concurrency tests for E3, E7, E17, and E19.
+- [x] 2. Add Host-page repository methods and row locking; keep state-machine, escrow, ledger, audit, and event work in the existing service transaction.
+- [x] 3. Run the tests; verify one decision changes state and writes ledger/audit/event once, while the concurrent loser receives 409 `STATE_CONFLICT`.
+- [x] 4. Run backend Checkstyle (`./gradlew checkstyleMain checkstyleTest`) and build.
+- [x] 5. Update branch state; commit `feat: serialize Host booking decisions`.
 
 ### T5: Add distinct Host conversation APIs
 
