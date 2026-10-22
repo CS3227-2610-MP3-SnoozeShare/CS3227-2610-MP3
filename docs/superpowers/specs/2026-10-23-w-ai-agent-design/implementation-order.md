@@ -4,16 +4,16 @@ The plan will mirror these tasks one for one. Waves group tasks that can run tog
 
 | ID | Task | Delivers | Satisfies |
 |---|---|---|---|
-| T1 | Schema and persistence | Migration `V006__ticket_assistant.sql`; `TicketAssistant` entity, `TicketAssistantRepository` with the compare-and-set update and the locked read; the two new `AuditAction` constants; the Flyway test update | F5, F9, F11, N5 |
-| T2 | Assistant posting | `MessageService.postAssistant` and its implementation; the SYSTEM-user constant; thread and unread behaviour for `SYSTEM` messages | F2, F7, F8, N3 |
-| T3 | Feature definition | `ClarifyOutput`, `ClarifyPrompt`, the `AiFeature` bean `ticket.clarify`, the question screen (R4), the draft renderer (R5), the message-body builder (R6), `AssistantProperties` (R3) | F2, F4, F5, F10, N3, N4 |
-| T4 | Orchestration | The context builder, the job, the applier (guards, lifecycle, audit rows, follow-up check), the `assistantExecutor` bean, and the R2 architecture test | F1 to F5, F8 to F11, N1 to N5 |
-| T5 | Triggers | `TicketOpenedListener` and `MessagePostedListener` with the decision table, the stop rule and the rejection paths | F1, F3, F8, F9, N1 |
+| T1 | Schema and persistence | Migration `V006__ticket_assistant.sql` (table, widened `messages.author_role` CHECK with `DROP CONSTRAINT IF EXISTS`); `TicketAssistant` entity, `TicketAssistantRepository` with the compare-and-set updates and the locked read; the two new `AuditAction` constants; the migration test that reads the constraint name from `pg_constraint` before V006 runs; the `FlywayBaselineTest` update | F5, F9, F11, N5 |
+| T2 | Assistant posting | `MessageService.postAssistant` and its implementation; the `SystemUsers.SYSTEM_ID` constant and the test that it equals the V004 row; thread, unread and conversation-list behaviour for `SYSTEM` messages, including the Host assertions | F2, F7, F8, N3 |
+| T3 | Feature definition | `ClarifyOutput`, `ClarifyPrompt`, the `AiFeature` bean `ticket.clarify`, the question and draft screens (R4, R4b, lists A to C), the draft renderer (R5), the message-body builder (R6), `AssistantProperties` (R3) | F2, F4, F5, F10, N3, N4 |
+| T4 | Orchestration | The context builder (repositories only), the job, the applier (guards, lifecycle, audit rows, follow-up check), `AssistantRunner` with its private pool and test constructor (not an `Executor` bean), and the R2 architecture test | F1 to F5, F8 to F11, N1 to N5 |
+| T5 | Triggers | `TicketOpenedListener` and `MessagePostedListener` with the decision table, `REQUIRES_NEW` writes, the stop rule, exception containment and the rejection paths | F1, F3, F8, F9, N1 |
 | T6 | Agent read API | `DisputeDetail` and `DisputeDetailResponse` gain `assistant`; `AssistantResponse`, the mapper and the `jsonPath` contract test | F6, N3 |
-| T7 | Agent screens | The "AI assistant" panel and Insert into notes in `DisputeDetail.tsx`; the shared role-label helper and `SYSTEM` in `ThreadPanel.tsx`; frontend types and fixtures | F6, F7, N3 |
-| T8 | Guest screen | `SYSTEM` label in `MessageThread.tsx` and the conversation list; the `Role` type | F7 |
-| T9 | Configuration and operations | `application.yml` and `application-dev.yml` entries; the runbook section; Agent audit label check (R7) | F11, N5 |
-| T10 | Verification and close-out | End-to-end test with the gateway's mock reply; full backend and frontend builds; the live SoCLaaS check marked `Post-merge`; branch state and guide handover | all |
+| T7 | Agent screens | The "AI assistant" panel and Insert into notes in `DisputeDetail.tsx`; the shared role-label helper and `SYSTEM` in `ThreadPanel.tsx`; frontend types, fixtures and tests for every state | F6, F7, N3 |
+| T8 | Guest screen | `SYSTEM` label in `MessageThread.tsx` and the conversation list; the Guest-side `Role` type; a check that no exhaustive `switch` or `Record<Role, ...>` in `frontend/` breaks on `SYSTEM` | F7 |
+| T9 | Configuration and operations | `application.yml` and `application-dev.yml` entries; the runbook section; the Agent audit label check (R7, E62) | F11, N5 |
+| T10 | Verification and close-out | End-to-end test with the gateway's mock reply; full backend and frontend builds; the live SoCLaaS check marked `Post-merge`; the branch state's § Architecture (new § 4.17 Ticket assistant, linked from § 4.11 and the role-AI Conventions line), § Conventions (including the meaning of a SYSTEM-authored thread message, if Q1 resolves to SYSTEM), § Known Gaps (R12) and Handover items | all |
 
 ## Dependencies
 
@@ -30,4 +30,4 @@ The plan will mirror these tasks one for one. Waves group tasks that can run tog
 | T9 Configuration and operations | T4 | T5 | 4 |
 | T10 Verification and close-out | T5, T7, T8, T9 | - | 5 |
 
-Shared-file hazards: T2 and T6 touch different files (`MessageService*` against `DisputeDetail*`); T7 and T8 both touch the frontend `Role` type, but they are in different waves (3 and 1), so T8 lands first and T7 builds on it; T1 and T4 both touch `AuditAction` consumers only through T1's constants; T9 edits `application*.yml` that T3's properties record reads, which is safe because T3 finishes in wave 1.
+Shared-file hazards: T2 and T6 touch different files (`MessageService*` against `DisputeDetail*`); T7 and T8 both touch frontend role types, but they are in different waves (3 and 1), so T8 lands first and T7 builds on it; T1 adds the `AuditAction` constants that T4 and T9 use; T9 edits `application*.yml` that T3's properties record reads, which is safe because T3 finishes in wave 1.
