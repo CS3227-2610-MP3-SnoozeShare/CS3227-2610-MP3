@@ -69,7 +69,7 @@ its own resume point in `docs/project-state/branch-states/`.
 
 | Item | Kind | Context / done when | Source | Added |
 |---|---|---|---|---|
-| Rewrite the Developer Guide for the web app only | Todo | A rolling rewrite, updated as each web change is built, not a one-off: each web workstream adds its own content at its guide checkpoint, and the desktop sections are dropped as `desktop/` retires. Web configuration and deployment content (§ 2, § 3.2, § 4.17) goes first. Done so far: W-INFRA (2026-10-20) and W-AUTH (2026-10-21: § 4.18 and the auth parts of § 2, § 3.2, § 5–§ 7). Next: each later web workstream adds its content when it is confirmed. Done when the guide has no desktop-only content | Operator, 2026-10-20 | 2026-10-20 |
+| Rewrite the Developer Guide for the web app only | Todo | A rolling rewrite, updated as each web change is built, not a one-off: each web workstream adds its own content at its guide checkpoint, and the desktop sections are dropped as `desktop/` retires. Web configuration and deployment content (§ 2, § 3.2, § 4.17) goes first. Done so far: W-INFRA (2026-10-20), W-AUTH (2026-10-21: § 4.18 and the auth parts of § 2, § 3.2, § 5–§ 7), W-DOMAIN (2026-10-22), W-AI-GATEWAY and the hosting and deployment steps in § 3.2 (2026-10-22). Next: each later web workstream adds its content when it is confirmed. Done when the guide has no desktop-only content | Operator, 2026-10-20 | 2026-10-20 |
 | W-GUEST, W-HOST, W-AGENT | Workstream | The three role feature sets and their Next.js pages. Can run in parallel after W-DOMAIN | Webapp design § 9 | 2026-10-20 |
 | W-AI-GUEST, W-AI-HOST, W-AI-AGENT | Workstream | AI features (C80), parallel after their role workstream and on top of the W-AI-GATEWAY gateway (§ 4.11, done). The SoCLaaS contract is confirmed (runbook Evidence). The Host feature is undecided (Q6); the Agent feature is decided (W-AI-AGENT) | Webapp design § 9 | 2026-10-20 |
 | W-AI-AGENT scoping decisions | Todo | The report goes in a separate AI draft field; the assistant posts as the SYSTEM user with a new `AI` author role in the GUEST channel only; Guest-raised tickets only; it asks at submission, then on each guest reply up to a fixed round cap; it depends on the AI gateway. They belong in that branch's state and spec | handed over from W-AI-GATEWAY | 2026-10-22 |
@@ -454,4 +454,4 @@ Live traps only; resolved ones are in the archive. Each is what, the consequence
 The Done ledger lives in **[`docs/project-state/done-ledger.md`](docs/project-state/done-ledger.md)** — every change, big or small, newest first.
 
 - **Latest entry:** 2026-10-22
-- **Entries:** 114 (iteration 2 started; earlier entries in the archive)
+- **Entries:** 115 (iteration 2 started; earlier entries in the archive)

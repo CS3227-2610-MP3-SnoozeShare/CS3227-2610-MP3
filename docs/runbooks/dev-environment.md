@@ -80,7 +80,7 @@ The free Render web service sleeps after about 15 minutes without traffic and ta
 ## Verify
 
 ```shell
-curl.exe https://<railway-url>/actuator/health
+curl.exe https://<render-url>/actuator/health
 ```
 
 Expect `{"status":"UP"}`. The Vercel URL must show `Backend: UP`; its `Re-check` button repeats the check.

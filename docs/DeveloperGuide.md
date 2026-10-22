@@ -442,6 +442,24 @@ The hosted backend runs from `backend/Dockerfile` on Render's free plan, so it s
 request after a pause is slow. `docs/runbooks/dev-environment.md` holds the deployment order, variables and
 evidence.
 
+**Hosting and deployment.** The full procedure, every variable and the dated evidence of the live checks are in `docs/runbooks/dev-environment.md`; this is what a newcomer needs to know first. Account-bound steps are done by a human, and an agent never enters credentials or tokens.
+
+Order: Render first, then Vercel, then Render again, because the frontend needs the backend URL and the backend needs the frontend's domain for CORS.
+
+1. **Render:** New > Blueprint from this repository. It reads `render.yaml` (a Docker web service on the free plan, branch `development`, build context `backend`, health check `/actuator/health`). Enter the `sync: false` secrets in the dashboard when prompted.
+2. **Neon:** create a project and a branch `dev`. On Render set `SPRING_PROFILES_ACTIVE=prod`, the three `SPRING_DATASOURCE_*` values and a placeholder `SNOOZESHARE_CORS_ALLOWED_ORIGIN` (for example `http://localhost:3000`); add the Firebase Admin settings and deploy.
+3. **Vercel:** create a project with root directory `frontend`, Production Branch `development` and `NEXT_PUBLIC_API_BASE_URL` set to the Render public URL (no trailing slash). A first deploy without that variable must fail the build.
+4. **Render:** set `SNOOZESHARE_CORS_ALLOWED_ORIGIN` to Vercel's stable production domain (scheme and host, no trailing slash) and redeploy.
+5. **Verify:** `curl.exe https://<render-url>/actuator/health` returns `{"status":"UP"}`, and the Vercel page shows `Backend: UP`.
+
+| Trap | What happens and what to do |
+|---|---|
+| Neon connection string | Neon shows a libpq string (`postgresql://USER:PASSWORD@HOST/DB?sslmode=require&channel_binding=require`). The backend needs `jdbc:postgresql://HOST/DB?sslmode=require` with the user and password in separate variables and no `channel_binding`. Use the direct host, not the `-pooler` one, because Flyway's migration lock can misbehave through the pooler. A URL that does not start with `jdbc` fails startup with `'url' must start with "jdbc"` |
+| New variables on an existing Render service | `render.yaml` sets its variables only when Render applies the Blueprint, which it does not do for an existing service, so add new ones by hand. A missing variable always shows as an `Error processing condition on ...` wrapper (for example on `FirebaseConfig`); the variable is named in the last `Caused by:` line, such as `Could not resolve placeholder 'FIREBASE_ENABLED'` |
+| Vercel Framework Preset | It must be **Next.js**. Left on "Other", the build fails with `No Output Directory named "public" found` (`frontend/vercel.json` also pins it) |
+| Vercel Production Branch | It must be `development` until the production deployment work. While it was `main`, `development` builds were Previews, which the backend's single allowed CORS origin cannot serve. **Redeploy** rebuilds the same commit as the deployment it is pressed on, so after changing the setting push a commit that touches `frontend/` |
+| Memory on the free plan | The service has limited memory, so `render.yaml` caps the JVM heap with `JAVA_TOOL_OPTIONS=-XX:MaxRAMPercentage=70` |
+
 | Decision | Why | Rejected | Ref |
 |---|---|---|---|
 | Desktop code moves under `desktop/`; `backend/` and `frontend/` sit beside it; independent builds, no root build | One repo for the re-platform, with the desktop tests still guarding the business rules | Leave in place; delete now; a root multi-project build | C81 |
