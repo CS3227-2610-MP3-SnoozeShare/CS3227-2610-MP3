@@ -7,7 +7,8 @@
 | T3 | Typed frontend Host AI adapter and modal state model exist | Authenticated request wrapper and isolated modal state for Evaluate/Generate/loading/error/Apply, focus dropdown, and audience order | F2–F6, F8, N3 |
 | T4 | New/Edit forms include the compact assistant trigger and modal | Existing form integration, responsive two-column/stacked layout, icon, analysis rows, and Apply-to-draft behavior | F1–F6, N3–N4 |
 | T5 | The approved guidance amendment is implemented | Fixed 50–150-word guidance, description focus control, audience ordering, and updated backend/frontend tests | F2, F4, N5 |
-| T6 | Full verification and close-out are complete | Backend/frontend tests, Checkstyle, lint, production build, browser viewport checks, code review, and branch-state handoff | F1–F8, N1–N6 |
+| T6 | New/Edit forms enforce minimum AI context | Disabled trigger, user-friendly hover explanation, live eligibility recalculation, and frontend regression tests | F1, F9, N3–N4 |
+| T7 | Full verification and close-out are complete | Backend/frontend tests, Checkstyle, lint, production build, browser viewport checks, code review, and branch-state handoff | F1–F9, N1–N6 |
 
 ## Dependency table
 
@@ -18,7 +19,8 @@
 | T3 | T1 | T2 | 2 |
 | T4 | T3 | — | 3 |
 | T5 | T1, T2, T3 | — | 5 |
-| T6 | T2, T4, T5 | — | 6 |
+| T6 | T4, T5 | — | 6 |
+| T7 | T2, T4, T5, T6 | — | 7 |
 
 T2 and T3 may be developed concurrently after T1 because they share only the contract, but T4
 waits for the frontend adapter and modal state. T5 is serialized after the integrated flow exists.

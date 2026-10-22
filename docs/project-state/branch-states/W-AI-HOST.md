@@ -7,9 +7,9 @@ after the branch merges.
 - **Branch:** W-AI-HOST (from `development` at `f6cad04`)
 - **Base:** `de137c6`
 - **Owner:** Xiao-Congchen
-- **Status:** In review
-- **Approved:** Gate 1 spec and amended plan approved (Xiao-Congchen, 2026-10-23); Gate 3 review requested
-- **Last updated:** 2026-10-23 by GPT-5 — T5 implemented; close-out checks complete
+- **Status:** Planned
+- **Approved:** Previous Gate 1/2 approvals superseded by the eligibility amendment; awaiting Gate 1 approval
+- **Last updated:** 2026-10-23 by GPT-5 — amended spec/plan for minimum-detail eligibility
 
 ---
 
@@ -33,12 +33,13 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S2 | 2026-10-23 00:20 | GPT-5 (lead) | W~1 | In review | Close-out checks complete; awaiting Gate 3 operator review | — | 2026-10-23 04:10 |
+| S2 | 2026-10-23 00:20 | GPT-5 (lead) | W~1 | Planned | Eligibility amendment drafted and linted; no code started | Ask operator to approve amended spec at Gate 1 | 2026-10-23 04:25 |
 
 **Remaining**
 
 - [ ] Operator/browser session checks at desktop/tablet/390px.
 - [ ] Resolve or separately accept the pre-existing Next.js prerender route-module failure.
+- [ ] Gate 1 approval, Gate 2 plan approval, then implement T6.
 - [ ] Gate 3 approval, then separately ask whether to push/open a PR.
 
 ---
@@ -47,7 +48,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W~1 | W-AI-HOST: Host AI Listing Optimisation Assistant | In review | [design](../../superpowers/specs/2026-10-22-w-ai-host-design.md) | [plan](../../superpowers/plans/2026-10-22-w-ai-host.md) | T5 done; T6 checks pass; awaiting Gate 3 review | — |
+| W~1 | W-AI-HOST: Host AI Listing Optimisation Assistant | Planned | [design](../../superpowers/specs/2026-10-22-w-ai-host-design.md) | [plan](../../superpowers/plans/2026-10-22-w-ai-host.md) | Eligibility amendment linted; awaiting Gate 1 approval | — |
 
 ---
 
@@ -103,6 +104,7 @@ plain-text rendering conventions.
 | C~4 | 2026-10-23 | Do not degrade a successful Host Generate response solely because its generated description falls outside the selected word band; keep length selection in the request and prompt, but remove numeric range labels from the UI | The operator intentionally chose to stop the post-response word-band check because it caused otherwise usable LLM responses to degrade, while retaining Short/Medium/Long host guidance | Operator request |
 | C~5 | 2026-10-23 | Amend the approved Host AI contract to remove length customization, request fixed 50–150-word generation guidance, add BALANCED/COMFORT/PRACTICALITY focus with exact meanings and BALANCED default, and order ALL_TRAVELLERS first | The operator requested less length customization and a new content-focus control; the previous Short/Medium contract is superseded | Operator request |
 | C~6 | 2026-10-23 | Approve the amended Host AI specification for fixed length guidance, description focus, and audience ordering | Xiao-Congchen approved Gate 1 in chat; implementation remains gated on the amended plan | Operator approval |
+| C~7 | 2026-10-23 | Add frontend-only minimum-detail eligibility: title, property type, max guests, bedrooms, bathrooms, check-in time, and check-out time are all required before opening AI | The operator specified that incomplete New/Edit drafts must not use the assistant and requested a hover explanation on the disabled trigger | Operator request |
 
 ---
 
@@ -157,3 +159,4 @@ plain-text rendering conventions.
 | 2026-10-23 | Gate 2 approved; T5 implementation started | W~1 | Operator approval |
 | 2026-10-23 | T5 replaced Host-selected length with fixed 50–150 guidance, added description focus semantics/default, reordered audiences, and updated backend/frontend tests | W~1 | T5 |
 | 2026-10-23 | T6 close-out checks passed: backend Checkstyle/tests, frontend tests/lint/build, diff audit, and implementation review; browser checks remain handover | W~1 | T6 |
+| 2026-10-23 | Amended the Host AI spec/plan to gate the frontend trigger on seven minimum listing details with a disabled-state hover explanation; spec and plan lint passed | W~1 | C~7, Gate 1 pending |

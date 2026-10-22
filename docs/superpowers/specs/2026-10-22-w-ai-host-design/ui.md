@@ -8,6 +8,11 @@ the Description label and uses the existing `lucide-react` icon family with a tw
 `Sparkles` icon. It must not add a second persistent editor or push the current form sections into
 a different order.
 
+The trigger is disabled until the form has a non-whitespace title, a selected property type,
+positive max guests, bedrooms, bathrooms, check-in time, and check-out time. The disabled trigger
+uses a native hover hint explaining that all seven listing details are required before AI assistance
+can be used. The rule applies to both New and Edit forms and is recalculated as the draft changes.
+
 ## Modal layout
 
 The button opens a modal without submitting the listing form. The modal has a title, a close
