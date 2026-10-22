@@ -31,7 +31,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S2 | 2026-10-22 | Claude Sonnet 5.5 | W-AGENT | Paused | T2 done; paused at operator request | T3 step 1: the drafted files are in `git stash list` ("T3 draft": `AgentMessageController`, `MessageMapper`, `AgentMessageControllerTest`, the `@Size` cap on `PostMessageRequest`); `git stash pop`, run `AgentMessageControllerTest`, then commit; commits stay under 150 changed lines; Checkstyle only at task end | 2026-10-22 |
+| S2 | 2026-10-22 | Claude Sonnet 5.5 | W-AGENT | Paused | T3 done; paused before T4 (operator confirms start) | T4 step 1: account endpoints A8-A10 and `UserRepository.findByIdForUpdate`; verify per `AGENTS.md` § 6 (changed classes on the warm daemon, full suite and Checkstyle once at task end) | 2026-10-22 |
 
 **Remaining**
 
@@ -48,7 +48,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AGENT | Agent features: disputes, accounts, audit, categories — REST controllers and Next.js pages | Building | [spec](docs/superpowers/specs/2026-10-22-w-agent-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-agent.md) | T1, T2, T7 Done; T3 next | — |
+| W-AGENT | Agent features: disputes, accounts, audit, categories — REST controllers and Next.js pages | Building | [spec](docs/superpowers/specs/2026-10-22-w-agent-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-agent.md) | T1, T2, T3, T7 Done; T4 next | — |
 
 ---
 
@@ -149,3 +149,4 @@ Q~2 was resolved on 2026-10-22: the operator paused S2 and authorized applying t
 | 2026-10-22 | T2 ledger fix: dispute resolution works on PostgreSQL (D~7) | W-AGENT | T2 commits |
 | 2026-10-22 | T2 row lock: ticket row is the first read of assign, notes, unassign and resolve; settlement locks it too; two-thread tests for E10, E20, E76 pass and fail without the lock | W-AGENT | T2 commits |
 | 2026-10-22 | T2 dispute endpoints: queue, detail, assign, notes, resolve with constraints; full backend suite 435 tests pass and Checkstyle clean; fixed a hidden empty-400 bug in the T1 error handler (D~8), the layering test rules (now verified against real controllers) and the test connection pool | W-AGENT | T2 commits |
+| 2026-10-22 | T3 thread endpoints: read and post both channels; the audit and ledger spies moved into the shared API test base class so all API tests share one Spring context; full backend suite and Checkstyle clean | W-AGENT | T3 commits |
