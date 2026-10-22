@@ -17,14 +17,14 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
 
 import com.snoozeshare.ai.AiFeature;
-import com.snoozeshare.ai.LlmErrorCode;
 import com.snoozeshare.ai.LlmCall;
+import com.snoozeshare.ai.LlmErrorCode;
 import com.snoozeshare.ai.LlmGateway;
 import com.snoozeshare.ai.LlmResult;
 import com.snoozeshare.ai.host.HostListingDescriptionService;
