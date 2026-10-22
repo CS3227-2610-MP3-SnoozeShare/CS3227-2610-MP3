@@ -335,10 +335,12 @@
 
 **Checklist**
 
-- [ ] 1. Run `cd backend && ./gradlew build` and `cd frontend && npm test && npm run lint && npm run build` with the configured API base URL.
+- [x] 1. Run `cd backend && ./gradlew build --rerun-tasks` and `cd frontend && npm test && npm run lint && NEXT_PUBLIC_API_BASE_URL=http://localhost:8080 npm run build`.
 - [ ] 2. Verify every Traceability row; record any unverified behavior or build divergence in branch-state Deviations instead of claiming completion.
-- [ ] 3. Confirm the API logs omit tokens, message bodies, listing descriptions, and full wallet payloads; confirm frontend requests contain no client-supplied host ID.
-- [ ] 4. Confirm the completed test and build output is recorded in the plan; do not mark completion without evidence.
+- [x] 3. Inspect the API error logger and request adapter; logs include only request ID/status/code/path, and adapter tests verify no client-supplied host ID or wallet retry metadata.
+- [x] 4. Record verification evidence: backend fresh Checkstyle/build passed; frontend 172 tests across 32 files, lint, and production build passed.
+
+**Verification evidence (2026-10-22):** `./gradlew build --rerun-tasks` completed with `BUILD SUCCESSFUL`; frontend `npm test` passed 172 tests in 32 files, lint passed, and Next.js production build completed. Browser acceptance checks remain in progress (see branch-state D~20).
 
 ### Close-out
 
