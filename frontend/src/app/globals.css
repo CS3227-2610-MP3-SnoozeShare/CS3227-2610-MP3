@@ -95,6 +95,13 @@
   --space-5: 1.25rem;
   --space-6: 1.5rem;
 
+  /* Artifact type scale: 28 / 20 / 15 / 13 / 11px. */
+  --text-display: 1.75rem;
+  --text-heading: 1.25rem;
+  --text-body: 0.9375rem;
+  --text-caption: 0.8125rem;
+  --text-label: 0.6875rem;
+
   /* Artifact radii: controls, cards/dialogs, pills */
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
@@ -138,6 +145,21 @@
   select {
     font: inherit;
   }
+
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [role="button"][aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
 }
 
 @layer components {
@@ -167,5 +189,12 @@
 
   .ss-status-neutral {
     @apply bg-muted text-muted-foreground;
+  }
+
+  button[class~="border"]:not(:disabled):hover,
+  button[class*="border-border"]:not(:disabled):hover,
+  a[href][class~="border"]:hover,
+  a[href][class*="border-border"]:hover {
+    background-color: var(--surface-inset);
   }
 }

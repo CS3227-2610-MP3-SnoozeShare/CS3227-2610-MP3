@@ -16,6 +16,9 @@ public interface AvailabilityBlockRepository
 
     List<AvailabilityBlock> findByPropertyId(UUID propertyId);
 
+    List<AvailabilityBlock> findByPropertyIdAndStartDateLessThanAndEndDateGreaterThanOrderByStartDateAscIdAsc(
+            UUID propertyId, LocalDate endDate, LocalDate startDate);
+
     @Query("SELECT ab FROM AvailabilityBlock ab "
             + "WHERE ab.propertyId = :propertyId "
             + "AND ab.startDate < :endDate AND ab.endDate > :startDate")

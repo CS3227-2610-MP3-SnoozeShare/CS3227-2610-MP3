@@ -1,7 +1,6 @@
 package com.snoozeshare.repository;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -40,7 +39,7 @@ public class JdbcLedgerRepository implements LedgerRepository {
                 BASE_SELECT
                 + " AND a.subject_user_id = ("
                 + "SELECT w.user_id FROM wallets w WHERE w.id = ?)"
-                + " ORDER BY a.timestamp ASC, a.id ASC",
+                + " ORDER BY a.timestamp DESC, a.id DESC",
                 this::mapRow, walletId);
     }
 
@@ -64,6 +63,6 @@ public class JdbcLedgerRepository implements LedgerRepository {
                 rs.getString("reason"),
                 rs.getObject("booking_id", UUID.class),
                 rs.getObject("ticket_id", UUID.class),
-                rs.getObject("timestamp", Instant.class));
+                rs.getTimestamp("timestamp").toInstant());
     }
 }

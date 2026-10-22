@@ -12,4 +12,6 @@ public interface PropertyRepository
         extends JpaRepository<Property, UUID>, PropertySearchRepository {
 
     List<Property> findByHostId(UUID hostId);
+
+    List<Property> findByHostIdOrderByCreatedAtDescIdAsc(UUID hostId);
 }

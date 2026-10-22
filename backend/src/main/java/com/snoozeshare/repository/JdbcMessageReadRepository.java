@@ -38,7 +38,7 @@ public class JdbcMessageReadRepository {
                 + "WHERE m.ticket_id = ? AND m.channel = ? "
                 + "AND m.author_id <> ? "
                 + "AND m.sent_at > COALESCE("
-                + "(SELECT mr.last_read_message_id FROM message_reads mr "
+                + "(SELECT lm.sent_at FROM message_reads mr "
                 + "JOIN messages lm ON lm.id = mr.last_read_message_id "
                 + "WHERE mr.ticket_id = ? AND mr.channel = ? "
                 + "AND mr.user_id = ?), "

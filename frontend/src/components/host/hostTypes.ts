@@ -1,0 +1,193 @@
+export type ListingStatus = 'active' | 'inactive';
+
+export type HostListing = {
+  id: string; title: string; type: string; city: string; region: string; rate: number;
+  bookings: number; rating: number; status: ListingStatus;
+};
+
+export type ListingDetail = HostListing & {
+  description: string; address: string; postalCode: string; maxGuests: number; bedrooms: number;
+  bathrooms: number; checkIn: string; checkOut: string; amenities: string[]; reviewCount: number;
+  occupancy30d: number; earnings30d: number; reviews: { author: string; rating: number; text: string }[];
+};
+
+export type CalendarDay = { date: string; month: 'current' | 'other'; booked: boolean; blocked: boolean };
+export type CalendarData = { monthLabel: string; days: CalendarDay[]; blockedDates: { id?: string; reason: string; startDate: string; endDate: string }[] };
+
+export type BookingRequest = {
+  id: string; guest: string; listing: string; dates: string; nights: number; gross: number;
+  net: number | null; rating: number | null; status: 'pending' | 'confirmed' | 'rejected';
+};
+export type RequestData = { pending: BookingRequest[]; past: BookingRequest[] };
+
+export type Message = { sender: string; body: string; timestamp?: string };
+export type Conversation = {
+  id: string; title: string; subtitle: string; status: 'open' | 'resolved';
+  messages: Message[];
+  kind?: 'booking' | 'ticket'; sourceId?: string; unreadCount?: number; counterpartName?: string;
+};
+
+export type WalletSummary = { balance: number; escrowNote: string };
+export type StatementRow = { id?: string; date: string; type: string; relatedTo: string; amount: number; balanceAfter: number };
+
+export type HostListingDto = {
+  id: string; hostId: string; status: 'ACTIVE' | 'INACTIVE'; title: string; description: string;
+  propertyType: string; streetAddress: string; city: string; region: string; postalCode: number;
+  maxGuests: number; bedrooms: number; bathrooms: number; baseNightlyRate: number;
+  checkInTime: string; checkOutTime: string; amenities: string[]; createdAt: string;
+};
+export type HostListingSummaryDto = HostListingDto & { bookingCount: number; averageRating: number };
+export type HostListingDetailDto = { listing: HostListingDto; metrics: { bookingCount: number; averageRating: number; reviews: { guestName: string; rating: number; comment: string }[]; occupancyPercentage: number; earnings: number } };
+export type CreateHostListingPayload = Omit<HostListingDto, 'id' | 'hostId' | 'createdAt'>;
+export type UpdateHostListingPayload = Omit<CreateHostListingPayload, 'status'>;
+export type HostCalendarDto = { year: number; month: number; days: { date: string; booked: boolean; blocked: boolean }[]; blocks: { id: string; reason: string | null; startDate: string; endDate: string }[] };
+export type HostBlockDto = { id: string; propertyId: string; startDate: string; endDate: string; source: string; bookingId: string | null; reason: string | null };
+export type HostBookingDto = { booking: { id: string; status: string; startDate: string; endDate: string }; guestDisplayName: string; listingTitle: string; nights: number; grossAmount: number; projectedNetAmount: number; guestAverageRating: number | null };
+export type HostMessageDto = { id: string; authorId: string; authorRole: string; body: string; sentAt: string };
+export type BookingConversationDto = { bookingId: string; listingTitle: string; startDate: string; endDate: string; counterpartName: string; lastMessage: HostMessageDto | null; unreadCount: number; open: boolean };
+export type TicketConversationDto = { ticketId: string; channel: 'HOST'; ticketLabel: string; ticketTitle: string; listingTitle: string; counterpartName: string; lastMessage: HostMessageDto | null; unreadCount: number; open: boolean };
+export type HostTransactionDto = { id: string; actionType: string; walletAdjustment: number; balanceAfter: number; reason: string; bookingId: string | null; ticketId: string | null; timestamp: string };
+export type HostWalletDto = { wallet: { id: string; userId: string; balance: number; currency: string; updatedAt: string }; statement: HostTransactionDto[] };
+export type HostWalletMutationDto = { mocked: true; wallet: HostWalletDto['wallet']; transaction: HostTransactionDto };
+
+function numberedReference(kind: 'Booking' | 'Ticket', value: string) {
+  return `${kind} #${value.trim().replace(/^#+/, '')}`;
+}
+
+function mapHostListingFields(dto: HostListingDto): HostListing {
+  return {
+    id: dto.id,
+    title: dto.title,
+    type: humanize(dto.propertyType),
+    city: dto.city,
+    region: dto.region,
+    rate: Number(dto.baseNightlyRate),
+    bookings: 0,
+    rating: 0,
+    status: dto.status === 'ACTIVE' ? 'active' : 'inactive',
+  };
+}
+
+/** Converts a collection summary row into the stable listing-card presentation model. */
+export function mapHostListing(dto: HostListingSummaryDto): HostListing {
+  return { ...mapHostListingFields(dto), bookings: dto.bookingCount, rating: dto.averageRating };
+}
+
+export function mapHostListingDetail(dto: HostListingDetailDto): ListingDetail {
+  const listing = mapHostListingFields(dto.listing);
+  return {
+    ...listing,
+    description: dto.listing.description,
+    address: dto.listing.streetAddress,
+    postalCode: String(dto.listing.postalCode),
+    maxGuests: dto.listing.maxGuests,
+    bedrooms: dto.listing.bedrooms,
+    bathrooms: dto.listing.bathrooms,
+    checkIn: formatTime(dto.listing.checkInTime),
+    checkOut: formatTime(dto.listing.checkOutTime),
+    amenities: dto.listing.amenities.map(humanize),
+    reviewCount: dto.metrics.reviews.length,
+    occupancy30d: dto.metrics.occupancyPercentage,
+    earnings30d: Number(dto.metrics.earnings),
+    bookings: dto.metrics.bookingCount,
+    rating: dto.metrics.averageRating,
+    reviews: dto.metrics.reviews.map((review) => ({ author: review.guestName, rating: review.rating, text: review.comment })),
+  };
+}
+
+export function mapHostCalendar(dto: HostCalendarDto): CalendarData {
+  const monthKey = `${dto.year}-${String(dto.month).padStart(2, '0')}`;
+  return {
+    monthLabel: new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(Date.UTC(dto.year, dto.month - 1, 1))),
+    days: dto.days.map((day) => ({ date: day.date, month: day.date.startsWith(monthKey) ? 'current' : 'other', booked: day.booked, blocked: day.blocked })),
+    blockedDates: dto.blocks.filter((block) => block.reason !== null).map((block) => ({ id: block.id, reason: block.reason ?? '', startDate: block.startDate, endDate: block.endDate })),
+  };
+}
+
+export function mapHostBooking(dto: HostBookingDto): BookingRequest {
+  const status = dto.booking.status === 'PENDING' ? 'pending' : dto.booking.status === 'REJECTED' ? 'rejected' : 'confirmed';
+  const start = new Date(`${dto.booking.startDate}T12:00:00Z`);
+  const end = new Date(`${dto.booking.endDate}T12:00:00Z`);
+  const format = (value: Date) => new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }).format(value);
+  return {
+    id: dto.booking.id,
+    guest: dto.guestDisplayName,
+    listing: dto.listingTitle,
+    dates: `${format(start)}–${format(end)}`,
+    nights: dto.nights,
+    gross: Number(dto.grossAmount),
+    net: Number(dto.projectedNetAmount),
+    rating: dto.guestAverageRating,
+    status,
+  };
+}
+
+export function mapBookingConversation(dto: BookingConversationDto): Conversation {
+  const date = (value: string) => new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }).format(new Date(`${value}T12:00:00Z`));
+  return {
+    id: `booking:${dto.bookingId}`,
+    sourceId: dto.bookingId,
+    kind: 'booking',
+    title: `${dto.listingTitle} · ${date(dto.startDate)}–${date(dto.endDate)}`,
+    subtitle: `${numberedReference('Booking', dto.bookingId)} · Direct message with ${dto.counterpartName} (Guest)`,
+    status: dto.open ? 'open' : 'resolved',
+    unreadCount: dto.unreadCount,
+    counterpartName: dto.counterpartName,
+    messages: [],
+  };
+}
+
+export function mapTicketConversation(dto: TicketConversationDto): Conversation {
+  return {
+    id: `ticket:${dto.ticketId}`,
+    sourceId: dto.ticketId,
+    kind: 'ticket',
+    title: dto.ticketTitle,
+    subtitle: `${numberedReference('Ticket', dto.ticketLabel)} · ${dto.listingTitle} · Support Agent`,
+    status: dto.open ? 'open' : 'resolved',
+    unreadCount: dto.unreadCount,
+    counterpartName: dto.counterpartName,
+    messages: [],
+  };
+}
+
+export function mapHostMessages(messages: HostMessageDto[], counterpartName: string): Message[] {
+  return messages
+    .slice()
+    .sort((left, right) => left.sentAt.localeCompare(right.sentAt))
+    .map((message) => ({ sender: message.authorRole === 'HOST' ? 'You' : counterpartName, body: message.body, timestamp: message.sentAt }));
+}
+
+export function mapHostWallet(dto: HostWalletDto): { wallet: WalletSummary; statement: StatementRow[] } {
+  return {
+    wallet: { balance: Number(dto.wallet.balance), escrowNote: 'Pending booking funds are held in escrow until the stay is complete.' },
+    statement: dto.statement.map((transaction) => ({
+      id: transaction.id,
+      date: new Date(transaction.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }),
+      type: transaction.actionType,
+      relatedTo: transaction.bookingId
+        ? numberedReference('Booking', transaction.bookingId)
+        : transaction.ticketId ? numberedReference('Ticket', transaction.ticketId) : '—',
+      amount: Number(transaction.walletAdjustment),
+      balanceAfter: Number(transaction.balanceAfter),
+    })),
+  };
+}
+
+function humanize(value: string) {
+  return value.toLowerCase().replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+export function formatTime(value: string) {
+  const twelveHour = /^(\d{1,2}):(\d{2})\s*(AM|PM)$/i.exec(value);
+  if (twelveHour) {
+    const hour = Number(twelveHour[1]);
+    if (hour >= 1 && hour <= 12) return `${String(hour).padStart(2, '0')}:${twelveHour[2]} ${twelveHour[3].toUpperCase()}`;
+  }
+  const twentyFourHour = /^(\d{1,2}):(\d{2})(?::\d{2}(?:\.\d+)?)?$/.exec(value);
+  if (!twentyFourHour) return value;
+  const hour = Number(twentyFourHour[1]);
+  const minute = Number(twentyFourHour[2]);
+  if (hour > 23 || minute > 59) return value;
+  return `${String(hour % 12 || 12).padStart(2, '0')}:${twentyFourHour[2]} ${hour < 12 ? 'AM' : 'PM'}`;
+}

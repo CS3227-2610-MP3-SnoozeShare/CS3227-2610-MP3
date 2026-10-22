@@ -15,6 +15,9 @@ spring:
       ddl-auto: validate
 server:
   port: ${PORT:8080}
+snoozeshare:
+  persistence:
+    enabled: true
 management:
   endpoints:
     web:

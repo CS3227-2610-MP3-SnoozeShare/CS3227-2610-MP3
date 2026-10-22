@@ -15,6 +15,7 @@ describe('RoleNavbar', () => {
     const brand = screen.getByRole('link', { name: 'SnoozeShare' });
 
     expect(topRow).toHaveTextContent('SnoozeShare');
+    expect(topRow).toHaveClass('flex-wrap');
     expect(topRow).toHaveTextContent('Wallet');
     expect(brand).toHaveClass('text-base', 'tracking-[0.04em]');
     expect(screen.getByLabelText('Wallet')).toHaveClass('text-xs');
