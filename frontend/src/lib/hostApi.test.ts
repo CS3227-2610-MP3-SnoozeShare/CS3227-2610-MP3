@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { BackendApiError } from './api';
-import { formatTime, mapHostListing, mapHostListingDetail, mapHostWallet } from '@/components/host/hostTypes';
+import { formatTime, mapHostListing, mapHostListingDetail, mapHostWallet, mapTicketConversation } from '@/components/host/hostTypes';
 
 const { authenticatedFetch, signOutUser } = vi.hoisted(() => ({ authenticatedFetch: vi.fn(), signOutUser: vi.fn() }));
 vi.mock('./api', async (importOriginal) => {
@@ -90,6 +90,27 @@ describe('Host API adapter', () => {
     expect(mapHostListing({ ...listing, bookingCount: 7, averageRating: 4.5 })).toMatchObject({ type: 'Private Room', rate: 80, status: 'active', bookings: 7, rating: 4.5 });
     expect(mapHostListingDetail({ listing, metrics: { bookingCount: 3, averageRating: 4.5, reviews: [{ guestName: 'Guest', rating: 5, comment: 'Great' }], occupancyPercentage: 60, earnings: 240 } })).toMatchObject({ bookings: 3, rating: 4.5, reviews: [{ author: 'Guest', text: 'Great' }] });
     expect(mapHostWallet({ wallet: { id: 'w-1', userId: 'h-1', balance: 20, currency: 'SGD', updatedAt: '2026-10-22T00:00:00Z' }, statement: [{ id: 'tx-1', actionType: 'TOP_UP', walletAdjustment: 20, balanceAfter: 20, reason: 'Top-up', bookingId: null, ticketId: null, timestamp: '2026-10-22T00:00:00Z' }] })).toMatchObject({ wallet: { balance: 20 }, statement: [{ id: 'tx-1', type: 'TOP_UP', amount: 20, relatedTo: '—' }] });
+  });
+
+  it('shows one hash when a ticket conversation label already includes its marker', () => {
+    const conversation = mapTicketConversation({
+      ticketId: 'ticket-1', channel: 'HOST', ticketLabel: '#b023', ticketTitle: 'Support question',
+      listingTitle: 'Cabin', counterpartName: 'Agent', lastMessage: null, unreadCount: 0, open: true,
+    });
+
+    expect(conversation.subtitle).toBe('Ticket #b023 · Cabin · Support Agent');
+  });
+
+  it('shows one hash for booking and ticket references in wallet rows', () => {
+    const mapped = mapHostWallet({
+      wallet: { id: 'w-1', userId: 'h-1', balance: 20, currency: 'SGD', updatedAt: '2026-10-22T00:00:00Z' },
+      statement: [
+        { id: 'tx-booking', actionType: 'BOOKING_PAYOUT', walletAdjustment: 20, balanceAfter: 20, reason: 'Payout', bookingId: '#B-2255', ticketId: null, timestamp: '2026-10-22T00:00:00Z' },
+        { id: 'tx-ticket', actionType: 'TICKET_REMEDY', walletAdjustment: 20, balanceAfter: 40, reason: 'Remedy', bookingId: null, ticketId: '##b023', timestamp: '2026-10-22T00:00:00Z' },
+      ],
+    });
+
+    expect(mapped.statement.map((row) => row.relatedTo)).toEqual(['Booking #B-2255', 'Ticket #b023']);
   });
 
   it.each(['Asia/Singapore', 'America/Los_Angeles'])('preserves time-only listing values in %s', (timezone) => {

@@ -50,6 +50,10 @@ export type HostTransactionDto = { id: string; actionType: string; walletAdjustm
 export type HostWalletDto = { wallet: { id: string; userId: string; balance: number; currency: string; updatedAt: string }; statement: HostTransactionDto[] };
 export type HostWalletMutationDto = { mocked: true; wallet: HostWalletDto['wallet']; transaction: HostTransactionDto };
 
+function numberedReference(kind: 'Booking' | 'Ticket', value: string) {
+  return `${kind} #${value.trim().replace(/^#+/, '')}`;
+}
+
 function mapHostListingFields(dto: HostListingDto): HostListing {
   return {
     id: dto.id,
@@ -139,7 +143,7 @@ export function mapTicketConversation(dto: TicketConversationDto): Conversation 
     sourceId: dto.ticketId,
     kind: 'ticket',
     title: dto.ticketTitle,
-    subtitle: `Ticket #${dto.ticketLabel} · ${dto.listingTitle} · Support Agent`,
+    subtitle: `${numberedReference('Ticket', dto.ticketLabel)} · ${dto.listingTitle} · Support Agent`,
     status: dto.open ? 'open' : 'resolved',
     unreadCount: dto.unreadCount,
     counterpartName: dto.counterpartName,
@@ -161,7 +165,9 @@ export function mapHostWallet(dto: HostWalletDto): { wallet: WalletSummary; stat
       id: transaction.id,
       date: new Date(transaction.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }),
       type: transaction.actionType,
-      relatedTo: transaction.bookingId ? `Booking #${transaction.bookingId}` : transaction.ticketId ? `Ticket #${transaction.ticketId}` : '—',
+      relatedTo: transaction.bookingId
+        ? numberedReference('Booking', transaction.bookingId)
+        : transaction.ticketId ? numberedReference('Ticket', transaction.ticketId) : '—',
       amount: Number(transaction.walletAdjustment),
       balanceAfter: Number(transaction.balanceAfter),
     })),
