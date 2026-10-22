@@ -25,7 +25,7 @@ Implements a plan exactly as written, keeps the record current as it goes, and s
     Tests first, as the steps say. Use the snippets in the plan as the intended shape, not as text to paste blindly; adapt to the real code, and when you do, note why in the commit message.
 3. **Tick each box** (`- [ ]` to `- [x]`) as the step finishes, in the plan file.
 4. **Edge cases**: every `E` ID assigned to the task has a test, and the test name or a comment cites the ID.
-5. **Verify**: run the task's tests, then `<BUILD>`. Do not continue on red. If a failure is not caused by your change, record it as a Deviation and ask; do not skip or weaken a test.
+5. **Verify** in proportion (`AGENTS.md` § 6): while working, run only the test classes the change touches, with the warm Gradle daemon, and batch several related tests per run; at the end of the task run the full test suite and Checkstyle once (the whole `<BUILD>` for each component the task touched). Do not continue on red. If a failure is not caused by your change, record it as a Deviation and ask; do not skip or weaken a test.
 6. **Record**: set Status `Done`, update the branch state's Progress (position, about 15 words) and add a Changes line.
 7. **Commit** the task: code, tests, the ticked plan and the branch-state update together (`AGENTS.md` § 6; a handful of files; no `git add -A`). Message `type: what and why (workstream)`; no provisional IDs.
 8. After each wave: run `lint.mjs plan <plan.md>` and `<BUILD>` again.

@@ -72,7 +72,8 @@ No change.
 | Layer boundary | Controllers do not depend on repositories, domain models, persistence types, money services or the audit write service; audit reads use `AuditQueryService` |
 | Actor identity | Controller actor ids use `@CurrentUserId`, resolved from the authenticated request attribute |
 | Locking | Ticket and governed-user mutations take `RowLocks.timeout()` and then lock the target row before reading it |
-| Commit size | Fewer than 150 changed lines per commit, counting additions plus deletions including tests and docs |
+| Commits | Logical, reviewable units (`AGENTS.md` § 6): no numeric line cap, no hundreds of lines across unrelated files, no fragments that mean nothing alone |
+| Test runs | Warm Gradle daemon; run only the touched test classes, several related tests per run; full suite and Checkstyle once per task; spy and mock beans live in the shared `AgentApiIntegrationTest` base so API tests share one Spring context |
 
 ---
 
@@ -121,7 +122,7 @@ Q~2 was resolved on 2026-10-22: the operator paused S2 and authorized applying t
 | D~3 | `UrlPathHelper.getPathWithinApplication` drops the `/api` segment on a request URI beginning `//api/...` | `ProtectedRequestPath` collapses repeated slashes in the raw URI first, then uses UrlPathHelper for decoding and matrix-parameter removal; E62 covers it |
 | D~4 | The E69 missing-actor unit test was added after the resolver types because they did not yet exist; E4 reuses the existing Jackson unknown-property setting | The actor route did run red before filter/resolver changes; E69 now directly verifies fail-closed resolution |
 | D~5 | Spring's standard MVC exception advice did not render JSON for unmatched paths (the `NoHandlerFoundException` was left with an empty 404 in MockMvc) | `ApiNoRouteExceptionResolver` handles only unmatched `/api/agent/**` paths before default resolution; other namespaces keep their prior behavior |
-| D~6 | Original T1 commits exceeded the operator's later commit-size cap | Rewritten as 23 commits, at most 133 changed lines each; original history is retained in backup refs and concurrent later commits are preserved |
+| D~6 | Original T1 commits exceeded the operator's later commit-size cap | Resolved: the operator restructured the T1 history; the cap was then replaced by the logical-commit rule in AGENTS.md § 6 (2026-10-22) |
 | D~7 | `JdbcLedgerRepository.entriesForBooking` read `timestamptz` as `Instant`, which the PostgreSQL driver rejects, so every dispute resolution on PostgreSQL failed; no test covered the ledger read | Fixed in `fix: read ledger timestamps as OffsetDateTime` with `JdbcLedgerRepositoryTest`; the W-DOMAIN settlement path had never run on PostgreSQL before T2 |
 | D~8 | T1's `ApiExceptionHandler.respond` set the content type on read-only headers Spring passes for bean-validation errors, so every `@Valid` failure returned an empty 400; T1 tests did not cover a `@Valid` body | Fixed in `fix: copy read-only headers`; covered by the notes length case in `AgentDisputeControllerTest` |
 
