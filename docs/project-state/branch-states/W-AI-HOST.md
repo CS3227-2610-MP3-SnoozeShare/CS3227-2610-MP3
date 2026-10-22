@@ -9,7 +9,7 @@ after the branch merges.
 - **Owner:** Xiao-Congchen
 - **Status:** In review
 - **Approved:** Spec and plan approved (Xiao-Congchen, 2026-10-22); Gate 3 review requested
-- **Last updated:** 2026-10-23 by GPT-5 — improved Generate prompt to self-review toward the analysis criteria
+- **Last updated:** 2026-10-23 by GPT-5 — made Generate length adherence an explicit draft-count-revise loop
 
 ---
 
@@ -33,7 +33,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S2 | 2026-10-23 00:20 | GPT-5 (lead) | W~1 | In review | Improved Generate prompt to self-review toward PASS criteria; backend checks pass | Commit prompt refinement, then leave branch ready for Gate 3 review | 2026-10-23 02:36 |
+| S2 | 2026-10-23 00:20 | GPT-5 (lead) | W~1 | In review | Made Generate length adherence an explicit draft-count-revise loop; backend checks pass | Commit length-prompt refinement, then leave branch ready for Gate 3 review | 2026-10-23 02:46 |
 
 **Remaining**
 
@@ -148,3 +148,4 @@ plain-text rendering conventions.
 | 2026-10-23 | Removed PASS/IMPROVE prefixes from analysis feedback, preserved generated results across modal reopen, reset current analysis when the description refreshes, and reset results only after Apply; added regressions | W~1 | Operator-directed change |
 | 2026-10-23 | Removed the redundant visible `Loading…` status text while retaining pending button labels and disabled-state behavior; updated regression coverage | W~1 | Operator-directed change |
 | 2026-10-23 | Improved the Generate prompt to self-review and revise toward PASS on clarity, completeness, and accuracy while preserving factual accuracy; added prompt regression coverage | W~1 | Operator-directed change |
+| 2026-10-23 | Made Generate length adherence explicit: count with the application word rule, revise when outside the selected band, recount, and avoid filler; added prompt regression coverage | W~1 | Operator-directed change |

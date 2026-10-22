@@ -33,7 +33,9 @@ class ListingDescriptionFeatureConfigTest {
     void promptDefinesTheSelectedDescriptionLengthGuidance() {
         assertThat(feature.systemPrompt())
             .contains("SHORT is 50-75 words", "MEDIUM is 75-125 words")
-            .contains("descriptionLength is", "authoritative", "Count the words before returning");
+            .contains("descriptionLength is", "authoritative", "Count the words before returning")
+            .contains("If the count is outside the selected band")
+            .contains("Do not add filler just to reach");
     }
 
     @Test

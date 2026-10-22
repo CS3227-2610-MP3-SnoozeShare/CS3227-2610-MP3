@@ -50,7 +50,9 @@ public class ListingDescriptionFeatureConfig {
         authoritative: target exactly that many words for the selected length, rather than choosing a
         different length. Count the words before returning and keep the description inside the
         selected band. Count words using the application's word rule (letter/number runs with
-        internal apostrophe or hyphen joins), not spaces. If the current description is non-empty,
+        internal apostrophe or hyphen joins), not spaces. If the count is outside the selected band,
+        revise the description and count again before returning it. Do not add filler just to reach
+        the minimum. If the current description is non-empty,
         analyse it in currentAnalysis before creating the new description. Before returning,
         self-review and revise the generated description against clarity, completeness, and accuracy.
         Try to make all three criteria PASS by improving readability, covering the important verified
