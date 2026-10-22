@@ -31,7 +31,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S2 | 2026-10-22 | Claude Sonnet 5.5 | W-AGENT | Active | T7 step 4 next: RoleNavbar and /agent redirect | edit `frontend/src/components/role/RoleNavbar.test.tsx` first, then `RoleNavbar.tsx`, then `frontend/src/app/agent/page.tsx` with its test; every commit stays under 150 changed lines (AGENTS.md § 6) | 2026-10-22 |
+| S2 | 2026-10-22 | Claude Sonnet 5.5 | W-AGENT | Active | T7 done; T2 next | T2 step 1 in `backend/src/test/java/com/snoozeshare/api/controller/agent/AgentDisputeConcurrencyTest.java`: write the failing E20 and E10 tests; commits stay under 150 changed lines | 2026-10-22 |
 
 **Remaining**
 
@@ -39,7 +39,6 @@ No change.
 - [x] Gate 1: spec reviewed in two rounds, approved by Xiao-Congchen 2026-10-22 (Q~1 answered: Asia/Singapore)
 - [x] Gate 2: plan approved by Xiao-Congchen 2026-10-22
 - [x] Execute the plan (`executing-plans-lite`); T1 complete
-- [ ] Resume at T7 step 1 when the operator asks to continue
 - [ ] **Handover:** the W-AI-GATEWAY branch state is still in `branch-states/` on `development`: its fold (gate 4) is pending and is not this branch's work
 - [ ] **Handover:** audit reasons, notes and messages typed by agents will become LLM input in W-AI-AGENT; treat them as untrusted (prompt injection) in that spec
 
@@ -49,7 +48,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AGENT | Agent features: disputes, accounts, audit, categories — REST controllers and Next.js pages | Building | [spec](docs/superpowers/specs/2026-10-22-w-agent-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-agent.md) | T1 Done; T7 step 1 next after operator resumes | — |
+| W-AGENT | Agent features: disputes, accounts, audit, categories — REST controllers and Next.js pages | Building | [spec](docs/superpowers/specs/2026-10-22-w-agent-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-agent.md) | T1, T7 Done; T2 step 1 next | — |
 
 ---
 
@@ -120,6 +119,7 @@ No change: Q~1 (audit zone) was answered on 2026-10-22 (C~7); nothing is open.
 | D~3 | `UrlPathHelper.getPathWithinApplication` drops the `/api` segment on a request URI beginning `//api/...` | `ProtectedRequestPath` collapses repeated slashes in the raw URI first, then uses UrlPathHelper for decoding and matrix-parameter removal; E62 covers it |
 | D~4 | The E69 missing-actor unit test was added after the resolver types because they did not yet exist; E4 reuses the existing Jackson unknown-property setting | The actor route did run red before filter/resolver changes; E69 now directly verifies fail-closed resolution |
 | D~5 | Spring's standard MVC exception advice did not render JSON for unmatched paths (the `NoHandlerFoundException` was left with an empty 404 in MockMvc) | `ApiNoRouteExceptionResolver` handles only unmatched `/api/agent/**` paths before default resolution; other namespaces keep their prior behavior |
+| D~6 | Original T1 commits exceeded the operator's later commit-size cap | Rewritten as 23 commits, at most 133 changed lines each; original history is retained in backup refs and concurrent T7 commits are preserved |
 
 ---
 
@@ -138,3 +138,5 @@ No change: Q~1 (audit zone) was answered on 2026-10-22 (C~7); nothing is open.
 | 2026-10-22 | T1 Slice E adds consistent API errors and safe logging; `RowLocks` and ArchUnit boundary rules; full backend Checkstyle and tests pass | W-AGENT | T1 complete |
 | 2026-10-22 | Recorded the operator's commit cap in AGENTS.md; T1 history split finished; per-commit checks waived by the operator; line budgets and implementation parity verified; concurrent T7 commits preserved | W-AGENT | commit organization |
 | 2026-10-22 | `development` merged into the branch (W-AI-GATEWAY folded; no conflict with the spec) | W-AGENT | merge commit |
+| 2026-10-22 | T7 frontend foundation: `apiJson` and `isSessionFailure`, `usePolling`, `SessionNotice`, `AgentDialog`, agent navbar links without the wallet pill, `/agent` redirect, API types and formatting; 101 frontend tests, lint and build pass | W-AGENT | T7 commits |
+| 2026-10-22 | Plan-only fix: the frontend build command needs the CI placeholder Firebase variables | W-AGENT | T7 close |
