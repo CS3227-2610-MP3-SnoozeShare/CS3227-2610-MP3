@@ -7,7 +7,7 @@ after the branch merges.
 - **Branch:** W-GUEST (from `development` at `6b242b2`)
 - **Base:** 6b242b2
 - **Owner:** Nathan
-- **Status:** Approved   (`Draft` · `In review` · `Approved` · `Folded`)
+- **Status:** Approved
 - **Approved:** Nathan 2026-10-22
 - **Last updated:** 2026-10-22 by Claude Opus 4.6 — approved by Nathan, ready to push and PR
 
@@ -31,7 +31,6 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| *(empty — all sessions complete)* | | | | | | | |
 
 **Remaining**
 
