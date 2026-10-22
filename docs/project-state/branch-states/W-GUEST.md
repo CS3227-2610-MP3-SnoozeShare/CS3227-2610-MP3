@@ -33,7 +33,7 @@ No change.
 |---|---|---|---|---|---|---|---|
 | S1 | 2026-10-22 20:00 | Claude Opus 4.6 | W-GUEST | Done | Plan written, approved | — | 2026-10-22 |
 | S2 | 2026-10-22 | Claude Opus 4.6 | W-GUEST | Done | T1 partially coded, not committed | — | 2026-10-22 |
-| S3 | 2026-10-22 | Claude Opus 4.6 | W-GUEST | Active | T4 done; continuing Wave 1 | T5: GuestReviewController | 2026-10-22 |
+| S3 | 2026-10-22 | Claude Opus 4.6 | W-GUEST | Active | Wave 1 done (T1-T5); starting Wave 2 | T6: Search page (frontend) | 2026-10-22 |
 
 **Remaining**
 
@@ -50,7 +50,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-GUEST | Guest role controllers and frontend pages | Building | [spec](docs/superpowers/specs/2026-10-22-w-guest-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-guest.md) | Task 5/10: T5 GuestReviewController | — |
+| W-GUEST | Guest role controllers and frontend pages | Building | [spec](docs/superpowers/specs/2026-10-22-w-guest-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-guest.md) | Task 6/10: T6 Search page (frontend) | — |
 
 ---
 
@@ -105,3 +105,4 @@ No change.
 | 2026-10-22 | T2: GuestBookingController with trip listing and cancellation. GuestTripResponse DTO. Self-booking guard added to BookingServiceImpl. 9 integration tests | W-GUEST | T2 commit |
 | 2026-10-22 | T3: GuestWalletController with balance, transactions, top-up, withdraw. Added Insufficient check to IllegalArgumentException handler. 8 integration tests | W-GUEST | T3 commit |
 | 2026-10-22 | T4: GuestMessageController with 10 endpoints (tickets + messages). GuestConversationListResponse DTO. @Size constraints on FileTicketRequest and PostMessageRequest. Fixed D~2: countUnread SQL type mismatch in both JDBC read repos. 8 integration tests | W-GUEST | T4 commit |
+| 2026-10-22 | T5: GuestReviewController with POST /bookings/{id}/review. @Size(max=2000) on SubmitReviewRequest.comment. 7 integration tests. Wave 1 complete (T1-T5) | W-GUEST | T5 commit |
