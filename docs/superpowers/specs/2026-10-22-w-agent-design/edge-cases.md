@@ -88,7 +88,7 @@ IDs are permanent: never reuse or renumber. Every F and N requirement and every 
 ## Time
 | ID | Requirement | Scenario | Expected behaviour (exact) | Why it matters | Test layer |
 |---|---|---|---|---|---|
-| E31 | F11 | An entry at 23:30 UTC on 21 Oct 2026 (07:30 on 22 Oct in Singapore), `from=to=2026-10-22` | Included (the audit zone is `Asia/Singapore`, pending Q1); with `from=to=2026-10-21` it is excluded | Day boundaries | integration |
+| E31 | F11 | An entry at 23:30 UTC on 21 Oct 2026 (07:30 on 22 Oct in Singapore), `from=to=2026-10-22` | Included (the audit zone is `Asia/Singapore`); with `from=to=2026-10-21` it is excluded | Day boundaries | integration |
 
 ## UI
 | ID | Requirement | Scenario | Expected behaviour (exact) | Why it matters | Test layer |

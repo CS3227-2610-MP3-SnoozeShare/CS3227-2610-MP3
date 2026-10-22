@@ -5,11 +5,11 @@ read it for context and write here instead of editing it. `sync-project-state` f
 after the branch merges.
 
 - **Branch:** W-AGENT (from `development` at `7eef36a`)
-- **Base:** `7eef36a` (development tip when the branch was cut)
+- **Base:** `e185dc0` (development tip merged into the branch on 2026-10-22; the branch was cut at `7eef36a`)
 - **Owner:** Xiao-Congchen
 - **Status:** Draft
 - **Approved:** —
-- **Last updated:** 2026-10-22 by Claude Sonnet 5.5 — spec drafted, round 1 review applied
+- **Last updated:** 2026-10-22 by Claude Sonnet 5.5 — spec approved, development merged
 
 ---
 
@@ -31,12 +31,12 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-22 | Claude Sonnet 5.5 | W-AGENT | Paused | Spec done, awaiting gate 1 | Operator answers gate 1 and Q~1; then write `Status: Approved (<name>, <date>)` in the spec index, run `lint.mjs spec <index> --approved`, and start `writing-plans-lite` | 2026-10-22 |
+| S1 | 2026-10-22 | Claude Sonnet 5.5 | W-AGENT | Active | Gate 2: writing the plan | Write `docs/superpowers/plans/2026-10-22-w-agent.md` with `writing-plans-lite` (T1-T12 mirroring the spec), run `lint.mjs plan`, run the reviewer round, then ask the operator for gate 2 | 2026-10-22 |
 
 **Remaining**
 
 - [x] Confirm scope with the operator (done 2026-10-22)
-- [ ] Gate 1: spec reviewed, Q~1 answered, approval
+- [x] Gate 1: spec reviewed in two rounds, approved by Xiao-Congchen 2026-10-22 (Q~1 answered: Asia/Singapore)
 - [ ] Gate 2: plan written (`writing-plans-lite`), linted, reviewed, approval
 - [ ] Execute the plan (`executing-plans-lite`)
 - [ ] **Handover:** the W-AI-GATEWAY branch state is still in `branch-states/` on `development`: its fold (gate 4) is pending and is not this branch's work
@@ -48,7 +48,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AGENT | Agent features: disputes, accounts, audit, categories — REST controllers and Next.js pages | Not started | [spec](docs/superpowers/specs/2026-10-22-w-agent-design.md) | — | Spec reviewed (2 rounds), gate 1 pending: Q~1 | — |
+| W-AGENT | Agent features: disputes, accounts, audit, categories — REST controllers and Next.js pages | Spec'd | [spec](docs/superpowers/specs/2026-10-22-w-agent-design.md) | — | Spec approved; plan not written | — |
 
 ---
 
@@ -72,9 +72,7 @@ No change: nothing built yet. (To add when built: queue and accounts lists are u
 
 ## 7. Needs a Human
 
-| ID | What is needed | What it blocks | Raised |
-|---|---|---|---|
-| Q~1 | Confirm the audit-log date zone: fixed `Asia/Singapore` (recommended) or the server default zone (UTC on Render) | Spec approval, T5 | 2026-10-22 |
+No change: Q~1 (audit zone) was answered on 2026-10-22 (C~7); nothing is open.
 
 ---
 
@@ -87,6 +85,7 @@ No change: nothing built yet. (To add when built: queue and accounts lists are u
 | C~3 | 2026-10-22 | W-AGENT builds the shared REST foundation (global error handler, `@CurrentUserId`, ArchUnit layering test, typed frontend helpers) because no controllers or backend exist elsewhere | `origin/W-HOST` is fixture-only frontend and has no open pull request | Spec SD1, SD12 |
 | C~4 | 2026-10-22 | Tickets are locked pessimistically in assign, notes, unassign and settlement so an escrow cannot be settled twice. Rejected: `@Version`, SERIALIZABLE, leaving the race | Review (Tester, Attacker, Maintainer) found no lock in the ported services | Spec SD10 |
 | C~6 | 2026-10-22 | Round 2 review: the ticket lock is the first read of resolve; suspend and reactivate lock the target user; audit reads use `AuditQueryService`; the error handler passes on messages only from service and domain code; request size is checked after authentication | Review (Attacker, Implementer, Tester) found stale-read, cascade-race, layering and message-leak gaps | Spec SD10, SD19, SD20, SD21 |
+| C~7 | 2026-10-22 | The audit-log date range uses a fixed `Asia/Singapore` zone by default (`snoozeshare.audit.zone`), not the server zone. Rejected: server default (UTC on Render) | Operator: "Use Singapore timezone as default"; resolves Q~1 | Spec SD16 |
 | C~5 | 2026-10-22 | `agentNotes` moves from the shared `TicketResponse` to the agent-only `DisputeDetailResponse`; request size is capped by a filter on `/api/agent/**` rather than a global Jackson limit | Review (Implementer, Attacker) | Spec SD13, SD14 |
 
 ---
@@ -104,4 +103,5 @@ No change: nothing built yet. (To add when built: queue and accounts lists are u
 | Date | What changed | Workstream | Ref |
 |---|---|---|---|
 | 2026-10-22 | Branch W-AGENT cut from `development` and its branch state created | W-AGENT | `7823c4b` |
-| 2026-10-22 | Spec for the agent REST API and pages drafted, linted and reviewed in two rounds | W-AGENT | `20c7b38` and next |
+| 2026-10-22 | Spec for the agent REST API and pages drafted, linted, reviewed in two rounds and approved | W-AGENT | `ecfc451` |
+| 2026-10-22 | `development` merged into the branch (W-AI-GATEWAY folded; no conflict with the spec) | W-AGENT | merge commit |

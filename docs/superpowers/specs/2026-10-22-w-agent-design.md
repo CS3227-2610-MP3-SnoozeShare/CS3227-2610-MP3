@@ -1,6 +1,6 @@
 # W-AGENT Design
 
-- **Status:** In review
+- **Status:** Approved (Xiao-Congchen, 2026-10-22)
 - **Risk tier:** High - agent-only endpoints settle disputes (moves escrow money), suspend and reactivate accounts (cascades cancellations and refunds) and expose the audit log; they sit behind role authorization.
 - **Workstream:** W-AGENT | **Plan:** not yet written
 - **Constraints consulted:** C20 (full escrow settled two-sided), C22 (no Force Cancel/Complete), C23, C70, C73 (DTO layer), C78 (polling, no WebSocket), C79, C86, C92 (UID from the verified token, client-side guards), C95, C96, C99 and C100 (JPA, NUMERIC scales); § Known Gaps (client-side route guards, process-local rate limiting, Firebase revocation check per request, single instance, SERIALIZABLE only for bookings); Explicitly out of scope: agent Force Cancel/Complete.
@@ -48,7 +48,6 @@ Sixteen functional and eight non-functional goals; each has an acceptance criter
 
 | ID | Question | Blocks | Owner |
 |---|---|---|---|
-| Q1 | The audit-log From and To dates are whole days. The server clock is `Clock.systemDefaultZone()` (UTC on Render) while the team works in Singapore time. This spec assumes a fixed `Asia/Singapore` zone (property `snoozeshare.audit.zone`, applied only inside `AuditServiceImpl`, the shared `Clock` unchanged). Confirm, or choose the server default zone, which puts a day boundary at 08:00 Singapore time | api.md A11, E31, T5 | Operator |
 
 ## 6. Decisions made in this spec
 
@@ -69,7 +68,7 @@ Sixteen functional and eight non-functional goals; each has an acceptance criter
 | SD13 | Request size is capped by a filter on `/api/agent/**` (Content-Length required, 65,536 bytes). Rejected: a global Jackson `maxStringLength` (it would also cap the AI gateway's `OutputValidator` and auth bodies) | Scope the limit to this API | Implementer |
 | SD14 | `agentNotes` moves from the shared `TicketResponse` to the agent-only `DisputeDetailResponse` | Guest and Host controllers reuse `TicketResponse` and must not be able to leak notes | Implementer, Attacker |
 | SD15 | `ApiExceptionHandler` is a global `@RestControllerAdvice` extending `ResponseEntityExceptionHandler`; `AuthController`'s local handlers still win for its routes. Rejected: a package-scoped advice, which does not see 404, 405 and 415 raised before a handler is chosen | Every agent failure uses one body | Implementer, Maintainer |
-| SD16 | The audit zone is a fixed `Asia/Singapore` (pending Q1), applied in `AuditServiceImpl` only. Rejected: changing the shared `Clock` | The cascade and phase labels also use the clock | Implementer, Tester |
+| SD16 | The audit From and To dates are whole days in a fixed `Asia/Singapore` zone (property `snoozeshare.audit.zone`, default `Asia/Singapore`), applied in `AuditServiceImpl` only. Rejected: the server default zone (UTC on Render, which puts a day boundary at 08:00 Singapore time) and changing the shared `Clock` (the cascade and phase labels also use it) | Operator, 2026-10-22: "Use Singapore timezone as default" | Operator |
 | SD17 | The queue is oldest first (the repository order); `unassignedCount` is a new count query on OPEN unassigned tickets. The `status` filter is dropped from A1 (the UI never uses it). A new `GET /audit/actions` supplies the action list | Avoids two N+1 queue builds and a stale hard-coded enum | Implementer, Maintainer |
 | SD19 | `AccountGovernanceServiceImpl.suspend` and `reactivate` lock the target user row (`UserRepository.findByIdForUpdate`) first. Rejected: leaving the cascade race, which could refund one booking twice | Round 2: two agents suspending one user would both see ACTIVE | Attacker, Implementer |
 | SD20 | Audit reads go through a new `AuditQueryService` returning `AuditEntry` records, so controllers never depend on the write-side `AuditService` or the entity. Rejected: exempting one controller from the layering rule | Keeps N3 and N6 true | Implementer |
