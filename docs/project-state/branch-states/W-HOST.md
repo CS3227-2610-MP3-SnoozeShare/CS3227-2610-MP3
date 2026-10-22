@@ -8,7 +8,7 @@ in after the branch merges.
 - **Base:** `e185dc0`
 - **Owner:** project owner
 - **Status:** In review
-- **Last updated:** 2026-10-22 by GPT-5 — Trevor approved the W-HOST experience-corrections spec; plan drafting started
+- **Last updated:** 2026-10-22 by GPT-5 — W-HOST experience corrections complete; awaiting Gate 3 review
 
 ---
 
@@ -31,7 +31,6 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| GPT-5 | 2026-10-22 | — | W-HOST follow-up | Active | Review Minor resolved; 1/101-row query tests and backend Checkstyle/build pass | Ask reviewer to verify coverage fix, then finish plan closeout | 2026-10-22 |
 
 **Remaining**
 
@@ -55,7 +54,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | Building | [experience corrections spec](docs/superpowers/specs/2026-10-22-w-host-experience-corrections-design.md); [UI spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [UI plan](docs/superpowers/plans/2026-10-21-w-host-ui.md); [experience corrections plan](docs/superpowers/plans/2026-10-22-w-host-experience-corrections.md) | T1–T4 done; query-count review gap fixed; reviewer verification and closeout lint remain | guide out of date: Host metrics, time display, and calendar behavior |
+| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [experience corrections spec](docs/superpowers/specs/2026-10-22-w-host-experience-corrections-design.md); [UI spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [UI plan](docs/superpowers/plans/2026-10-21-w-host-ui.md); [experience corrections plan](docs/superpowers/plans/2026-10-22-w-host-experience-corrections.md) | T1–T4 complete; all required gates pass; owner Gate 3 review pending | guide out of date: Host metrics, time display, and calendar behavior |
 | W-HOST-API | Replace Host fixtures with authenticated backend integration | In review | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T17 complete: 101/1,001-row tests, full gates, and authenticated read-only captures; owner review pending | — |
 
 ## 4. Architecture
@@ -67,7 +66,7 @@ No change.
 | C~17 | *(superseded by C~20)* Persistence-backed services and adapters use the explicit property gate. |
 | C~20 | Database-dependent services and adapters use `@ConditionalOnDatabase`, matching the shared backend convention on `development`. |
 
-**Host API — Now:** Protected Host controllers register only when `snoozeshare.security.enabled=true`, matching `HostIdentityResolver`; listing, calendar, booking decision, conversation, and wallet routes resolve host identity server-side and call services rather than repositories. The authenticated frontend adapter routes requests through `authenticatedFetch`; all Host listing, calendar, request, message, and wallet screens use API-backed state with fixture mode retained for presentation tests. Collection and history GETs return every matching owner-scoped row in deterministic order, with no page/size contract; the listings collection carries booking count and average review rating from two grouped queries filtered by the resolved Host ID; calendar remains month-bounded and its grid contains at most 42 cells. This accepts unbounded collection payloads and server/client memory use (C~19). Wallet mutations retain the existing ledger transaction and wallet row lock, with events after commit; ambiguous failures refresh balance and statement without retrying.
+**Host API — Now:** Protected Host controllers register only when `snoozeshare.security.enabled=true`, matching `HostIdentityResolver`; listing, calendar, booking decision, conversation, and wallet routes resolve host identity server-side and call services rather than repositories. The authenticated frontend adapter routes requests through `authenticatedFetch`; all Host listing, calendar, request, message, and wallet screens use API-backed state with fixture mode retained for presentation tests. Collection and history GETs return every matching owner-scoped row in deterministic order, with no page/size contract; the listings collection carries booking count and average review rating from two grouped queries filtered by the resolved Host ID. Listing cards preserve those metrics when their status response patches only the matching row. The calendar route loads listing detail independently from month data, retains the last successful month while the requested month loads in-grid, and starts its block range empty; calendar data remains month-bounded with at most 42 grid cells. This accepts unbounded collection payloads and server/client memory use (C~19). Wallet mutations retain the existing ledger transaction and wallet row lock, with events after commit; ambiguous failures refresh balance and statement without retrying.
 
 | Source | Standing choice |
 |---|---|

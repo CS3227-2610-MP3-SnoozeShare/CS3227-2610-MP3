@@ -147,7 +147,7 @@ Tasks T2 and T3 both edit `frontend/src/components/host/hostTypes.ts`; perform t
 
 ### Close-out
 
-- [ ] Every Traceability row verified; backend Checkstyle/build and frontend tests/lint/build are green.
-- [ ] Spec status and plan Task order match actual work; record any plan/spec deviation in the branch state before continuing.
-- [ ] Branch state: W-HOST workstream In review; clear session rows only when all work is reflected in Workstreams and Changes; update Conventions/Deviations and note `guide out of date: Host metrics, time display, and calendar behavior`.
-- [ ] GATE: Ask Trevor for Gate 3 review; do not set branch `Approved`, push, open a PR or merge before the owner's yes.
+- [x] Every Traceability row verified; backend Checkstyle/build and frontend tests/lint/build are green.
+- [x] Spec status and plan Task order match actual work; record any plan/spec deviation in the branch state before continuing.
+- [x] Branch state: W-HOST workstream In review; clear session rows only when all work is reflected in Workstreams and Changes; update Conventions/Deviations and note `guide out of date: Host metrics, time display, and calendar behavior`.
+- [x] GATE: Ask Trevor for Gate 3 review; do not set branch `Approved`, push, open a PR or merge before the owner's yes.
