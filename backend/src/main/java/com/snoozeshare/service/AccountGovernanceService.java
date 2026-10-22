@@ -10,6 +10,9 @@ public interface AccountGovernanceService {
 
     List<AccountSummary> listAccounts();
 
+    /** Guests and Hosts only, oldest first: the accounts an agent may suspend. */
+    List<AccountSummary> listGovernableAccounts();
+
     User suspend(UUID userId, UUID agentId, String reason);
 
     User reactivate(UUID userId, UUID agentId, String reason);
