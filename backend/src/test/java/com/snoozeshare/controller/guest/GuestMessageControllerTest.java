@@ -80,6 +80,8 @@ class GuestMessageControllerTest extends PostgresIntegrationTest {
     private ObjectMapper objectMapper;
 
     private String guestToken;
+    private String hostToken;
+    private String guest2Token;
     private UUID guestId;
     private UUID hostId;
     private Booking confirmedBooking;
@@ -94,6 +96,15 @@ class GuestMessageControllerTest extends PostgresIntegrationTest {
 
         verifier.add(guestToken, guestUid, "guest@test.com");
 
+        String hostUid = "host-uid-" + UUID.randomUUID();
+        hostToken = "host-token-" + UUID.randomUUID();
+        verifier.add(hostToken, hostUid, "host@test.com");
+
+        UUID guest2Id = UUID.randomUUID();
+        String guest2Uid = "guest2-uid-" + UUID.randomUUID();
+        guest2Token = "guest2-token-" + UUID.randomUUID();
+        verifier.add(guest2Token, guest2Uid, "guest2@test.com");
+
         User guest = userRepository.save(new User(
                 guestId, guestUid, Role.GUEST, "Alice Guest",
                 "guest-" + UUID.randomUUID() + "@test.com",
@@ -102,8 +113,16 @@ class GuestMessageControllerTest extends PostgresIntegrationTest {
                 UUID.randomUUID(), guest.getId(),
                 new BigDecimal("10000.00"), "SGD", now));
 
+        User guest2 = userRepository.save(new User(
+                guest2Id, guest2Uid, Role.GUEST, "Carol Guest",
+                "guest2-" + UUID.randomUUID() + "@test.com",
+                AccountStatus.ACTIVE, null, now, now, null));
+        walletRepository.save(new Wallet(
+                UUID.randomUUID(), guest2.getId(),
+                new BigDecimal("1000.00"), "SGD", now));
+
         User host = userRepository.save(new User(
-                hostId, "host-uid-" + UUID.randomUUID(), Role.HOST,
+                hostId, hostUid, Role.HOST,
                 "Bob Host", "host-" + UUID.randomUUID() + "@test.com",
                 AccountStatus.ACTIVE, "HOST123", now, now, null));
         walletRepository.save(new Wallet(
@@ -242,6 +261,23 @@ class GuestMessageControllerTest extends PostgresIntegrationTest {
     void rejectsUnauthenticated() throws Exception {
         mockMvc.perform(get("/api/guest/tickets"))
             .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void rejectsHostRole() throws Exception {
+        mockMvc.perform(get("/api/guest/tickets")
+                .header("Authorization", "Bearer " + hostToken))
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void otherGuestCannotAccessBookingMessages() throws Exception {
+        // Guest 2 tries to read guest 1's booking messages
+        mockMvc.perform(get("/api/guest/messages/bookings/"
+                + confirmedBooking.getId())
+                .header("Authorization", "Bearer " + guest2Token))
+            .andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.code").value("FORBIDDEN"));
     }
 
     @TestConfiguration(proxyBeanMethods = false)

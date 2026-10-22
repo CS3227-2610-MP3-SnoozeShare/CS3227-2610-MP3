@@ -74,6 +74,8 @@ class GuestReviewControllerTest extends PostgresIntegrationTest {
     private ObjectMapper objectMapper;
 
     private String guestToken;
+    private String hostToken;
+    private String guest2Token;
     private UUID guestId;
     private Booking completedBooking;
 
@@ -87,6 +89,15 @@ class GuestReviewControllerTest extends PostgresIntegrationTest {
 
         verifier.add(guestToken, guestUid, "guest@test.com");
 
+        String hostUid = "host-uid-" + UUID.randomUUID();
+        hostToken = "host-token-" + UUID.randomUUID();
+        verifier.add(hostToken, hostUid, "host@test.com");
+
+        UUID guest2Id = UUID.randomUUID();
+        String guest2Uid = "guest2-uid-" + UUID.randomUUID();
+        guest2Token = "guest2-token-" + UUID.randomUUID();
+        verifier.add(guest2Token, guest2Uid, "guest2@test.com");
+
         User guest = userRepository.save(new User(
                 guestId, guestUid, Role.GUEST, "Alice Guest",
                 "guest-" + UUID.randomUUID() + "@test.com",
@@ -95,8 +106,16 @@ class GuestReviewControllerTest extends PostgresIntegrationTest {
                 UUID.randomUUID(), guest.getId(),
                 new BigDecimal("1000.00"), "SGD", now));
 
+        User guest2 = userRepository.save(new User(
+                guest2Id, guest2Uid, Role.GUEST, "Carol Guest",
+                "guest2-" + UUID.randomUUID() + "@test.com",
+                AccountStatus.ACTIVE, null, now, now, null));
+        walletRepository.save(new Wallet(
+                UUID.randomUUID(), guest2.getId(),
+                new BigDecimal("1000.00"), "SGD", now));
+
         User host = userRepository.save(new User(
-                hostId, "host-uid-" + UUID.randomUUID(), Role.HOST,
+                hostId, hostUid, Role.HOST,
                 "Bob Host", "host-" + UUID.randomUUID() + "@test.com",
                 AccountStatus.ACTIVE, "HOST123", now, now, null));
         walletRepository.save(new Wallet(
@@ -234,6 +253,33 @@ class GuestReviewControllerTest extends PostgresIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body))
             .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void rejectsHostRole() throws Exception {
+        String body = objectMapper.writeValueAsString(
+                Map.of("rating", 4, "comment", "Host trying guest endpoint"));
+
+        mockMvc.perform(post("/api/guest/bookings/" + completedBooking.getId()
+                + "/review")
+                .header("Authorization", "Bearer " + hostToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void otherGuestCannotReviewBooking() throws Exception {
+        String body = objectMapper.writeValueAsString(
+                Map.of("rating", 5, "comment", "Not my booking"));
+
+        mockMvc.perform(post("/api/guest/bookings/" + completedBooking.getId()
+                + "/review")
+                .header("Authorization", "Bearer " + guest2Token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+            .andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.code").value("FORBIDDEN"));
     }
 
     @TestConfiguration(proxyBeanMethods = false)

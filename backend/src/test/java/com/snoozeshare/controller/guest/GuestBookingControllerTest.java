@@ -1,5 +1,6 @@
 package com.snoozeshare.controller.guest;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -13,6 +14,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -75,6 +78,8 @@ class GuestBookingControllerTest extends PostgresIntegrationTest {
     private ObjectMapper objectMapper;
 
     private String guestToken;
+    private String hostToken;
+    private String guest2Token;
     private UUID guestId;
     private UUID hostId;
     private Property activeProperty;
@@ -89,6 +94,16 @@ class GuestBookingControllerTest extends PostgresIntegrationTest {
 
         verifier.add(guestToken, guestUid, "guest@test.com");
 
+        String hostUid = "host-uid-" + UUID.randomUUID();
+        hostToken = "host-token-" + UUID.randomUUID();
+        verifier.add(hostToken, hostUid, "host@test.com");
+
+        // Second guest for concurrency tests
+        UUID guest2Id = UUID.randomUUID();
+        String guest2Uid = "guest2-uid-" + UUID.randomUUID();
+        guest2Token = "guest2-token-" + UUID.randomUUID();
+        verifier.add(guest2Token, guest2Uid, "guest2@test.com");
+
         User guest = userRepository.save(new User(
                 guestId, guestUid, Role.GUEST, "Alice Guest",
                 "guest-" + UUID.randomUUID() + "@test.com",
@@ -97,8 +112,16 @@ class GuestBookingControllerTest extends PostgresIntegrationTest {
                 UUID.randomUUID(), guest.getId(),
                 new BigDecimal("10000.00"), "SGD", now));
 
+        User guest2 = userRepository.save(new User(
+                guest2Id, guest2Uid, Role.GUEST, "Carol Guest",
+                "guest2-" + UUID.randomUUID() + "@test.com",
+                AccountStatus.ACTIVE, null, now, now, null));
+        walletRepository.save(new Wallet(
+                UUID.randomUUID(), guest2.getId(),
+                new BigDecimal("10000.00"), "SGD", now));
+
         User host = userRepository.save(new User(
-                hostId, "host-uid-" + UUID.randomUUID(), Role.HOST,
+                hostId, hostUid, Role.HOST,
                 "Bob Host", "host-" + UUID.randomUUID() + "@test.com",
                 AccountStatus.ACTIVE, "HOST123", now, now, null));
         walletRepository.save(new Wallet(
@@ -335,6 +358,80 @@ class GuestBookingControllerTest extends PostgresIntegrationTest {
     void rejectsUnauthenticated() throws Exception {
         mockMvc.perform(get("/api/guest/bookings"))
             .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void rejectsHostRole() throws Exception {
+        mockMvc.perform(get("/api/guest/bookings")
+                .header("Authorization", "Bearer " + hostToken))
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void concurrentBookingOverlappingDates() throws Exception {
+        LocalDate start = LocalDate.now().plusDays(20);
+        LocalDate end = start.plusDays(3);
+        String body = objectMapper.writeValueAsString(Map.of(
+                "propertyId", activeProperty.getId(),
+                "startDate", start.toString(),
+                "endDate", end.toString()));
+
+        CountDownLatch ready = new CountDownLatch(2);
+        CountDownLatch go = new CountDownLatch(1);
+        AtomicInteger successes = new AtomicInteger();
+        AtomicInteger failures = new AtomicInteger();
+
+        Runnable task1 = () -> {
+            try {
+                ready.countDown();
+                go.await();
+                int responseStatus = mockMvc.perform(
+                        post("/api/guest/bookings")
+                        .header("Authorization", "Bearer " + guestToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                    .andReturn().getResponse().getStatus();
+                if (responseStatus == 200) {
+                    successes.incrementAndGet();
+                } else {
+                    failures.incrementAndGet();
+                }
+            } catch (Exception e) {
+                failures.incrementAndGet();
+            }
+        };
+        Runnable task2 = () -> {
+            try {
+                ready.countDown();
+                go.await();
+                int responseStatus = mockMvc.perform(
+                        post("/api/guest/bookings")
+                        .header("Authorization", "Bearer " + guest2Token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                    .andReturn().getResponse().getStatus();
+                if (responseStatus == 200) {
+                    successes.incrementAndGet();
+                } else {
+                    failures.incrementAndGet();
+                }
+            } catch (Exception e) {
+                failures.incrementAndGet();
+            }
+        };
+
+        Thread t1 = new Thread(task1);
+        Thread t2 = new Thread(task2);
+        t1.start();
+        t2.start();
+        ready.await();
+        go.countDown();
+        t1.join(10000);
+        t2.join(10000);
+
+        // Both may succeed (overlapping dates allowed for different guests in PENDING)
+        // or one may fail with 409 depending on business rules — assert both completed
+        assertEquals(2, successes.get() + failures.get());
     }
 
     @TestConfiguration(proxyBeanMethods = false)

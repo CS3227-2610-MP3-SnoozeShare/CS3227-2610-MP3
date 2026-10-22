@@ -63,6 +63,7 @@ class GuestSearchControllerTest extends PostgresIntegrationTest {
     private FakeTokenVerifier verifier;
 
     private String guestToken;
+    private String hostToken;
     private UUID guestId;
     private UUID hostId;
     private Property activeProperty;
@@ -77,6 +78,10 @@ class GuestSearchControllerTest extends PostgresIntegrationTest {
 
         verifier.add(guestToken, guestUid, "guest@test.com");
 
+        String hostUid = "host-uid-" + UUID.randomUUID();
+        hostToken = "host-token-" + UUID.randomUUID();
+        verifier.add(hostToken, hostUid, "host@test.com");
+
         User guest = userRepository.save(new User(
                 guestId, guestUid, Role.GUEST, "Alice Guest",
                 "guest-" + UUID.randomUUID() + "@test.com",
@@ -86,7 +91,7 @@ class GuestSearchControllerTest extends PostgresIntegrationTest {
                 new BigDecimal("1000.00"), "SGD", now));
 
         User host = userRepository.save(new User(
-                hostId, "host-uid-" + UUID.randomUUID(), Role.HOST,
+                hostId, hostUid, Role.HOST,
                 "Bob Host", "host-" + UUID.randomUUID() + "@test.com",
                 AccountStatus.ACTIVE, "HOST123", now, now, null));
         walletRepository.save(new Wallet(
@@ -216,6 +221,13 @@ class GuestSearchControllerTest extends PostgresIntegrationTest {
     void rejectsUnauthenticated() throws Exception {
         mockMvc.perform(get("/api/guest/listings"))
             .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void rejectsHostRole() throws Exception {
+        mockMvc.perform(get("/api/guest/listings")
+                .header("Authorization", "Bearer " + hostToken))
+            .andExpect(status().isForbidden());
     }
 
     @TestConfiguration(proxyBeanMethods = false)

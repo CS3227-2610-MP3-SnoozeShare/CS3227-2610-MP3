@@ -33,7 +33,7 @@ No change.
 |---|---|---|---|---|---|---|---|
 | S1 | 2026-10-22 20:00 | Claude Opus 4.6 | W-GUEST | Done | Plan written, approved | — | 2026-10-22 |
 | S2 | 2026-10-22 | Claude Opus 4.6 | W-GUEST | Done | T1 partially coded, not committed | — | 2026-10-22 |
-| S3 | 2026-10-22 | Claude Opus 4.6 | W-GUEST | Active | T9 done; continuing Wave 2 | T10: Backend integration tests | 2026-10-22 |
+| S3 | 2026-10-22 | Claude Opus 4.6 | W-GUEST | Active | T10 done; Wave 2 complete | Close-out | 2026-10-22 |
 
 **Remaining**
 
@@ -50,7 +50,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-GUEST | Guest role controllers and frontend pages | Building | [spec](docs/superpowers/specs/2026-10-22-w-guest-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-guest.md) | Task 10/10: T10 Backend integration tests | — |
+| W-GUEST | Guest role controllers and frontend pages | Building | [spec](docs/superpowers/specs/2026-10-22-w-guest-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-guest.md) | T1-T10 Done; close-out next | — |
 
 ---
 
@@ -90,6 +90,7 @@ No change.
 
 - **D~2** — `JdbcBookingMessageReadRepository.countUnread` and `JdbcMessageReadRepository.countUnread` compared `sent_at` (timestamp) against `last_read_message_id` (UUID) via COALESCE, causing `BadSqlGrammarException` on Postgres. The desktop SQLite version used `rowid` comparison, which works. Fixed by selecting `lm.sent_at` instead of `mr.last_read_message_id` in both queries.
 - **D~1** — `@ConditionalOnBean(PropertyRepository.class)` on component-scanned beans (`@Service`, `@Repository`, `@RestController`) never matched because Spring's `DeferredImportSelector` processes JPA auto-configuration AFTER component scanning evaluates `@Conditional`. All 20 domain service impls, JDBC repos and the guest exception handler silently failed to register as beans. Discovered during W-GUEST T1 integration testing. Fixed by removing the annotation (20 files) and adding `spring.main.lazy-initialization=true` to the two no-DB tests (`ServerPortDefaultTest`, `ServerPortOverrideTest`) that relied on it to exclude domain beans.
+- **D~3** — Wallet withdrawal lacks pessimistic or optimistic locking. Concurrent full-balance withdrawals can both succeed, resulting in a negative balance. Discovered during T10 concurrency testing. Not fixed — recorded as a known gap for a future wallet-locking workstream.
 
 ---
 
@@ -110,3 +111,4 @@ No change.
 | 2026-10-22 | T7: Trips page with cancel and review dialogs. TripCard, CancelDialog, ReviewDialog components. trips/page.tsx with 3 collapsible sections (Upcoming/Active/Past). 3 frontend tests | W-GUEST | T7 commit |
 | 2026-10-22 | T8: Messages page with conversation sidebar, thread view, ticket filing dialog. ConversationList, MessageThread, TicketFilingDialog components. ?booking={id} deep link. 3 frontend tests | W-GUEST | T8 commit |
 | 2026-10-22 | T9: Wallet page with balance card, transaction history table (color-coded amounts, action type labels), top-up/withdraw forms. 3 frontend tests | W-GUEST | T9 commit |
+| 2026-10-22 | T10: Security and concurrency integration tests. Role-rejection tests (HOST→403) for all 5 controllers. Ownership-violation tests for bookings, messages, reviews. Concurrent booking and withdrawal tests. Discovered D~3: wallet lacks locking. Wave 2 complete | W-GUEST | T10 commit |
