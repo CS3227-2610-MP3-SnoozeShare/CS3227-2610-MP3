@@ -7,9 +7,9 @@ after the branch merges.
 - **Branch:** ai-gateway-t8-defaults (from `development` at `7eef36a`)
 - **Base:** `7eef36a` (development tip when the branch was cut)
 - **Owner:** CongChen
-- **Status:** In review
-- **Approved:** —
-- **Last updated:** 2026-10-22 by Claude Sonnet 5.5 - T8 results recorded, defaults changed
+- **Status:** Approved
+- **Approved:** Xiao-Congchen 2026-10-22 (recorded after the merge, PR #18)
+- **Last updated:** 2026-10-22 by Claude Sonnet 5.5 - approval, Render check and key rotation recorded
 
 ---
 
@@ -34,8 +34,8 @@ No change.
 
 **Remaining**
 
-- [ ] **Handover:** GATE: after this merges and Render redeploys, set `SNOOZESHARE_AI_ENABLED=true` with `SOCLAAS_BASE_URL` and `SOCLAAS_API_KEY` on the dev service and confirm the log line `SoCLaaS reachable: N models listed, all configured models present`. That closes the one T8 item still open (reachability from Render); then set the variable back to `false` or leave it on.
-- [ ] **Handover:** GATE: rotate the development SoCLaaS key in the portal; it was printed in a terminal during T8 and read into an agent session.
+- [x] Done 2026-10-22, reported by the owner: Render is reachable. GATE: after this merges and Render redeploys, set `SNOOZESHARE_AI_ENABLED=true` with `SOCLAAS_BASE_URL` and `SOCLAAS_API_KEY` on the dev service and confirm the log line `SoCLaaS reachable: N models listed, all configured models present`. That closes the one T8 item still open (reachability from Render); then set the variable back to `false` or leave it on.
+- [x] Done 2026-10-22, reported by the owner: the development key was rotated. GATE: rotate the development SoCLaaS key in the portal; it was printed in a terminal during T8 and read into an agent session.
 - [ ] **Handover:** before a production key is configured, read its requests-a-minute limit from the portal budget endpoint and set `SNOOZESHARE_AI_MAX_RPM` to a value below it (the development key allows 30; the default is now 25).
 - [ ] **Handover:** role AI specs (W-AI-GUEST, W-AI-HOST, W-AI-AGENT) can start once the Render check above is recorded. They must set `maxTokens` with room to spare if a feature ever turns reasoning back on; with the default `none` the models answer in a few tokens.
 
@@ -45,7 +45,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W~1 | W-AI-GATEWAY: shared SoCLaaS LLM gateway (follow-up to the merged branch) | In review | [spec](docs/superpowers/specs/2026-10-22-w-ai-gateway-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-ai-gateway.md) | T8 local checks recorded; Render reachability open (Handover) | — |
+| W~1 | W-AI-GATEWAY: shared SoCLaaS LLM gateway (follow-up to the merged branch) | Done | [spec](docs/superpowers/specs/2026-10-22-w-ai-gateway-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-ai-gateway.md) | T8 checks recorded; Render reachable (owner, 2026-10-22) | — |
 
 ---
 
@@ -100,3 +100,5 @@ No change.
 | 2026-10-22 | T8 live-check results recorded in the runbook Evidence block | W~1 | — |
 | 2026-10-22 | Defaults: `max-rpm` 25, `reasoning-effort` `none`; spec SD9, SD10, api.md, F8, E27, E37 amended; tests updated | W~1 | C~1, C~2 |
 | 2026-10-22 | `ModelCheck` logs an INFO line on success | W~1 | C~3 |
+| 2026-10-22 | Pull request merged (PR #18) before the approval was recorded; the owner confirmed the approval afterwards in chat and it was written then | W~1 | — |
+| 2026-10-22 | Owner reported that Render is reachable with AI enabled, and that the development key was rotated; the runbook Evidence row was updated | W~1 | — |

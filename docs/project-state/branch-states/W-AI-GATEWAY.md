@@ -36,9 +36,9 @@ No change.
 
 - [x] Gate 2 (plan approval) - done 2026-10-22
 - [x] Execute T1 to T7 (`executing-plans-lite`); T8 is Post-merge - done 2026-10-22
-- [ ] **Handover:** `GATE:` before the merge, confirm the Render dev service has `SNOOZESHARE_AI_ENABLED=false` (the prod guard fails startup without it)
+- [x] Done 2026-10-22, confirmed by the owner before the merge: the Render dev service has `SNOOZESHARE_AI_ENABLED=false` (the prod guard fails startup without it)
 - [ ] **Handover:** the W-AI-AGENT scoping decisions of 2026-10-22 belong in that branch's state: the report goes in a separate AI draft field; the assistant posts as the SYSTEM user with a new `AI` author role in the GUEST channel only; Guest-raised tickets only; it asks at submission, then on each guest reply up to a fixed round cap; it depends on this gateway
-- [ ] **Handover:** `GATE:` T8 of the spec - set `SNOOZESHARE_AI_ENABLED` and the SoCLaaS variables in Render and verify reachability and the unconfirmed upstream behaviours (E27) before any W-AI-* spec starts
+- [x] Done 2026-10-22: T8 of the spec. The live checks are recorded in `docs/runbooks/dev-environment.md` § Evidence and in the `ai-gateway-t8-defaults` branch state; the owner reported Render reachable
 
 ---
 
@@ -46,7 +46,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W~1 | W-AI-GATEWAY: shared SoCLaaS LLM gateway | In review | [spec](docs/superpowers/specs/2026-10-22-w-ai-gateway-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-ai-gateway.md) | T1-T7 done, T8 Post-merge; code review done; awaiting gate 3 | — |
+| W~1 | W-AI-GATEWAY: shared SoCLaaS LLM gateway | Done | [spec](docs/superpowers/specs/2026-10-22-w-ai-gateway-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-ai-gateway.md) | T1-T8 done; merged (PR #17); T8 recorded; Render reachable (owner) | — |
 
 ---
 
