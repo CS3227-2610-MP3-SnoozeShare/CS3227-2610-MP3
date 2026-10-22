@@ -26,6 +26,20 @@ export async function authenticatedFetch(path: string, init: RequestInit = {}): 
   throw await toBackendError(response);
 }
 
+/** Calls the backend and parses the JSON body; a 204 response resolves to undefined. */
+export async function apiJson<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const response = await authenticatedFetch(path, init);
+  if (response.status === 204) return undefined as T;
+  return (await response.json()) as T;
+}
+
+const SESSION_FAILURE_CODES = new Set(['PROFILE_INACTIVE', 'PROFILE_NOT_REGISTERED', 'ROLE_MISMATCH']);
+
+/** True when the error means the signed-in session can no longer use the API. */
+export function isSessionFailure(error: unknown): boolean {
+  return error instanceof BackendApiError && (error.status === 401 || SESSION_FAILURE_CODES.has(error.code));
+}
+
 export async function validateRegistrationCode(
   role: 'HOST' | 'AGENT',
   registrationCode: string,
@@ -77,6 +91,7 @@ export async function fetchCurrentProfile() {
 }
 
 export type AuthProfile = {
+  id: string;
   email: string;
   role: 'GUEST' | 'HOST' | 'AGENT';
   displayName: string | null;

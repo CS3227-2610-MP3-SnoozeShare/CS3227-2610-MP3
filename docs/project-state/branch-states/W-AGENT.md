@@ -31,7 +31,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-22 | Codex | W-AGENT | Paused | T1 complete; commit history split below 150 changed lines | Resume with T7 step 1 when the operator asks | 2026-10-22 |
+| S2 | 2026-10-22 | Claude Sonnet 5.5 | W-AGENT | Active | T7 step 2 next: usePolling | write the failing `usePolling.test.tsx`, then `frontend/src/components/agent/usePolling.ts`; every commit stays under 150 changed lines (AGENTS.md § 6) | 2026-10-22 |
 
 **Remaining**
 
@@ -136,5 +136,5 @@ No change: Q~1 (audit zone) was answered on 2026-10-22 (C~7); nothing is open.
 | 2026-10-22 | T1 Slice C guards decoded agent paths, applies no-store and caps request bodies; full backend tests pass | W-AGENT | T1 Slice C |
 | 2026-10-22 | T1 Slice D adds token-derived actor resolution and fail-closed missing-actor handling; backend suite passes | W-AGENT | T1 Slice D |
 | 2026-10-22 | T1 Slice E adds consistent API errors and safe logging; `RowLocks` and ArchUnit boundary rules; full backend Checkstyle and tests pass | W-AGENT | T1 complete |
-| 2026-10-22 | Recorded the operator's commit cap in AGENTS.md; T1 history split finished; per-commit checks waived by the operator; line budgets and implementation parity verified; paused before T7 | W-AGENT | commit organization |
+| 2026-10-22 | Recorded the operator's commit cap in AGENTS.md; T1 history split finished; per-commit checks waived by the operator; line budgets and implementation parity verified; concurrent T7 commits preserved | W-AGENT | commit organization |
 | 2026-10-22 | `development` merged into the branch (W-AI-GATEWAY folded; no conflict with the spec) | W-AGENT | merge commit |
