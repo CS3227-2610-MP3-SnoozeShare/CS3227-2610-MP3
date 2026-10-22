@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const getIdToken = vi.fn();
-const auth = { currentUser: { getIdToken } };
+const auth: { currentUser: { getIdToken: typeof getIdToken } | null } = { currentUser: { getIdToken } };
 
 vi.mock('./firebase', () => ({ auth }));
 
