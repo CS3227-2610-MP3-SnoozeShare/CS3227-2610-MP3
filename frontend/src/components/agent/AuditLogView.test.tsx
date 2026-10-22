@@ -37,6 +37,17 @@ function entry(n: number, overrides: Partial<AuditEntry> = {}): AuditEntry {
 
 const EMPTY = { text: '', actions: [], from: '', to: '' };
 
+/** `yyyy-MM-dd` of a day in the month the date picker opens on (the current one). */
+function dayOfThisMonth(day: number): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+function pick(label: 'From' | 'To', day: number) {
+  fireEvent.click(screen.getByRole('button', { name: label }));
+  fireEvent.click(screen.getByRole('button', { name: dayOfThisMonth(day) }));
+}
+
 describe('AuditLogView (F11, F15)', () => {
   const audit = vi.fn();
   beforeEach(() => {
@@ -82,12 +93,12 @@ describe('AuditLogView (F11, F15)', () => {
     render(<AuditLogView />);
     await screen.findByText('No audit entries match these filters.');
 
-    fireEvent.change(screen.getByLabelText('From'), { target: { value: '2026-10-01' } });
-    await waitFor(() => expect(audit).toHaveBeenLastCalledWith({ ...EMPTY, from: '2026-10-01' }, 0));
+    pick('From', 1);
+    await waitFor(() => expect(audit).toHaveBeenLastCalledWith({ ...EMPTY, from: dayOfThisMonth(1) }, 0));
 
     fireEvent.click(screen.getByRole('button', { name: 'Clear' }));
     await waitFor(() => expect(audit).toHaveBeenLastCalledWith(EMPTY, 0));
-    expect((screen.getByLabelText('From') as HTMLInputElement).value).toBe('');
+    expect(screen.getByRole('button', { name: 'From' })).toHaveTextContent('dd/mm/yyyy');
   });
 
   it('takes several action types from the multi-select, listed from the backend', async () => {
@@ -120,7 +131,7 @@ describe('AuditLogView (F11, F15)', () => {
     render(<AuditLogView />);
     await screen.findAllByText('Ann Agent');
 
-    fireEvent.change(screen.getByLabelText('To'), { target: { value: '2026-12-01' } });
+    pick('To', 28);
 
     expect(await screen.findByText('Only me')).toBeInTheDocument();
     expect(screen.getAllByRole('row')).toHaveLength(2);
@@ -132,9 +143,9 @@ describe('AuditLogView (F11, F15)', () => {
     await screen.findByText('No audit entries match these filters.');
     const calls = audit.mock.calls.length;
 
-    fireEvent.change(screen.getByLabelText('From'), { target: { value: '2026-10-05' } });
+    pick('From', 20);
     await waitFor(() => expect(audit.mock.calls.length).toBe(calls + 1));
-    fireEvent.change(screen.getByLabelText('To'), { target: { value: '2026-10-01' } });
+    pick('To', 10);
 
     expect(await screen.findByText('The From date must not be after the To date.')).toBeInTheDocument();
     await new Promise((resolve) => setTimeout(resolve, 50));

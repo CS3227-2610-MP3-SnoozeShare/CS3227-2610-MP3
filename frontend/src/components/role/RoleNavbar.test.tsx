@@ -37,6 +37,11 @@ describe('RoleNavbar', () => {
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
   });
 
+  it('stays fixed to the top of the page while the content scrolls', () => {
+    render(<RoleNavbar role="AGENT" />);
+    expect(screen.getByRole('navigation')).toHaveClass('sticky', 'top-0', 'z-40');
+  });
+
   it('marks only the first role tab as active', () => {
     render(<RoleNavbar role="HOST" />);
 

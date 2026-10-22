@@ -6,6 +6,7 @@ import { AUDIT_PAGE_SIZE, fetchAudit, fetchAuditActions, type AuditQuery } from 
 import type { AuditEntry } from '@/lib/agent-api/types';
 import { AgentGrid, Cell, GridMessage, GridRow, type GridColumn } from './AgentGrid';
 import { ErrorBanner, Pill, outlineButton, pageClass, titleClass, type Tone } from './agentUi';
+import { DateField } from './DateField';
 import { MultiSelectMenu } from './MultiSelectMenu';
 import { SessionNotice } from './SessionNotice';
 
@@ -154,14 +155,14 @@ export function AuditLogView() {
             </span>
           )}
         </div>
-        <label className={`${fieldLabel} w-[150px] max-w-full`}>
+        <div className={`${fieldLabel} w-[160px] max-w-full`}>
           From
-          <input type="date" className={control} value={filters.from} onChange={(event) => setFilters({ ...filters, from: event.target.value })} />
-        </label>
-        <label className={`${fieldLabel} w-[150px] max-w-full`}>
+          <DateField label="From" value={filters.from} onChange={(from) => setFilters({ ...filters, from })} />
+        </div>
+        <div className={`${fieldLabel} w-[160px] max-w-full`}>
           To
-          <input type="date" className={control} value={filters.to} onChange={(event) => setFilters({ ...filters, to: event.target.value })} />
-        </label>
+          <DateField label="To" value={filters.to} onChange={(to) => setFilters({ ...filters, to })} />
+        </div>
         <button
           type="button"
           onClick={() => {

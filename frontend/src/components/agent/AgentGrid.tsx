@@ -41,7 +41,7 @@ export function AgentGrid({ columns, label, children }: { columns: GridColumn[];
   return (
     <TemplateContext.Provider value={template}>
       <div className="agent-scroll overflow-x-auto rounded-xl border border-border bg-card">
-        <div role="table" aria-label={label} style={{ minWidth }} className="flex flex-col">
+        <div role="table" aria-label={label} style={{ minWidth: minWidth + gutter }} className="flex flex-col">
           <div role="row" className="grid bg-muted" style={{ gridTemplateColumns: template, paddingRight: gutter }}>
             {columns.map((column) => (
               <div key={column.label} role="columnheader" className="whitespace-nowrap px-[18px] py-2.5 text-[11px] font-bold uppercase text-[var(--text-subtle)]">
@@ -49,7 +49,7 @@ export function AgentGrid({ columns, label, children }: { columns: GridColumn[];
               </div>
             ))}
           </div>
-          <div ref={body} role="rowgroup" className="agent-scroll max-h-[max(14rem,calc(100vh-17rem))] overflow-y-auto">
+          <div ref={body} role="rowgroup" className="agent-scroll max-h-[max(14rem,calc(100vh-17rem))] overflow-y-auto overflow-x-hidden">
             <div ref={content}>{children}</div>
           </div>
         </div>

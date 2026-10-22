@@ -84,7 +84,7 @@ const COLUMNS: GridColumn[] = [
   { label: 'Email', min: 190, fr: 1.7 },
   { label: 'Role', min: 70, fr: 0.6 },
   { label: 'Joined', min: 90, fr: 0.8 },
-  { label: 'Status', min: 150, fr: 1.4 },
+  { label: 'Status', min: 110, fr: 1.2 },
   { label: 'Action', min: 110, fr: 0.9 },
 ];
 

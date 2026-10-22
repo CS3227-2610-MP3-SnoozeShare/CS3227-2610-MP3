@@ -7,6 +7,7 @@ import { fetchQueue } from '@/lib/agent-api/disputes';
 import type { AssigneeFilter, TicketStatus } from '@/lib/agent-api/types';
 import { AgentGrid, Cell, GridMessage, GridRow, type GridColumn } from './AgentGrid';
 import { ErrorBanner, Pill, pageClass, titleClass, type Tone } from './agentUi';
+import { SelectMenu } from './SelectMenu';
 import { SessionNotice } from './SessionNotice';
 import { usePolling } from './usePolling';
 
@@ -85,14 +86,13 @@ export function DisputeQueue() {
               {chip.label}
             </button>
           ))}
-          <select
-            aria-label="Status"
+          <SelectMenu
+            label="Status"
+            className="w-[132px]"
+            options={STATUS_OPTIONS}
             value={status}
-            onChange={(event) => setStatus(event.target.value as TicketStatus | '')}
-            className="h-7 rounded-lg border border-border bg-card px-2 text-xs text-[var(--text-muted)]"
-          >
-            {STATUS_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-          </select>
+            onChange={(value) => setStatus(value as TicketStatus | '')}
+          />
         </div>
       </div>
       {error !== undefined && (

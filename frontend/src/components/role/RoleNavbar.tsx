@@ -27,7 +27,7 @@ export function RoleNavbar({ role, onLogout, walletLabel, activePath, avatarInit
   const landingPath = role === 'HOST' ? '/host/listings' : `/${role.toLowerCase()}`;
   const pathname = usePathname();
   return (
-    <nav aria-label="Workspace navigation" className="ss-role-navbar shrink-0 border-b border-[var(--border-muted)] bg-card px-6 pb-0 pt-3">
+    <nav aria-label="Workspace navigation" className="ss-role-navbar sticky top-0 z-40 shrink-0 border-b border-[var(--border-muted)] bg-card px-6 pb-0 pt-3">
       <div className="w-full">
         <div data-testid="workspace-navbar-top" className="flex min-h-7 flex-wrap items-center gap-3">
           <Link href={landingPath} className="text-base font-extrabold tracking-[0.04em] text-primary">SnoozeShare</Link>

@@ -78,7 +78,8 @@ describe('DisputeQueue (F3, F14)', () => {
     expect(within(table).getByText('Resolved')).toBeInTheDocument();
     expect(within(table).getByText('Rejected')).toBeInTheDocument();
 
-    fireEvent.change(screen.getByRole('combobox', { name: 'Status' }), { target: { value: 'IN_REVIEW' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Status' }));
+    fireEvent.click(screen.getByRole('option', { name: 'In review' }));
     await waitFor(() => expect(fetchQueue).toHaveBeenLastCalledWith('ALL', 'IN_REVIEW'));
   });
 });
