@@ -149,8 +149,10 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
             LOGGER.warn("API request failed requestId={} status={} code={} path={} agentId={}",
                     requestId, status.value(), code, path, actorId);
         }
-        headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
-        return new ResponseEntity<>(new ApiErrorResponse(code, message, requestId), headers, status);
+        HttpHeaders writable = new HttpHeaders();
+        writable.addAll(headers);
+        writable.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+        return new ResponseEntity<>(new ApiErrorResponse(code, message, requestId), writable, status);
     }
 
     private static Exception sanitized(Exception exception) {
