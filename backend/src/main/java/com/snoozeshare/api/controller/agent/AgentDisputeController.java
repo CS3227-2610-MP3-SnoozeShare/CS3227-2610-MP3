@@ -4,11 +4,13 @@ import java.util.UUID;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.snoozeshare.api.CurrentUserId;
+import com.snoozeshare.api.response.DisputeDetailResponse;
 import com.snoozeshare.api.response.DisputeQueueResponse;
 import com.snoozeshare.api.response.DisputeSummaryResponse;
 import com.snoozeshare.config.ConditionalOnDatabase;
@@ -35,5 +37,10 @@ public class AgentDisputeController {
         var items = queries.queue(null, assignee, agentId).stream()
                 .map(DisputeSummaryResponse::from).toList();
         return new DisputeQueueResponse(items, queries.unassignedCount());
+    }
+
+    @GetMapping("/{ticketId}")
+    public DisputeDetailResponse detail(@PathVariable UUID ticketId) {
+        return DisputeDetailResponse.from(queries.detail(ticketId));
     }
 }

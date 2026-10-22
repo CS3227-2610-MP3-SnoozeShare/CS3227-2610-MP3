@@ -19,7 +19,8 @@ public record DisputeDetailResponse(
         BookingStatus bookingStatus,
         BigDecimal escrowAmount,
         boolean escrowHeld,
-        String phaseLabel) {
+        String phaseLabel,
+        String agentNotes) {
 
     public static DisputeDetailResponse from(DisputeDetail d) {
         return new DisputeDetailResponse(
@@ -27,6 +28,7 @@ public record DisputeDetailResponse(
                 d.listingTitle(), d.startDate(), d.endDate(),
                 d.guestName(), d.hostName(), d.raisedByName(),
                 d.assignedAgentName(), d.bookingStatus(),
-                d.escrowAmount(), d.escrowHeld(), d.phaseLabel());
+                d.escrowAmount(), d.escrowHeld(), d.phaseLabel(),
+                d.ticket().getAgentNotes());
     }
 }
