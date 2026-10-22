@@ -15,7 +15,7 @@ function open(kind: 'ACCEPT' | 'REJECT' | 'MANUAL', remedy: 'FULL_REFUND' | 'PAR
   render(<ResolutionDialog kind={kind} detail={detail({}, { requestedRemedy: remedy })} onClose={onClose} onResolved={onResolved} onFailed={onFailed} />);
 }
 
-const reason = (text: string) => fireEvent.change(screen.getByLabelText('Reason'), { target: { value: text } });
+const reason = (text: string) => fireEvent.change(screen.getByLabelText(/^Reason/), { target: { value: text } });
 
 describe('ResolutionDialog (F7, F14)', () => {
   beforeEach(() => {
@@ -50,7 +50,7 @@ describe('ResolutionDialog (F7, F14)', () => {
     resolveDispute.mockResolvedValue(detail());
     open('ACCEPT', 'PARTIAL_REFUND');
     reason('Half');
-    const amount = screen.getByLabelText('Guest refund (SGD)');
+    const amount = screen.getByLabelText(/^Guest refund \(SGD\)/);
     const confirm = screen.getByRole('button', { name: 'Confirm accept' });
 
     for (const bad of ['', 'abc', '12.345', '-5', '0']) {
@@ -67,24 +67,24 @@ describe('ResolutionDialog (F7, F14)', () => {
   it('Manual locks the amount for the two full overrides', async () => {
     resolveDispute.mockResolvedValue(detail());
     open('MANUAL');
-    const amount = screen.getByLabelText('Guest refund (SGD)') as HTMLInputElement;
+    const amount = screen.getByLabelText(/^Guest refund \(SGD\)/) as HTMLInputElement;
     expect(amount.value).toBe('120.00');
     expect(amount).toHaveAttribute('readonly');
 
-    fireEvent.change(screen.getByLabelText('Override type'), { target: { value: 'HOST_PAYOUT' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Full payout to host' }));
     expect(amount.value).toBe('0.00');
     reason('Host was right');
-    fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Apply AGENT_OVERRIDE' }));
 
     await waitFor(() => expect(resolveDispute).toHaveBeenCalledWith('t-1', { mode: 'MANUAL', guestRefund: '0.00', reason: 'Host was right' }));
   });
 
   it('Manual custom accepts zero but not a bad format', () => {
     open('MANUAL');
-    fireEvent.change(screen.getByLabelText('Override type'), { target: { value: 'CUSTOM' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Custom' }));
     reason('Custom');
-    const amount = screen.getByLabelText('Guest refund (SGD)');
-    const confirm = screen.getByRole('button', { name: 'Confirm' });
+    const amount = screen.getByLabelText(/^Guest refund \(SGD\)/);
+    const confirm = screen.getByRole('button', { name: 'Apply AGENT_OVERRIDE' });
 
     fireEvent.change(amount, { target: { value: '1.234' } });
     expect(confirm).toBeDisabled();

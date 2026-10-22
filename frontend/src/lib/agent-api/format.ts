@@ -20,3 +20,10 @@ export function formatDateTime(iso: string, timeZone?: string): string {
   const get = (type: string) => parts.find((part) => part.type === type)?.value ?? '';
   return `${get('day')} ${get('month')} ${get('year')}, ${get('hour')}:${get('minute')} ${get('dayPeriod').toUpperCase()}`;
 }
+
+/** "Jane Gomez" becomes "Jane G." (the desktop and canvas style); a single word stays as it is. */
+export function shortName(fullName: string): string {
+  const parts = fullName.trim().split(/\s+/);
+  if (parts.length < 2) return fullName.trim();
+  return `${parts[0]} ${parts[parts.length - 1][0]}.`;
+}

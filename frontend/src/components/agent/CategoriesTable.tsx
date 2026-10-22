@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { isSessionFailure } from '@/lib/api';
 import { createCategory, deleteCategory, fetchCategories, renameCategory, setCategoryActive } from '@/lib/agent-api/categories';
 import type { TicketCategory } from '@/lib/agent-api/types';
-import { AgentDialog } from './AgentDialog';
+import { AgentDialog, FieldLabel, confirmButton, dialogInput } from './AgentDialog';
+import { ErrorBanner, dangerOutlineButton, outlineButton, pageClass, primaryButton, rowClass, tableCardClass, tdClass, thClass, theadRowClass, titleClass } from './agentUi';
 import { SessionNotice } from './SessionNotice';
 import { usePolling } from './usePolling';
 
@@ -43,35 +44,41 @@ function CategoryDialog({ editing, onClose, onDone, onSessionFailure }: {
 
   const trimmed = label.trim();
   return (
-    <AgentDialog title={existing ? 'Edit category' : 'Add category'} onClose={onClose}>
-      <label className="flex flex-col gap-1 text-xs font-semibold">
-        Label
-        <input value={label} maxLength={60} onChange={(event) => setLabel(event.target.value)} className="rounded-md border border-[var(--border)] p-2 text-sm" />
-      </label>
-      {error && <p role="alert" className="text-xs text-red-700">{error}</p>}
-      {confirmingDelete && existing && (
-        <div className="flex items-center gap-2 rounded-md border border-red-300 p-2 text-xs">
-          <span>Delete {existing.label}? This cannot be undone.</span>
-          <button type="button" disabled={pending} className="rounded-md bg-red-700 px-3 py-1 font-bold text-white" onClick={() => void run(() => deleteCategory(existing.id), 'Could not delete the category')}>
-            Confirm delete
-          </button>
-        </div>
-      )}
-      <div className="flex justify-between">
-        {existing ? (
-          <button type="button" className="rounded-md border border-red-600 px-3 py-2 text-xs font-semibold text-red-700" onClick={() => setConfirmingDelete(true)}>
+    <AgentDialog
+      title={existing ? 'Edit category' : 'Add category'}
+      subtitle={existing ? 'Rename, or delete a category no ticket uses' : 'Guests will see it when filing a dispute ticket'}
+      onClose={onClose}
+      leftAction={
+        existing ? (
+          <button type="button" className={`${dangerOutlineButton} px-[18px] py-[9px] text-xs`} onClick={() => setConfirmingDelete(true)}>
             Delete
           </button>
-        ) : <span />}
+        ) : undefined
+      }
+      confirm={
         <button
           type="button"
           disabled={pending || trimmed === ''}
           onClick={() => void run(() => (existing ? renameCategory(existing.id, trimmed) : createCategory(trimmed)), 'Could not save the category')}
-          className="rounded-md bg-primary px-4 py-2 text-xs font-bold text-primary-foreground disabled:opacity-50"
+          className={`${confirmButton('accent')} disabled:opacity-50`}
         >
           Save
         </button>
-      </div>
+      }
+    >
+      <label className="block">
+        <FieldLabel>Label</FieldLabel>
+        <input value={label} maxLength={60} onChange={(event) => setLabel(event.target.value)} className={dialogInput} />
+      </label>
+      {error && <p role="alert" className="m-0 text-xs text-destructive">{error}</p>}
+      {confirmingDelete && existing && (
+        <div className="flex items-center gap-2 rounded-lg border border-[#f07878] px-3 py-2 text-xs">
+          <span className="flex-1">Delete {existing.label}? This cannot be undone.</span>
+          <button type="button" disabled={pending} className={`${confirmButton('danger')} px-3 py-1.5 disabled:opacity-50`} onClick={() => void run(() => deleteCategory(existing.id), 'Could not delete the category')}>
+            Confirm delete
+          </button>
+        </div>
+      )}
     </AgentDialog>
   );
 }
@@ -108,54 +115,64 @@ export function CategoriesTable() {
   }
 
   return (
-    <section className="mx-auto max-w-4xl p-6">
-      <div className="mb-4 flex items-start justify-between">
+    <section className={pageClass}>
+      <div className="flex items-center">
         <div>
-          <h1 className="text-xl font-extrabold">Ticket categories</h1>
-          <p className="text-sm text-muted-foreground">Shown to guests when filing a dispute ticket</p>
+          <h1 className={titleClass}>Ticket categories</h1>
+          <div className="mt-0.5 text-xs text-[var(--text-subtle)]">Shown to guests when filing a dispute ticket</div>
         </div>
-        <button type="button" onClick={() => setEditing({ category: null })} className="rounded-md bg-primary px-4 py-2 text-xs font-bold text-primary-foreground">
+        <button type="button" onClick={() => setEditing({ category: null })} className={`${primaryButton} ml-auto px-[18px] py-[9px] text-[13px]`}>
           + Add category
         </button>
       </div>
       {(error !== undefined || toggleError) && (
-        <div role="alert" className="mb-3 flex items-center justify-between rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-800">
-          <span>{toggleError ?? message(error, 'Could not load categories')}</span>
-          {error !== undefined && (
-            <button type="button" className="rounded-md border border-red-300 px-3 py-1 text-xs font-semibold" onClick={reload}>Retry</button>
-          )}
-        </div>
+        <ErrorBanner message={toggleError ?? message(error, 'Could not load categories')} onRetry={error !== undefined ? reload : undefined} />
       )}
-      <table className="w-full border-collapse text-left text-sm">
-        <thead>
-          <tr className="border-b border-[var(--border)] text-xs uppercase text-muted-foreground">
-            <th scope="col" className="p-2">Label</th>
-            <th scope="col" className="p-2">Active</th>
-            <th scope="col" className="p-2">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {loading && !data ? (
-            <tr><td colSpan={3} className="p-4 text-muted-foreground">Loading categories...</td></tr>
-          ) : rows.length === 0 ? (
-            <tr><td colSpan={3} className="p-4 text-muted-foreground">No categories yet</td></tr>
-          ) : (
-            rows.map((category) => (
-              <tr key={category.id} className="border-b border-[var(--border)]">
-                <td className="p-2 font-semibold">{category.label}</td>
-                <td className="p-2">
-                  <input type="checkbox" role="switch" aria-label={`Toggle active: ${category.label}`} checked={category.active} disabled={toggling === category.id} onChange={() => void toggle(category)} />
-                </td>
-                <td className="p-2">
-                  <button type="button" className="rounded-md border border-[var(--border)] px-3 py-1 text-xs font-semibold" onClick={() => setEditing({ category })}>
-                    Edit
-                  </button>
-                </td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+      <div className={tableCardClass}>
+        <table className="w-full table-fixed border-collapse text-left">
+          <colgroup>
+            <col style={{ width: '50%' }} /><col style={{ width: '25%' }} /><col style={{ width: '25%' }} />
+          </colgroup>
+          <thead>
+            <tr className={theadRowClass}>
+              <th scope="col" className={thClass}>Label</th>
+              <th scope="col" className={thClass}>Active</th>
+              <th scope="col" className={thClass}>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading && !data ? (
+              <tr><td colSpan={3} className={`${tdClass} text-[var(--text-subtle)]`}>Loading categories...</td></tr>
+            ) : rows.length === 0 ? (
+              <tr><td colSpan={3} className={`${tdClass} text-[var(--text-subtle)]`}>No categories yet</td></tr>
+            ) : (
+              rows.map((category) => (
+                <tr key={category.id} className={rowClass}>
+                  <td className={`${tdClass} font-bold`}>{category.label}</td>
+                  <td className={tdClass}>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={category.active}
+                      aria-label={`Toggle active: ${category.label}`}
+                      disabled={toggling === category.id}
+                      onClick={() => void toggle(category)}
+                      className={`relative h-[22px] w-10 rounded-full p-0 disabled:opacity-60 ${category.active ? 'bg-[var(--success)]' : 'bg-border'}`}
+                    >
+                      <span className={`absolute top-0.5 size-[18px] rounded-full bg-white ${category.active ? 'left-5' : 'left-0.5'}`} />
+                    </button>
+                  </td>
+                  <td className={tdClass}>
+                    <button type="button" className={`${outlineButton} px-3.5 py-1.5 text-[11px]`} onClick={() => setEditing({ category })}>
+                      Edit
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
       {editing && (
         <CategoryDialog
           editing={editing}

@@ -16,9 +16,9 @@ vi.mock('@/lib/agent-api/disputes', () => api);
 vi.mock('@/providers/AuthProvider', () => ({ useAuth: () => ({ signOut: vi.fn(), profile: { id: 'agent-1' } }) }));
 
 const buttons = () => ({
-  accept: screen.getByRole('button', { name: 'Accept - remedy guest' }),
+  accept: screen.getByRole('button', { name: 'Accept — remedy guest' }),
   reject: screen.getByRole('button', { name: 'Reject dispute' }),
-  manual: screen.getByRole('button', { name: 'Manual adjustment...' }),
+  manual: screen.getByRole('button', { name: 'Manual adjustment…' }),
 });
 
 describe('DisputeDetail (F4, F14)', () => {

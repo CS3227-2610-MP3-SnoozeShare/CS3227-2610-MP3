@@ -4,28 +4,25 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { BackendApiError, isSessionFailure } from '@/lib/api';
 import { assignDispute, fetchDispute, saveNotes } from '@/lib/agent-api/disputes';
-import { formatSgd } from '@/lib/agent-api/format';
+import { formatSgd, shortName } from '@/lib/agent-api/format';
 import type { DisputeDetail as Detail, TicketStatus } from '@/lib/agent-api/types';
 import { useAuth } from '@/providers/AuthProvider';
+import { ErrorBanner, Pill, dangerOutlineButton, outlineButton, pageClass, primaryButton } from './agentUi';
+import { STATUS } from './DisputeQueue';
 import { ResolutionDialog, type ResolutionKind } from './ResolutionDialogs';
 import { SessionNotice } from './SessionNotice';
 import { ThreadPanel } from './ThreadPanel';
 import { usePolling } from './usePolling';
 
-const STATUS_LABEL: Record<TicketStatus, string> = {
-  OPEN: 'Unassigned',
-  IN_REVIEW: 'In review',
-  RESOLVED_APPROVED: 'Resolved - approved',
-  RESOLVED_REJECTED: 'Resolved - rejected',
-};
-
 function shortDate(date: string): string {
-  return new Intl.DateTimeFormat('en-US', { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(`${date}T00:00:00Z`));
+  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }).format(new Date(`${date}T00:00:00Z`));
 }
 
 function isResolved(status: TicketStatus): boolean {
   return status === 'RESOLVED_APPROVED' || status === 'RESOLVED_REJECTED';
 }
+
+const caption = 'text-[11px] uppercase text-[var(--text-subtle)]';
 
 export function DisputeDetail({ ticketId }: { ticketId: string }) {
   const { profile } = useAuth();
@@ -55,10 +52,10 @@ export function DisputeDetail({ ticketId }: { ticketId: string }) {
   if (!detail) {
     const notFound = error instanceof BackendApiError && error.status === 404;
     return (
-      <section className="mx-auto max-w-6xl p-6">
-        {loading && !error && <p>Loading dispute...</p>}
+      <section className={pageClass}>
+        {loading && !error && <p className="m-0 text-[13px] text-[var(--text-subtle)]">Loading dispute...</p>}
         {error !== undefined && (
-          <div role="alert" className="flex items-center justify-between rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-800">
+          <div role="alert" className="flex items-center justify-between rounded-lg border border-[#f07878] bg-[var(--danger-subtle)] px-4 py-2.5 text-[13px] text-destructive">
             <span>{notFound ? 'Ticket does not exist' : error instanceof Error && error.message ? error.message : 'Could not load dispute'}</span>
             <span className="flex gap-3">
               <Link href="/agent/disputes" className="underline">Back to Disputes</Link>
@@ -75,6 +72,7 @@ export function DisputeDetail({ ticketId }: { ticketId: string }) {
   const unassigned = status === 'OPEN';
   const mine = status === 'IN_REVIEW' && detail.ticket.assignedAgentId === profile?.id;
   const canResolve = mine && detail.escrowHeld;
+  const hostRaised = detail.ticket.raisedByRole === 'HOST';
 
   async function act(run: () => Promise<Detail>): Promise<boolean> {
     if (busy) return false;
@@ -118,84 +116,96 @@ export function DisputeDetail({ ticketId }: { ticketId: string }) {
     );
   }
 
-  const button = 'rounded-md px-3 py-2 text-xs font-bold disabled:opacity-50';
+  const actionClass = 'rounded-lg px-5 py-2.5 text-[13px] disabled:opacity-50';
+  const pill = STATUS[status];
   return (
-    <section className="mx-auto max-w-6xl p-6">
+    <section className={`${pageClass} pt-[18px] pb-7`}>
       {error !== undefined && (
-        <div role="alert" className="mb-3 flex items-center justify-between rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-800">
-          <span>Could not refresh this dispute. What you see may be out of date.</span>
-          <button type="button" onClick={reload}>Retry</button>
-        </div>
+        <ErrorBanner message="Could not refresh this dispute. What you see may be out of date." onRetry={reload} />
       )}
-      <nav aria-label="Breadcrumb" className="mb-3 text-xs">
-        <Link href="/agent/disputes" className="underline">Disputes</Link> &gt; {detail.ticketLabel} {detail.ticket.title}
-        <span className="ml-3 rounded-full border border-[var(--border)] px-2 py-0.5">{STATUS_LABEL[status]}</span>
+      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs">
+        <Link href="/agent/disputes" className="text-[var(--text-subtle)]">Disputes</Link>
+        <span className="text-[var(--text-subtle)]">›</span>
+        <span className="font-bold">{detail.ticketLabel} {detail.ticket.title}</span>
+        <Pill tone={pill.tone} className="ml-1.5">{pill.label}</Pill>
+        {unassigned && (
+          <button type="button" disabled={busy} className={`${primaryButton} ml-auto px-4 py-2 text-xs`} onClick={() => void act(() => assignDispute(ticketId))}>
+            Assign to me
+          </button>
+        )}
       </nav>
 
-      <div className="mb-4 grid grid-cols-2 gap-3 rounded-md border border-[var(--border)] bg-card p-4 text-sm md:grid-cols-3">
-        <p><span className="block text-xs text-muted-foreground">Listing</span>{detail.listingTitle}</p>
-        <p><span className="block text-xs text-muted-foreground">Stay</span>{shortDate(detail.startDate)} - {shortDate(detail.endDate)}</p>
-        <p><span className="block text-xs text-muted-foreground">Guest</span>{detail.guestName}</p>
-        <p><span className="block text-xs text-muted-foreground">Host</span>{detail.hostName}</p>
-        <p><span className="block text-xs text-muted-foreground">Amount held in escrow</span>{detail.escrowHeld ? formatSgd(detail.escrowAmount) : 'Released'}</p>
-        <p><span className="block text-xs text-muted-foreground">Booking status</span>{detail.phaseLabel}</p>
+      <div className="flex items-center gap-7 rounded-xl border border-border bg-card px-5 py-4 shadow-[0_4px_14px_rgba(16,6,4,0.08)]">
+        <div aria-hidden className="size-14 shrink-0 rounded-lg bg-[linear-gradient(135deg,#e06830,#c0a080)]" />
+        <div>
+          <div className="text-sm font-bold">{detail.listingTitle}</div>
+          <div className="text-xs text-[var(--text-subtle)]">{shortDate(detail.startDate)} – {shortDate(detail.endDate)}</div>
+        </div>
+        <div><div className={caption}>Guest</div><div className="text-[13px] font-bold">{shortName(detail.guestName)}</div></div>
+        <div><div className={caption}>Host</div><div className="text-[13px] font-bold">{shortName(detail.hostName)}</div></div>
+        <div>
+          <div className={caption}>Amount held in escrow</div>
+          <div className="text-[13px] font-extrabold text-primary">{detail.escrowHeld ? formatSgd(detail.escrowAmount) : 'Released'}</div>
+        </div>
+        <div><div className={caption}>Booking status</div><Pill tone="warning">{detail.phaseLabel}</Pill></div>
       </div>
 
       {resolved && (
-        <div role="status" className="mb-4 rounded-md border border-[var(--border)] bg-card p-3 text-sm">
-          <strong>{STATUS_LABEL[status]}</strong>
-          {detail.ticket.resolutionReason && <p>{detail.ticket.resolutionReason}</p>}
+        <div role="status" className="rounded-xl border border-border bg-card px-5 py-3 text-[13px]">
+          <strong>{pill.label}</strong>
+          {detail.ticket.resolutionReason && <p className="m-0 mt-1 text-[var(--text-muted)]">{detail.ticket.resolutionReason}</p>}
         </div>
       )}
 
-      <div className="mb-4 grid gap-4 md:grid-cols-2">
+      <div className="flex gap-4">
         <ThreadPanel detail={detail} channel="GUEST" canSend={!unassigned && !resolved} resolved={resolved} />
         <ThreadPanel detail={detail} channel="HOST" canSend={!unassigned && !resolved} resolved={resolved} />
       </div>
 
-      <label className="mb-1 block text-xs font-semibold" htmlFor="agent-notes">Internal notes (invisible to guest or host)</label>
-      <textarea
-        id="agent-notes"
-        placeholder="Add investigation notes..."
-        value={notes}
-        maxLength={4000}
-        disabled={!mine}
-        readOnly={resolved}
-        onChange={(event) => {
-          setNotes(event.target.value);
-          setDirty(true);
-        }}
-        className="mb-3 min-h-24 w-full rounded-md border border-[var(--border)] p-2 text-sm disabled:opacity-50"
-      />
+      <div>
+        <label className="mb-1.5 block text-xs font-bold text-[var(--text-muted)]" htmlFor="agent-notes">Internal notes (invisible to guest or host)</label>
+        <textarea
+          id="agent-notes"
+          placeholder="Add investigation notes..."
+          value={notes}
+          maxLength={4000}
+          disabled={!mine}
+          readOnly={resolved}
+          onChange={(event) => {
+            setNotes(event.target.value);
+            setDirty(true);
+          }}
+          className="box-border h-14 w-full resize-none rounded-lg border border-border bg-background px-3 py-2.5 text-xs disabled:opacity-60"
+        />
+        {!resolved && (
+          <div className="mt-1.5 flex justify-end">
+            <button type="button" disabled={!mine || busy || !dirty} className={`${primaryButton} px-3.5 py-2 text-[11px]`} onClick={() => void onSaveNotes()}>
+              Save notes
+            </button>
+          </div>
+        )}
+      </div>
 
       {actionError !== undefined && (
-        <p role="alert" className="mb-2 text-sm text-red-700">{actionError instanceof Error && actionError.message ? actionError.message : 'Action failed'}</p>
+        <p role="alert" className="m-0 text-[13px] text-destructive">{actionError instanceof Error && actionError.message ? actionError.message : 'Action failed'}</p>
       )}
 
       {!resolved && (
-        <div className="flex flex-wrap items-center gap-2">
-          {unassigned && (
-            <button type="button" disabled={busy} className={`${button} bg-primary text-primary-foreground`} onClick={() => void act(() => assignDispute(ticketId))}>
-              Assign to me
-            </button>
-          )}
-          <button type="button" disabled={!mine || busy || !dirty} className={`${button} border border-[var(--border)]`} onClick={() => void onSaveNotes()}>
-            Save notes
+        <div className="flex items-center gap-2.5">
+          <button type="button" disabled={!canResolve} className={`${actionClass} bg-[var(--success)] font-bold text-[#fdf8f0]`} onClick={() => setDialog('ACCEPT')}>
+            Accept — remedy {hostRaised ? 'host' : 'guest'}
           </button>
-          <button type="button" disabled={!canResolve} className={`${button} bg-green-700 text-white`} onClick={() => setDialog('ACCEPT')}>
-            Accept - remedy guest
-          </button>
-          <button type="button" disabled={!canResolve} className={`${button} bg-red-700 text-white`} onClick={() => setDialog('REJECT')}>
+          <button type="button" disabled={!canResolve} className={`${actionClass} ${dangerOutlineButton}`} onClick={() => setDialog('REJECT')}>
             Reject dispute
           </button>
-          <button type="button" disabled={!canResolve} className={`${button} border border-[var(--border)]`} onClick={() => setDialog('MANUAL')}>
-            Manual adjustment...
+          <button type="button" disabled={!canResolve} className={`${actionClass} ${outlineButton} font-bold`} onClick={() => setDialog('MANUAL')}>
+            Manual adjustment…
           </button>
         </div>
       )}
-      {unassigned && <p className="mt-2 text-xs text-muted-foreground">Assign this ticket to reply or resolve.</p>}
-      {status === 'IN_REVIEW' && !mine && <p className="mt-2 text-xs text-muted-foreground">Assigned to {detail.assignedAgentName}.</p>}
-      {mine && !detail.escrowHeld && <p className="mt-2 text-xs text-muted-foreground">Escrow already released.</p>}
+      {unassigned && <p className="m-0 text-xs text-[var(--text-subtle)]">Assign this ticket to reply or resolve.</p>}
+      {status === 'IN_REVIEW' && !mine && <p className="m-0 text-xs text-[var(--text-subtle)]">Assigned to {detail.assignedAgentName}.</p>}
+      {mine && !detail.escrowHeld && <p className="m-0 text-xs text-[var(--text-subtle)]">Escrow already released.</p>}
 
       {dialog && (
         <ResolutionDialog kind={dialog} detail={detail} onClose={() => setDialog(undefined)} onResolved={resolvedBy} onFailed={failedResolve} />

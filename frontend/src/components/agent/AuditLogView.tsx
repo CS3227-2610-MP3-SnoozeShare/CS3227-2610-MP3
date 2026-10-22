@@ -5,7 +5,16 @@ import { isSessionFailure } from '@/lib/api';
 import { AUDIT_PAGE_SIZE, fetchAudit, fetchAuditActions, type AuditQuery } from '@/lib/agent-api/audit';
 import { formatDateTime, formatSgd } from '@/lib/agent-api/format';
 import type { AuditEntry } from '@/lib/agent-api/types';
+import { ErrorBanner, Pill, outlineButton, pageClass, primaryButton, rowClass, tableCardClass, tdClass, thClass, theadRowClass, titleClass, type Tone } from './agentUi';
 import { SessionNotice } from './SessionNotice';
+
+function toneFor(action: string): Tone {
+  if (/OVERRIDE|RESOLVED|ASSIGNED/.test(action)) return 'accent';
+  if (/REFUND|PAYOUT|TOP_UP|CONFIRMED|REACTIVATED|CREATED/.test(action)) return 'success';
+  if (/SUSPEND|DEACTIVATED|WITHDRAW|CASCADE/.test(action)) return 'warning';
+  if (/CANCEL|REJECT|DELETED|FORCE/.test(action)) return 'danger';
+  return 'neutral';
+}
 
 const EMPTY: AuditQuery = { text: '', action: '', from: '', to: '' };
 
@@ -79,77 +88,83 @@ export function AuditLogView() {
     void load(EMPTY, 0);
   }
 
-  const field = 'rounded-md border border-[var(--border)] p-2 text-sm';
+  const field = 'box-border w-full rounded-lg border border-border bg-background px-2.5 py-2 text-xs';
+  const label = 'flex flex-col text-[10px] font-bold uppercase text-[var(--text-muted)]';
   return (
-    <section className="mx-auto max-w-7xl p-6">
-      <h1 className="mb-4 text-xl font-extrabold">Audit log</h1>
-      <div className="mb-4 flex flex-wrap items-end gap-3 rounded-md border border-[var(--border)] bg-card p-4">
-        <label className="flex flex-col gap-1 text-xs font-semibold">
-          Search
-          <input className={`${field} w-72`} placeholder="User name, or booking / ticket / user id" maxLength={100} value={draft.text} onChange={(event) => setDraft({ ...draft, text: event.target.value })} />
+    <section className={pageClass}>
+      <h1 className={titleClass}>Audit log</h1>
+      <div className="flex flex-wrap items-end gap-3 rounded-xl border border-border bg-card px-4 py-3.5">
+        <label className={`${label} w-[280px]`}>
+          <span className="mb-1">Search</span>
+          <input className={field} placeholder="User name, or booking / ticket / user id" maxLength={100} value={draft.text} onChange={(event) => setDraft({ ...draft, text: event.target.value })} />
         </label>
-        <label className="flex flex-col gap-1 text-xs font-semibold">
-          Action type
+        <label className={`${label} w-[200px]`}>
+          <span className="mb-1">Action type</span>
           <select className={field} value={draft.action} onChange={(event) => setDraft({ ...draft, action: event.target.value })}>
             <option value="">All action types</option>
             {actions.map((name) => <option key={name} value={name}>{name}</option>)}
           </select>
           {actionsFailed && (
-            <span className="text-red-700">
+            <span className="mt-1 normal-case text-destructive">
               Could not load action types <button type="button" className="underline" onClick={loadActions}>Retry</button>
             </span>
           )}
         </label>
-        <label className="flex flex-col gap-1 text-xs font-semibold">
-          From
+        <label className={`${label} w-[150px]`}>
+          <span className="mb-1">From</span>
           <input type="date" className={field} value={draft.from} onChange={(event) => setDraft({ ...draft, from: event.target.value })} />
         </label>
-        <label className="flex flex-col gap-1 text-xs font-semibold">
-          To
+        <label className={`${label} w-[150px]`}>
+          <span className="mb-1">To</span>
           <input type="date" className={field} value={draft.to} onChange={(event) => setDraft({ ...draft, to: event.target.value })} />
         </label>
-        <button type="button" disabled={badRange} onClick={apply} className="rounded-md bg-primary px-4 py-2 text-xs font-bold text-primary-foreground disabled:opacity-50">
+        <button type="button" disabled={badRange} onClick={apply} className={`${primaryButton} px-[18px] py-[9px] text-xs`}>
           Apply filters
         </button>
-        <button type="button" onClick={clear} className="rounded-md border border-[var(--border)] px-4 py-2 text-xs font-semibold">Clear</button>
-        {badRange && <p role="alert" className="w-full text-xs text-red-700">From must not be after To</p>}
+        <button type="button" onClick={clear} className="rounded-lg border border-[#f07878] bg-transparent px-[18px] py-[9px] text-xs font-semibold text-destructive">
+          Clear
+        </button>
+        {badRange && <p role="alert" className="m-0 w-full text-xs text-destructive">From must not be after To</p>}
       </div>
       {error !== undefined && (
-        <div role="alert" className="mb-3 flex items-center justify-between rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-800">
-          <span>{error instanceof Error && error.message ? error.message : 'Could not load the audit log'}</span>
-          <button type="button" className="rounded-md border border-red-300 px-3 py-1 text-xs font-semibold" onClick={() => void load(applied, 0)}>Retry</button>
-        </div>
+        <ErrorBanner message={error instanceof Error && error.message ? error.message : 'Could not load the audit log'} onRetry={() => void load(applied, 0)} />
       )}
-      <table className="w-full border-collapse text-left text-sm">
-        <thead>
-          <tr className="border-b border-[var(--border)] text-xs uppercase text-muted-foreground">
-            {['Timestamp', 'Actor', 'Action type', 'Target', 'Status', 'Reason', 'Amount'].map((name) => (
-              <th key={name} scope="col" className="p-2">{name}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {loading && rows.length === 0 ? (
-            <tr><td colSpan={7} className="p-4 text-muted-foreground">Loading audit log...</td></tr>
-          ) : rows.length === 0 ? (
-            <tr><td colSpan={7} className="p-4 text-muted-foreground">No audit entries match</td></tr>
-          ) : (
-            rows.map((entry) => (
-              <tr key={entry.id} className="border-b border-[var(--border)] align-top">
-                <td className="p-2">{formatDateTime(entry.timestamp)}</td>
-                <td className="p-2">{entry.actorName ?? '—'}</td>
-                <td className="p-2"><span className="rounded-full border border-[var(--border)] px-2 py-0.5 text-xs">{entry.actionType}</span></td>
-                <td className="p-2">{target(entry)}</td>
-                <td className="p-2">{status(entry)}</td>
-                <td className="p-2">{entry.reason ?? '—'}</td>
-                <td className="p-2">{amount(entry)}</td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+      <div className={tableCardClass}>
+        <table className="w-full table-fixed border-collapse text-left">
+          <colgroup>
+            <col style={{ width: '13%' }} /><col style={{ width: '11%' }} /><col style={{ width: '15%' }} /><col style={{ width: '13%' }} />
+            <col style={{ width: '14%' }} /><col style={{ width: '22%' }} /><col style={{ width: '12%' }} />
+          </colgroup>
+          <thead>
+            <tr className={theadRowClass}>
+              {['Timestamp', 'Actor', 'Action type', 'Target', 'Status', 'Reason', 'Amount'].map((name) => (
+                <th key={name} scope="col" className={thClass}>{name}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {loading && rows.length === 0 ? (
+              <tr><td colSpan={7} className={`${tdClass} text-[var(--text-subtle)]`}>Loading audit log...</td></tr>
+            ) : rows.length === 0 ? (
+              <tr><td colSpan={7} className={`${tdClass} text-[var(--text-subtle)]`}>No audit entries match</td></tr>
+            ) : (
+              rows.map((entry) => (
+                <tr key={entry.id} className={`${rowClass} align-top text-xs`}>
+                  <td className="px-[18px] py-3 text-[var(--text-subtle)]">{formatDateTime(entry.timestamp)}</td>
+                  <td className="px-[18px] py-3 font-bold">{entry.actorName ?? '—'}</td>
+                  <td className="px-[18px] py-3"><Pill tone={toneFor(entry.actionType)} className="px-[9px] py-0.5">{entry.actionType}</Pill></td>
+                  <td className="px-[18px] py-3 text-[var(--text-muted)]">{target(entry)}</td>
+                  <td className="px-[18px] py-3 text-[var(--text-muted)]">{status(entry)}</td>
+                  <td className="px-[18px] py-3 text-[var(--text-muted)]">{entry.reason ?? '—'}</td>
+                  <td className="px-[18px] py-3 font-bold">{amount(entry)}</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
       {lastPage === AUDIT_PAGE_SIZE && (
-        <button type="button" disabled={loading} onClick={() => void load(applied, rows.length)} className="mt-4 rounded-md border border-[var(--border)] px-4 py-2 text-xs font-semibold">
+        <button type="button" disabled={loading} onClick={() => void load(applied, rows.length)} className={`${outlineButton} self-start px-[18px] py-[9px] text-xs`}>
           Load more
         </button>
       )}

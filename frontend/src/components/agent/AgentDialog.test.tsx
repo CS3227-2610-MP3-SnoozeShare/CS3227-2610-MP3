@@ -9,9 +9,8 @@ function Harness({ onClose = () => {} }: { onClose?: () => void }) {
     <div>
       <button onClick={() => setOpen(true)}>Open</button>
       {open && (
-        <AgentDialog title="Accept - remedy guest" onClose={() => { setOpen(false); onClose(); }}>
+        <AgentDialog title="Accept — remedy guest" onClose={() => { setOpen(false); onClose(); }} confirm={<button>Confirm</button>}>
           <input aria-label="Reason" />
-          <button>Confirm</button>
         </AgentDialog>
       )}
     </div>
@@ -22,7 +21,7 @@ describe('AgentDialog (N7, E59)', () => {
   it('has dialog semantics and an accessible name', () => {
     render(<Harness />);
     fireEvent.click(screen.getByRole('button', { name: 'Open' }));
-    const dialog = screen.getByRole('dialog', { name: 'Accept - remedy guest' });
+    const dialog = screen.getByRole('dialog', { name: 'Accept — remedy guest' });
     expect(dialog).toHaveAttribute('aria-modal', 'true');
   });
 
@@ -35,7 +34,7 @@ describe('AgentDialog (N7, E59)', () => {
     const dialog = screen.getByRole('dialog');
     expect(dialog.contains(document.activeElement)).toBe(true);
     const first = screen.getByLabelText('Reason');
-    const last = screen.getByRole('button', { name: 'Cancel' });
+    const last = screen.getByRole('button', { name: 'Confirm' });
     last.focus();
     fireEvent.keyDown(dialog, { key: 'Tab' });
     expect(document.activeElement).toBe(first);

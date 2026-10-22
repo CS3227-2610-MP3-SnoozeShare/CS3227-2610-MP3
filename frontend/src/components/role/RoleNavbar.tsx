@@ -23,7 +23,7 @@ const workspaceLabels: Partial<Record<WorkspaceRole, string>> = {
   AGENT: 'Support Agent workspace',
 };
 
-export function RoleNavbar({ role, onLogout, walletLabel, activePath }: { role: WorkspaceRole; onLogout?: () => void; walletLabel?: string; activePath?: string }) {
+export function RoleNavbar({ role, onLogout, walletLabel, activePath, avatarInitials }: { role: WorkspaceRole; onLogout?: () => void; walletLabel?: string; activePath?: string; avatarInitials?: string }) {
   const landingPath = role === 'HOST' ? '/host/listings' : `/${role.toLowerCase()}`;
   const pathname = usePathname();
   return (
@@ -36,6 +36,9 @@ export function RoleNavbar({ role, onLogout, walletLabel, activePath }: { role: 
           <button type="button" className={cn('h-6 shrink-0 border-0 bg-transparent px-0 text-sm font-medium text-foreground hover:bg-transparent hover:text-primary', role === 'AGENT' ? 'ml-auto' : 'ml-2')} onClick={onLogout}>
             Log out
           </button>
+          {role === 'AGENT' && avatarInitials && (
+            <span aria-hidden className="flex size-8 items-center justify-center rounded-full bg-accent text-[13px] font-bold text-primary">{avatarInitials}</span>
+          )}
         </div>
         <div data-testid="workspace-navbar-divider" className="-mx-6 mt-3 border-t border-[var(--border-muted)]" />
         <div data-testid="workspace-navbar-tabs" className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2">

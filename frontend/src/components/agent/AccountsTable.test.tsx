@@ -68,9 +68,9 @@ describe('AccountsTable (F9, F10, F15)', () => {
 
     const dialog = screen.getByRole('dialog', { name: 'Suspend account' });
     expect(within(dialog).getByText('Pending and upcoming bookings will be cancelled and refunded.')).toBeInTheDocument();
-    const confirm = within(dialog).getByRole('button', { name: 'Confirm' });
+    const confirm = within(dialog).getByRole('button', { name: 'Confirm suspend' });
     expect(confirm).toBeDisabled();
-    fireEvent.change(within(dialog).getByLabelText('Reason'), { target: { value: 'Fraud' } });
+    fireEvent.change(within(dialog).getByLabelText(/^Reason/), { target: { value: 'Fraud' } });
     fireEvent.click(confirm);
 
     await waitFor(() => expect(set).toHaveBeenCalledWith('u-1', true, 'Fraud'));
@@ -81,8 +81,8 @@ describe('AccountsTable (F9, F10, F15)', () => {
     set.mockRejectedValue(new BackendApiError('CONFLICT', 'Account is already suspended', undefined, 409));
     render(<AccountsTable />);
     fireEvent.click(await screen.findByRole('button', { name: 'Reactivate' }));
-    fireEvent.change(screen.getByLabelText('Reason'), { target: { value: 'Appeal' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+    fireEvent.change(screen.getByLabelText(/^Reason/), { target: { value: 'Appeal' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm reactivate' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Account is already suspended');
     expect(screen.getByRole('dialog')).toBeInTheDocument();

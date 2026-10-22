@@ -4,7 +4,8 @@ import { useMemo, useState } from 'react';
 import { isSessionFailure } from '@/lib/api';
 import { fetchAccounts, setAccountSuspended } from '@/lib/agent-api/accounts';
 import type { AccountSummary } from '@/lib/agent-api/types';
-import { AgentDialog } from './AgentDialog';
+import { AgentDialog, FieldLabel, confirmButton, dialogArea } from './AgentDialog';
+import { ErrorBanner, Pill, outlineButton, dangerOutlineButton, pageClass, rowClass, tableCardClass, tdClass, thClass, theadRowClass, titleClass } from './agentUi';
 import { SessionNotice } from './SessionNotice';
 import { usePolling } from './usePolling';
 
@@ -24,13 +25,14 @@ function ReasonDialog({ target, onClose, onDone, onSessionFailure }: {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
   const verb = target.suspend ? 'Suspend' : 'Reactivate';
+  const { account } = target;
 
   async function confirm() {
     if (pending || reason.trim() === '') return;
     setPending(true);
     setError(undefined);
     try {
-      await setAccountSuspended(target.account.userId, target.suspend, reason.trim());
+      await setAccountSuspended(account.userId, target.suspend, reason.trim());
       onDone();
     } catch (caught) {
       if (isSessionFailure(caught)) onSessionFailure(caught);
@@ -41,19 +43,37 @@ function ReasonDialog({ target, onClose, onDone, onSessionFailure }: {
   }
 
   return (
-    <AgentDialog title={`${verb} account`} onClose={onClose}>
-      <p className="text-sm">{target.account.displayName} ({target.account.email})</p>
-      {target.suspend && <p className="text-xs text-muted-foreground">Pending and upcoming bookings will be cancelled and refunded.</p>}
-      <label className="flex flex-col gap-1 text-xs font-semibold">
-        Reason
-        <textarea value={reason} maxLength={1000} onChange={(event) => setReason(event.target.value)} className="min-h-20 rounded-md border border-[var(--border)] p-2 text-sm" />
-      </label>
-      {error && <p role="alert" className="text-xs text-red-700">{error}</p>}
-      <div className="flex justify-end">
-        <button type="button" disabled={pending || reason.trim() === ''} onClick={() => void confirm()} className="rounded-md bg-primary px-4 py-2 text-xs font-bold text-primary-foreground disabled:opacity-50">
-          Confirm
+    <AgentDialog
+      title={`${verb} account`}
+      width={460}
+      onClose={onClose}
+      confirm={
+        <button type="button" disabled={pending || reason.trim() === ''} onClick={() => void confirm()} className={`${confirmButton(target.suspend ? 'danger' : 'success')} disabled:opacity-50`}>
+          {target.suspend ? 'Confirm suspend' : 'Confirm reactivate'}
         </button>
+      }
+    >
+      <div className={`flex flex-col gap-1 rounded-xl p-[18px] text-[#fdf8f0] ${target.suspend ? 'bg-destructive' : 'bg-[var(--success)]'}`}>
+        <div className="text-2xl font-extrabold">{account.displayName}</div>
+        <div className="text-[13px] opacity-90">{account.email}</div>
+        <div className="text-[13px] opacity-90">{account.role === 'HOST' ? 'Host' : 'Guest'} · joined {joined(account.createdAt)}</div>
       </div>
+      <div className="rounded-lg bg-muted px-3 py-2.5 text-xs text-[var(--text-muted)]">
+        {target.suspend
+          ? 'Pending and upcoming bookings will be cancelled and refunded.'
+          : 'The user can sign in again. Bookings and listings cancelled by the suspension are not restored.'}
+      </div>
+      <label className="block">
+        <FieldLabel>Reason (required, written to the audit log)</FieldLabel>
+        <textarea
+          value={reason}
+          maxLength={1000}
+          placeholder="e.g. repeated late cancellations flagged across 3 bookings"
+          onChange={(event) => setReason(event.target.value)}
+          className={dialogArea}
+        />
+      </label>
+      {error && <p role="alert" className="m-0 text-xs text-destructive">{error}</p>}
     </AgentDialog>
   );
 }
@@ -73,69 +93,74 @@ export function AccountsTable() {
   if (failure) return <SessionNotice error={failure} />;
 
   return (
-    <section className="mx-auto max-w-6xl p-6">
-      <h1 className="text-xl font-extrabold">Account governance</h1>
-      <p className="mb-4 text-sm text-muted-foreground">Suspend or reactivate Guest and Host accounts</p>
-      <input
-        aria-label="Search accounts"
-        placeholder="Search..."
-        value={query}
-        onChange={(event) => setQuery(event.target.value)}
-        className="mb-4 w-72 rounded-md border border-[var(--border)] p-2 text-sm"
-      />
-      {error !== undefined && (
-        <div role="alert" className="mb-3 flex items-center justify-between rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-800">
-          <span>{error instanceof Error && error.message ? error.message : 'Could not load accounts'}</span>
-          <button type="button" className="rounded-md border border-red-300 px-3 py-1 text-xs font-semibold" onClick={reload}>Retry</button>
+    <section className={pageClass}>
+      <div className="flex items-center gap-2.5">
+        <div>
+          <h1 className={titleClass}>Account governance</h1>
+          <div className="mt-0.5 text-xs text-[var(--text-subtle)]">Suspend or reactivate Guest and Host accounts</div>
         </div>
+        <input
+          aria-label="Search accounts"
+          placeholder="Search..."
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          className="ml-auto box-border w-[260px] rounded-lg border border-border bg-card px-3 py-2 text-xs"
+        />
+      </div>
+      {error !== undefined && (
+        <ErrorBanner message={error instanceof Error && error.message ? error.message : 'Could not load accounts'} onRetry={reload} />
       )}
-      <table className="w-full border-collapse text-left text-sm">
-        <thead>
-          <tr className="border-b border-[var(--border)] text-xs uppercase text-muted-foreground">
-            <th scope="col" className="p-2">Display name</th>
-            <th scope="col" className="p-2">Email</th>
-            <th scope="col" className="p-2">Joined</th>
-            <th scope="col" className="p-2">Role</th>
-            <th scope="col" className="p-2">Status</th>
-            <th scope="col" className="p-2">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {loading && !data ? (
-            <tr><td colSpan={6} className="p-4 text-muted-foreground">Loading accounts...</td></tr>
-          ) : rows.length === 0 ? (
-            <tr><td colSpan={6} className="p-4 text-muted-foreground">No accounts match your search</td></tr>
-          ) : (
-            rows.map((account) => (
-              <tr key={account.userId} className="border-b border-[var(--border)]">
-                <td className="p-2 font-semibold">{account.displayName}</td>
-                <td className="p-2">{account.email}</td>
-                <td className="p-2">{joined(account.createdAt)}</td>
-                <td className="p-2">{account.role === 'HOST' ? 'Host' : 'Guest'}</td>
-                <td className="p-2">
-                  <span className={`rounded-full px-2 py-0.5 text-xs ${account.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                    {account.status === 'ACTIVE' ? 'Active' : 'Suspended'}
-                  </span>
-                  {account.status === 'SUSPENDED' && account.suspensionReason && (
-                    <p className="text-xs text-muted-foreground">Reason: {account.suspensionReason}</p>
-                  )}
-                </td>
-                <td className="p-2">
-                  {account.status === 'ACTIVE' ? (
-                    <button type="button" className="rounded-md border border-red-600 px-3 py-1 text-xs font-semibold text-red-700" onClick={() => setTarget({ account, suspend: true })}>
-                      Suspend
-                    </button>
-                  ) : (
-                    <button type="button" className="rounded-md border border-[var(--border)] px-3 py-1 text-xs font-semibold" onClick={() => setTarget({ account, suspend: false })}>
-                      Reactivate
-                    </button>
-                  )}
-                </td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+      <div className={tableCardClass}>
+        <table className="w-full table-fixed border-collapse text-left">
+          <colgroup>
+            <col style={{ width: '17%' }} /><col style={{ width: '24%' }} /><col style={{ width: '12%' }} />
+            <col style={{ width: '15%' }} /><col style={{ width: '20%' }} /><col style={{ width: '12%' }} />
+          </colgroup>
+          <thead>
+            <tr className={theadRowClass}>
+              <th scope="col" className={thClass}>Display name</th>
+              <th scope="col" className={thClass}>Email</th>
+              <th scope="col" className={thClass}>Role</th>
+              <th scope="col" className={thClass}>Joined</th>
+              <th scope="col" className={thClass}>Status</th>
+              <th scope="col" className={thClass}>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading && !data ? (
+              <tr><td colSpan={6} className={`${tdClass} text-[var(--text-subtle)]`}>Loading accounts...</td></tr>
+            ) : rows.length === 0 ? (
+              <tr><td colSpan={6} className={`${tdClass} text-[var(--text-subtle)]`}>No accounts match your search</td></tr>
+            ) : (
+              rows.map((account) => (
+                <tr key={account.userId} className={rowClass}>
+                  <td className={`${tdClass} font-bold`}>{account.displayName}</td>
+                  <td className={`${tdClass} text-[var(--text-muted)]`}>{account.email}</td>
+                  <td className={`${tdClass} text-[var(--text-muted)]`}>{account.role === 'HOST' ? 'Host' : 'Guest'}</td>
+                  <td className={`${tdClass} text-[var(--text-muted)]`}>{joined(account.createdAt)}</td>
+                  <td className={tdClass}>
+                    <Pill tone={account.status === 'ACTIVE' ? 'success' : 'danger'}>{account.status === 'ACTIVE' ? 'Active' : 'Suspended'}</Pill>
+                    {account.status === 'SUSPENDED' && account.suspensionReason && (
+                      <div className="mt-[3px] text-[11px] text-[var(--text-subtle)]">Reason: {account.suspensionReason}</div>
+                    )}
+                  </td>
+                  <td className={tdClass}>
+                    {account.status === 'ACTIVE' ? (
+                      <button type="button" className={`${dangerOutlineButton} px-3.5 py-1.5 text-[11px]`} onClick={() => setTarget({ account, suspend: true })}>
+                        Suspend
+                      </button>
+                    ) : (
+                      <button type="button" className={`${outlineButton} px-3.5 py-1.5 text-[11px] font-bold`} onClick={() => setTarget({ account, suspend: false })}>
+                        Reactivate
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
       {target && (
         <ReasonDialog
           target={target}

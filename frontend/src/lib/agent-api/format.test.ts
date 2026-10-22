@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatDateTime, formatSgd, isMoneyFormat } from './format';
+import { formatDateTime, formatSgd, isMoneyFormat, shortName } from './format';
 
 describe('formatSgd (N2)', () => {
   it('prefixes SGD and shows two decimals', () => {
@@ -25,6 +25,14 @@ describe('isMoneyFormat (E73)', () => {
 
   it.each(['', '-1', 'abc', '1.234', '1.', '.5', '1,000', '1234567890'])('rejects "%s"', (text) => {
     expect(isMoneyFormat(text)).toBe(false);
+  });
+});
+
+describe('shortName', () => {
+  it('keeps the first name and the last initial', () => {
+    expect(shortName('Jane Gomez')).toBe('Jane G.');
+    expect(shortName('Mary Ann Lee')).toBe('Mary L.');
+    expect(shortName('Cher')).toBe('Cher');
   });
 });
 
