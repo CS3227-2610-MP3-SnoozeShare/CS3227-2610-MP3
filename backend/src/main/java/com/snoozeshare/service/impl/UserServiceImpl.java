@@ -3,17 +3,15 @@ package com.snoozeshare.service.impl;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
 
 import com.snoozeshare.domain.enums.Role;
 import com.snoozeshare.domain.model.User;
-import com.snoozeshare.repository.PropertyRepository;
 import com.snoozeshare.repository.UserRepository;
 import com.snoozeshare.service.UserService;
 
 @Service
-@ConditionalOnBean(PropertyRepository.class)
+
 public class UserServiceImpl implements UserService {
 
     private final UserRepository users;

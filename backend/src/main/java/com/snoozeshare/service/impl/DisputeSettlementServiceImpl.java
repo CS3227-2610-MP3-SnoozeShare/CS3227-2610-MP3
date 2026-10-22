@@ -5,7 +5,6 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.UUID;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,7 +41,7 @@ import com.snoozeshare.service.DisputeSettlementService;
 import com.snoozeshare.service.Settlement;
 
 @Service
-@ConditionalOnBean(PropertyRepository.class)
+
 public class DisputeSettlementServiceImpl implements DisputeSettlementService {
 
     private final TicketRepository tickets;

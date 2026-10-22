@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,7 +30,7 @@ import com.snoozeshare.service.SearchResult;
 import com.snoozeshare.service.UserService;
 
 @Service
-@ConditionalOnBean(PropertyRepository.class)
+
 public class ListingServiceImpl implements ListingService {
 
     private final StayDatePolicy searchDates;

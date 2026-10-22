@@ -16,7 +16,8 @@ import org.springframework.core.env.Environment;
         + "org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration,"
         + "org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration,"
         + "org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration",
-    "management.health.db.enabled=false"})
+    "management.health.db.enabled=false",
+    "spring.main.lazy-initialization=true"})
 class ServerPortDefaultTest {
 
     @Autowired

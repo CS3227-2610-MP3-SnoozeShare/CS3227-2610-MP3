@@ -6,7 +6,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +23,6 @@ import com.snoozeshare.domain.statemachine.TicketStateMachine;
 import com.snoozeshare.domain.validation.DomainValidation;
 import com.snoozeshare.infra.events.TicketOpenedEvent;
 import com.snoozeshare.repository.BookingRepository;
-import com.snoozeshare.repository.PropertyRepository;
 import com.snoozeshare.repository.TicketCategoryRepository;
 import com.snoozeshare.repository.TicketRepository;
 import com.snoozeshare.repository.UserRepository;
@@ -36,7 +34,7 @@ import com.snoozeshare.service.requests.NewTicketRequest;
 import com.snoozeshare.service.requests.ResolutionRequest;
 
 @Service
-@ConditionalOnBean(PropertyRepository.class)
+
 public class TicketServiceImpl implements TicketService {
 
     private final TicketRepository tickets;

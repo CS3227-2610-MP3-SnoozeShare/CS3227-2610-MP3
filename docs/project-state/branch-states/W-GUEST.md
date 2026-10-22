@@ -31,14 +31,16 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-22 20:00 | Claude Opus 4.6 | W-GUEST | Done | Plan written, awaiting approval | New session: approve plan (Gate 2), then execute | 2026-10-22 |
+| S1 | 2026-10-22 20:00 | Claude Opus 4.6 | W-GUEST | Done | Plan written, approved | — | 2026-10-22 |
+| S2 | 2026-10-22 | Claude Opus 4.6 | W-GUEST | Done | T1 partially coded, not committed | — | 2026-10-22 |
+| S3 | 2026-10-22 | Claude Opus 4.6 | W-GUEST | Active | T1 done; continuing Wave 1 | T2: GuestBookingController | 2026-10-22 |
 
 **Remaining**
 
 - [x] Write spec (`writing-specs-lite`)
 - [x] Get spec approved (Gate 1)
 - [x] Write plan (`writing-plans-lite`)
-- [ ] Get plan approved (Gate 2)
+- [x] Get plan approved (Gate 2)
 - [ ] Execute plan (`executing-plans-lite`)
 - [ ] Code review and approval (Gate 3)
 
@@ -48,19 +50,21 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-GUEST | Guest role controllers and frontend pages | Planned | [spec](docs/superpowers/specs/2026-10-22-w-guest-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-guest.md) | Plan written; awaiting Gate 2 | — |
+| W-GUEST | Guest role controllers and frontend pages | Building | [spec](docs/superpowers/specs/2026-10-22-w-guest-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-guest.md) | Task 2/10: T2 GuestBookingController | — |
 
 ---
 
 ## 4. Architecture
 
-No change: spec not yet written; architecture proposals will be added after the spec.
+**Now (proposed, guest controller layer):** Guest REST controllers live in `com.snoozeshare.controller.guest` under `/api/guest/**`. Shared infrastructure: `ResolvedUser` reads the authenticated user ID from a request attribute set by `RoleAuthorizationFilter`; `ForbiddenException` maps to 403; `GuestExceptionHandler` (`@RestControllerAdvice`) maps `IllegalArgumentException`, `IllegalStateException`, `ForbiddenException` and validation errors to structured `{code, message, requestId}` JSON responses.
 
 ---
 
 ## 5. Conventions
 
-No change: no code written yet.
+- `@ConditionalOnBean(PropertyRepository.class)` removed from all domain service impls, JDBC repos, and controllers (see D~1). The `ServerPortDefaultTest` and `ServerPortOverrideTest` no-DB contexts now use `spring.main.lazy-initialization=true` instead.
+- `PostgresIntegrationTest` is now `public` so subpackage tests can extend it.
+- Guest controller integration tests extend `PostgresIntegrationTest` with `FakeTokenVerifier` for auth bypass.
 
 ---
 
@@ -84,7 +88,7 @@ No change.
 
 ## 9. Deviations
 
-No change.
+- **D~1** — `@ConditionalOnBean(PropertyRepository.class)` on component-scanned beans (`@Service`, `@Repository`, `@RestController`) never matched because Spring's `DeferredImportSelector` processes JPA auto-configuration AFTER component scanning evaluates `@Conditional`. All 20 domain service impls, JDBC repos and the guest exception handler silently failed to register as beans. Discovered during W-GUEST T1 integration testing. Fixed by removing the annotation (20 files) and adding `spring.main.lazy-initialization=true` to the two no-DB tests (`ServerPortDefaultTest`, `ServerPortOverrideTest`) that relied on it to exclude domain beans.
 
 ---
 
@@ -95,3 +99,5 @@ No change.
 | 2026-10-22 | Created branch state for W-GUEST | W-GUEST | — |
 | 2026-10-22 | W-GUEST spec written and approved: 5 controllers, 19 endpoints, 4 pages, 4 dialogs, 46 edge cases. Decisions SD1-SD11 | W-GUEST | `spec commit` |
 | 2026-10-22 | W-GUEST plan written: 10 tasks + close-out, 3 waves. Reviewed by lite-reviewer (Implementer+Tester+Maintainer). Key additions: ForbiddenException for 403 ownership, complete GuestExceptionHandler error mapping, @ConditionalOnBean on all controllers, Clock/DisputeWindowPolicy injection | W-GUEST | `plan commit` |
+| 2026-10-22 | Plan approved (Nathan, Gate 2). Execution starting | W-GUEST | — |
+| 2026-10-22 | T1: GuestSearchController, PropertyDetailResponse, ResolvedUser, ForbiddenException, GuestExceptionHandler. RoleAuthorizationFilter stores userId attribute. Fixed D~1: removed @ConditionalOnBean from 20 domain beans; PostgresIntegrationTest now public | W-GUEST | T1 commit |

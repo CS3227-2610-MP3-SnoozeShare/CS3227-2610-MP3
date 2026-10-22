@@ -5,7 +5,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -17,7 +16,7 @@ import com.snoozeshare.domain.model.WalletTransaction;
  * wallet_adjustment and subject_user_id.
  */
 @Repository
-@ConditionalOnBean(PropertyRepository.class)
+
 public class JdbcLedgerRepository implements LedgerRepository {
 
     private static final String BASE_SELECT =
