@@ -14,13 +14,23 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
+import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpTimeoutException;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -41,6 +51,12 @@ public final class SoclaasClient {
     static final int MAX_BODY_BYTES = 262_144;
     /** Bytes of a 429 body read for classification. */
     static final int MAX_ERROR_BYTES = 4_096;
+    private static final long GRACE_MS = 250;
+    private static final ScheduledExecutorService WATCHDOG = Executors.newSingleThreadScheduledExecutor(runnable -> {
+        Thread thread = new Thread(runnable, "ai-client-watchdog");
+        thread.setDaemon(true);
+        return thread;
+    });
 
     private static final int BUDGET_TEXT_CHARS = 200;
     private static final Pattern BUDGET = Pattern.compile("\\b(quota|budget|credits?)\\b", Pattern.CASE_INSENSITIVE);
@@ -129,10 +145,7 @@ public final class SoclaasClient {
             .header("Content-Type", "application/json")
             .POST(HttpRequest.BodyPublishers.ofByteArray(body));
         try {
-            HttpResponse<InputStream> response = http.send(builder.build(), HttpResponse.BodyHandlers.ofInputStream());
-            try (InputStream in = response.body()) {
-                return classify(response, in);
-            }
+            return classify(fetch(builder.build(), timeout));
         } catch (HttpTimeoutException e) {
             return new AttemptResult.Failure(TIMEOUT, null, false, 0);
         } catch (IOException e) {
@@ -148,39 +161,87 @@ public final class SoclaasClient {
     /**
      * Reads {@code GET {base-url}/models}.
      *
-     * @param timeout the longest the call may take before its response arrives
+     * @param timeout the longest the call may take, response body included
      * @return the model ids, or a result without ids when the call failed
      */
     public ModelsResult listModels(Duration timeout) {
         HttpRequest request = baseRequest("/models", timeout).GET().build();
         try {
-            HttpResponse<InputStream> response = http.send(request, HttpResponse.BodyHandlers.ofInputStream());
-            try (InputStream in = response.body()) {
-                int status = response.statusCode();
-                if (status != 200) {
-                    return new ModelsResult(status, null);
-                }
-                byte[] bytes = in.readNBytes(MAX_BODY_BYTES + 1);
-                if (bytes.length > MAX_BODY_BYTES) {
-                    return new ModelsResult(status, null);
-                }
-                JsonNode data = mapper.readTree(bytes).path("data");
-                if (!data.isArray()) {
-                    return new ModelsResult(status, null);
-                }
-                Set<String> ids = new LinkedHashSet<>();
-                for (JsonNode item : data) {
-                    if (item.path("id").isTextual()) {
-                        ids.add(item.path("id").asText());
-                    }
-                }
-                return new ModelsResult(status, ids);
+            Fetched fetched = fetch(request, timeout);
+            if (fetched.status() != 200 || fetched.body().length > MAX_BODY_BYTES) {
+                return new ModelsResult(fetched.status(), null);
             }
+            JsonNode data = mapper.readTree(fetched.body()).path("data");
+            if (!data.isArray()) {
+                return new ModelsResult(fetched.status(), null);
+            }
+            Set<String> ids = new LinkedHashSet<>();
+            for (JsonNode item : data) {
+                if (item.path("id").isTextual()) {
+                    ids.add(item.path("id").asText());
+                }
+            }
+            return new ModelsResult(fetched.status(), ids);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             return new ModelsResult(0, null);
         } catch (IOException | RuntimeException e) {
             return new ModelsResult(0, null);
+        }
+    }
+
+    /** A complete response: status, headers and a body of at most {@code MAX_BODY_BYTES + 1} bytes. */
+    private record Fetched(int status, HttpHeaders headers, byte[] body) { }
+
+    /**
+     * Sends the request and reads the whole response within {@code timeout}, so a server that stalls before or
+     * after the headers cannot hold the calling thread. A watchdog closes the body stream when time runs out; the
+     * body is read up to {@code MAX_BODY_BYTES + 1} bytes.
+     */
+    private Fetched fetch(HttpRequest request, Duration timeout) throws IOException, InterruptedException {
+        long deadline = System.nanoTime() + timeout.toNanos() + TimeUnit.MILLISECONDS.toNanos(GRACE_MS);
+        CompletableFuture<HttpResponse<InputStream>> future =
+            http.sendAsync(request, HttpResponse.BodyHandlers.ofInputStream());
+        HttpResponse<InputStream> response;
+        try {
+            response = future.get(Math.max(1, deadline - System.nanoTime()), TimeUnit.NANOSECONDS);
+        } catch (TimeoutException e) {
+            future.cancel(true);
+            throw new HttpTimeoutException("response headers not received in time");
+        } catch (ExecutionException e) {
+            if (e.getCause() instanceof IOException io) {
+                throw io;
+            }
+            throw new IOException(e.getCause().getClass().getName());
+        } catch (InterruptedException e) {
+            future.cancel(true);
+            throw e;
+        }
+        AtomicBoolean expired = new AtomicBoolean();
+        try (InputStream in = response.body()) {
+            ScheduledFuture<?> watchdog = WATCHDOG.schedule(() -> {
+                expired.set(true);
+                try {
+                    in.close();
+                } catch (IOException e) {
+                    // the read below fails or ends, which is all the watchdog needs
+                }
+            }, Math.max(1, deadline - System.nanoTime()), TimeUnit.NANOSECONDS);
+            byte[] body;
+            try {
+                body = in.readNBytes(MAX_BODY_BYTES + 1);
+            } catch (IOException e) {
+                if (expired.get()) {
+                    throw new HttpTimeoutException("response body not received in time");
+                }
+                throw e;
+            } finally {
+                watchdog.cancel(false);
+            }
+            if (expired.get()) {
+                throw new HttpTimeoutException("response body not received in time");
+            }
+            return new Fetched(response.statusCode(), response.headers(), body);
         }
     }
 
@@ -209,10 +270,10 @@ public final class SoclaasClient {
         return root;
     }
 
-    private AttemptResult classify(HttpResponse<InputStream> response, InputStream in) throws IOException {
-        int status = response.statusCode();
+    private AttemptResult classify(Fetched response) {
+        int status = response.status();
         if (status == 200) {
-            return parseSuccess(in);
+            return parseSuccess(response.body());
         }
         if (status >= 200 && status < 300) {
             return new AttemptResult.Failure(INVALID_OUTPUT, null, false, status);
@@ -220,28 +281,22 @@ public final class SoclaasClient {
         return switch (status) {
             case 401 -> new AttemptResult.Failure(AUTH, null, false, status);
             case 403 -> new AttemptResult.Failure(FORBIDDEN, null, false, status);
-            case 429 -> classifyTooMany(response, in);
+            case 429 -> classifyTooMany(response);
             default -> new AttemptResult.Failure(status >= 500 ? SERVER : BAD_REQUEST, null, false, status);
         };
     }
 
-    private AttemptResult classifyTooMany(HttpResponse<InputStream> response, InputStream in) {
+    private AttemptResult classifyTooMany(Fetched response) {
         Integer retryAfter = response.headers().firstValue("Retry-After").map(SoclaasClient::parseSeconds)
             .orElse(null);
-        String text = errorText(readErrorHead(in));
-        String head = text.length() > BUDGET_TEXT_CHARS ? text.substring(0, BUDGET_TEXT_CHARS) : text;
-        if (BUDGET.matcher(head).find() && !RATE_LIMIT.matcher(head).find()) {
+        byte[] body = response.body();
+        byte[] head = body.length > MAX_ERROR_BYTES ? Arrays.copyOf(body, MAX_ERROR_BYTES) : body;
+        String text = errorText(head);
+        String window = text.length() > BUDGET_TEXT_CHARS ? text.substring(0, BUDGET_TEXT_CHARS) : text;
+        if (BUDGET.matcher(window).find() && !RATE_LIMIT.matcher(window).find()) {
             return new AttemptResult.Failure(BUDGET_EXHAUSTED, retryAfter, true, 429);
         }
         return new AttemptResult.Failure(RATE_LIMITED, retryAfter, false, 429);
-    }
-
-    private static byte[] readErrorHead(InputStream in) {
-        try {
-            return in.readNBytes(MAX_ERROR_BYTES);
-        } catch (IOException e) {
-            return new byte[0];
-        }
     }
 
     /** The {@code error} string or {@code error.message} of a JSON body; empty for anything else. */
@@ -260,8 +315,7 @@ public final class SoclaasClient {
         return "";
     }
 
-    private AttemptResult parseSuccess(InputStream in) throws IOException {
-        byte[] bytes = in.readNBytes(MAX_BODY_BYTES + 1);
+    private AttemptResult parseSuccess(byte[] bytes) {
         if (bytes.length > MAX_BODY_BYTES) {
             return new AttemptResult.Failure(INVALID_OUTPUT, null, false, 200);
         }

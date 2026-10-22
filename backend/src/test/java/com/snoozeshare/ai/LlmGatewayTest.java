@@ -143,6 +143,15 @@ class LlmGatewayTest {
     }
 
     @Test
+    void featureThatBreaksRegistrationRulesIsRejected() {
+        AiFeature<String> bad = new AiFeature<>("guest.helper", Set.of(Role.GUEST, Role.SYSTEM), ModelTier.FAST, "p",
+            200, 0.2, 1, 10, OutputSpec.text(500, false), c -> "x", "m");
+        assertThatThrownBy(() -> gateway(props()).run(bad, guestCall("hi")))
+            .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("allowedRoles");
+        assertThat(stub.requests()).isEmpty();
+    }
+
+    @Test
     void refusesInsideATransactionEvenWhenDisabled() {
         TransactionSynchronizationManager.setActualTransactionActive(true);
         assertThatThrownBy(() -> gateway(props(false, false, 2, 30_000, 45_000, 5, 2))

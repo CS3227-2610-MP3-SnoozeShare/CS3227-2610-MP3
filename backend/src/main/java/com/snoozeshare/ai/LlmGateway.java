@@ -109,6 +109,7 @@ public class LlmGateway {
             throw new IllegalArgumentException("LlmGateway: feature and call must not be null");
         }
         call.checkShape();
+        feature.validate(props);
         if (TransactionSynchronizationManager.isActualTransactionActive()) {
             throw new IllegalStateException("LlmGateway.run must not be called inside a transaction");
         }

@@ -1,6 +1,7 @@
 package com.snoozeshare.ai;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -18,7 +19,13 @@ class SecretScanTest {
     private static final Pattern KEY = Pattern.compile("clsk_[A-Za-z0-9]{8}_[A-Za-z0-9]{16,}");
 
     private static List<String> tracked() throws IOException, InterruptedException {
-        Process git = new ProcessBuilder("git", "-C", "..", "ls-files").redirectErrorStream(true).start();
+        Process git;
+        try {
+            git = new ProcessBuilder("git", "-C", "..", "ls-files").redirectErrorStream(true).start();
+        } catch (IOException e) {
+            assumeTrue(false, "git is not available, so tracked files cannot be listed");
+            return List.of();
+        }
         List<String> paths = new ArrayList<>();
         try (var reader = new java.io.BufferedReader(
             new java.io.InputStreamReader(git.getInputStream(), StandardCharsets.UTF_8))) {

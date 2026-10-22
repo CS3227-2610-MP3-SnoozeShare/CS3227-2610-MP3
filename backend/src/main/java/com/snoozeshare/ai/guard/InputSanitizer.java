@@ -56,6 +56,8 @@ public final class InputSanitizer {
             t = DELIMITER_TAG.matcher(t).replaceAll("");
         } while (!t.equals(previous));
         t = t.strip();
+        // Removing delimiter tags can join fragments into a phrase ("ignore previous <user_input>instructions").
+        flagged |= InjectionDetector.isSuspicious(t);
         if (t.codePointCount(0, t.length()) > limit) {
             t = t.substring(0, t.offsetByCodePoints(0, limit));
             cut = true;

@@ -5,7 +5,9 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Arrays;
 
+import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.context.annotation.Conditional;
@@ -32,8 +34,9 @@ public @interface ConditionalOnDatabase {
 
         @Override
         public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-            String excluded = context.getEnvironment().getProperty("spring.autoconfigure.exclude", "");
-            return !excluded.contains(DATASOURCE_AUTOCONFIG);
+            String[] excluded = Binder.get(context.getEnvironment())
+                .bind("spring.autoconfigure.exclude", String[].class).orElse(new String[0]);
+            return Arrays.stream(excluded).noneMatch(name -> name.contains(DATASOURCE_AUTOCONFIG));
         }
     }
 }
