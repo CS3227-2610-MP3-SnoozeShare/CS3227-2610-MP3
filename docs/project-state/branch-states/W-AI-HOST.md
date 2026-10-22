@@ -9,7 +9,7 @@ after the branch merges.
 - **Owner:** Xiao-Congchen
 - **Status:** In review
 - **Approved:** Spec and plan approved (Xiao-Congchen, 2026-10-22); Gate 3 review requested
-- **Last updated:** 2026-10-22 by GPT-5 — started Host AI feature
+- **Last updated:** 2026-10-23 by GPT-5 — fixed Host AI response lifecycle handling
 
 ---
 
@@ -33,7 +33,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S2 | 2026-10-23 00:20 | GPT-5 (lead) | W~1 | In review | Diagnosed live 400; corrected AI listing time-field contract and added regression assertion | Commit the contract fix, then leave branch ready for review | 2026-10-23 00:25 |
+| S2 | 2026-10-23 00:20 | GPT-5 (lead) | W~1 | In review | Corrected live 400 time-field contract; fixed Strict Mode response lifecycle and added degraded/error regressions | Commit the frontend lifecycle fix, then leave branch ready for review | 2026-10-23 00:42 |
 
 **Remaining**
 
@@ -47,7 +47,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W~1 | W-AI-HOST: Host AI Listing Optimisation Assistant | In review | [design](../../superpowers/specs/2026-10-22-w-ai-host-design.md) | [plan](../../superpowers/plans/2026-10-22-w-ai-host.md) | T1–T4 plus live 400 contract fix complete; full frontend tests/lint pass | — |
+| W~1 | W-AI-HOST: Host AI Listing Optimisation Assistant | In review | [design](../../superpowers/specs/2026-10-22-w-ai-host-design.md) | [plan](../../superpowers/plans/2026-10-22-w-ai-host.md) | T1–T4 plus live 400 and response-lifecycle fixes complete; full frontend tests/lint pass | — |
 
 ---
 
@@ -134,3 +134,4 @@ plain-text rendering conventions.
 | 2026-10-23 | T4 integrated the compact Sparkles trigger into New/Edit listing forms with an address-free draft snapshot and Apply-only local update | W~1 | T4 |
 | 2026-10-23 | T5 verification: backend build, frontend tests (219), lint, diff inspection, and implementation review passed; frontend production prerender and browser checks remain recorded deviations | W~1 | T5 |
 | 2026-10-23 | Fixed live AI request 400 by aligning frontend `checkInTime`/`checkOutTime` fields with backend `ListingFacts`, with a regression payload assertion | W~1 | Post-review fix |
+| 2026-10-23 | Fixed React Strict Mode mounted-ref handling so degraded and error responses display safely and all controls unlock after completion; added regression coverage | W~1 | Post-review fix |

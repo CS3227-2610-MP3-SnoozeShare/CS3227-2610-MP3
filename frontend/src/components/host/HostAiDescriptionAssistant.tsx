@@ -32,7 +32,10 @@ export function HostAiDescriptionAssistant({ open, listingId, listing, descripti
   const [error, setError] = useState('');
   const mounted = useRef(true);
 
-  useEffect(() => () => { mounted.current = false; }, []);
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
 
   useEffect(() => {
     if (!open) return;
