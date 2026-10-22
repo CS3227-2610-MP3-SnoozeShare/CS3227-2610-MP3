@@ -8,8 +8,8 @@ after the branch merges.
 - **Base:** `de137c6`
 - **Owner:** Xiao-Congchen
 - **Status:** In review
-- **Approved:** Eligibility-amended spec and plan approved (Xiao-Congchen, 2026-10-23); Gate 3 review remains requested
-- **Last updated:** 2026-10-23 by GPT-5 — custom hover helper verified
+- **Approved:** Eligibility-amended spec and plan approved (Xiao-Congchen, 2026-10-23); Gate 3 review requested again after modal refinement
+- **Last updated:** 2026-10-23 by GPT-5 — modal hierarchy refinement verified
 
 ---
 
@@ -33,11 +33,12 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S2 | 2026-10-23 00:20 | GPT-5 (lead) | W~1 | In review | Custom hover helper implemented; full frontend verification passes | — | 2026-10-23 05:40 |
+| S2 | 2026-10-23 00:20 | GPT-5 (lead) | W~1 | In review | Modal hierarchy refinement verified: tests, lint, and production build pass | Operator review for Gate 3 | 2026-10-23 05:58 |
 
 **Remaining**
 
 - [ ] Operator/browser session checks at desktop/tablet/390px.
+- [x] Complete modal refinement verification, then return to Gate 3.
 - [ ] Gate 3 approval, then separately ask whether to push/open a PR.
 
 ---
@@ -46,7 +47,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W~1 | W-AI-HOST: Host AI Listing Optimisation Assistant | In review | [design](../../superpowers/specs/2026-10-22-w-ai-host-design.md) | [plan](../../superpowers/plans/2026-10-22-w-ai-host.md) | Custom hover helper verified; awaiting Gate 3 review | — |
+| W~1 | W-AI-HOST: Host AI Listing Optimisation Assistant | In review | [design](../../superpowers/specs/2026-10-22-w-ai-host-design.md) | [plan](../../superpowers/plans/2026-10-22-w-ai-host.md) | Modal refinement verified; awaiting Gate 3 review | — |
 
 ---
 
@@ -164,3 +165,5 @@ plain-text rendering conventions.
 | 2026-10-23 | T7 verification passed: backend Checkstyle/tests, frontend 227 tests/lint/build, diff audit, and implementation review; browser checks remain handover | W~1 | T7 |
 | 2026-10-23 | Replaced the native disabled-button title with a styled, focusable helper popover using the website's popover colors, info icon, hover/focus behavior, and accessible tooltip semantics | W~1 | Operator-directed UI refinement |
 | 2026-10-23 | Full frontend verification passed: 227 tests, lint, and production build (first build hit a transient favicon entry error; rerun passed) | W~1 | UI refinement verification |
+| 2026-10-23 | Started modal hierarchy refinement: grouped preferences, paired content/analysis columns, clearer empty states, shorter Generate label, generated-column emphasis, and sticky actions | W~1 | Operator-directed UI refinement |
+| 2026-10-23 | Completed modal hierarchy refinement; frontend 227 tests, lint, production build, and diff check pass | W~1 | UI refinement verification |

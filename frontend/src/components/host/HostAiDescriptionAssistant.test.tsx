@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { StrictMode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { HostAiDescriptionAssistant } from './HostAiDescriptionAssistant';
@@ -107,7 +107,7 @@ describe('HostAiDescriptionAssistant', () => {
     rerender(<HostAiDescriptionAssistant {...props} open description="Refreshed copy" />);
     expect(screen.getByLabelText('Current description')).toHaveValue('Refreshed copy');
     expect(screen.getByLabelText('Generated description')).toHaveValue(response.generatedDescription);
-    expect(within(screen.getByRole('region', { name: 'AI input' })).getAllByText('—')).toHaveLength(3);
+    expect(screen.getByText('Evaluate the current description to see feedback.')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Apply generated description' }));
     expect(onApply).toHaveBeenCalledWith(response.generatedDescription);

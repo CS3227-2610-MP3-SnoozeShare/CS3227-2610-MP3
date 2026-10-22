@@ -92,33 +92,33 @@ export function HostAiDescriptionAssistant({ open, listingId, listing, descripti
           <button aria-label="Close AI Description Assistant" className="rounded-md p-1 text-[var(--text-subtle)] hover:bg-muted hover:text-foreground" disabled={disabled} onClick={onClose} title="Close" type="button"><X aria-hidden="true" className="size-5" /></button>
         </div>
         <div className="mt-5 space-y-5">
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <section aria-label="Writing preferences" className="rounded-lg border border-border bg-[var(--surface-inset)] p-4">
+            <h3 className="text-sm font-semibold">Writing preferences</h3>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <label className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--text-muted)]"><span>Writing style</span><SelectField aria-label="Writing style" disabled={disabled} name="ai-writing-style" options={styles} value={style} onValueChange={(value) => setStyle(value as AiWritingStyle)} /></label>
               <label className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--text-muted)]"><span>Target audience</span><SelectField aria-label="Target audience" disabled={disabled} name="ai-target-audience" options={audiences} value={audience} onValueChange={(value) => setAudience(value as AiTargetAudience)} /></label>
               <label className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--text-muted)]"><span>Description focus</span><SelectField aria-label="Description focus" disabled={disabled} name="ai-description-focus" options={focuses} value={focus} onValueChange={(value) => setFocus(value as AiDescriptionFocus)} /></label>
-          </div>
+            </div>
+          </section>
           <div className="grid gap-5 lg:grid-cols-2">
-            <label className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--text-muted)]"><span>Current description</span><textarea aria-label="Current description" className="min-h-44 rounded-lg border border-input bg-background p-3 text-sm font-normal outline-none focus:border-ring focus:ring-3 focus:ring-ring/20" disabled={disabled} value={draft} onChange={(event) => setDraft(event.target.value)} /></label>
-            <label className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--text-muted)]">Generated description<textarea aria-label="Generated description" className="min-h-44 rounded-lg border border-input bg-[var(--surface-inset)] p-3 text-sm font-normal" readOnly value={response?.generatedDescription ?? ''} /></label>
-          </div>
-          <div className="grid gap-5 lg:grid-cols-2">
-            <section aria-label="AI input" className="space-y-4">
-              <AnalysisPanel heading="Current analysis" analysis={response?.currentAnalysis ?? null} />
-              {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
-              <div className="flex flex-wrap items-center gap-2"><button className="rounded-lg border border-border px-4 py-2 text-sm font-semibold" disabled={disabled || !draft.trim()} onClick={() => void run('EVALUATE')} type="button">{pending === 'EVALUATE' ? 'Evaluating…' : 'Evaluate'}</button><button className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground" disabled={disabled} onClick={() => void run('GENERATE')} type="button">{pending === 'GENERATE' ? 'Generating…' : 'Generate and evaluate'}</button></div>
+            <section aria-label="Current description and analysis" className="space-y-4">
+              <div className="rounded-lg border border-border bg-background p-3"><label className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--text-muted)]"><span>Current description</span><textarea aria-label="Current description" className="min-h-44 rounded-lg border border-input bg-background p-3 text-sm font-normal outline-none focus:border-ring focus:ring-3 focus:ring-ring/20" disabled={disabled} value={draft} onChange={(event) => setDraft(event.target.value)} /></label></div>
+              <AnalysisPanel emptyMessage="Evaluate the current description to see feedback." heading="Current analysis" analysis={response?.currentAnalysis ?? null} />
             </section>
-            <section aria-label="AI output" className="space-y-4">
-            <AnalysisPanel heading="Generated analysis" analysis={response?.generatedAnalysis ?? null} />
-            <button className="rounded-lg bg-[var(--success)] px-4 py-2 text-sm font-semibold text-white" disabled={disabled || !response?.generatedDescription} onClick={applyGeneratedDescription} type="button">Apply generated description</button>
+            <section aria-label="Generated description and analysis" className="space-y-4 rounded-lg border border-primary/20 bg-[var(--surface-inset)] p-3">
+              <label className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--text-muted)]"><span>Generated description</span><textarea aria-label="Generated description" className="min-h-44 rounded-lg border border-input bg-background p-3 text-sm font-normal" readOnly value={response?.generatedDescription ?? ''} /></label>
+              <AnalysisPanel emptyMessage="Generate a description to see its analysis." heading="Generated analysis" analysis={response?.generatedAnalysis ?? null} />
             </section>
           </div>
+          {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
+          <div className="sticky bottom-0 -mx-5 -mb-5 flex flex-wrap items-center justify-end gap-2 border-t border-border bg-card/95 px-5 py-4 backdrop-blur"><button className="rounded-lg border border-border px-4 py-2 text-sm font-semibold" disabled={disabled || !draft.trim()} onClick={() => void run('EVALUATE')} type="button">{pending === 'EVALUATE' ? 'Evaluating…' : 'Evaluate'}</button><button className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground" disabled={disabled} onClick={() => void run('GENERATE')} type="button">{pending === 'GENERATE' ? 'Generating…' : 'Generate description'}</button><button className="rounded-lg bg-[var(--success)] px-4 py-2 text-sm font-semibold text-white" disabled={disabled || !response?.generatedDescription} onClick={applyGeneratedDescription} type="button">Apply generated description</button></div>
         </div>
       </div>
     </div>
   );
 }
 
-function AnalysisPanel({ heading, analysis }: { heading: string; analysis: AiAnalysis | null }) {
+function AnalysisPanel({ emptyMessage, heading, analysis }: { emptyMessage: string; heading: string; analysis: AiAnalysis | null }) {
   const rows: [string, keyof AiAnalysis][] = [['Clarity', 'clarity'], ['Completeness', 'completeness'], ['Accuracy', 'accuracy']];
-  return <div><h3 className="text-sm font-semibold">{heading}</h3><div className="mt-2 divide-y rounded-lg border border-border">{rows.map(([label, key]) => { const criterion = analysis?.[key]; const passes = criterion?.status === 'PASS'; return <div className="grid gap-2 p-3 text-sm sm:grid-cols-[7rem_1fr]" key={key}><span className="font-medium">{label}</span><span className="flex items-start gap-2"><span aria-hidden="true" className="mt-0.5 shrink-0">{criterion && (passes ? <Check className="size-4 text-emerald-600" data-testid="analysis-pass-icon" /> : <CircleAlert className="size-4 text-orange-500" data-testid="analysis-improve-icon" />)}</span><span className={criterion?.status === 'IMPROVE' ? 'text-orange-700' : 'text-[var(--text-subtle)]'}>{criterion?.feedback ?? '—'}</span></span></div>; })}</div></div>;
+  return <div><h3 className="text-sm font-semibold">{heading}</h3>{analysis ? <div className="mt-2 divide-y rounded-lg border border-border bg-background">{rows.map(([label, key]) => { const criterion = analysis[key]; const passes = criterion.status === 'PASS'; return <div className="grid gap-2 p-3 text-sm sm:grid-cols-[7rem_1fr]" key={key}><span className="font-medium">{label}</span><span className="flex items-start gap-2"><span aria-hidden="true" className="mt-0.5 shrink-0">{passes ? <Check className="size-4 text-emerald-600" data-testid="analysis-pass-icon" /> : <CircleAlert className="size-4 text-orange-500" data-testid="analysis-improve-icon" />}</span><span className={criterion.status === 'IMPROVE' ? 'text-orange-700' : 'text-[var(--text-subtle)]'}>{criterion.feedback}</span></span></div>; })}</div> : <p className="mt-2 rounded-lg border border-dashed border-border p-3 text-sm text-[var(--text-subtle)]">{emptyMessage}</p>}</div>;
 }
