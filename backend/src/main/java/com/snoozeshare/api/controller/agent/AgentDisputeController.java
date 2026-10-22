@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.snoozeshare.api.CurrentUserId;
 import com.snoozeshare.api.request.SaveNotesRequest;
+import com.snoozeshare.api.request.SettleDisputeRequest;
 import com.snoozeshare.api.response.DisputeDetailResponse;
 import com.snoozeshare.api.response.DisputeQueueResponse;
 import com.snoozeshare.api.response.DisputeSummaryResponse;
@@ -20,6 +21,7 @@ import com.snoozeshare.config.ConditionalOnDatabase;
 import com.snoozeshare.domain.enums.AssigneeFilter;
 import com.snoozeshare.service.DisputeQueryService;
 import com.snoozeshare.service.TicketService;
+import com.snoozeshare.service.requests.ResolutionRequest;
 
 import jakarta.validation.Valid;
 
@@ -55,6 +57,14 @@ public class AgentDisputeController {
     @PutMapping("/{ticketId}/assign")
     public DisputeDetailResponse assign(@PathVariable UUID ticketId, @CurrentUserId UUID agentId) {
         tickets.assignToMe(ticketId, agentId);
+        return DisputeDetailResponse.from(queries.detail(ticketId));
+    }
+
+    @PutMapping("/{ticketId}/resolve")
+    public DisputeDetailResponse resolve(@PathVariable UUID ticketId, @Valid @RequestBody SettleDisputeRequest request,
+                                         @CurrentUserId UUID agentId) {
+        tickets.resolve(ticketId, new ResolutionRequest(request.mode(), request.guestRefund(), request.reason()),
+                agentId);
         return DisputeDetailResponse.from(queries.detail(ticketId));
     }
 

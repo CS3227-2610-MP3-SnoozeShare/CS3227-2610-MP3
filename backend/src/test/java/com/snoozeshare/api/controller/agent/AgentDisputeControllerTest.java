@@ -81,6 +81,66 @@ class AgentDisputeControllerTest extends AgentApiIntegrationTest {
         }
     }
 
+    private String resolvePath(java.util.UUID ticketId) {
+        return "/api/agent/disputes/" + ticketId + "/resolve";
+    }
+
+    private String resolveBody(String mode, String refund, String reason) {
+        return "{\"mode\":\"" + mode + "\",\"guestRefund\":" + refund + ",\"reason\":\"" + reason + "\"}";
+    }
+
+    private java.math.BigDecimal balanceOf(java.util.UUID userId) {
+        return jdbc.queryForObject("select balance from wallets where user_id = ?", java.math.BigDecimal.class, userId);
+    }
+
+    @Test
+    void resolveSettlesWithWorkedNumbers() throws Exception { // F7 (escrow is 120.00 in the scenario)
+        var approved = scenarios.inReviewDispute(agent.id());
+        var guestBefore = balanceOf(approved.guest().getId());
+        var hostBefore = balanceOf(approved.host().getId());
+
+        putAs(resolvePath(approved.ticket().getId()), agent.token(), resolveBody("MANUAL", "40.00", "partial"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.ticket.status").value("RESOLVED_APPROVED"))
+                .andExpect(jsonPath("$.ticket.resolutionReason").value("partial"));
+        org.assertj.core.api.Assertions.assertThat(balanceOf(approved.guest().getId()).subtract(guestBefore))
+                .isEqualByComparingTo("40.00");
+        org.assertj.core.api.Assertions.assertThat(balanceOf(approved.host().getId()).subtract(hostBefore))
+                .isEqualByComparingTo("77.60");
+
+        var rejected = scenarios.inReviewDispute(agent.id());
+        var hostBeforeReject = balanceOf(rejected.host().getId());
+        putAs(resolvePath(rejected.ticket().getId()), agent.token(), resolveBody("MANUAL", "0.00", "none"))
+                .andExpect(jsonPath("$.ticket.status").value("RESOLVED_REJECTED"));
+        org.assertj.core.api.Assertions.assertThat(balanceOf(rejected.host().getId()).subtract(hostBeforeReject))
+                .isEqualByComparingTo("116.40");
+    }
+
+    @Test
+    void otherAgentCannotResolve() throws Exception { // E15
+        var dispute = scenarios.inReviewDispute(agent.id());
+        var other = testUsers.create(com.snoozeshare.domain.enums.Role.AGENT);
+        var guestBefore = balanceOf(dispute.guest().getId());
+
+        var result = putAs(resolvePath(dispute.ticket().getId()), other.token(),
+                resolveBody("REJECT", "null", "nope")).andExpect(status().isConflict()).andReturn();
+
+        com.snoozeshare.testsupport.ErrorAssertions.assertCleanMessage(result, "Ticket is not assigned to this agent");
+        org.assertj.core.api.Assertions.assertThat(balanceOf(dispute.guest().getId())).isEqualByComparingTo(guestBefore);
+    }
+
+    @Test
+    void resolveTwiceIs409() throws Exception { // E21
+        var dispute = scenarios.inReviewDispute(agent.id());
+        putAs(resolvePath(dispute.ticket().getId()), agent.token(), resolveBody("REJECT", "null", "first"))
+                .andExpect(status().isOk());
+
+        var result = putAs(resolvePath(dispute.ticket().getId()), agent.token(),
+                resolveBody("REJECT", "null", "again")).andExpect(status().isConflict()).andReturn();
+
+        com.snoozeshare.testsupport.ErrorAssertions.assertCleanMessage(result, "Ticket is not in review");
+    }
+
     @Test
     void queueFiltersAndCounts() throws Exception { // F3
         var first = scenarios.openDispute(RemedyType.FULL_REFUND);
