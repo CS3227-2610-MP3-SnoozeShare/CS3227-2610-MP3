@@ -91,30 +91,38 @@ class HostWalletIntegrationTest {
     }
 
     @Test
-    void statementIsNewestFirstPagedAndOnlyShowsTheAuthenticatedHost() throws Exception {
-        walletService.topUp(hostId, new BigDecimal("1.00"));
-        walletService.topUp(hostId, new BigDecimal("2.00"));
+    void statementReturnsAllNewestRowsInStableOrderAndOnlyShowsTheAuthenticatedHost() throws Exception {
+        Instant sameTimestamp = Instant.parse("2026-01-01T00:00:00Z");
+        for (int index = 1; index <= 101; index++) {
+            audits.save(new AuditLogEntry(new UUID(0, index), hostId, "Host", "TOP_UP",
+                "WALLET", walletId, null, null, new BigDecimal("1.00"), "seed",
+                hostId, "Host", null, null, sameTimestamp, new BigDecimal(index)));
+        }
         UUID otherHost = UUID.randomUUID();
         users.save(new User(otherHost, "other-" + otherHost, Role.HOST, "Other",
             "other-" + otherHost + "@example.com", AccountStatus.ACTIVE, null,
             Instant.now(), Instant.now(), null));
         wallets.save(new Wallet(UUID.randomUUID(), otherHost, new BigDecimal("50.00"),
             "SGD", Instant.now()));
-        walletService.topUp(otherHost, new BigDecimal("500.00"));
-        assertThat(walletService.statementFor(hostId, 0, 1)).hasSize(2);
+        Wallet otherWallet = wallets.findByUserId(otherHost).orElseThrow();
+        for (int index = 1; index <= 5; index++) {
+            audits.save(new AuditLogEntry(new UUID(1, index), otherHost, "Other", "TOP_UP",
+                "WALLET", otherWallet.getId(), null, null, new BigDecimal("1.00"), "foreign",
+                otherHost, "Other", null, null, sameTimestamp, new BigDecimal(index)));
+        }
 
-        mockMvc.perform(get("/api/host/wallet?page=0&size=1")
+        String statement = mockMvc.perform(get("/api/host/wallet")
                 .header("Authorization", "Bearer " + token))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.wallet.id").value(walletId.toString()))
-            .andExpect(jsonPath("$.wallet.balance").value(103.0))
-            .andExpect(jsonPath("$.statement.items.length()").value(1))
-            .andExpect(jsonPath("$.statement.items[0].walletAdjustment").value(2.0))
-            .andExpect(jsonPath("$.statement.hasMore").value(true));
-        mockMvc.perform(get("/api/host/wallet?page=1&size=1")
+            .andExpect(jsonPath("$.statement.length()").value(101))
+            .andExpect(jsonPath("$.statement[0].id").value(new UUID(0, 101).toString()))
+            .andExpect(jsonPath("$.statement[100].id").value(new UUID(0, 1).toString()))
+            .andReturn().getResponse().getContentAsString();
+        mockMvc.perform(get("/api/host/wallet?page=0&size=1")
                 .header("Authorization", "Bearer " + token))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.statement.items[0].walletAdjustment").value(1.0));
+            .andExpect(status().isOk()).andExpect(result ->
+                assertThat(result.getResponse().getContentAsString()).isEqualTo(statement));
     }
 
     @Test

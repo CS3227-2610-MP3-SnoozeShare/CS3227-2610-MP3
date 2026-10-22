@@ -39,21 +39,8 @@ public class JdbcLedgerRepository implements LedgerRepository {
                 BASE_SELECT
                 + " AND a.subject_user_id = ("
                 + "SELECT w.user_id FROM wallets w WHERE w.id = ?)"
-                + " ORDER BY a.timestamp ASC, a.id ASC",
+                + " ORDER BY a.timestamp DESC, a.id DESC",
                 this::mapRow, walletId);
-    }
-
-    @Override
-    public List<WalletTransaction> entriesForWallet(UUID walletId, int page, int size) {
-        if (page < 0 || size < 1 || size > 100) {
-            throw new IllegalArgumentException("Invalid wallet statement page");
-        }
-        return jdbc.query(
-                BASE_SELECT
-                + " AND a.subject_user_id = ("
-                + "SELECT w.user_id FROM wallets w WHERE w.id = ?)"
-                + " ORDER BY a.timestamp DESC, a.id DESC LIMIT ? OFFSET ?",
-                this::mapRow, walletId, size + 1, (long) page * size);
     }
 
     @Override

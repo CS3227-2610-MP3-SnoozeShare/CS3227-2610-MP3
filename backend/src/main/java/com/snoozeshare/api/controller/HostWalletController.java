@@ -11,14 +11,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.snoozeshare.api.error.HostApiException;
 import com.snoozeshare.api.request.WalletAmountRequest;
 import com.snoozeshare.api.response.HostWalletMutationResponse;
 import com.snoozeshare.api.response.HostWalletResponse;
-import com.snoozeshare.api.response.PageResponse;
 import com.snoozeshare.api.response.TransactionResponse;
 import com.snoozeshare.api.response.WalletResponse;
 import com.snoozeshare.auth.security.FirebaseTokenVerifier.FirebaseAuthentication;
@@ -28,8 +26,6 @@ import com.snoozeshare.domain.model.WalletTransaction;
 import com.snoozeshare.service.WalletService;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 
 /** Authenticated Host balance and mocked ledger operations. */
 @RestController
@@ -48,15 +44,12 @@ public class HostWalletController {
 
     @GetMapping
     public HostWalletResponse wallet(
-            @AuthenticationPrincipal FirebaseAuthentication identity,
-            @RequestParam(defaultValue = "0") @Min(0) int page,
-            @RequestParam(defaultValue = "50") @Min(1) @Max(100) int size) {
+            @AuthenticationPrincipal FirebaseAuthentication identity) {
         UUID hostId = identityResolver.resolve(identity);
         Wallet wallet = requireWallet(hostId);
-        List<TransactionResponse> entries = wallets.statementFor(hostId, page, size).stream()
+        List<TransactionResponse> entries = wallets.statementFor(hostId).stream()
                 .map(TransactionResponse::from).toList();
-        return new HostWalletResponse(WalletResponse.from(wallet),
-                PageResponse.from(entries, page, size));
+        return new HostWalletResponse(WalletResponse.from(wallet), entries);
     }
 
     @PostMapping("/top-up")

@@ -22,5 +22,4 @@ public interface WalletService {
 
     List<WalletTransaction> statementFor(UUID userId);
 
-    List<WalletTransaction> statementFor(UUID userId, int page, int size);
 }

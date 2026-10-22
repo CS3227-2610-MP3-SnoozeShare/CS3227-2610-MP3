@@ -62,12 +62,6 @@ public class WalletServiceImpl implements WalletService {
         return ledgerEntries.entriesForWallet(getWallet(userId).getId());
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<WalletTransaction> statementFor(UUID userId, int page, int size) {
-        return ledgerEntries.entriesForWallet(getWallet(userId).getId(), page, size);
-    }
-
     private WalletTransaction move(UUID userId, WalletTransactionType type, BigDecimal amount) {
         UUID walletId = wallets.findIdByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Wallet does not exist"));

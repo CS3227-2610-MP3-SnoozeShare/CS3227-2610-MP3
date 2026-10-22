@@ -34,7 +34,7 @@
 | T10 Verify integration and close the phase | T9 | - | 6 | Done |
 | T11 Return complete listing and booking-request collections | T2,T4 | T13 | 7 | Done |
 | T12 Return complete booking and ticket conversation collections | T5,T11 | T13 | 8 | Done |
-| T13 Return the complete wallet statement | T6 | T11,T12 | 7 | Not started |
+| T13 Return the complete wallet statement | T6 | T11,T12 | 7 | Done |
 | T14 Replace paged frontend API and provider types | T11,T12,T13 | - | 9 | Not started |
 | T15 Remove listing and request pagination UI | T14 | T16 | 10 | Not started |
 | T16 Remove message-history and wallet load-more UI | T14 | T15 | 10 | Not started |
@@ -423,11 +423,11 @@
 
 **Checklist**
 
-- [ ] 1. Add failing wallet integration assertions for 101 ledger rows, newest-first tie-breaking, owner exclusion, and legacy query parameters.
-- [ ] 2. Remove paging from the wallet GET/response/service/repository path without changing mocked operations, row locking, ledger/audit, or after-commit behavior.
-- [ ] 3. Run `./gradlew test --tests 'com.snoozeshare.api.host.HostWalletIntegrationTest'`; assert full response and existing mutation atomicity.
-- [ ] 4. Run `./gradlew checkstyleMain checkstyleTest` and `./gradlew build` from `backend/`.
-- [ ] 5. Update branch-state Progress and Changes; commit `feat: return complete Host wallet statement`.
+- [x] 1. Add failing wallet integration assertions for 101 ledger rows, timestamp/ID tie-breaking, owner exclusion, and legacy query parameters; the test failed against the paged response and passed after implementation.
+- [x] 2. Remove paging from the wallet GET/response/service/repository path without changing mocked operations, row locking, ledger/audit, or after-commit behavior.
+- [x] 3. Run `./gradlew test --tests 'com.snoozeshare.api.host.HostWalletIntegrationTest'`; the full response and existing mutation atomicity tests pass.
+- [x] 4. Run `./gradlew checkstyleMain checkstyleTest` and `./gradlew build` from `backend/`; both pass.
+- [x] 5. Update branch-state Progress and Changes; commit `feat: return complete Host wallet statement`.
 
 ### T14: Replace paged frontend API and provider types
 
