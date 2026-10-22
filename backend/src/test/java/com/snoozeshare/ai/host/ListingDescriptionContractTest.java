@@ -20,8 +20,8 @@ class ListingDescriptionContractTest {
                 ListingDescriptionContract.TargetAudience.COUPLES,
                 ListingDescriptionContract.TargetAudience.BUSINESS_TRAVELLERS,
                 ListingDescriptionContract.TargetAudience.ALL_TRAVELLERS);
-        assertThat(ListingDescriptionContract.DescriptionLength.SHORT.range()).isEqualTo("50-74");
-        assertThat(ListingDescriptionContract.DescriptionLength.MEDIUM.range()).isEqualTo("75-124");
+        assertThat(ListingDescriptionContract.DescriptionLength.SHORT.range()).isEqualTo("50-75");
+        assertThat(ListingDescriptionContract.DescriptionLength.MEDIUM.range()).isEqualTo("75-125");
         assertThat(ListingDescriptionContract.DescriptionLength.LONG.range()).isEqualTo("125-200");
     }
 
@@ -46,6 +46,21 @@ class ListingDescriptionContractTest {
         assertThatThrownBy(() -> ListingDescriptionContract.requireWordBand(
             "one two", ListingDescriptionContract.DescriptionLength.SHORT))
             .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void acceptsTheRequestedInclusiveGenerateBoundaries() {
+        String seventyFiveWords = "word ".repeat(75).trim();
+        String oneHundredTwentyFiveWords = "word ".repeat(125).trim();
+
+        ListingDescriptionContract.requireWordBand(
+            seventyFiveWords, ListingDescriptionContract.DescriptionLength.SHORT);
+        ListingDescriptionContract.requireWordBand(
+            seventyFiveWords, ListingDescriptionContract.DescriptionLength.MEDIUM);
+        ListingDescriptionContract.requireWordBand(
+            oneHundredTwentyFiveWords, ListingDescriptionContract.DescriptionLength.MEDIUM);
+        ListingDescriptionContract.requireWordBand(
+            oneHundredTwentyFiveWords, ListingDescriptionContract.DescriptionLength.LONG);
     }
 
     @Test

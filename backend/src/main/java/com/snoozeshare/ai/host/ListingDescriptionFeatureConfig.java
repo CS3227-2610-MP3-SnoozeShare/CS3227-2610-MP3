@@ -45,7 +45,7 @@ public class ListingDescriptionFeatureConfig {
         polished and informative, and Persuasive is engaging without exaggeration. Families should
         receive practical space and amenity emphasis, couples comfort and relevant features,
         business travellers convenience and available work-related amenities, and all travellers a
-        balanced description. SHORT is 50-74 words, MEDIUM is 75-124 words, and LONG is 125-200
+        balanced description. SHORT is 50-75 words, MEDIUM is 75-125 words, and LONG is 125-200
         words. If the current description is non-empty, analyse it in currentAnalysis before creating
         the new description. Analyse the actual generated description in generatedAnalysis. If the
         current description is empty, currentAnalysis must be null.
