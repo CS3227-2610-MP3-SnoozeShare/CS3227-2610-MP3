@@ -7,9 +7,9 @@ after the branch merges.
 - **Branch:** W-AI-GATEWAY (from `development` at `4257d4b`)
 - **Base:** `4257d4b` (development tip when the branch was cut)
 - **Owner:** CongChen
-- **Status:** In review
-- **Approved:** —
-- **Last updated:** 2026-10-22 by Claude Sonnet 5.5 - default staff reserve lowered to 5 percent; gate 3 to be re-confirmed
+- **Status:** Approved
+- **Approved:** Xiao-Congchen 2026-10-22 (re-approved after C~9)
+- **Last updated:** 2026-10-22 by Claude Sonnet 5.5 - re-approved by Xiao-Congchen after C~9
 
 ---
 
@@ -154,3 +154,4 @@ No change. Resolves, on fold, the SoCLaaS-contract half of `PROJECT_STATE.md` Q6
 | 2026-10-22 | Code review of the whole branch (high effort): 5 findings fixed, 1 test-coverage gap left open; branch moved to In review | W~1 | — |
 | 2026-10-22 | Branch approved by Xiao-Congchen (gate 3) | W~1 | — |
 | 2026-10-22 | Amendment C~9: default staff reserve 20 to 5 percent; branch returned from Approved to In review | W~1 | — |
+| 2026-10-22 | Branch re-approved by Xiao-Congchen (gate 3) after C~9 | W~1 | — |
