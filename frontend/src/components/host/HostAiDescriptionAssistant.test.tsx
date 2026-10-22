@@ -8,7 +8,7 @@ vi.mock('@/lib/hostAiApi', async (importOriginal) => ({
   postHostAiListingDescription,
 }));
 
-const listing = { title: 'Cabin', propertyType: 'HOUSE', city: 'Reno', region: 'NV', maxGuests: 2, bedrooms: 1, bathrooms: 1, amenities: ['WIFI'], checkIn: '15:00', checkOut: '11:00' };
+const listing = { title: 'Cabin', propertyType: 'HOUSE', city: 'Reno', region: 'NV', maxGuests: 2, bedrooms: 1, bathrooms: 1, amenities: ['WIFI'], checkInTime: '15:00', checkOutTime: '11:00' };
 const response = { outcome: 'SUCCESS' as const, mode: 'GENERATE' as const, currentAnalysis: null, generatedDescription: 'A grounded suggested description.', generatedAnalysis: { clarity: { status: 'PASS' as const, feedback: 'Clear.' }, completeness: { status: 'PASS' as const, feedback: 'Complete.' }, accuracy: { status: 'PASS' as const, feedback: 'Accurate.' } }, gatewayCode: null, requestId: 'request-1' };
 
 describe('HostAiDescriptionAssistant', () => {
@@ -24,6 +24,9 @@ describe('HostAiDescriptionAssistant', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Generate' }));
 
     await waitFor(() => expect(screen.getByLabelText('Generated description')).toHaveValue(response.generatedDescription));
+    expect(postHostAiListingDescription).toHaveBeenCalledWith(expect.objectContaining({
+      listing: expect.objectContaining({ checkInTime: '15:00', checkOutTime: '11:00' }),
+    }));
     fireEvent.click(screen.getByRole('button', { name: 'Apply generated description' }));
     expect(onApply).toHaveBeenCalledWith(response.generatedDescription);
     expect(onClose).toHaveBeenCalledOnce();

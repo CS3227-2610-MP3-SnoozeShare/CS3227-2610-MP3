@@ -15,8 +15,8 @@ export type ListingFactsPayload = {
   bedrooms: number;
   bathrooms: number;
   amenities: string[];
-  checkIn: string;
-  checkOut: string;
+  checkInTime: string;
+  checkOutTime: string;
 };
 
 export type HostAiListingDescriptionRequest = {

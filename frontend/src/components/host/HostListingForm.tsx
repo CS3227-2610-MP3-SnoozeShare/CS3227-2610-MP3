@@ -129,7 +129,7 @@ export function HostListingForm({ listing }: { listing?: ListingDetail }) {
       </div>
       <HostAiDescriptionAssistant
         description={values.description}
-        listing={{ title: values.title, propertyType: values.propertyType.toUpperCase().replaceAll(' ', '_'), city: values.city, region: values.region, maxGuests: Number(values.maxGuests) || 0, bedrooms: Number(values.bedrooms) || 0, bathrooms: Number(values.bathrooms) || 0, amenities: selectedAmenities, checkIn: values.checkIn, checkOut: values.checkOut }}
+        listing={{ title: values.title, propertyType: values.propertyType.toUpperCase().replaceAll(' ', '_'), city: values.city, region: values.region, maxGuests: Number(values.maxGuests) || 0, bedrooms: Number(values.bedrooms) || 0, bathrooms: Number(values.bathrooms) || 0, amenities: selectedAmenities, checkInTime: values.checkIn, checkOutTime: values.checkOut }}
         listingId={listing?.id}
         onApply={(description) => update('description', description)}
         onClose={() => setAiOpen(false)}
