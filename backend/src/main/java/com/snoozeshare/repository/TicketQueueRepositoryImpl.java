@@ -45,7 +45,7 @@ public class TicketQueueRepositoryImpl implements TicketQueueRepository {
             }
         }
 
-        jpql.append(" ORDER BY t.createdAt ASC");
+        jpql.append(" ORDER BY t.createdAt ASC, t.id ASC");
 
         TypedQuery<Ticket> query = em.createQuery(
                 jpql.toString(), Ticket.class);

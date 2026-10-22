@@ -4,6 +4,8 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +16,12 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import com.snoozeshare.api.controller.HostBookingMessagesController;
+import com.snoozeshare.api.controller.HostCalendarController;
+import com.snoozeshare.api.controller.HostListingController;
+import com.snoozeshare.api.controller.HostRequestsController;
+import com.snoozeshare.api.controller.HostTicketMessagesController;
+import com.snoozeshare.api.controller.HostWalletController;
 import com.snoozeshare.auth.api.AuthErrorResponse;
 import com.snoozeshare.service.AvailabilityConflictException;
 
@@ -21,7 +29,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 
 /** Maps Host API failures to stable, safe responses without exposing exception details. */
-@RestControllerAdvice(basePackages = "com.snoozeshare.api.controller")
+@RestControllerAdvice(assignableTypes = {
+    HostBookingMessagesController.class, HostCalendarController.class, HostListingController.class,
+    HostRequestsController.class, HostTicketMessagesController.class, HostWalletController.class})
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class HostApiExceptionHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HostApiExceptionHandler.class);

@@ -18,6 +18,9 @@ server:
 snoozeshare:
   persistence:
     enabled: true
+  audit:
+    # Audit From/To dates are whole days in this zone
+    zone: Asia/Singapore
 management:
   endpoints:
     web:

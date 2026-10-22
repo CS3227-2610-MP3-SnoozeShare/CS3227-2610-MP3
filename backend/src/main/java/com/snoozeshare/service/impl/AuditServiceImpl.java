@@ -2,6 +2,7 @@ package com.snoozeshare.service.impl;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -9,6 +10,8 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.snoozeshare.config.ConditionalOnDatabase;
@@ -32,12 +35,20 @@ public class AuditServiceImpl implements AuditService {
     private final AuditLogRepository entries;
     private final UserRepository users;
     private final Clock clock;
+    private final ZoneId auditZone;
 
     public AuditServiceImpl(AuditLogRepository entries,
                             UserRepository users, Clock clock) {
+        this(entries, users, clock, clock.getZone());
+    }
+
+    @Autowired
+    public AuditServiceImpl(AuditLogRepository entries, UserRepository users, Clock clock,
+                            @Value("${snoozeshare.audit.zone:Asia/Singapore}") ZoneId auditZone) {
         this.entries = entries;
         this.users = users;
         this.clock = clock;
+        this.auditZone = auditZone;
     }
 
     @Override
@@ -76,11 +87,11 @@ public class AuditServiceImpl implements AuditService {
                 && ID_FRAGMENT.matcher(text).matches()
                 ? text.toLowerCase(Locale.ROOT) : null;
         Instant from = filter.from() == null ? null
-                : filter.from().atStartOfDay(clock.getZone())
+                : filter.from().atStartOfDay(auditZone)
                         .toInstant();
         Instant toExclusive = filter.to() == null ? null
                 : filter.to().plusDays(1)
-                        .atStartOfDay(clock.getZone()).toInstant();
+                        .atStartOfDay(auditZone).toInstant();
         AuditCriteria criteria = new AuditCriteria(
                 textGiven, userIds, fragment,
                 filter.actions().stream().map(Enum::name)

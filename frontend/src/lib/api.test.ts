@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const getIdToken = vi.fn();
-const auth = { currentUser: { getIdToken } };
+const auth: { currentUser: { getIdToken: typeof getIdToken } | null } = { currentUser: { getIdToken } };
 
 vi.mock('./firebase', () => ({ auth }));
 
@@ -80,5 +80,55 @@ describe('validateRegistrationCode', () => {
     await expect(validateRegistrationCode('AGENT', 'agent-code')).rejects.toMatchObject({
       code: 'API_UNAVAILABLE', status: 0,
     });
+  });
+});
+
+describe('apiJson', () => {
+  beforeEach(() => {
+    vi.resetModules();
+    vi.clearAllMocks();
+    process.env.NEXT_PUBLIC_API_BASE_URL = 'http://localhost:8080';
+    auth.currentUser = { getIdToken };
+    getIdToken.mockResolvedValue('id-token');
+  });
+
+  it('parses a JSON body', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{"a":1}', { status: 200 })));
+    const { apiJson } = await import('./api');
+    await expect(apiJson<{ a: number }>('/api/agent/x')).resolves.toEqual({ a: 1 });
+  });
+
+  it('returns undefined for 204 without reading a body', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status: 204 })));
+    const { apiJson } = await import('./api');
+    await expect(apiJson('/api/agent/x', { method: 'DELETE' })).resolves.toBeUndefined();
+  });
+
+  it('throws the stable backend error', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(
+      JSON.stringify({ code: 'CONFLICT', message: 'Ticket is not open', requestId: 'r1' }),
+      { status: 409, headers: { 'Content-Type': 'application/json' } },
+    )));
+    const { apiJson, BackendApiError } = await import('./api');
+    await expect(apiJson('/api/agent/x')).rejects.toEqual(new BackendApiError('CONFLICT', 'Ticket is not open', 'r1', 409));
+  });
+});
+
+describe('isSessionFailure (E45)', () => {
+  it.each([
+    [401, 'INVALID_TOKEN', true],
+    [403, 'PROFILE_INACTIVE', true],
+    [404, 'PROFILE_NOT_REGISTERED', true],
+    [403, 'ROLE_MISMATCH', true],
+    [409, 'CONFLICT', false],
+    [404, 'NOT_FOUND', false],
+  ])('status %i code %s is %s', async (status, code, expected) => {
+    const { BackendApiError, isSessionFailure } = await import('./api');
+    expect(isSessionFailure(new BackendApiError(code, 'm', undefined, status))).toBe(expected);
+  });
+
+  it('ignores errors that are not backend errors', async () => {
+    const { isSessionFailure } = await import('./api');
+    expect(isSessionFailure(new Error('x'))).toBe(false);
   });
 });

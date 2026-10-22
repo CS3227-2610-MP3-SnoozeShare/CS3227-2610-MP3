@@ -1,9 +1,11 @@
 package com.snoozeshare.repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -11,11 +13,20 @@ import com.snoozeshare.domain.enums.ThreadChannel;
 import com.snoozeshare.domain.enums.TicketStatus;
 import com.snoozeshare.domain.model.Ticket;
 
+import jakarta.persistence.LockModeType;
+
 /** Spring Data JPA repository for dispute tickets. */
 public interface TicketRepository
         extends JpaRepository<Ticket, UUID>, TicketQueueRepository {
 
     List<Ticket> findByStatus(TicketStatus status);
+
+    long countByStatusAndAssignedAgentIdIsNull(TicketStatus status);
+
+    /** Locks the ticket row; the caller takes this as its first read of the ticket (SD10). */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT t FROM Ticket t WHERE t.id = :id")
+    Optional<Ticket> findByIdForUpdate(@Param("id") UUID id);
 
     List<Ticket> findByBookingId(UUID bookingId);
 
