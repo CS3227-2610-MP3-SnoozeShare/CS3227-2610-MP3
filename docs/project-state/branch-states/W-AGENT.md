@@ -31,7 +31,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S2 | 2026-10-22 | Claude Sonnet 5.5 | W-AGENT | Active | T6 done | T8 step 1: disputes pages (components drafted, tests written, finish verification) | 2026-10-22 |
+| S2 | 2026-10-22 | Claude Sonnet 5.5 | W-AGENT | Active | T8 done | T9 step 1: accounts page | 2026-10-22 |
 
 **Remaining**
 
@@ -48,7 +48,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AGENT | Agent features: disputes, accounts, audit, categories — REST controllers and Next.js pages | Building | [spec](docs/superpowers/specs/2026-10-22-w-agent-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-agent.md) | T1-T6, T7 Done; T8 next | — |
+| W-AGENT | Agent features: disputes, accounts, audit, categories — REST controllers and Next.js pages | Building | [spec](docs/superpowers/specs/2026-10-22-w-agent-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-agent.md) | T1-T8, T7 Done; T9 next | — |
 
 ---
 
@@ -153,3 +153,4 @@ Q~2 was resolved on 2026-10-22: the operator paused S2 and authorized applying t
 | 2026-10-22 | T4 account endpoints: list (Guests and Hosts), suspend, reactivate; target user row locked first (`UserRepository.findByIdForUpdate`); two-thread test proves one refund; E68 rollback test; full suite and Checkstyle clean | W-AGENT | T4 commits |
 | 2026-10-22 | T5 audit endpoints: search (text, actions, Singapore-day From/To, paging) and action list; `AuditQueryService`; LIKE wildcards in search text are now literal (`ESCAPE '!'`); the actions parameter is a `List` (not a `Set`) so 41 items is rejected even with duplicates; no class-level `@Validated` (it would give a 500) | W-AGENT | T5 commits |
 | 2026-10-22 | T6 category endpoints: list, add, rename, toggle, delete (409 when used); full backend suite passed and Checkstyle clean | W-AGENT | T6 commits |
+| 2026-10-22 | T8 disputes pages: queue, detail, two thread panels, notes, Accept/Reject/Manual dialogs; 123 frontend tests, lint, tsc and build pass | W-AGENT | T8 commits |
