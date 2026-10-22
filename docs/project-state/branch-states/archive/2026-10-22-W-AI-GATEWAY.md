@@ -7,7 +7,7 @@ after the branch merges.
 - **Branch:** W-AI-GATEWAY (from `development` at `4257d4b`)
 - **Base:** `4257d4b` (development tip when the branch was cut)
 - **Owner:** CongChen
-- **Status:** Approved
+- **Status:** Folded
 - **Approved:** Xiao-Congchen 2026-10-22 (re-approved after C~9)
 - **Last updated:** 2026-10-22 by Claude Sonnet 5.5 - re-approved by Xiao-Congchen after C~9
 
@@ -155,3 +155,34 @@ No change. Resolves, on fold, the SoCLaaS-contract half of `PROJECT_STATE.md` Q6
 | 2026-10-22 | Branch approved by Xiao-Congchen (gate 3) | W~1 | — |
 | 2026-10-22 | Amendment C~9: default staff reserve 20 to 5 percent; branch returned from Approved to In review | W~1 | — |
 | 2026-10-22 | Branch re-approved by Xiao-Congchen (gate 3) after C~9 | W~1 | — |
+
+---
+
+## Fold record
+Folded 2026-10-22 by Claude Sonnet 5.5 on development · merge commit `7eef36afc0e2a659fb5b1ad41c3aeebb38ffdf20` · base `4257d4b`
+
+| Provisional | Permanent |
+|---|---|
+| C~1 | C101 |
+| C~2 | C102 |
+| C~3 | C103 |
+| C~4 | C104 |
+| C~5 | C105 |
+| C~6 | C106 |
+| C~7 | C107 |
+| C~8 | C108 |
+| C~9 | C109 |
+| Deviation bullet 1 | D47 |
+| Deviation bullet 2 | D48 |
+| Deviation bullet 3 | D49 |
+| Deviation bullet 4 | D50 |
+| Deviation bullet 5 | D51 |
+| Deviation bullet 6 | D52 |
+| Deviation bullet 7 | D53 |
+| Deviation bullet 8 | D54 |
+| Deviation bullet 9 | D55 |
+| Deviation bullet 10 | D56 |
+
+Workstream W~1 keeps its name, W-AI-GATEWAY, like the other iteration 2 workstreams (no W number allocated).
+
+Sessions discarded at fold: none
