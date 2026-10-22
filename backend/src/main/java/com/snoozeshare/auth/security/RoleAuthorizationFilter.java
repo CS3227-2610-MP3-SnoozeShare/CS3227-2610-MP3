@@ -45,6 +45,7 @@ public class RoleAuthorizationFilter extends OncePerRequestFilter {
         try {
             AuthUserRepository.AuthUser user = authorization.requireActiveUser(identity);
             authorization.requireRole(user.role(), expectedRole(request.getRequestURI()));
+            request.setAttribute("snoozeshare.userId", user.id());
             var authenticated = UsernamePasswordAuthenticationToken.authenticated(
                 identity,
                 null,

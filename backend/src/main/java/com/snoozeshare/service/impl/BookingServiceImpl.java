@@ -117,6 +117,9 @@ public class BookingServiceImpl implements BookingService {
         }
         Property property = properties.findById(propertyId)
                 .orElseThrow(() -> new IllegalArgumentException("Property does not exist"));
+        if (guestId.equals(property.getHostId())) {
+            throw new IllegalArgumentException("Cannot book your own listing");
+        }
         if (property.getStatus() != ListingStatus.ACTIVE) {
             throw new IllegalArgumentException("Listing is not active");
         }
