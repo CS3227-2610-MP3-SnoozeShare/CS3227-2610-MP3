@@ -33,7 +33,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-22 21:56 | GPT-5 (lead) | W~1 | Building | T3 adapter/modal complete; T4 form integration in progress | T4 step 1: add form trigger and Apply tests | 2026-10-23 01:00 |
+| S1 | 2026-10-22 21:56 | GPT-5 (lead) | W~1 | Building | T4 form integration complete; T5 full verification next | T5: run full frontend/backend verification and review | 2026-10-23 01:10 |
 
 **Remaining**
 
@@ -47,7 +47,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W~1 | W-AI-HOST: Host AI Listing Optimisation Assistant | Building | [design](../../superpowers/specs/2026-10-22-w-ai-host-design.md) | [plan](../../superpowers/plans/2026-10-22-w-ai-host.md) | T3 adapter/modal complete; T4 form integration in progress | — |
+| W~1 | W-AI-HOST: Host AI Listing Optimisation Assistant | Building | [design](../../superpowers/specs/2026-10-22-w-ai-host-design.md) | [plan](../../superpowers/plans/2026-10-22-w-ai-host.md) | T4 form integration complete; T5 full verification next | — |
 
 ---
 
@@ -126,3 +126,4 @@ plain-text rendering conventions.
 | 2026-10-23 | T1 contract types, address-free context serialization, Unicode word bands, and validation tests complete | W~1 | T1 |
 | 2026-10-23 | T2 added conditional Host endpoint, gateway feature registration, ownership and output validation, safe degraded mapping, and focused backend tests | W~1 | T2 |
 | 2026-10-23 | T3 added typed Host AI adapter, safe degraded messages, two-column assistant modal, analysis panels, loading lockout, and Apply callback | W~1 | T3 |
+| 2026-10-23 | T4 integrated the compact Sparkles trigger into New/Edit listing forms with an address-free draft snapshot and Apply-only local update | W~1 | T4 |

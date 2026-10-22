@@ -8,12 +8,17 @@ const { createHostListing, fetchHostWallet, updateHostListing, updateHostListing
   createHostListing: vi.fn(), fetchHostWallet: vi.fn(), updateHostListing: vi.fn(), updateHostListingStatus: vi.fn(),
 }));
 const { push } = vi.hoisted(() => ({ push: vi.fn() }));
+const { postHostAiListingDescription } = vi.hoisted(() => ({ postHostAiListingDescription: vi.fn() }));
 vi.mock('@/lib/hostApi', async (importOriginal) => ({
   ...await importOriginal<typeof import('@/lib/hostApi')>(),
   createHostListing, fetchHostWallet, updateHostListing, updateHostListingStatus,
   topUpHostWallet: vi.fn(), withdrawFromHostWallet: vi.fn(),
 }));
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push }), useParams: () => ({ listingId: 'listing-1' }) }));
+vi.mock('@/lib/hostAiApi', async (importOriginal) => ({
+  ...await importOriginal<typeof import('@/lib/hostAiApi')>(),
+  postHostAiListingDescription,
+}));
 
 function fillRequiredFields() {
   fireEvent.change(screen.getByLabelText('Title'), { target: { value: 'New Cabin' } });
@@ -61,5 +66,25 @@ describe('HostListingForm with the API provider', () => {
     expect(alert.parentElement?.lastElementChild).toBe(alert);
     expect(alert.parentElement?.firstElementChild).toContainElement(screen.getByRole('button', { name: 'Save listing' }));
     expect(push).not.toHaveBeenCalled();
+  });
+
+  it('applies the generated description to the draft without saving the listing', async () => {
+    postHostAiListingDescription.mockResolvedValue({
+      outcome: 'SUCCESS', mode: 'GENERATE', currentAnalysis: null,
+      generatedDescription: 'A generated draft description.',
+      generatedAnalysis: { clarity: { status: 'PASS', feedback: 'Clear.' }, completeness: { status: 'PASS', feedback: 'Complete.' }, accuracy: { status: 'PASS', feedback: 'Accurate.' } },
+      gatewayCode: null, requestId: 'request-1',
+    });
+    render(<HostListingForm />);
+    fireEvent.change(screen.getByLabelText('Description'), { target: { value: 'Original draft' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Open AI assistant' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Generate' }));
+
+    await waitFor(() => expect(screen.getByLabelText('Generated description')).toHaveValue('A generated draft description.'));
+    fireEvent.click(screen.getByRole('button', { name: 'Apply generated description' }));
+
+    expect(screen.getByLabelText('Description')).toHaveValue('A generated draft description.');
+    expect(createHostListing).not.toHaveBeenCalled();
+    expect(updateHostListing).not.toHaveBeenCalled();
   });
 });

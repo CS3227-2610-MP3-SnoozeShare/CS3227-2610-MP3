@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Sparkles } from 'lucide-react';
 import type { ListingDetail } from './hostTypes';
 import { validateListing, type ListingFormValues } from './hostListingValidation';
 import { useOptionalHostApi } from './HostApiProvider';
@@ -9,6 +10,7 @@ import { hostSafeErrorMessage } from '@/lib/hostApi';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Field } from '@/components/ui/input';
 import { SelectField } from '@/components/ui/select';
+import { HostAiDescriptionAssistant } from './HostAiDescriptionAssistant';
 
 const blank: ListingFormValues = { title: '', description: '', propertyType: 'House', status: 'active', streetAddress: '', city: '', region: '', postalCode: '', maxGuests: '', bedrooms: '', bathrooms: '', rate: '', checkIn: '', checkOut: '' };
 const propertyTypes = ['House', 'Apartment', 'Condo', 'Private room'];
@@ -41,6 +43,8 @@ export function HostListingForm({ listing }: { listing?: ListingDetail }) {
   const [errors, setErrors] = useState<Partial<Record<keyof ListingFormValues, string>>>({});
   const [requestError, setRequestError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [selectedAmenities, setSelectedAmenities] = useState<string[]>(() => listing?.amenities.map((amenity) => amenity.toUpperCase().replaceAll(' ', '_')) ?? []);
   const update = (key: keyof ListingFormValues, value: string) => setValues((current) => ({ ...current, [key]: value }));
   const submit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -90,7 +94,7 @@ export function HostListingForm({ listing }: { listing?: ListingDetail }) {
             <CardHeader><CardTitle className="text-sm font-bold leading-tight text-primary">BASIC DETAILS</CardTitle></CardHeader>
             <CardContent className="space-y-2">
               {field('title', 'Title')}
-              <label className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--text-muted)]" htmlFor="description"><span>Description</span><textarea className="min-h-28 rounded-lg border border-input bg-background p-3 text-sm font-normal outline-none focus:border-ring focus:ring-3 focus:ring-ring/20" id="description" name="description" placeholder={fieldPlaceholders.description} value={values.description} onChange={(event) => update('description', event.target.value)} /></label>
+              <div className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--text-muted)]"><div className="flex items-center justify-between gap-2"><label htmlFor="description">Description</label><button aria-label="Open AI assistant" className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs font-semibold text-primary" onClick={() => setAiOpen(true)} title="AI Description Assistant" type="button"><Sparkles aria-hidden="true" size={14} />AI Description Assistant</button></div><textarea className="min-h-28 rounded-lg border border-input bg-background p-3 text-sm font-normal outline-none focus:border-ring focus:ring-3 focus:ring-ring/20" id="description" name="description" placeholder={fieldPlaceholders.description} value={values.description} onChange={(event) => update('description', event.target.value)} /></div>
               <p className="-mt-2 min-h-4 text-xs text-destructive">{errors.description}</p>
               <div className="grid gap-2 sm:grid-cols-2">
                 <label className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--text-muted)]"><span>Property type</span><SelectField aria-label="Property type" name="propertyType" value={values.propertyType} options={propertyTypes.map((value) => ({ value, label: value }))} onValueChange={(value) => update('propertyType', value)} /></label>
@@ -118,11 +122,19 @@ export function HostListingForm({ listing }: { listing?: ListingDetail }) {
           <Card className="order-4 w-full">
             <CardHeader><CardTitle className="text-sm font-bold leading-tight text-primary">AMENITIES</CardTitle></CardHeader>
             <CardContent className="grid gap-2 sm:grid-cols-2">
-              {amenities.map((amenity) => <label className="flex min-h-9 items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm" key={amenity}><input type="checkbox" name="amenities" value={amenity.toUpperCase().replaceAll(' ', '_')} defaultChecked={listing?.amenities.includes(amenity) ?? false} />{amenity}</label>)}
+              {amenities.map((amenity) => { const value = amenity.toUpperCase().replaceAll(' ', '_'); return <label className="flex min-h-9 items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm" key={amenity}><input checked={selectedAmenities.includes(value)} name="amenities" onChange={(event) => setSelectedAmenities((current) => event.target.checked ? [...current, value] : current.filter((item) => item !== value))} type="checkbox" value={value} />{amenity}</label>; })}
             </CardContent>
           </Card>
         </div>
       </div>
+      <HostAiDescriptionAssistant
+        description={values.description}
+        listing={{ title: values.title, propertyType: values.propertyType.toUpperCase().replaceAll(' ', '_'), city: values.city, region: values.region, maxGuests: Number(values.maxGuests) || 0, bedrooms: Number(values.bedrooms) || 0, bathrooms: Number(values.bathrooms) || 0, amenities: selectedAmenities, checkIn: values.checkIn, checkOut: values.checkOut }}
+        listingId={listing?.id}
+        onApply={(description) => update('description', description)}
+        onClose={() => setAiOpen(false)}
+        open={aiOpen}
+      />
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex gap-2">
           <button className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground" disabled={saving} type="submit">{saving ? 'Saving…' : 'Save listing'}</button>
