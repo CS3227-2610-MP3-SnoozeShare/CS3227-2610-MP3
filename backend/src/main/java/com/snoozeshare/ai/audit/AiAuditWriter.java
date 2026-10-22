@@ -11,15 +11,14 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
 import com.snoozeshare.ai.AuditContext;
 import com.snoozeshare.ai.LlmErrorCode;
 import com.snoozeshare.ai.config.LlmProperties;
+import com.snoozeshare.config.ConditionalOnDatabase;
 import com.snoozeshare.domain.enums.AuditAction;
 import com.snoozeshare.repository.AuditLogRepository;
-import com.snoozeshare.repository.PropertyRepository;
 import com.snoozeshare.service.AuditRecord;
 import com.snoozeshare.service.AuditService;
 
@@ -31,7 +30,7 @@ import com.snoozeshare.service.AuditService;
  * upstream error text.
  */
 @Component
-@ConditionalOnBean(PropertyRepository.class)
+@ConditionalOnDatabase
 public class AiAuditWriter {
 
     private static final Logger LOG = LoggerFactory.getLogger(AiAuditWriter.class);

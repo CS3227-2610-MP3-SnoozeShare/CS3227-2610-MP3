@@ -8,10 +8,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.snoozeshare.config.ConditionalOnDatabase;
 import com.snoozeshare.domain.enums.AccountStatus;
 import com.snoozeshare.domain.enums.AuditAction;
 import com.snoozeshare.domain.enums.ListingStatus;
@@ -31,7 +31,7 @@ import com.snoozeshare.service.SearchResult;
 import com.snoozeshare.service.UserService;
 
 @Service
-@ConditionalOnBean(PropertyRepository.class)
+@ConditionalOnDatabase
 public class ListingServiceImpl implements ListingService {
 
     private final StayDatePolicy searchDates;
