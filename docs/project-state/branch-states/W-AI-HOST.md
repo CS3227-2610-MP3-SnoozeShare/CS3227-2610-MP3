@@ -7,8 +7,8 @@ after the branch merges.
 - **Branch:** W-AI-HOST (from `development` at `f6cad04`)
 - **Base:** `de137c6`
 - **Owner:** Xiao-Congchen
-- **Status:** Planned
-- **Approved:** Spec and plan approved (Xiao-Congchen, 2026-10-22); implementation in progress
+- **Status:** In review
+- **Approved:** Spec and plan approved (Xiao-Congchen, 2026-10-22); Gate 3 review requested
 - **Last updated:** 2026-10-22 by GPT-5 — started Host AI feature
 
 ---
@@ -33,13 +33,13 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-22 21:56 | GPT-5 (lead) | W~1 | Building | T4 form integration complete; T5 full verification next | T5: run full frontend/backend verification and review | 2026-10-23 01:10 |
+| — | — | — | — | — | — | — | — |
 
 **Remaining**
 
-- [ ] Implement and verify T3 typed frontend adapter and modal.
-- [ ] Implement and verify T4 New/Edit form integration.
-- [ ] Run T5 full verification, code review, and Gate 3 handoff.
+- [ ] Operator/browser session checks at desktop/tablet/390px.
+- [ ] Resolve or separately accept the pre-existing Next.js prerender route-module failure.
+- [ ] Gate 3 approval, then separately ask whether to push/open a PR.
 
 ---
 
@@ -47,7 +47,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W~1 | W-AI-HOST: Host AI Listing Optimisation Assistant | Building | [design](../../superpowers/specs/2026-10-22-w-ai-host-design.md) | [plan](../../superpowers/plans/2026-10-22-w-ai-host.md) | T4 form integration complete; T5 full verification next | — |
+| W~1 | W-AI-HOST: Host AI Listing Optimisation Assistant | In review | [design](../../superpowers/specs/2026-10-22-w-ai-host-design.md) | [plan](../../superpowers/plans/2026-10-22-w-ai-host.md) | T1–T4 complete; tests/lint/build review done; browser checks and Next prerender issue remain | — |
 
 ---
 
@@ -109,6 +109,11 @@ plain-text rendering conventions.
   before the first implementation edit, because the generic gateway response type and existing
   Host service ownership API had to be inspected together. The tests cover the approved behavior;
   no scope or contract was changed.
+- **D~2 (2026-10-23):** `frontend/npm run build` compiled and passed type checking but failed while
+  prerendering pre-existing `/_not-found` and `/guest/*` route modules that are absent from the
+  repository. This is outside the Host AI diff and remains a handover item.
+- **D~3 (2026-10-23):** Browser/manual responsive checks were not run in this session; focused and
+  full Vitest coverage plus lint passed, and the operator can verify the rendered flow at Gate 3.
 
 ---
 
@@ -127,3 +132,4 @@ plain-text rendering conventions.
 | 2026-10-23 | T2 added conditional Host endpoint, gateway feature registration, ownership and output validation, safe degraded mapping, and focused backend tests | W~1 | T2 |
 | 2026-10-23 | T3 added typed Host AI adapter, safe degraded messages, two-column assistant modal, analysis panels, loading lockout, and Apply callback | W~1 | T3 |
 | 2026-10-23 | T4 integrated the compact Sparkles trigger into New/Edit listing forms with an address-free draft snapshot and Apply-only local update | W~1 | T4 |
+| 2026-10-23 | T5 verification: backend build, frontend tests (219), lint, diff inspection, and implementation review passed; frontend production prerender and browser checks remain recorded deviations | W~1 | T5 |
