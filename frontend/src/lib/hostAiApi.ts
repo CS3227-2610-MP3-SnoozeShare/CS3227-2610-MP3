@@ -2,8 +2,8 @@ import { BackendApiError, authenticatedFetch } from './api';
 
 export type AiMode = 'EVALUATE' | 'GENERATE';
 export type AiWritingStyle = 'FRIENDLY' | 'PROFESSIONAL' | 'PERSUASIVE';
-export type AiTargetAudience = 'FAMILIES' | 'COUPLES' | 'BUSINESS_TRAVELLERS' | 'ALL_TRAVELLERS';
-export type AiDescriptionLength = 'SHORT' | 'MEDIUM' | 'LONG';
+export type AiTargetAudience = 'ALL_TRAVELLERS' | 'FAMILIES' | 'COUPLES' | 'BUSINESS_TRAVELLERS';
+export type AiDescriptionFocus = 'BALANCED' | 'COMFORT' | 'PRACTICALITY';
 export type AiStatus = 'PASS' | 'IMPROVE';
 
 export type ListingFactsPayload = {
@@ -24,7 +24,7 @@ export type HostAiListingDescriptionRequest = {
   mode: AiMode;
   writingStyle: AiWritingStyle;
   targetAudience: AiTargetAudience;
-  length: AiDescriptionLength;
+  descriptionFocus: AiDescriptionFocus;
   currentDescription: string;
   listing: ListingFactsPayload;
 };

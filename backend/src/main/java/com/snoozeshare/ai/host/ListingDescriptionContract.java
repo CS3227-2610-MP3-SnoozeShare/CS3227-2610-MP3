@@ -37,40 +37,15 @@ public final class ListingDescriptionContract {
     }
 
     public enum TargetAudience {
-        FAMILIES, COUPLES, BUSINESS_TRAVELLERS, ALL_TRAVELLERS
+        ALL_TRAVELLERS, FAMILIES, COUPLES, BUSINESS_TRAVELLERS
     }
 
     public enum Status {
         PASS, IMPROVE
     }
 
-    public enum DescriptionLength {
-        SHORT(50, 75),
-        MEDIUM(75, 125);
-
-        private final int minimum;
-        private final int maximum;
-
-        DescriptionLength(int minimum, int maximum) {
-            this.minimum = minimum;
-            this.maximum = maximum;
-        }
-
-        public int minimum() {
-            return minimum;
-        }
-
-        public int maximum() {
-            return maximum;
-        }
-
-        public String range() {
-            return minimum + "-" + maximum;
-        }
-
-        public boolean contains(int count) {
-            return count >= minimum && count <= maximum;
-        }
+    public enum DescriptionFocus {
+        BALANCED, COMFORT, PRACTICALITY
     }
 
     public record ListingFacts(String title, String propertyType, String city, String region,
@@ -111,14 +86,15 @@ public final class ListingDescriptionContract {
         }
     }
 
-    public static String serializeContext(String mode, String style, String audience, String length,
+    public static String serializeContext(String mode, String style, String audience, String focus,
                                           String currentDescription, ListingFacts facts) {
         Objects.requireNonNull(facts, "listing facts must not be null");
         Map<String, Object> root = new LinkedHashMap<>();
         root.put("mode", mode);
         root.put("writingStyle", style);
         root.put("targetAudience", audience);
-        root.put("descriptionLength", length);
+        root.put("descriptionLength", "50-150");
+        root.put("descriptionFocus", focus);
         root.put("currentDescription", currentDescription == null ? "" : currentDescription);
         root.put("listing", facts);
         try {

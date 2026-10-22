@@ -64,7 +64,7 @@ public class HostListingDescriptionService {
 
         String context = ListingDescriptionContract.serializeContext(
             request.mode().name(), request.writingStyle().name(), request.targetAudience().name(),
-            request.length().name(), request.currentDescription(), request.listing());
+            request.descriptionFocus().name(), request.currentDescription(), request.listing());
         LlmCall call = new LlmCall(hostId, com.snoozeshare.domain.enums.Role.HOST,
             List.of(new Turn(TurnRole.USER, USER_TASK)), null, context, AuditContext.NONE);
         LlmResult<ListingDescriptionModelResponse> result = gateway.run(feature, call);

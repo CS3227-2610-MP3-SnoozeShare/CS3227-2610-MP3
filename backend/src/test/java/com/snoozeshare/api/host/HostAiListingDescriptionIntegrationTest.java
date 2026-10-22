@@ -18,11 +18,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
 
 import com.snoozeshare.ai.AiFeature;
 import com.snoozeshare.ai.LlmErrorCode;
+import com.snoozeshare.ai.LlmCall;
 import com.snoozeshare.ai.LlmGateway;
 import com.snoozeshare.ai.LlmResult;
 import com.snoozeshare.ai.host.HostListingDescriptionService;
@@ -105,6 +107,27 @@ class HostAiListingDescriptionIntegrationTest {
     }
 
     @Test
+    void acceptsUsableGenerateResponseWithoutRetiredWordBandAndSerializesFocus() {
+        HostAiListingDescriptionRequest request = new HostAiListingDescriptionRequest(
+            null, ListingDescriptionContract.Mode.GENERATE,
+            ListingDescriptionContract.WritingStyle.PROFESSIONAL,
+            ListingDescriptionContract.TargetAudience.ALL_TRAVELLERS,
+            ListingDescriptionContract.DescriptionFocus.COMFORT, "", facts());
+        ListingDescriptionModelResponse model = new ListingDescriptionModelResponse(
+            ListingDescriptionContract.Outcome.SUCCESS, ListingDescriptionContract.Mode.GENERATE,
+            null, "Brief factual copy.", analysis());
+        when(gateway.run(any(), any())).thenReturn(LlmResult.ok(model, false, false, UUID.randomUUID()));
+
+        HostAiListingDescriptionResponse response = service.run(identity, request, "request-focus");
+
+        assertThat(response.outcome()).isEqualTo(ListingDescriptionContract.Outcome.SUCCESS);
+        ArgumentCaptor<LlmCall> call = ArgumentCaptor.forClass(LlmCall.class);
+        verify(gateway).run(any(), call.capture());
+        assertThat(call.getValue().untrustedContext())
+            .contains("descriptionFocus\":\"COMFORT\"", "descriptionLength\":\"50-150\"");
+    }
+
+    @Test
     void rejectsBlankEvaluateWithoutCallingGateway() {
         HostAiListingDescriptionRequest request = request(
             ListingDescriptionContract.Mode.EVALUATE, " ");
@@ -123,7 +146,7 @@ class HostAiListingDescriptionIntegrationTest {
             listingId, ListingDescriptionContract.Mode.GENERATE,
             ListingDescriptionContract.WritingStyle.FRIENDLY,
             ListingDescriptionContract.TargetAudience.ALL_TRAVELLERS,
-            ListingDescriptionContract.DescriptionLength.MEDIUM, "", facts());
+            ListingDescriptionContract.DescriptionFocus.BALANCED, "", facts());
 
         assertThatThrownBy(() -> service.run(identity, request, "request-4"))
             .isInstanceOf(HostApiException.class)
@@ -176,7 +199,7 @@ class HostAiListingDescriptionIntegrationTest {
         return new HostAiListingDescriptionRequest(null, mode,
             ListingDescriptionContract.WritingStyle.FRIENDLY,
             ListingDescriptionContract.TargetAudience.ALL_TRAVELLERS,
-            ListingDescriptionContract.DescriptionLength.MEDIUM, description, facts());
+            ListingDescriptionContract.DescriptionFocus.BALANCED, description, facts());
     }
 
     private ListingDescriptionContract.ListingFacts facts() {

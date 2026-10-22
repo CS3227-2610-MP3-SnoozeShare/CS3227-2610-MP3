@@ -22,12 +22,9 @@ describe('HostAiDescriptionAssistant', () => {
 
     expect(screen.getByText('Your listing details help the assistant create a grounded description based on the property information you provide.')).toBeInTheDocument();
     expect(screen.getByLabelText('Current description')).toHaveValue('Existing copy');
-    expect(screen.getByText('Short')).toBeInTheDocument();
-    expect(screen.getByText('Medium')).toBeInTheDocument();
-    expect(screen.queryByText('Long')).not.toBeInTheDocument();
-    expect(screen.queryByText('50–75 words')).not.toBeInTheDocument();
-    expect(screen.queryByText('75–125 words')).not.toBeInTheDocument();
-    expect(screen.queryByText('125–200 words')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Description focus')).toHaveTextContent('Balanced');
+    expect(screen.getByLabelText('Target audience')).toHaveTextContent('All travellers');
+    expect(screen.queryByText('Description length')).not.toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Current description'), { target: { value: '' } });
     expect(screen.getByRole('button', { name: 'Evaluate' })).toBeDisabled();
     fireEvent.click(screen.getByRole('button', { name: /^Generate/ }));
@@ -36,6 +33,8 @@ describe('HostAiDescriptionAssistant', () => {
     expect(screen.queryByText('PASS: Clear.')).not.toBeInTheDocument();
     expect(screen.getAllByText('Clear.')).toHaveLength(2);
     expect(postHostAiListingDescription).toHaveBeenCalledWith(expect.objectContaining({
+      descriptionFocus: 'BALANCED',
+      targetAudience: 'ALL_TRAVELLERS',
       listing: expect.objectContaining({ checkInTime: '15:00', checkOutTime: '11:00' }),
     }));
     fireEvent.click(screen.getByRole('button', { name: 'Apply generated description' }));

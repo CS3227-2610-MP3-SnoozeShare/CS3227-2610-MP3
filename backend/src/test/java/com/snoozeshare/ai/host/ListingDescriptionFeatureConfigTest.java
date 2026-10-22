@@ -30,12 +30,14 @@ class ListingDescriptionFeatureConfigTest {
     }
 
     @Test
-    void promptDefinesTheSelectedDescriptionLengthGuidance() {
+    void promptDefinesFixedLengthGuidanceAndFocus() {
         assertThat(feature.systemPrompt())
-            .contains("SHORT is 50-75 words", "MEDIUM is 75-125 words")
-            .contains("descriptionLength is", "authoritative", "Count the words before returning")
-            .contains("If the count is outside the selected band")
-            .contains("Do not add filler just to reach");
+            .contains("50-150 words")
+            .contains("Balanced", "Comfort", "Practicality")
+            .contains("living space, comfort, and available facilities")
+            .contains("functional features and suitability for everyday needs")
+            .contains("Do not add filler just to reach")
+            .doesNotContain("SHORT is 50-75 words", "MEDIUM is 75-125 words", "selected band");
     }
 
     @Test

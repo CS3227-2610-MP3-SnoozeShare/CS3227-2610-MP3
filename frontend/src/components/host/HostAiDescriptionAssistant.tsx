@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Check, CircleAlert, X } from 'lucide-react';
-import { postHostAiListingDescription, hostAiGatewayMessage, hostAiSafeErrorMessage, type AiAnalysis, type AiDescriptionLength, type AiMode, type AiTargetAudience, type AiWritingStyle, type HostAiListingDescriptionResponse, type ListingFactsPayload } from '@/lib/hostAiApi';
+import { postHostAiListingDescription, hostAiGatewayMessage, hostAiSafeErrorMessage, type AiAnalysis, type AiDescriptionFocus, type AiMode, type AiTargetAudience, type AiWritingStyle, type HostAiListingDescriptionResponse, type ListingFactsPayload } from '@/lib/hostAiApi';
 import { SelectField } from '@/components/ui/select';
 
 type Props = {
@@ -18,17 +18,17 @@ const styles: { value: AiWritingStyle; label: string }[] = [
   { value: 'FRIENDLY', label: 'Friendly' }, { value: 'PROFESSIONAL', label: 'Professional' }, { value: 'PERSUASIVE', label: 'Persuasive' },
 ];
 const audiences: { value: AiTargetAudience; label: string }[] = [
-  { value: 'FAMILIES', label: 'Families' }, { value: 'COUPLES', label: 'Couples' }, { value: 'BUSINESS_TRAVELLERS', label: 'Business travellers' }, { value: 'ALL_TRAVELLERS', label: 'All travellers' },
+  { value: 'ALL_TRAVELLERS', label: 'All travellers' }, { value: 'FAMILIES', label: 'Families' }, { value: 'COUPLES', label: 'Couples' }, { value: 'BUSINESS_TRAVELLERS', label: 'Business travellers' },
 ];
-const lengths: { value: AiDescriptionLength; label: string }[] = [
-  { value: 'SHORT', label: 'Short' }, { value: 'MEDIUM', label: 'Medium' },
+const focuses: { value: AiDescriptionFocus; label: string }[] = [
+  { value: 'BALANCED', label: 'Balanced' }, { value: 'COMFORT', label: 'Comfort' }, { value: 'PRACTICALITY', label: 'Practicality' },
 ];
 
 export function HostAiDescriptionAssistant({ open, listingId, listing, description, onApply, onClose }: Props) {
   const [draft, setDraft] = useState(description);
   const [style, setStyle] = useState<AiWritingStyle>('FRIENDLY');
   const [audience, setAudience] = useState<AiTargetAudience>('ALL_TRAVELLERS');
-  const [length, setLength] = useState<AiDescriptionLength>('MEDIUM');
+  const [focus, setFocus] = useState<AiDescriptionFocus>('BALANCED');
   const [pending, setPending] = useState<AiMode | null>(null);
   const [response, setResponse] = useState<HostAiListingDescriptionResponse | null>(null);
   const [error, setError] = useState('');
@@ -64,7 +64,7 @@ export function HostAiDescriptionAssistant({ open, listingId, listing, descripti
     setResponse(null);
     setError('');
     try {
-      const next = await postHostAiListingDescription({ listingId, mode, writingStyle: style, targetAudience: audience, length, currentDescription: draft, listing });
+      const next = await postHostAiListingDescription({ listingId, mode, writingStyle: style, targetAudience: audience, descriptionFocus: focus, currentDescription: draft, listing });
       if (!mounted.current) return;
       if (next.outcome === 'DEGRADED') setError(hostAiGatewayMessage(next.gatewayCode ?? 'AI_ERROR'));
       else setResponse(next);
@@ -95,7 +95,7 @@ export function HostAiDescriptionAssistant({ open, listingId, listing, descripti
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <label className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--text-muted)]"><span>Writing style</span><SelectField aria-label="Writing style" disabled={disabled} name="ai-writing-style" options={styles} value={style} onValueChange={(value) => setStyle(value as AiWritingStyle)} /></label>
               <label className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--text-muted)]"><span>Target audience</span><SelectField aria-label="Target audience" disabled={disabled} name="ai-target-audience" options={audiences} value={audience} onValueChange={(value) => setAudience(value as AiTargetAudience)} /></label>
-            <fieldset className="space-y-2" disabled={disabled}><legend className="text-xs font-semibold text-[var(--text-muted)]">Description length</legend><div className="flex flex-wrap gap-4">{lengths.map((option) => <label className="flex items-center gap-2 text-sm" key={option.value}><input checked={length === option.value} name="ai-description-length" onChange={() => setLength(option.value)} type="radio" />{option.label}</label>)}</div></fieldset>
+              <label className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--text-muted)]"><span>Description focus</span><SelectField aria-label="Description focus" disabled={disabled} name="ai-description-focus" options={focuses} value={focus} onValueChange={(value) => setFocus(value as AiDescriptionFocus)} /></label>
           </div>
           <div className="grid gap-5 lg:grid-cols-2">
             <label className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--text-muted)]"><span>Current description</span><textarea aria-label="Current description" className="min-h-44 rounded-lg border border-input bg-background p-3 text-sm font-normal outline-none focus:border-ring focus:ring-3 focus:ring-ring/20" disabled={disabled} value={draft} onChange={(event) => setDraft(event.target.value)} /></label>

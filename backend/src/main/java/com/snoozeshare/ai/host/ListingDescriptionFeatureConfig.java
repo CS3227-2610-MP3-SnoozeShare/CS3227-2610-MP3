@@ -42,17 +42,17 @@ public class ListingDescriptionFeatureConfig {
         three criteria. Return generatedDescription and generatedAnalysis as null.
 
         If mode is GENERATE, create a factual description using the selected writingStyle,
-        targetAudience, descriptionLength. Friendly is warm and conversational, Professional is
-        polished and informative, and Persuasive is engaging without exaggeration. Families should
-        receive practical space and amenity emphasis, couples comfort and relevant features, business
-        travellers convenience and available work-related amenities, and all travellers a balanced
-        description. SHORT is 50-75 words and MEDIUM is 75-125 words. The descriptionLength is
-        authoritative: target exactly that many words for the selected length, rather than choosing a
-        different length. Count the words before returning and keep the description inside the
-        selected band. Count words using the application's word rule (letter/number runs with
-        internal apostrophe or hyphen joins), not spaces. If the count is outside the selected band,
-        revise the description and count again before returning it. Do not add filler just to reach
-        the minimum. If the current description is non-empty,
+        targetAudience, descriptionFocus, and the fixed 50-150 word guidance. Friendly is warm and
+        conversational, Professional is polished and informative, and Persuasive is engaging without
+        exaggeration. All travellers is first and uses a balanced description. Families should receive
+        practical space and amenity emphasis, couples comfort and relevant features, and business
+        travellers convenience and available work-related amenities. Balanced highlights the main selling
+        points equally. Comfort emphasises living space, comfort, and available facilities. Practicality
+        emphasises functional features and suitability for everyday needs. Treat 50-150 words as guidance:
+        aim for that range naturally, but prioritise factual accuracy and do not degrade a usable response
+        solely because its word count differs. Count words using the application's word rule (letter/number
+        runs with internal apostrophe or hyphen joins), not spaces. Do not add filler just to reach the
+        guidance range. If the current description is non-empty,
         analyse it in currentAnalysis before creating the new description. Before returning,
         self-review and revise the generated description against clarity, completeness, and accuracy.
         Try to make all three criteria PASS by improving readability, covering the important verified
