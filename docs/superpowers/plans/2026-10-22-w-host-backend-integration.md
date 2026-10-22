@@ -1,8 +1,9 @@
 # W-HOST Backend Integration Implementation Plan
 
-- **Status:** Approved (teleifo, 2026-10-22)
+- **Status:** Approved (Trevor, 2026-10-22)
 - **Amended 2026-10-22:** Added prerequisite T0 with operator approval C~17; all service-dependent API tasks now depend on T0.
 - **Amended and approved 2026-10-22:** Added T11-T17 to reverse collection/history pagination per approved spec amendment C~19.
+- **Amended and approved 2026-10-22:** Reconciled completed T3 overlap response contract with source-specific 409 codes per spec amendment C~28; implementation follow-up completed in `e25744a`.
 - **Execution note:** T0-T10 record the original completed paging contract; their checked historical evidence is superseded for collection reads by T11-T17. Final acceptance uses the current F8/E26-E28 traceability rows.
 
 > **For agents:** tick `- [ ]` to `- [x]` as each step is completed, in the same commit as the work. Keep the W-HOST branch state's Progress cell current. Spec: [W-HOST Backend Integration Design](../specs/2026-10-22-w-host-backend-integration-design.md).
@@ -193,7 +194,7 @@
 
 - [x] 1. Write failing tests for E3,E6,E18; cover malformed/past/reversed/overlapping ranges, cross-host 404s, and two concurrent overlapping requests by the authorized listing owner (two distinct owners cannot both be authorized for one listing).
 - [x] 2. Add the month DTO/controller and transactional mutation retry; convert inclusive API end dates to the existing half-open service representation exactly once.
-- [x] 3. Run tests; assert one overlapping block at most, expected 422 after retry, 409 after a second serialization failure, and audit only for committed writes.
+- [x] 3. Run tests; assert one overlapping block at most, source-specific 409 after an overlap retry (booking precedence), 409 `STATE_CONFLICT` after a second serialization failure, and audit only for committed writes.
 - [x] 4. Run backend Checkstyle (`./gradlew checkstyleMain checkstyleTest`) and build.
 - [x] 5. Update branch state; commit `feat: expose atomic Host calendar API` (`fb4188a`).
 

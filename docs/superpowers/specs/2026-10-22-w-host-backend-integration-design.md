@@ -1,13 +1,15 @@
 # W-HOST Backend Integration Design
 
-- **Status:** Approved (teleifo, 2026-10-22)
+- **Status:** Approved (Trevor, 2026-10-22)
 - **Risk tier:** High - this crosses authenticated role authorization, host tenancy, booking state, messaging, and wallet operations.
 - **Workstream:** W-HOST-API | **Plan:** [implementation plan](../plans/2026-10-22-w-host-backend-integration.md)
 - **Constraints consulted:** C67, C70, C73, C75, C78, C79, C89, C92; § Known Gaps (mocked top-up/withdraw, backend authorization authoritative); § Conventions (audit, money, service authorization, Testcontainers)
-- **Reviewed by lenses:** Implementer, Tester / QA, Maintainer, and Attacker (prior to the C~16 wallet-contract amendment); second-round findings addressed. Review-round cap reached; the amended wallet contract is recorded for operator approval, not independently re-reviewed.
+- **Reviewed by lenses:** Implementer, Tester / QA, Maintainer, and Attacker (prior to the C~16 wallet-contract amendment); second-round findings addressed. Current amendment reviewed by Implementer, Tester / QA, Maintainer, and Attacker; no blocking findings.
 - **Amended 2026-10-22:** Operator reversed the wallet idempotency default; see branch-state C~16.
 - **Amended and approved 2026-10-22:** Add deterministic persistence-backed service activation prerequisite; operator approval recorded as branch-state C~17.
 - **Amended and approved 2026-10-22:** Reverse bounded collection/history pagination; see branch-state C~19.
+- **Amended and approved 2026-10-22:** Calendar block overlap errors return source-specific 409 codes; see branch-state C~28.
+- **Amendment review:** Second round complete — Implementer, Tester / QA, Maintainer, Attacker; no blocking findings. The remaining overlap-response body assertion gap is recorded under D~34.
 - **Amendment review:** Round 2 complete — Implementer, Tester, Maintainer, Attacker; no blocking findings. Accepted resource-cost findings remain under C~19/E28.
 
 ## 1. Problem

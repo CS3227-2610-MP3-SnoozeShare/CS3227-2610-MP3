@@ -7,8 +7,9 @@ in after the branch merges.
 - **Branch:** W-HOST (from `development` at `8702e88`)
 - **Base:** `e185dc0`
 - **Owner:** project owner
-- **Status:** In review
-- **Last updated:** 2026-10-22 by GPT-5 — distinguished calendar block conflicts by source
+- **Status:** Approved
+- **Approved:** Trevor 2026-10-22
+- **Last updated:** 2026-10-22 by GPT-5 — reconciled calendar API contract and recorded owner approval
 
 ---
 
@@ -34,7 +35,7 @@ No change.
 
 **Remaining**
 
-- [ ] Owner review and approval remain for W-HOST and W-HOST-API, including the listing/calendar and wallet-modal follow-ups.
+- [x] Owner approved W-HOST and W-HOST-API after the calendar API spec/plan reconciliation; the remaining overlap-response full-body assertion gap is recorded as D~34.
 - [x] T4 booking decisions: owner-scoped database paging, authenticated API, row-lock decision and concurrency tests are complete.
 - [x] T5 Host booking/ticket message APIs: distinct authenticated routes, database-bounded summaries/history, after-commit events and rollback coverage complete.
 - [x] T6 Host wallet API: authenticated balance, paged statement and mocked mutation routes; five PostgreSQL integration tests pass.
@@ -58,7 +59,7 @@ No change.
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
 | W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [experience corrections spec](docs/superpowers/specs/2026-10-22-w-host-experience-corrections-design.md); [UI spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [UI plan](docs/superpowers/plans/2026-10-21-w-host-ui.md); [experience corrections plan](docs/superpowers/plans/2026-10-22-w-host-experience-corrections.md) | Calendar block failures now identify booking vs prior host block; full gates pending | guide out of date: Host metrics, time display, and calendar behavior |
-| W-HOST-API | Replace Host fixtures with authenticated backend integration | In review | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T17 complete; block conflicts expose typed 409 codes; owner review pending | — |
+| W-HOST-API | Replace Host fixtures with authenticated backend integration | In review | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T17 complete; API discrepancy reconciled and owner-approved; D~34 records the remaining body-assertion gap | — |
 
 ## 4. Architecture
 
@@ -165,7 +166,10 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | D~30 | 2026-10-22 | T3's full frontend run found `HostListings.test.tsx` still asserted the prior `62%` presentation after occupancy changed to fixed two-decimal formatting | Resolved: added the existing fixture-backed test to T3's file list and updated its assertion to `62.00%`; no scope or behavior change |
 | D~31 | 2026-10-22 | T4's empty-range change also invalidated the existing local-only calendar interaction test, which was not listed in T4's file inventory | Resolved: added `HostPresentationInteractions.test.tsx` to T4 and changed it to choose a partial range explicitly; full frontend tests pass |
 | D~32 | 2026-10-22 | Read-only closeout review found the service query-count test used only a two-listing mocked batch, though the approved T1 checklist calls for sizes 1 and 101 | Added service coverage for both sizes and verified exactly two owner-scoped grouped queries in each case; backend checks rerun |
-| D~33 | 2026-10-22 | The approved W-HOST-API API/edge-case text says an overlap returns 422 `DOMAIN_RULE_VIOLATION`, while the implemented Host handler returned 409 `DATE_RANGE_UNAVAILABLE` | Per C~27, preserve the existing 409 status and replace its combined code with source-specific `BOOKING_OVERLAP` / `HOST_BLOCK_OVERLAP`; the branch state records the operative contract, while the approved spec/plan text remains unchanged pending an explicit spec amendment |
+| D~33 | 2026-10-22 | The formerly approved API/edge-case text said overlap returns 422 `DOMAIN_RULE_VIOLATION`, while the implementation returned 409 `DATE_RANGE_UNAVAILABLE` | Resolved by C~28: retain 409 and specify `BOOKING_OVERLAP` / `HOST_BLOCK_OVERLAP`, booking precedence, and safe non-disclosing messages; API spec, edge cases, requirements, and T3 plan record now agree with implementation |
+| C~28 | 2026-10-22 | Amend the W-HOST-API calendar contract: malformed input is 400, past/reversed ranges remain 422, booking overlaps return 409 `BOOKING_OVERLAP`, existing Host-block overlaps return 409 `HOST_BLOCK_OVERLAP`, and booking wins if both apply; both use the shared safe message `Request could not be completed`, with source-specific UI copy selected by code and no conflicting IDs/dates exposed | The project owner directed resolution of the API-spec discrepancy and approval afterward; rejected changing the implemented typed 409 behavior back to generic 422 because it would discard the approved C~27 distinction | Operator conversation |
+| D~34 | 2026-10-22 | Calendar integration tests assert overlap status/code and precedence, but do not assert the complete error body or absence of conflicting IDs/dates; the shared handler unit test verifies the generic fixed message | Non-blocking QA/Attacker review finding. The documented safe contract matches the handler; accepted as a test-coverage limitation for this approval, with no behavior change | Second-round spec review |
+| C~29 | 2026-10-22 | Approve W-HOST and W-HOST-API after reconciling the API spec and plan with the implemented calendar conflict contract | The project owner explicitly asked to resolve the discrepancy and then approve; spec/plan lint is clean, second-round High-risk lenses found no blocking findings, and the remaining test coverage limitation is recorded under D~34 | Operator conversation |
 
 ## 10. Changes
 
@@ -273,4 +277,5 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | 2026-10-22 | Preserved transaction IDs through wallet DTO mapping and keyed statement rows by transaction identity, with unique fallback keys; same-day/same-type regression, 199 frontend tests, lint, and production build pass | W-HOST | Operator follow-up |
 | 2026-10-22 | Normalized incoming leading hash markers for ticket conversation labels and booking/ticket Wallet references; duplicate-prefix regressions, 201 frontend tests, lint, and production build pass | W-HOST | Operator follow-up |
 | 2026-10-22 | Added the canonical booking ID to live Messages subtitles; Wallet shows the same ID for related transactions. Route-level regression, 202 frontend tests, lint, and isolated production build pass | W-HOST | C~26 |
-| 2026-10-22 | Split calendar block conflicts into booking and existing-host-block API codes and user-safe messages; 202 frontend tests, lint/build, backend Checkstyle/build, integration tests, and read-only review pass | W-HOST / W-HOST-API | `1ab37ca`, C~27 |
+| 2026-10-22 | Split calendar block conflicts into booking and existing-host-block API codes and user-safe messages; 202 frontend tests, lint/build, backend Checkstyle/build, integration tests, and read-only review pass | W-HOST / W-HOST-API | `e25744a`, C~27 |
+| 2026-10-22 | Reconciled approved API, edge-case, requirement, and T3 plan text with typed calendar 409 behavior; lint clean and focused review complete | W-HOST-API | C~28, D~33 |
