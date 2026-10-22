@@ -7,9 +7,9 @@ in after the branch merges.
 - **Branch:** W-HOST (from `development` at `8702e88`)
 - **Base:** `6b242b2`
 - **Owner:** project owner
-- **Status:** In review
+- **Status:** Draft
 - **Approved:** —
-- **Last updated:** 2026-10-22 by GPT-5 — completed generic listing route/load error handling; returned W-HOST to review
+- **Last updated:** 2026-10-22 by GPT-5 — approved plan amendment and started T11 (C~19)
 
 ---
 
@@ -32,6 +32,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
+| Current | 2026-10-22 | GPT-5 | W-HOST-API | Active | T11 return complete listing and booking-request collections | T11 step 1: add failing 101-row and legacy-parameter integration assertions | 2026-10-22 |
 
 **Remaining**
 
@@ -43,13 +44,14 @@ No change.
 - [x] T8 wire listing, calendar, and request screens to the API provider; 166 frontend tests, lint and production build pass.
 - [x] T9 wire Host messages and wallet screens to the API provider; 172 frontend tests, lint, and production build pass.
 - [x] T10 backend/frontend acceptance, authenticated request captures, regression fixes, code review, and fresh build/test/lint gates complete; owner review remains (D~23/D~25/D~26/D~27).
+- [ ] T11 return complete listing and booking-request collections; begin with failing >100-row, owner-scope, ordering, and legacy-query tests (C~19).
 
 ## 3. Workstreams
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
 | W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Listing route/load failures use a generic page and listings link; validation and mutation errors stay inline (C~18) | guide out of date: W-HOST Host UI pages and Fall Light details |
-| W-HOST-API | Replace Host fixtures with authenticated backend integration | In review | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T10 acceptance and gates complete; awaiting owner review and approval (D~23,D~25,D~26,D~27) | — |
+| W-HOST-API | Replace Host fixtures with authenticated backend integration | Planned | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T11 step 1/5 next: add failing complete listing/request integration assertions; T12 follows T11 due shared BookingRepository | — |
 
 ## 4. Architecture
 
@@ -59,11 +61,12 @@ No change.
 |---|---|
 | C~17 | Persistence-backed services and adapters use the explicit property gate. |
 
-**Host API — Now:** Protected Host controllers register only when `snoozeshare.security.enabled=true`, matching `HostIdentityResolver`; listing, calendar, booking decision, conversation, and wallet routes resolve host identity server-side and call services rather than repositories. The authenticated frontend adapter routes requests through `authenticatedFetch`; all Host listing, calendar, request, message, and wallet screens now use API-backed state with fixture mode retained for presentation tests. Booking and HOST-ticket conversations use separate summary/history/read/post routes with older-history paging; the wallet statement is paged, mocked mutations update server-returned state, and ambiguous failures refresh balance and statement without retrying. Wallet mutations use the existing ledger transaction and wallet row lock, with events after commit.
+**Host API — Now:** Protected Host controllers register only when `snoozeshare.security.enabled=true`, matching `HostIdentityResolver`; listing, calendar, booking decision, conversation, and wallet routes resolve host identity server-side and call services rather than repositories. The authenticated frontend adapter routes requests through `authenticatedFetch`; all Host listing, calendar, request, message, and wallet screens use API-backed state with fixture mode retained for presentation tests. Collection and history GETs return every matching owner-scoped row in deterministic order, with no page/size contract; calendar remains month-bounded and its grid contains at most 42 cells. This accepts unbounded collection payloads and server/client memory use (C~19). Wallet mutations retain the existing ledger transaction and wallet row lock, with events after commit; ambiguous failures refresh balance and statement without retrying.
 
 | Source | Standing choice |
 |---|---|
 | C~15 | Use stable ownership errors, bounded projections, and approved endpoint contracts. |
+| C~19 | Collection/history GETs return complete owner-scoped result lists; no pagination or collection-size cap. |
 
 **Availability — Now:** Host month reads query only overlapping blocks and bookings; mutations use fresh PostgreSQL `SERIALIZABLE` transactions, audit in the transaction, retry SQLSTATE `40001` once, then publish the availability event after commit. API ranges are inclusive; persisted ranges remain half-open.
 
@@ -78,6 +81,8 @@ Host route content uses a full-width page frame; input value text is normal-weig
 ## 6. Known Gaps
 
 W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJECT_STATE.md` § Known Gaps. D~6 is being resolved by the operator-approved W-HOST-API prerequisite recorded as C~17.
+
+- C~19 accepts unbounded response size and memory use for complete Host collections and histories, without adding response-size, per-request rate, or concurrency limits; a future pagination/response-bound decision requires owner approval.
 
 ## 7. Needs a Human
 
@@ -106,6 +111,7 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | C~16 | 2026-10-22 | Remove wallet request idempotency from W-HOST-API: no key header, durable key table, hash, replay response, or request deduplication; each accepted mocked wallet mutation is a separate operation, with no automatic client retry and wallet refresh after ambiguous failure | Project owner said it was unnecessary, then explicitly directed removal after the existing decision C~15 / spec SD7 and SD10 was surfaced. Existing wallet transaction, row lock, ledger, and audit behavior remain | Operator conversation |
 | C~17 | 2026-10-22 | Amend W-HOST-API to include deterministic activation of existing W-DOMAIN services and JDBC adapters through `snoozeshare.persistence.enabled` (`true` by default; `false` in DB-free contexts), without changing service/domain behavior | Project owner approved amending and continuing after T2 exposed that `@ConditionalOnBean(PropertyRepository.class)` runs before JPA repository registration. Deferring the prerequisite to separate work was rejected because all Host API endpoints depend on those services | Operator conversation |
 | C~18 | 2026-10-22 | All Host listing route/load failures use one generic error page with a link to `/host/listings`; form validation and mutation failures remain inline | Project owner clarified scope as route/load failures only and approved the shared error-page design; the listings index additionally offers retry on its own load failure | Operator conversation |
+| C~19 | 2026-10-22 | Reverse bounded Host collection/history pagination: listing, request, conversation-summary, message-history, and wallet-statement GETs return every matching row in one response; remove `page`, `size`, `items`, `hasMore`, and pagination controls. Preserve owner scoping, authorization, deterministic ordering, DTOs, and the calendar's one-month bound | Project owner explicitly chose to remove pagination and return whole collections after the bounded database-pagination decision was surfaced; rejected retaining pagination or silently loading full rows and slicing them in memory. This knowingly accepts unbounded response size and memory use, with no added response-size, per-request rate, or concurrency limits | Operator conversation |
 
 ## 9. Deviations
 
@@ -224,3 +230,4 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | 2026-10-22 | Coalesced in-flight wallet statement page reads after live Wallet acceptance exposed a Strict Mode duplicate; the regression failed before the fix and the clean Wallet recapture shows one statement fetch | W-HOST-API | T10 / D~26 |
 | 2026-10-22 | Closed T10 with eight-route authenticated request capture, 176 frontend tests, lint/build, backend build, read-only review, and plan closeout lint | W-HOST-API | T10 |
 | 2026-10-22 | Unified listing collection/detail/edit/calendar route-load failures behind a generic error page with a return link; collection errors retain retry. Validation and mutation errors remain inline; 179 frontend tests, lint, and production build pass | W-HOST | C~18 |
+| 2026-10-22 | Reversed bounded Host collection/history pagination; corrected T12 dependency after source inspection showed a shared BookingRepository edit; approved T11-T17 plan (seven tasks, waves 7–11) and began T11 | W-HOST-API | C~19 |

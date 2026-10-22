@@ -9,7 +9,7 @@ IDs are permanent: never reuse or renumber. Every F/N requirement and API error 
 | E1 | F1,N1 | Missing or invalid bearer token | Return 401 with safe error envelope; no service call. | Prevent anonymous access. | controller |
 | E2 | F1,N1 | Active GUEST or AGENT calls `/api/host/**` | Return 403 `ROLE_MISMATCH`; no Host data. | Prevent role bypass. | controller |
 | E3 | F1,N1 | Host sends another host's property/listing/block/booking ID | Return 404 `NOT_FOUND`; no mutation. | Prevent cross-tenant access and resource enumeration. | integration |
-| E4 | F7,N1 | Browser sends a forged `hostId` field | Ignore/reject unknown input; derive identity from token. | Prevent identity spoofing. | controller/frontend |
+| E4 | F7,N1 | Browser sends a forged `hostId` field | Ignore the unknown `hostId` field and derive the acting Host UUID only from the verified token. | Prevent identity spoofing. | controller/frontend |
 
 ## Input and state
 
@@ -31,8 +31,7 @@ IDs are permanent: never reuse or renumber. Every F/N requirement and API error 
 | E13 | F7,N4 | Expired Firebase token | API client refreshes once or routes to auth recovery; token is never logged. | Preserve session security. | frontend/controller |
 | E15 | N3 | Unexpected backend exception | Return 500 `INTERNAL_ERROR` with request ID; logs contain safe correlation only. | Prevent information leakage and enable support. | controller |
 | E16 | N4 | Message contains sensitive text | Response may display it only to authorized participants; logs never contain body. | Protect personal data. | integration/review |
-| E17 | F1,F3,F4,F5,N5 | Collection has more rows than the requested page | Execute an owner-scoped database page query reading at most `size + 1`; return only `size` rows (default 50, max 100), stable ordering, and correct `hasMore`; calendar returns no more than 42 cells. | Bound both response and server memory/query work. | integration |
-| E18 | F2,N2 | Two hosts concurrently create overlapping blocks for the same listing | On SQLSTATE `40001`, retry once in a fresh transaction; the retried overlap returns 422 `DOMAIN_RULE_VIOLATION`. If serialization fails again, return 409 `STATE_CONFLICT`; no overlapping rows remain. | Prevent availability race and avoid leaking serialization failures as 500s. | integration |
+| E18 | F2,N2 | The owning Host sends two concurrent requests to create overlapping blocks for the same listing | On SQLSTATE `40001`, retry once in a fresh transaction; the retried overlap returns 422 `DOMAIN_RULE_VIOLATION`. If serialization fails again, return 409 `STATE_CONFLICT`; no overlapping rows remain. | Prevent availability race and avoid leaking serialization failures as 500s. | integration |
 | E19 | F3,N2 | Two different decisions race for one pending booking | Row lock serializes decisions; one succeeds, the other returns 409 `STATE_CONFLICT`; one legal transition/event/audit outcome exists. | Prevent conflicting booking outcomes. | integration |
 | E20 | F4,N2 | Message insert succeeds but event dispatch or request fails | Message commits once; event is dispatched after commit; a rolled-back insert publishes no event. | Keep notifications consistent with stored messages. | integration |
 | E21 | F1,F4,N4 | Listing text or message contains HTML/script-like content | Store/display as text; React renders escaped text; no raw HTML execution. | Prevent stored script injection. | frontend/integration |
@@ -40,6 +39,9 @@ IDs are permanent: never reuse or renumber. Every F/N requirement and API error 
 | E23 | F5,F6,F7 | A wallet, listing, block, decision, or message mutation returns an API error | Keep prior server state, show the safe mapped message, and do not automatically retry wallet mutations; after an ambiguous wallet failure refresh wallet data before another explicit operation. | Prevent fixture-era optimism and accidental duplicate wallet operations. | frontend |
 | E24 | N6 | Database-backed application starts without an explicit persistence property | `application.yml` supplies `true`; all 15 service contracts and the three named JDBC adapters register. T2's Host listing controller integration test also starts with `ListingService` injected. | Prevent Host APIs from failing at startup despite valid persistence configuration and guard against a changed implicit default. | integration |
 | E25 | N6 | Server-only test excludes datasource and JPA auto-configuration | With `snoozeshare.persistence.enabled=false`, context starts without any of the 15 named service contracts or the three named JDBC adapters. | Preserve intentionally database-free startup tests. | integration |
+| E26 | F1,F3,F4,F5,F8 | A Host collection exceeds the former 100-row maximum | Independently seed 101 owned listings, 101 pending bookings, 101 history bookings, 101 booking summaries, 101 booking messages in one thread, 101 ticket summaries, 101 ticket messages in one thread, and 101 wallet ledger rows. Each corresponding single authenticated GET without pagination parameters returns all 101 rows in its documented order, without `page`, `size`, or `hasMore`; an unrelated Host's rows are absent. Calendar remains capped at one month / 42 cells. | Ensure no collection type is accidentally left paged and preserve tenant isolation. | integration |
+| E27 | F8 | A caller supplies legacy `page` and/or `size` query parameters | Ignore those parameters and return the same complete result as a request without them. | Prevent old pagination arguments from silently truncating a result after this breaking contract change. | controller |
+| E28 | N5 | One booking or ticket thread contains 1,001 messages | One authenticated history GET returns all 1,001 owner/participant-authorized messages in `sentAt DESC, id DESC` order without truncation; the response and client hold the complete history. This amendment adds no response-size, per-request rate, or concurrency limit. | Exercise a materially larger response and explicitly record the accepted server/network/browser resource cost under C~19. | integration |
 
 ## What could corrupt data (High tier)
 
@@ -50,7 +52,7 @@ IDs are permanent: never reuse or renumber. Every F/N requirement and API error 
 - Service failure midway through booking/wallet mutation: one transaction contains state, ledger, and audit records; failure rolls all of them back; E7/E10/E19 cover this.
 - Message delivery event fires for an uncommitted row: event dispatch is AFTER_COMMIT; E20 verifies rollback behavior.
 - Malicious user text executes in the browser: no raw HTML rendering; E21 verifies escaping.
-- Large collection reads consume memory or bandwidth: owner-scoped database queries fetch at most 101 rows, page size is capped at 100, calendar at 42 cells; E17 verifies the bound.
+- Large collection reads consume memory or bandwidth: this change removes all Host collection/history response caps by explicit owner decision; authorization and owner scope remain, but large queries, responses, and frontend lists are accepted risks (E26,E28). Calendar alone remains month-bounded at 42 cells.
 
 ## Threats
 
@@ -59,7 +61,7 @@ IDs are permanent: never reuse or renumber. Every F/N requirement and API error 
 | Authenticated non-Host | Call Host namespace | RoleAuthorizationFilter returns 403 before controller; E2 | Controller security test |
 | Host | Guess another tenant's resource IDs | Resolve owner from Firebase UID and return indistinguishable 404; E3 | Cross-host integration test |
 | Host or network retry | Duplicate a mocked wallet mutation after an ambiguous response | No automatic retry; refresh wallet data before another explicit confirmation; duplicate explicit operations are distinct by design; E12 | UI/API retry behavior test |
-| Two concurrent Hosts/requests | Race booking decision or date block | Row lock or SERIALIZABLE transaction; E18/E19 | Concurrent integration tests |
+| Concurrent owner requests | Race booking decision or date block | Row lock or SERIALIZABLE transaction; E18/E19 | Concurrent integration tests |
 | Host or guest | Submit HTML/script text in profile content/chat | React escaped rendering; never use raw HTML; E21 | Frontend rendering test |
-| Authenticated user | Request oversized pages or flood response size | Maximum page size 100 and month capped to 42 dates; E17 | Controller paging test |
+| Authenticated Host | Repeatedly read large owner-scoped collections to consume server, network, or browser resources | No response-size, per-request rate, or concurrency limit is added by this amendment; authenticated role and owner scope remain. The project explicitly accepts the residual resource-exhaustion risk; 101-row coverage for every response and a 1,001-message history verify completeness (E26,E28). Calendar remains limited to one month. | Large-result integration tests |
 | Operator/log reader | Read tokens, message content, descriptions from logs | Safe error/log allowlist; E15/E16 | Log capture test |

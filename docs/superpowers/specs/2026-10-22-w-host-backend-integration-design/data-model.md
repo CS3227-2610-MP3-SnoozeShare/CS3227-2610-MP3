@@ -6,7 +6,9 @@ No property, booking, message, wallet, or user columns or tables change. Wallet 
 
 - `HostListingDetailResponse`: `listing: PropertyResponse`, `metrics: ListingMetricsResponse`.
 - `HostCalendarResponse`: `listingId`, `year`, `month`, ordered `days[]` (`date`, `booked`, `blocked`, `blockReason`), and ordered `blockedRanges[]` (`id`, `reason`, `startDate`, `endDate`). Wire dates are ISO local dates and inclusive.
-- `HostWalletResponse`: `wallet: WalletResponse`, `statement: TransactionResponse[]`, `statementPage`, `statementSize`, `statementHasMore`; statement rows are selected directly from the ledger with a bounded database query.
+- `HostWalletResponse`: `wallet: WalletResponse`, `statement: TransactionResponse[]`; the statement contains every transaction for the Host wallet in `timestamp DESC, id DESC` order.
 - `HostWalletMutationResponse`: `mocked: true`, `wallet: WalletResponse`, `transaction: TransactionResponse`.
-- `PageResponse<T>`: `items: T[]`, zero-based `page`, requested `size`, and `hasMore`; database reads fetch at most `size + 1` rows and never materialize the full collection.
-- Message summaries carry `kind: BOOKING | TICKET`; booking and ticket messages retain distinct IDs and routes. Summary projections are queried page-wise from their respective stores; message history is queried page-wise by conversation/ticket ID and owner.
+- Host collection and history response bodies are `T[]` arrays; `HostWalletResponse.statement` is likewise an array. These responses carry no page metadata or row-count cap.
+- Message summaries carry `kind: BOOKING | TICKET`; booking and ticket messages retain distinct IDs and routes. Summary and history reads return every matching owner-scoped row from their respective stores in the ordering defined by `api.md`.
+
+Collection responses may grow without a defined maximum; this is the accepted API/runtime limitation recorded by C~19. Host ownership and conversation scope remain mandatory.

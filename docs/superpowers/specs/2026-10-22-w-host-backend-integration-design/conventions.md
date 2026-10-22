@@ -10,7 +10,7 @@
 | Dates are ISO `yyyy-MM-dd`; UI inclusive block ends are converted using the existing half-open persistence convention. | Calendar endpoints | D5, W-DOMAIN `AvailabilityService` |
 | Error JSON is `code`, `message`, `requestId`; logs contain request ID/status/safe code/path only. | All failures | C96 |
 | Frontend API calls use one authenticated client and retain fixture adapters for deterministic tests. | Frontend Host provider | C78, SD3 |
-| All paged collections default to 50, cap at 100, use stable ordering, and return `{items,page,size,hasMore}`. | Host collection endpoints | SD6 |
+| Host collection and history GETs return complete owner-scoped arrays in stable order, without pagination parameters, page envelopes, or row-count caps. Legacy `page` and `size` query parameters are ignored. | Host collection endpoints | SD14 |
 | Wallet mutations have no request idempotency key or replay store; each accepted request is a distinct mocked operation, and the client never retries automatically. | Wallet endpoints and ledger | SD12 |
 | Booking decisions lock the booking row and re-check its state after acquiring the lock; overlapping block check/write is SERIALIZABLE. | Booking and availability service mutations | SD7 |
 | Message and wallet event publication happens after the enclosing transaction commits. | Message and wallet services | SD7; C78 |
