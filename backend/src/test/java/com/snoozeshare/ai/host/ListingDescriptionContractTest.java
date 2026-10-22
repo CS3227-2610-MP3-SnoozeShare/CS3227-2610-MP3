@@ -22,7 +22,6 @@ class ListingDescriptionContractTest {
                 ListingDescriptionContract.TargetAudience.ALL_TRAVELLERS);
         assertThat(ListingDescriptionContract.DescriptionLength.SHORT.range()).isEqualTo("50-75");
         assertThat(ListingDescriptionContract.DescriptionLength.MEDIUM.range()).isEqualTo("75-125");
-        assertThat(ListingDescriptionContract.DescriptionLength.LONG.range()).isEqualTo("125-200");
     }
 
     @Test

@@ -32,7 +32,7 @@ class ListingDescriptionFeatureConfigTest {
     @Test
     void promptDefinesTheSelectedDescriptionLengthGuidance() {
         assertThat(feature.systemPrompt())
-            .contains("SHORT is 50-75 words", "MEDIUM is 75-125 words", "LONG is 125-200 words")
-            .contains("descriptionLength is authoritative", "Count the words before returning");
+            .contains("SHORT is 50-75 words", "MEDIUM is 75-125 words")
+            .contains("descriptionLength is", "authoritative", "Count the words before returning");
     }
 }

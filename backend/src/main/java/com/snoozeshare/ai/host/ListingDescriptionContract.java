@@ -46,8 +46,7 @@ public final class ListingDescriptionContract {
 
     public enum DescriptionLength {
         SHORT(50, 75),
-        MEDIUM(75, 125),
-        LONG(125, 200);
+        MEDIUM(75, 125);
 
         private final int minimum;
         private final int maximum;

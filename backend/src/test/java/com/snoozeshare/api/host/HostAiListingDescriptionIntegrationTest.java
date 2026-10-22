@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.LoggerFactory;
 
 import com.snoozeshare.ai.AiFeature;
 import com.snoozeshare.ai.LlmErrorCode;
@@ -39,6 +40,10 @@ import com.snoozeshare.domain.enums.ListingStatus;
 import com.snoozeshare.domain.enums.PropertyType;
 import com.snoozeshare.domain.model.Property;
 import com.snoozeshare.service.ListingService;
+
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 
 @ExtendWith(MockitoExtension.class)
 class HostAiListingDescriptionIntegrationTest {
@@ -139,6 +144,32 @@ class HostAiListingDescriptionIntegrationTest {
         assertThat(response.outcome()).isEqualTo(ListingDescriptionContract.Outcome.DEGRADED);
         assertThat(response.gatewayCode()).isEqualTo("DISABLED");
         assertThat(response.generatedDescription()).isNull();
+    }
+
+    @Test
+    void doesNotEmitHostDiagnosisLogs() {
+        Logger logger = (Logger) LoggerFactory.getLogger(HostListingDescriptionService.class);
+        ListAppender<ILoggingEvent> logs = new ListAppender<>();
+        logs.start();
+        logger.addAppender(logs);
+        try {
+            HostAiListingDescriptionRequest request = request(
+                ListingDescriptionContract.Mode.GENERATE, "");
+            when(gateway.run(any(), any())).thenReturn(LlmResult.degraded(
+                new ListingDescriptionModelResponse(ListingDescriptionContract.Outcome.DEGRADED,
+                    null, null, null, null), LlmErrorCode.DISABLED, false, false, UUID.randomUUID()));
+            service.run(identity, request, "request-log-1");
+
+            when(gateway.run(any(), any())).thenReturn(LlmResult.ok(
+                new ListingDescriptionModelResponse(ListingDescriptionContract.Outcome.SUCCESS,
+                    ListingDescriptionContract.Mode.GENERATE, null, "Generated", null),
+                false, false, UUID.randomUUID()));
+            service.run(identity, request, "request-log-2");
+
+            assertThat(logs.list).isEmpty();
+        } finally {
+            logger.detachAppender(logs);
+        }
     }
 
     private HostAiListingDescriptionRequest request(ListingDescriptionContract.Mode mode, String description) {
