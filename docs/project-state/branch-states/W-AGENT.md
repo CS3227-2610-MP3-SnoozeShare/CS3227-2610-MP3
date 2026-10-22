@@ -111,3 +111,4 @@ No change: Q~1 (audit zone) was answered on 2026-10-22 (C~7); nothing is open.
 | 2026-10-22 | Plan approved by Xiao-Congchen; T1 started | W-AGENT | this commit |
 | 2026-10-22 | `development` merged into the branch (W-AI-GATEWAY folded; no conflict with the spec) | W-AGENT | merge commit |
 | 2026-10-22 | Rebuilt T1 part 1/20: distinguish missing agent resources from invalid requests | W-AGENT | small-commit reconstruction |
+| 2026-10-22 | Rebuilt T1 part 2/20: normalize protected API paths and disable agent response caching | W-AGENT | small-commit reconstruction |
