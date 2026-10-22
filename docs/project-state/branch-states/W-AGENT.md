@@ -31,7 +31,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S2 | 2026-10-22 | Claude Sonnet 5.5 | W-AGENT | Active | T7 step 2 next: usePolling | write the failing `usePolling.test.tsx`, then `frontend/src/components/agent/usePolling.ts`; every commit stays under 150 changed lines (AGENTS.md § 6) | 2026-10-22 |
+| S2 | 2026-10-22 | Claude Sonnet 5.5 | W-AGENT | Active | T7 step 3 next: AgentDialog and SessionNotice | write the failing `AgentDialog.test.tsx` and `SessionNotice.test.tsx` under `frontend/src/components/agent/`, then implement; every commit stays under 150 changed lines (AGENTS.md § 6) | 2026-10-22 |
 
 **Remaining**
 
