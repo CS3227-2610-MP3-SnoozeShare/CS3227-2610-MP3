@@ -33,7 +33,7 @@ No change.
 |---|---|---|---|---|---|---|---|
 | S1 | 2026-10-22 20:00 | Claude Opus 4.6 | W-GUEST | Done | Plan written, approved | — | 2026-10-22 |
 | S2 | 2026-10-22 | Claude Opus 4.6 | W-GUEST | Done | T1 partially coded, not committed | — | 2026-10-22 |
-| S3 | 2026-10-22 | Claude Opus 4.6 | W-GUEST | Active | T1 done; continuing Wave 1 | T2: GuestBookingController | 2026-10-22 |
+| S3 | 2026-10-22 | Claude Opus 4.6 | W-GUEST | Active | T2 done; continuing Wave 1 | T3: GuestWalletController | 2026-10-22 |
 
 **Remaining**
 
@@ -50,7 +50,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-GUEST | Guest role controllers and frontend pages | Building | [spec](docs/superpowers/specs/2026-10-22-w-guest-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-guest.md) | Task 2/10: T2 GuestBookingController | — |
+| W-GUEST | Guest role controllers and frontend pages | Building | [spec](docs/superpowers/specs/2026-10-22-w-guest-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-guest.md) | Task 3/10: T3 GuestWalletController | — |
 
 ---
 
@@ -101,3 +101,4 @@ No change.
 | 2026-10-22 | W-GUEST plan written: 10 tasks + close-out, 3 waves. Reviewed by lite-reviewer (Implementer+Tester+Maintainer). Key additions: ForbiddenException for 403 ownership, complete GuestExceptionHandler error mapping, @ConditionalOnBean on all controllers, Clock/DisputeWindowPolicy injection | W-GUEST | `plan commit` |
 | 2026-10-22 | Plan approved (Nathan, Gate 2). Execution starting | W-GUEST | — |
 | 2026-10-22 | T1: GuestSearchController, PropertyDetailResponse, ResolvedUser, ForbiddenException, GuestExceptionHandler. RoleAuthorizationFilter stores userId attribute. Fixed D~1: removed @ConditionalOnBean from 20 domain beans; PostgresIntegrationTest now public | W-GUEST | T1 commit |
+| 2026-10-22 | T2: GuestBookingController with trip listing and cancellation. GuestTripResponse DTO. Self-booking guard added to BookingServiceImpl. 9 integration tests | W-GUEST | T2 commit |
