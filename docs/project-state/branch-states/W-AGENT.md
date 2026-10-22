@@ -9,11 +9,11 @@ after the branch merges.
 - **Owner:** Xiao-Congchen
 - **Status:** Draft
 - **Approved:** —
-- **Last updated:** 2026-10-22 by Claude Sonnet 5.5 — branch state created
+- **Last updated:** 2026-10-22 by Claude Sonnet 5.5 — spec drafted, round 1 review applied
 
 ---
 
-**Scope.** The Support Agent role's feature set on the web: REST controllers under `/api/agent/**` (disputes, accounts, audit log, ticket categories) over the ported W-DOMAIN services, and the matching Next.js pages under `frontend/src/app/agent`. Serves the W-AGENT workstream. The agent AI feature is W-AI-AGENT and is out of scope here.
+**Scope.** The Support Agent role's feature set on the web: REST controllers under `/api/agent/**` (disputes with notes and threads, accounts, audit log, ticket categories) over the ported W-DOMAIN services, the shared REST foundation Guest and Host will reuse, and the Next.js pages under `frontend/src/app/agent`. Serves the W-AGENT workstream. The agent AI feature is W-AI-AGENT and is out of scope here.
 
 ---
 
@@ -31,15 +31,16 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-22 | Claude Sonnet 5.5 | W~1 | Active | Scoping, before the spec | Operator confirms scope; then write the spec with `writing-specs-lite` at `docs/superpowers/specs/2026-10-22-w-agent-design.md` | 2026-10-22 |
+| S1 | 2026-10-22 | Claude Sonnet 5.5 | W-AGENT | Paused | Spec done, awaiting gate 1 | Operator answers gate 1 and Q~1; then write `Status: Approved (<name>, <date>)` in the spec index, run `lint.mjs spec <index> --approved`, and start `writing-plans-lite` | 2026-10-22 |
 
 **Remaining**
 
-- [ ] Confirm scope with the operator (Q~1)
-- [ ] Gate 1: spec written, linted, reviewed, then approval
-- [ ] Gate 2: plan written, linted, reviewed, then approval
+- [x] Confirm scope with the operator (done 2026-10-22)
+- [ ] Gate 1: spec reviewed, Q~1 answered, approval
+- [ ] Gate 2: plan written (`writing-plans-lite`), linted, reviewed, approval
 - [ ] Execute the plan (`executing-plans-lite`)
 - [ ] **Handover:** the W-AI-GATEWAY branch state is still in `branch-states/` on `development`: its fold (gate 4) is pending and is not this branch's work
+- [ ] **Handover:** audit reasons, notes and messages typed by agents will become LLM input in W-AI-AGENT; treat them as untrusted (prompt injection) in that spec
 
 ---
 
@@ -47,7 +48,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AGENT | Agent features: disputes, accounts, audit, categories — REST controllers and Next.js pages | Not started | — | — | Scoping: Q~1 | — |
+| W-AGENT | Agent features: disputes, accounts, audit, categories — REST controllers and Next.js pages | Not started | [spec](docs/superpowers/specs/2026-10-22-w-agent-design.md) | — | Spec reviewed (2 rounds), gate 1 pending: Q~1 | — |
 
 ---
 
@@ -59,13 +60,13 @@ No change: nothing built yet.
 
 ## 5. Conventions
 
-No change: nothing built yet.
+No change: nothing built yet. (The spec proposes web layering rules, ArchUnit `ApiLayerTest`, `@CurrentUserId` and ticket row locks; they land here when built.)
 
 ---
 
 ## 6. Known Gaps
 
-No change: nothing built yet.
+No change: nothing built yet. (To add when built: queue and accounts lists are unpaginated; offset paging of the audit log can repeat or skip rows while new entries arrive; no per-agent rate limit; `Booking`/`Property`/`Guest wallet does not exist` map to 400.)
 
 ---
 
@@ -73,19 +74,28 @@ No change: nothing built yet.
 
 | ID | What is needed | What it blocks | Raised |
 |---|---|---|---|
-| Q~1 | Confirm W-AGENT scope: all four agent areas (disputes, accounts, audit, categories) with both API and pages in one workstream, and whether ticket messaging in a dispute is included | The spec | 2026-10-22 |
+| Q~1 | Confirm the audit-log date zone: fixed `Asia/Singapore` (recommended) or the server default zone (UTC on Render) | Spec approval, T5 | 2026-10-22 |
 
 ---
 
 ## 8. Decisions
 
-No change.
+| ID | Date | Decision | Why / who asked | Source |
+|---|---|---|---|---|
+| C~1 | 2026-10-22 | W-AGENT covers all four agent areas (disputes with threads and notes, accounts, audit, categories), API and pages in one workstream, no AI | Operator confirmed the proposed scope | Operator conversation |
+| C~2 | 2026-10-22 | Where the desktop screens and the design artifact differ, the desktop behaviour wins: keep C22 (no force actions), Manual adjustment is one guest refund, audit filters are Search / Action / From / To / Load more, Accounts lists Guests and Hosts only, categories keep Delete, amounts in SGD | Operator answered each difference, 2026-10-22 | Spec SD2 to SD5 |
+| C~3 | 2026-10-22 | W-AGENT builds the shared REST foundation (global error handler, `@CurrentUserId`, ArchUnit layering test, typed frontend helpers) because no controllers or backend exist elsewhere | `origin/W-HOST` is fixture-only frontend and has no open pull request | Spec SD1, SD12 |
+| C~4 | 2026-10-22 | Tickets are locked pessimistically in assign, notes, unassign and settlement so an escrow cannot be settled twice. Rejected: `@Version`, SERIALIZABLE, leaving the race | Review (Tester, Attacker, Maintainer) found no lock in the ported services | Spec SD10 |
+| C~6 | 2026-10-22 | Round 2 review: the ticket lock is the first read of resolve; suspend and reactivate lock the target user; audit reads use `AuditQueryService`; the error handler passes on messages only from service and domain code; request size is checked after authentication | Review (Attacker, Implementer, Tester) found stale-read, cascade-race, layering and message-leak gaps | Spec SD10, SD19, SD20, SD21 |
+| C~5 | 2026-10-22 | `agentNotes` moves from the shared `TicketResponse` to the agent-only `DisputeDetailResponse`; request size is capped by a filter on `/api/agent/**` rather than a global Jackson limit | Review (Implementer, Attacker) | Spec SD13, SD14 |
 
 ---
 
 ## 9. Deviations
 
-No change.
+| ID | What | Consequence |
+|---|---|---|
+| D~1 | The spec edits W-DOMAIN services (`TicketServiceImpl`, `DisputeSettlementServiceImpl`, `DisputeQueryService`, `AccountGovernanceService`, `AuditServiceImpl`, not-found throws) and the shared `TicketResponse` | Recorded now so the plan and review expect changes outside the new API packages; the repo's earlier tests must still pass |
 
 ---
 
@@ -93,4 +103,5 @@ No change.
 
 | Date | What changed | Workstream | Ref |
 |---|---|---|---|
-| 2026-10-22 | Branch W-AGENT cut from `development` and its branch state created | W~1 | — |
+| 2026-10-22 | Branch W-AGENT cut from `development` and its branch state created | W-AGENT | `7823c4b` |
+| 2026-10-22 | Spec for the agent REST API and pages drafted, linted and reviewed in two rounds | W-AGENT | `20c7b38` and next |
