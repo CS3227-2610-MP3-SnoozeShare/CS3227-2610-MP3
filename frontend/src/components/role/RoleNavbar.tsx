@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export type WorkspaceRole = 'GUEST' | 'HOST' | 'AGENT';
 
@@ -8,6 +11,13 @@ const navigation = {
   AGENT: ['Disputes', 'Accounts', 'Audit Log', 'Categories'],
 } as const;
 
+const agentRoutes: Record<string, string> = {
+  Disputes: '/agent/disputes',
+  Accounts: '/agent/accounts',
+  'Audit Log': '/agent/audit',
+  Categories: '/agent/categories',
+};
+
 const workspaceLabels: Partial<Record<WorkspaceRole, string>> = {
   HOST: 'Host workspace',
   AGENT: 'Support Agent workspace',
@@ -15,29 +25,34 @@ const workspaceLabels: Partial<Record<WorkspaceRole, string>> = {
 
 export function RoleNavbar({ role, onLogout }: { role: WorkspaceRole; onLogout?: () => void }) {
   const landingPath = `/${role.toLowerCase()}`;
+  const pathname = usePathname();
   return (
     <nav aria-label="Workspace navigation" className="ss-role-navbar border-b border-[var(--border-muted)] bg-card px-6 pb-0 pt-3">
       <div className="w-full">
         <div data-testid="workspace-navbar-top" className="flex min-h-7 items-center gap-3">
           <Link href={landingPath} className="text-base font-extrabold tracking-[0.04em] text-primary">SnoozeShare</Link>
           {workspaceLabels[role] && <span className="ss-pill ss-status-neutral text-xs">{workspaceLabels[role]}</span>}
-          <span aria-label="Wallet" className="ss-pill ss-status-neutral ml-auto text-xs">Wallet</span>
-          <button type="button" className="ml-2 h-6 shrink-0 border-0 bg-transparent px-0 text-sm font-medium text-foreground hover:bg-transparent hover:text-primary" onClick={onLogout}>
+          {role !== 'AGENT' && <span aria-label="Wallet" className="ss-pill ss-status-neutral ml-auto text-xs">Wallet</span>}
+          <button type="button" className={`${role === 'AGENT' ? 'ml-auto' : 'ml-2'} h-6 shrink-0 border-0 bg-transparent px-0 text-sm font-medium text-foreground hover:bg-transparent hover:text-primary`} onClick={onLogout}>
             Log out
           </button>
         </div>
         <div data-testid="workspace-navbar-divider" className="-mx-6 mt-3 border-t border-[var(--border-muted)]" />
         <div data-testid="workspace-navbar-tabs" className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2">
-          {navigation[role].map((item, index) => (
+          {navigation[role].map((item, index) => {
+            const href = role === 'AGENT' ? agentRoutes[item] : landingPath;
+            const current = role === 'AGENT' ? pathname?.startsWith(href) ?? false : index === 0;
+            return (
             <Link
               key={item}
-              href={landingPath}
-              aria-current={index === 0 ? 'page' : undefined}
+              href={href}
+              aria-current={current ? 'page' : undefined}
               className="border-b-2 border-transparent px-3 pb-3 text-sm text-muted-foreground transition-colors hover:text-primary aria-[current=page]:border-primary aria-[current=page]:font-semibold aria-[current=page]:text-primary"
             >
               {item}
             </Link>
-          ))}
+            );
+          })}
         </div>
       </div>
     </nav>

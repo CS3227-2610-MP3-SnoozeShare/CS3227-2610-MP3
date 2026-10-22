@@ -2,6 +2,9 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { RoleNavbar } from './RoleNavbar';
 
+let pathname: string | null = null;
+vi.mock('next/navigation', () => ({ usePathname: () => pathname }));
+
 describe('RoleNavbar', () => {
   it.each([
     ['GUEST', ['Search', 'Trips', 'Messages', 'Wallet'], null],
@@ -15,9 +18,11 @@ describe('RoleNavbar', () => {
     const brand = screen.getByRole('link', { name: 'SnoozeShare' });
 
     expect(topRow).toHaveTextContent('SnoozeShare');
-    expect(topRow).toHaveTextContent('Wallet');
+    if (role === 'AGENT') expect(topRow).not.toHaveTextContent('Wallet');
+    else expect(topRow).toHaveTextContent('Wallet');
     expect(brand).toHaveClass('text-base', 'tracking-[0.04em]');
-    expect(screen.getByLabelText('Wallet')).toHaveClass('text-xs');
+    if (role === 'AGENT') expect(screen.queryByLabelText('Wallet')).toBeNull();
+    else expect(screen.getByLabelText('Wallet')).toHaveClass('text-xs');
     expect(screen.getByRole('navigation')).toHaveClass('pb-0');
     expect(divider).toHaveClass('-mx-6');
     expect(tabRow).toHaveClass('mt-3');
@@ -48,5 +53,30 @@ describe('RoleNavbar', () => {
     expect(screen.getByTestId('workspace-navbar-top')).toContainElement(button);
     fireEvent.click(button);
     expect(onLogout).toHaveBeenCalledOnce();
+  });
+
+  describe('agent routes (F13, E60)', () => {
+    it('links each agent tab to its own route', () => {
+      pathname = '/agent/disputes';
+      render(<RoleNavbar role="AGENT" />);
+      expect(screen.getByRole('link', { name: 'Disputes' })).toHaveAttribute('href', '/agent/disputes');
+      expect(screen.getByRole('link', { name: 'Accounts' })).toHaveAttribute('href', '/agent/accounts');
+      expect(screen.getByRole('link', { name: 'Audit Log' })).toHaveAttribute('href', '/agent/audit');
+      expect(screen.getByRole('link', { name: 'Categories' })).toHaveAttribute('href', '/agent/categories');
+    });
+
+    it('marks Disputes current on a dispute detail route', () => {
+      pathname = '/agent/disputes/3f2c';
+      render(<RoleNavbar role="AGENT" />);
+      expect(screen.getByRole('link', { name: 'Disputes' })).toHaveAttribute('aria-current', 'page');
+      expect(screen.getByRole('link', { name: 'Accounts' })).not.toHaveAttribute('aria-current');
+    });
+
+    it('marks the tab of the current route', () => {
+      pathname = '/agent/audit';
+      render(<RoleNavbar role="AGENT" />);
+      expect(screen.getByRole('link', { name: 'Audit Log' })).toHaveAttribute('aria-current', 'page');
+      expect(screen.getByRole('link', { name: 'Disputes' })).not.toHaveAttribute('aria-current');
+    });
   });
 });
