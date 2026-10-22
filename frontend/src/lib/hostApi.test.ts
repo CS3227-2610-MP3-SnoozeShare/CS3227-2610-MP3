@@ -89,4 +89,26 @@ describe('Host API adapter', () => {
     expect(mapHostListingDetail({ listing, metrics: { bookingCount: 3, averageRating: 4.5, reviews: [{ guestName: 'Guest', rating: 5, comment: 'Great' }], occupancyPercentage: 60, earnings: 240 } })).toMatchObject({ bookings: 3, rating: 4.5, reviews: [{ author: 'Guest', text: 'Great' }] });
     expect(mapHostWallet({ wallet: { id: 'w-1', userId: 'h-1', balance: 20, currency: 'SGD', updatedAt: '2026-10-22T00:00:00Z' }, statement: [{ id: 'tx-1', actionType: 'TOP_UP', walletAdjustment: 20, balanceAfter: 20, reason: 'Top-up', bookingId: null, ticketId: null, timestamp: '2026-10-22T00:00:00Z' }] })).toMatchObject({ wallet: { balance: 20 }, statement: [{ type: 'TOP_UP', amount: 20, relatedTo: '—' }] });
   });
+
+  it.each(['Asia/Singapore', 'America/Los_Angeles'])('preserves time-only listing values in %s', (timezone) => {
+    const originalTimezone = process.env.TZ;
+    process.env.TZ = timezone;
+    try {
+      const listing = {
+        id: 'l-1', hostId: 'h-1', status: 'ACTIVE' as const, title: 'Cabin', description: '',
+        propertyType: 'HOUSE', streetAddress: '1 Main', city: 'Lakeview', region: 'WI', postalCode: 53000,
+        maxGuests: 2, bedrooms: 1, bathrooms: 1, baseNightlyRate: 80,
+        checkInTime: '07:00:00', checkOutTime: '03:00:00', amenities: [], createdAt: '',
+      };
+      const detail = mapHostListingDetail({ listing, metrics: {
+        bookingCount: 0, averageRating: 0, reviews: [], occupancyPercentage: 0, earnings: 0,
+      } });
+
+      expect(detail.checkIn).toBe('07:00');
+      expect(detail.checkOut).toBe('03:00');
+    } finally {
+      if (originalTimezone === undefined) delete process.env.TZ;
+      else process.env.TZ = originalTimezone;
+    }
+  });
 });

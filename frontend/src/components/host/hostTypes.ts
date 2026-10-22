@@ -167,7 +167,5 @@ function humanize(value: string) {
 }
 
 function formatTime(value: string) {
-  const match = /^(\d{2}):(\d{2})/.exec(value);
-  if (!match) return value;
-  return new Date(`2000-01-01T${match[1]}:${match[2]}:00`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'UTC' });
+  return /^(\d{2}:\d{2})/.exec(value)?.[1] ?? value;
 }

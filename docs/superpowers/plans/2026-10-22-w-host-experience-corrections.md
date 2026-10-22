@@ -17,7 +17,7 @@
 |---|---|---|---|---|
 | T1 Add batched owner-scoped listing summary metrics | - | T3, T4 | 1 | Done |
 | T2 Consume metrics and update listing status in place | T1 | T4 | 2 | Not started |
-| T3 Correct listing detail time and occupancy formatting | - | T1, T4 | 1 | Not started |
+| T3 Correct listing detail time and occupancy formatting | - | T1, T4 | 1 | Done |
 | T4 Keep calendar mounted during month loads and clear initial range | - | T1, T2, T3 | 1 | Not started |
 
 Tasks T2 and T3 both edit `frontend/src/components/host/hostTypes.ts`; perform them serially. The backend task and calendar task otherwise have disjoint files. The Wave column and task metadata mirror the spec; this note records the shared-file serialization needed during execution.
@@ -113,13 +113,14 @@ Tasks T2 and T3 both edit `frontend/src/components/host/hostTypes.ts`; perform t
 | Modify | `frontend/src/lib/hostApi.test.ts` | Assert `07:00:00` and `03:00:00` map exactly to `07:00` and `03:00` under simulated UTC+8 and UTC-8. |
 | Modify | `frontend/src/app/host/listings/[listingId]/page.test.tsx` | Assert occupancy renders as `0.00%`, `12.50%`, and `100.00%` across detail fixtures/API cases. |
 | Modify | `frontend/src/app/host/listings/[listingId]/edit/page.test.tsx` | Assert API-provided `07:00` and `03:00` populate the edit time inputs unchanged. |
+| Modify | `frontend/src/components/host/HostListings.test.tsx` | Update the existing fixture-backed detail assertion to expect two-decimal occupancy. |
 
 **Checklist**
 
-- [ ] 1. Add failing E4/E5 regression tests for both timezone settings (UTC+8 and UTC-8), edit-form round-trip input values, and zero/fractional/100 percent output. Run focused Vitest files; expect FAIL.
-- [ ] 2. Replace date/timezone conversion with direct time-string formatting and fix occupancy precision.
-- [ ] 3. Run focused tests; expect PASS. Run `npm test`, `npm run lint`, and `npm run build` from `frontend/`.
-- [ ] 4. Update branch state Progress and Changes; commit `fix: preserve Host listing time and occupancy display`.
+- [x] 1. Add failing E4/E5 regression tests for both timezone settings (UTC+8 and UTC-8), edit-form round-trip input values, and zero/fractional/100 percent output. Focused tests exposed the time shift and precision behavior; the full run identified the existing fixture assertion now listed above.
+- [x] 2. Replace date/timezone conversion with direct time-string formatting and fix occupancy precision.
+- [x] 3. Run focused tests; expect PASS. Run `npm test`, `npm run lint`, and `npm run build` from `frontend/`.
+- [x] 4. Update branch state Progress and Changes; commit `fix: preserve Host listing time and occupancy display`.
 
 ### T4: Keep calendar mounted during month loads and clear initial range
 

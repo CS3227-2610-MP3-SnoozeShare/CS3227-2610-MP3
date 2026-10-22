@@ -35,7 +35,19 @@ describe('Host listing detail page', () => {
     render(<HostApiProvider><HostFixtureProvider><HostListingPage /></HostFixtureProvider></HostApiProvider>);
     expect(await screen.findByRole('heading', { name: 'API Cabin' })).toBeInTheDocument();
     expect(screen.getByText('Server description')).toBeInTheDocument();
-    expect(screen.getByText('30%')).toBeInTheDocument();
+    expect(screen.getByText('30.00%')).toBeInTheDocument();
     expect(fetchHostListing).toHaveBeenCalledWith('server-id');
+  });
+
+  it.each([[0, '0.00%'], [12.5, '12.50%'], [100, '100.00%']])('renders occupancy %s as %s', async (occupancy, formatted) => {
+    useParams.mockReturnValue({ listingId: 'server-id' });
+    fetchHostListing.mockResolvedValue({
+      listing: { id: 'server-id', hostId: 'host-id', status: 'ACTIVE', title: 'API Cabin', description: '', propertyType: 'HOUSE', streetAddress: '1 Main', city: 'Reno', region: 'NV', postalCode: 89501, maxGuests: 3, bedrooms: 2, bathrooms: 1, baseNightlyRate: 95, checkInTime: '07:00:00', checkOutTime: '03:00:00', amenities: [], createdAt: '' },
+      metrics: { bookingCount: 0, averageRating: 0, reviews: [], occupancyPercentage: occupancy, earnings: 0 },
+    });
+    fetchHostWallet.mockResolvedValue({ wallet: { id: 'w', userId: 'h', balance: 10, currency: 'SGD', updatedAt: '' }, statement: [] });
+    render(<HostApiProvider><HostFixtureProvider><HostListingPage /></HostFixtureProvider></HostApiProvider>);
+
+    expect(await screen.findByText(formatted)).toBeInTheDocument();
   });
 });

@@ -31,7 +31,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| GPT-5 | 2026-10-22 | — | W-HOST follow-up | Active | T1 verified: two owner-scoped aggregate queries; backend Checkstyle and full build pass | T3 step 1: add timezone-independent time and occupancy regression tests | 2026-10-22 |
+| GPT-5 | 2026-10-22 | — | W-HOST follow-up | Active | T3 complete; 184 frontend tests, lint, and production build pass | T4 step 1: add calendar month-loading and empty-range regression tests | 2026-10-22 |
 
 **Remaining**
 
@@ -55,7 +55,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | Building | [UI spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md); [experience corrections spec](docs/superpowers/specs/2026-10-22-w-host-experience-corrections-design.md) | [UI plan](docs/superpowers/plans/2026-10-21-w-host-ui.md); [experience corrections plan](docs/superpowers/plans/2026-10-22-w-host-experience-corrections.md) | T1/4 done: collection metrics; next T3/4: exact time and occupancy detail display | guide out of date: Host metrics, time display, and calendar behavior |
+| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | Building | [UI spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md); [experience corrections spec](docs/superpowers/specs/2026-10-22-w-host-experience-corrections-design.md) | [UI plan](docs/superpowers/plans/2026-10-21-w-host-ui.md); [experience corrections plan](docs/superpowers/plans/2026-10-22-w-host-experience-corrections.md) | T1/T3 done; 184 frontend tests/lint/build green; next T4 calendar state and empty range | guide out of date: Host metrics, time display, and calendar behavior |
 | W-HOST-API | Replace Host fixtures with authenticated backend integration | In review | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T17 complete: 101/1,001-row tests, full gates, and authenticated read-only captures; owner review pending | — |
 
 ## 4. Architecture
@@ -155,6 +155,7 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | D~27 | 2026-10-22 | Read-only T10 review found stale gate wording and a handoff that still said route captures remained | Reconciled the evidence and next-action records; review found no code findings, and the final frontend/backend gates and plan closeout lint now pass |
 | D~28 | 2026-10-22 | T11's approved file list omitted `PropertyRepositoryTest`, which directly asserted the listing page-query API that T11 removes | Resolved: add the repository test to T11 and replace paging assertions with complete stable-order and owner-scope coverage; no API scope change |
 | D~29 | 2026-10-22 | T14's original file list omitted the four API-mode Host pages, which still consumed page-envelope types and separate wallet summary/statement calls | Resolved: include those route adapters and their route tests in T14 so each commit remains type-safe and consumes the complete response; T15/T16 still remove the now-inert pagination controls and handlers |
+| D~30 | 2026-10-22 | T3's full frontend run found `HostListings.test.tsx` still asserted the prior `62%` presentation after occupancy changed to fixed two-decimal formatting | Resolved: added the existing fixture-backed test to T3's file list and updated its assertion to `62.00%`; no scope or behavior change |
 
 ## 10. Changes
 
@@ -252,3 +253,4 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | 2026-10-22 | Merged `development` through `e185dc0`; adopted `@ConditionalOnDatabase`, retaining W-HOST behavior and both branches' audit actions; backend build and frontend tests/lint/production build pass | W-HOST | C~20 |
 | 2026-10-22 | Added and approved the Host experience-corrections spec; approved the reviewed four-task plan and committed it separately | W-HOST | C~21, C~22, `a9494d3` |
 | 2026-10-22 | Added complete Host listing rows with booking counts and average ratings using two owner-scoped aggregate queries; empty collections skip metrics; integration tests, Checkstyle, and backend build pass | W-HOST | T1 |
+| 2026-10-22 | Corrected exact HH:mm detail/edit values and two-decimal occupancy; updated the stale fixture assertion; 184 frontend tests, lint, and production build pass | W-HOST | T3, D~30 |

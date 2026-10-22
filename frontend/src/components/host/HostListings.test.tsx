@@ -122,7 +122,7 @@ describe('Host listing components', () => {
     expect(screen.getByRole('region', { name: /REVIEWS/ }).querySelector('h3')).toHaveClass('text-xs');
     expect(screen.getByText(listing.amenities[0])).toHaveClass('text-xs');
     expect(screen.getByText(/Exactly as pictured, host was very responsive\./).closest('li')).toHaveClass('text-xs');
-    expect(screen.getByText('62%')).toBeInTheDocument();
+    expect(screen.getByText('62.00%')).toBeInTheDocument();
     expect(screen.getByText('$1,860.00')).toBeInTheDocument();
     expect(screen.getByText(/Exactly as pictured, host was very responsive\./)).toBeInTheDocument();
     expect(screen.getByText(/Loved the dock\. Would book again\./)).toBeInTheDocument();

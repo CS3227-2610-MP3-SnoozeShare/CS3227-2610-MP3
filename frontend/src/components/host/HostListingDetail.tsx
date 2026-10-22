@@ -72,7 +72,7 @@ export function HostListingDetail({ listing }: { listing: ListingDetail }) {
           <dl className="mt-2 space-y-1.5 text-sm">
             {[
               ['Total bookings', listing.bookings],
-              ['Occupancy (30d)', `${listing.occupancy30d}%`],
+              ['Occupancy (30d)', `${listing.occupancy30d.toFixed(2)}%`],
               ['Earnings (30d)', `$${listing.earnings30d.toLocaleString('en-US', { minimumFractionDigits: 2 })}`],
             ].map(([label, value]) => (
               <div className="flex justify-between gap-3" key={String(label)}>
