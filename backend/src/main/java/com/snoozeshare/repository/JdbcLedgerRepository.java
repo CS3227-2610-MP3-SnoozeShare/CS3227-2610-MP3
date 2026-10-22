@@ -1,7 +1,6 @@
 package com.snoozeshare.repository;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -64,6 +63,6 @@ public class JdbcLedgerRepository implements LedgerRepository {
                 rs.getString("reason"),
                 rs.getObject("booking_id", UUID.class),
                 rs.getObject("ticket_id", UUID.class),
-                rs.getObject("timestamp", Instant.class));
+                rs.getObject("timestamp", java.time.OffsetDateTime.class).toInstant());
     }
 }
