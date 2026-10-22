@@ -32,7 +32,7 @@ No change.
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
 | S1 | 2026-10-22 | Codex | W-AGENT | Blocked — needs human | T1 history split ready on `rewrite/w-agent-150loc`; Q~2 | After S2 is paused, preserve later commits and working changes while applying the rewritten history | 2026-10-22 |
-| S2 | 2026-10-22 | Claude Sonnet 5.5 | W-AGENT | Active | T7 done; T2 next | T2 step 1 in `backend/src/test/java/com/snoozeshare/api/controller/agent/AgentDisputeConcurrencyTest.java`: write the failing E20 and E10 tests; commits stay under 150 changed lines | 2026-10-22 |
+| S2 | 2026-10-22 | Claude Sonnet 5.5 | W-AGENT | Active | T2 step 3 next: queue and detail endpoints | write the failing A1/A2 cases in `backend/src/test/java/com/snoozeshare/api/controller/agent/AgentDisputeControllerTest.java`, then `unassignedCount`, the DTO move and `AgentDisputeController`; commits under 150 changed lines | 2026-10-22 |
 
 **Remaining**
 
@@ -50,7 +50,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AGENT | Agent features: disputes, accounts, audit, categories — REST controllers and Next.js pages | Building | [spec](docs/superpowers/specs/2026-10-22-w-agent-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-agent.md) | T1, T7 Done; T2 step 1 next | — |
+| W-AGENT | Agent features: disputes, accounts, audit, categories — REST controllers and Next.js pages | Building | [spec](docs/superpowers/specs/2026-10-22-w-agent-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-agent.md) | T1, T7 Done; T2 step 3 in flight | — |
 
 ---
 
@@ -126,6 +126,7 @@ Q~1 (audit zone) was answered on 2026-10-22 (C~7).
 | D~4 | The E69 missing-actor unit test was added after the resolver types because they did not yet exist; E4 reuses the existing Jackson unknown-property setting | The actor route did run red before filter/resolver changes; E69 now directly verifies fail-closed resolution |
 | D~5 | Spring's standard MVC exception advice did not render JSON for unmatched paths (the `NoHandlerFoundException` was left with an empty 404 in MockMvc) | `ApiNoRouteExceptionResolver` handles only unmatched `/api/agent/**` paths before default resolution; other namespaces keep their prior behavior |
 | D~6 | Original T1 commits exceeded the operator's later commit-size cap | Rewritten as 23 commits, at most 133 changed lines each; original history is retained in backup refs and concurrent later commits are preserved |
+| D~7 | `JdbcLedgerRepository.entriesForBooking` read `timestamptz` as `Instant`, which the PostgreSQL driver rejects, so every dispute resolution on PostgreSQL failed; no test covered the ledger read | Fixed in `fix: read ledger timestamps as OffsetDateTime` with `JdbcLedgerRepositoryTest`; the W-DOMAIN settlement path had never run on PostgreSQL before T2 |
 
 ---
 
@@ -147,3 +148,5 @@ Q~1 (audit zone) was answered on 2026-10-22 (C~7).
 | 2026-10-22 | `development` merged into the branch (W-AI-GATEWAY folded; no conflict with the spec) | W-AGENT | merge commit |
 | 2026-10-22 | T7 frontend foundation: `apiJson` and `isSessionFailure`, `usePolling`, `SessionNotice`, `AgentDialog`, agent navbar links without the wallet pill, `/agent` redirect, API types and formatting; 101 frontend tests, lint and build pass | W-AGENT | T7 commits |
 | 2026-10-22 | Plan-only fix: the frontend build command needs the CI placeholder Firebase variables | W-AGENT | T7 close |
+| 2026-10-22 | T2 ledger fix: dispute resolution works on PostgreSQL (D~7) | W-AGENT | T2 commits |
+| 2026-10-22 | T2 row lock: ticket row is the first read of assign, notes, unassign and resolve; settlement locks it too; two-thread tests for E10, E20, E76 pass and fail without the lock | W-AGENT | T2 commits |

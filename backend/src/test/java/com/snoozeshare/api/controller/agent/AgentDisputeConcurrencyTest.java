@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -15,16 +16,19 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import com.snoozeshare.domain.enums.RemedyType;
+import com.snoozeshare.domain.enums.ResolutionMode;
 import com.snoozeshare.domain.model.User;
 import com.snoozeshare.service.AuditService;
 import com.snoozeshare.service.TicketService;
+import com.snoozeshare.service.requests.ResolutionRequest;
 import com.snoozeshare.testsupport.AgentApiIntegrationTest;
 import com.snoozeshare.testsupport.DisputeScenarioFactory.Scenario;
 
-/** E10: two real transactions race to assign one ticket. */
+/** E10, E20 and E76: two real transactions race for one ticket. */
 class AgentDisputeConcurrencyTest extends AgentApiIntegrationTest {
 
     @Autowired
@@ -91,6 +95,10 @@ class AgentDisputeConcurrencyTest extends AgentApiIntegrationTest {
         }
     }
 
+    private BigDecimal balanceOf(UUID userId) {
+        return jdbc.queryForObject("select balance from wallets where user_id = ?", BigDecimal.class, userId);
+    }
+
     private long auditRows(String action) {
         Long count = jdbc.queryForObject("select count(*) from audit_log where action_type = ?", Long.class, action);
         return count == null ? 0 : count;
@@ -116,5 +124,44 @@ class AgentDisputeConcurrencyTest extends AgentApiIntegrationTest {
         assertThat(resultA).isNull();
         assertThat(resultB).isInstanceOf(IllegalStateException.class).hasMessage("Ticket is not open");
         assertThat(auditRows("TICKET_ASSIGNED") - before).isEqualTo(1);
+    }
+
+    @Test
+    void twoResolvesSettleOnce() throws Exception { // E20
+        Scenario scenario = scenarios.inReviewDispute(agent.id());
+        UUID ticketId = scenario.ticket().getId();
+        UUID guestId = scenario.guest().getId();
+        BigDecimal guestBefore = balanceOf(guestId);
+        long before = auditRows("TICKET_RESOLVED");
+        ResolutionRequest request = new ResolutionRequest(ResolutionMode.MANUAL, new BigDecimal("1.00"), "race");
+        parkHolderAtFirstAuditWrite();
+
+        Future<?> a = holder.submit(() -> tickets.resolve(ticketId, request, agent.id()));
+        awaitHolderParked(a);
+        Future<?> b = waiter.submit(() -> tickets.resolve(ticketId, request, agent.id()));
+        awaitCompetingLockWait();
+        release.countDown();
+
+        assertThat(outcome(a)).isNull();
+        assertThat(outcome(b)).isInstanceOf(IllegalStateException.class).hasMessage("Ticket is not in review");
+        assertThat(balanceOf(guestId).subtract(guestBefore)).isEqualByComparingTo("1.00");
+        assertThat(auditRows("TICKET_RESOLVED") - before).isEqualTo(1);
+    }
+
+    @Test
+    void lockTimeoutIs409() throws Exception { // E76 (takes more than 5 s by design)
+        Scenario scenario = scenarios.inReviewDispute(agent.id());
+        UUID ticketId = scenario.ticket().getId();
+        ResolutionRequest request = new ResolutionRequest(ResolutionMode.REJECT, null, "slow");
+        parkHolderAtFirstAuditWrite();
+
+        Future<?> a = holder.submit(() -> tickets.resolve(ticketId, request, agent.id()));
+        awaitHolderParked(a);
+        Future<?> b = waiter.submit(() -> tickets.resolve(ticketId, request, agent.id()));
+        Throwable waited = outcome(b);
+        release.countDown();
+
+        assertThat(waited).isInstanceOf(PessimisticLockingFailureException.class);
+        assertThat(outcome(a)).isNull();
     }
 }
