@@ -7,9 +7,9 @@ after the branch merges.
 - **Branch:** W-AI-GATEWAY (from `development` at `4257d4b`)
 - **Base:** `4257d4b` (development tip when the branch was cut)
 - **Owner:** CongChen
-- **Status:** Approved
-- **Approved:** Xiao-Congchen 2026-10-22
-- **Last updated:** 2026-10-22 by Claude Sonnet 5.5 - gate 3 approved by Xiao-Congchen
+- **Status:** In review
+- **Approved:** —
+- **Last updated:** 2026-10-22 by Claude Sonnet 5.5 - default staff reserve lowered to 5 percent; gate 3 to be re-confirmed
 
 ---
 
@@ -94,7 +94,7 @@ Entries added:
 - **A coordinated group of accounts can still open the AI circuit breaker** (it needs failures from 3 distinct users); GUEST registration needs no code (C89). Bounded by the per-user and global daily caps.
 - **Steered prose that matches no leak or link pattern passes output validation**; role features keep AI output a suggestion the user confirms (C80).
 - **A daily cap counts calls, not upstream requests**: worst case is `global-daily-cap x (max-retries + 1)` requests a day.
-- **Many accounts can still exhaust the non-reserved 80 percent of the global AI cap and the queue** (guest registration needs no code, C87); priority-0 features keep a reserved share and displace lower-priority jobs.
+- **Many accounts can still exhaust the non-reserved 95 percent of the global AI cap and the queue** (guest registration needs no code, C87); priority-0 features keep a reserved share and displace lower-priority jobs.
 - **While audit writes fail, sent calls are counted in memory only until 00:00 UTC**, so a restart loses that floor.
 - **Bare-domain links (no scheme) in model output are not detected**; role UIs render AI output as plain text.
 - **Until T8 records the live results, `response_format` and `reasoning_effort` stay off and the SoCLaaS reachability from Render is unverified.**
@@ -115,6 +115,7 @@ No change. Resolves, on fold, the SoCLaaS-contract half of `PROJECT_STATE.md` Q6
 | C~2 | 2026-10-22 | Development and production use separate SoCLaaS keys, each supplied by the deployment environment and never committed. The owner already holds the development key | Operator | Operator conversation |
 | C~3 to C~7 | 2026-10-22 | See § 4 (4.11 AI gateway) | Operator and review rounds | spec |
 | C~8 | 2026-10-22 | Spec risk tier is High with Implementer, Tester, Maintainer and Attacker lenses | Operator chose High over Medium | spec SD3 |
+| C~9 | 2026-10-22 | Default `priority-zero-reserve-percent` lowered from 20 to 5 (spec SD21, api.md, F7, E55 amended; still configurable 0 to 50) | Operator: the SoCLaaS key is not used by any other system, so only our own roles compete for the cap and a large staff reserve is not needed. Rejected: removing the reserve (a flood of guest accounts could still starve Agent and Host features) | Operator conversation |
 
 ---
 
@@ -152,3 +153,4 @@ No change. Resolves, on fold, the SoCLaaS-contract half of `PROJECT_STATE.md` Q6
 | 2026-10-22 | T7 done: `AiBoundaryTest`, `SecretScanTest`, `AiHealthTest`, `AiDatasourceFreeContextTest`, `AiLogLeakTest`, runbook variables and AI gateway section | W~1 | — |
 | 2026-10-22 | Code review of the whole branch (high effort): 5 findings fixed, 1 test-coverage gap left open; branch moved to In review | W~1 | — |
 | 2026-10-22 | Branch approved by Xiao-Congchen (gate 3) | W~1 | — |
+| 2026-10-22 | Amendment C~9: default staff reserve 20 to 5 percent; branch returned from Approved to In review | W~1 | — |

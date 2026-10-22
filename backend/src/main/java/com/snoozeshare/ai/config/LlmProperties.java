@@ -57,7 +57,7 @@ public record LlmProperties(
     @DefaultValue("2") int perUserMaxInFlight,
     @DefaultValue("200") int dailyCapPerUser,
     @DefaultValue("3000") int globalDailyCap,
-    @DefaultValue("20") int priorityZeroReservePercent,
+    @DefaultValue("5") int priorityZeroReservePercent,
     @DefaultValue("40000") int maxPromptChars,
     @DefaultValue("false") boolean responseFormatJson,
     @DefaultValue("") String reasoningEffort) {

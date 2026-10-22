@@ -85,7 +85,7 @@ R rows are limited to one per user per code per 10 minutes (further ones are cou
 | `snoozeshare.ai.budget-block-ms` | 900,000 | 60,000 to 86,400,000 |
 | `snoozeshare.ai.per-user-max-in-flight` | 2 | 1 to 8 |
 | `snoozeshare.ai.daily-cap-per-user` / `global-daily-cap` | 200 / 3,000 | 1 to 10,000 / 1 to 100,000 |
-| `snoozeshare.ai.priority-zero-reserve-percent` | 20 | 0 to 50; the share of `global-daily-cap` only priority 0 calls may use |
+| `snoozeshare.ai.priority-zero-reserve-percent` | 5 | 0 to 50; the share of `global-daily-cap` only priority 0 calls may use |
 | `snoozeshare.ai.max-prompt-chars` | 40,000 | 2,000 to 200,000 |
 | `snoozeshare.ai.response-format-json` | false | boolean; sends `response_format` `json_object` for JSON features when true |
 | `snoozeshare.ai.reasoning-effort` | empty (field omitted) | empty, `none`, `low`, `medium` or `high` |

@@ -47,7 +47,7 @@ class LlmPropertiesTest {
             assertThat(p.maxRetries()).isEqualTo(2);
             assertThat(p.dailyCapPerUser()).isEqualTo(200);
             assertThat(p.globalDailyCap()).isEqualTo(3_000);
-            assertThat(p.priorityZeroReservePercent()).isEqualTo(20);
+            assertThat(p.priorityZeroReservePercent()).isEqualTo(5);
             assertThat(p.modelStandard()).isEqualTo("qwen3.5:9b");
             assertThat(p.reasoningEffort()).isEmpty();
             assertThat(p.responseFormatJson()).isFalse();
