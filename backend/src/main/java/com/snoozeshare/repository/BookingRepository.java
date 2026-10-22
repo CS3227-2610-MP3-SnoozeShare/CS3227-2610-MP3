@@ -49,13 +49,13 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
             + "(SELECT p.id FROM Property p WHERE p.hostId = :hostId) "
             + "AND b.status = com.snoozeshare.domain.enums.BookingStatus.PENDING "
             + "ORDER BY b.createdAt DESC, b.id ASC")
-    List<Booking> findPendingByHostPage(@Param("hostId") UUID hostId, Pageable pageable);
+    List<Booking> findPendingByHostOrderByCreatedAtDescIdAsc(@Param("hostId") UUID hostId);
 
     @Query("SELECT b FROM Booking b WHERE b.listingId IN "
             + "(SELECT p.id FROM Property p WHERE p.hostId = :hostId) "
             + "AND b.status <> com.snoozeshare.domain.enums.BookingStatus.PENDING "
             + "ORDER BY b.createdAt DESC, b.id ASC")
-    List<Booking> findHistoryByHostPage(@Param("hostId") UUID hostId, Pageable pageable);
+    List<Booking> findHistoryByHostOrderByCreatedAtDescIdAsc(@Param("hostId") UUID hostId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT b FROM Booking b WHERE b.id = :bookingId")

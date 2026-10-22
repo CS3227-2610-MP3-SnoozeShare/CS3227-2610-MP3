@@ -32,7 +32,7 @@
 | T8 Wire listing, calendar, and request screens | T2,T3,T4,T7 | - | 4 | Done |
 | T9 Wire messages and wallet screens | T5,T6,T7,T8 | - | 5 | Done |
 | T10 Verify integration and close the phase | T9 | - | 6 | Done |
-| T11 Return complete listing and booking-request collections | T2,T4 | T13 | 7 | Not started |
+| T11 Return complete listing and booking-request collections | T2,T4 | T13 | 7 | Done |
 | T12 Return complete booking and ticket conversation collections | T5,T11 | T13 | 8 | Not started |
 | T13 Return the complete wallet statement | T6 | T11,T12 | 7 | Not started |
 | T14 Replace paged frontend API and provider types | T11,T12,T13 | - | 9 | Not started |
@@ -374,15 +374,15 @@
 | Modify | `backend/src/main/java/com/snoozeshare/api/controller/HostRequestsController.java` (`GET /api/host/requests`) | Keep the `view` selector; remove page/size inputs and return a complete array for pending/history. |
 | Modify | `backend/src/main/java/com/snoozeshare/repository/BookingRepository.java` | Add complete owner-scoped pending/history queries in their existing deterministic order; retain the row-lock query used by decisions. |
 | Modify | `backend/src/main/java/com/snoozeshare/service/BookingService.java`, `backend/src/main/java/com/snoozeshare/service/impl/BookingServiceImpl.java` (`pendingRequestRowsFor`, `historyRowsFor`) | Remove page/size arguments and map all matching rows while leaving decision transactions unchanged. |
-| Test | `backend/src/test/java/com/snoozeshare/api/host/HostListingsControllerTest.java`, `backend/src/test/java/com/snoozeshare/api/host/HostRequestsIntegrationTest.java` | Assert all 101 independently seeded listings, pending bookings, and history bookings are returned; verify order, owner exclusion, array shape, and identical results when legacy `page`/`size` params are supplied (E26,E27). |
+| Test | `backend/src/test/java/com/snoozeshare/api/host/HostListingsControllerTest.java`, `backend/src/test/java/com/snoozeshare/api/host/HostRequestsIntegrationTest.java`, `backend/src/test/java/com/snoozeshare/repository/PropertyRepositoryTest.java` | Assert all 101 independently seeded listings, pending bookings, and history bookings are returned; verify order, owner exclusion, array shape, and identical results when legacy `page`/`size` params are supplied (E26,E27). Update repository tests that directly asserted obsolete listing pagination while retaining complete stable-order and owner-scope coverage. |
 
 **Checklist**
 
-- [ ] 1. Add failing integration assertions for 101 owned listings, pending bookings, and history bookings; include another Host's records and legacy page/size query values.
-- [ ] 2. Remove pagination inputs and envelope from the two GET controller contracts; implement complete owner-scoped repository/service reads with stable ordering.
-- [ ] 3. Run `./gradlew test --tests 'com.snoozeshare.api.host.HostListingsControllerTest' --tests 'com.snoozeshare.api.host.HostRequestsIntegrationTest'`; verify all rows, scope, order, and unchanged decision behavior.
-- [ ] 4. Run `./gradlew checkstyleMain checkstyleTest` and `./gradlew build` from `backend/`.
-- [ ] 5. Update branch-state Progress and Changes; commit `feat: return complete Host listing and request collections`.
+- [x] 1. Add failing integration assertions for 101 owned listings, pending bookings, and history bookings; include another Host's records and legacy page/size query values. Focused tests failed against the current paged API as expected (and exposed one existing history assertion that must follow the new array contract).
+- [x] 2. Remove pagination inputs and envelope from the two GET controller contracts; implement complete owner-scoped repository/service reads with stable ordering.
+- [x] 3. Run `./gradlew test --tests 'com.snoozeshare.api.host.HostListingsControllerTest' --tests 'com.snoozeshare.api.host.HostRequestsIntegrationTest' --tests 'com.snoozeshare.repository.PropertyRepositoryTest'`; verify all rows, scope, order, and unchanged decision behavior (all focused tests pass).
+- [x] 4. Run `./gradlew checkstyleMain checkstyleTest` and `./gradlew build` from `backend/` (both pass).
+- [x] 5. Update branch-state Progress and Changes; commit `feat: return complete Host listing and request collections`.
 
 ### T12: Return complete booking and ticket conversation collections
 

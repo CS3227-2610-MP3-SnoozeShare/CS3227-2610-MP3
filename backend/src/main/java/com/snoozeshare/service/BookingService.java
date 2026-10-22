@@ -16,11 +16,7 @@ public interface BookingService {
 
     List<HostBookingRow> pendingRequestRowsFor(UUID hostId);
 
-    List<HostBookingRow> pendingRequestRowsFor(UUID hostId, int page, int size);
-
     List<HostBookingRow> historyRowsFor(UUID hostId);
-
-    List<HostBookingRow> historyRowsFor(UUID hostId, int page, int size);
 
     Booking decide(UUID bookingId, boolean approve, UUID hostId);
 

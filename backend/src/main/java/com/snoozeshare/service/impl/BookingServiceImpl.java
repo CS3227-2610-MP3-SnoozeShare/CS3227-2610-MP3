@@ -40,7 +40,6 @@ import com.snoozeshare.infra.events.BookingCancelledEvent;
 import com.snoozeshare.infra.events.BookingConfirmedEvent;
 import com.snoozeshare.repository.AvailabilityBlockRepository;
 import com.snoozeshare.repository.BookingRepository;
-import com.snoozeshare.repository.OffsetLimitPageable;
 import com.snoozeshare.repository.PropertyRepository;
 import com.snoozeshare.repository.ReviewRepository;
 import com.snoozeshare.repository.TicketRepository;
@@ -162,26 +161,12 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<HostBookingRow> pendingRequestRowsFor(UUID hostId) {
-        return toHostRows(bookings.findByHostPending(hostId));
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<HostBookingRow> pendingRequestRowsFor(UUID hostId, int page, int size) {
-        return toHostRows(bookings.findPendingByHostPage(hostId,
-                new OffsetLimitPageable(page, size)));
+        return toHostRows(bookings.findPendingByHostOrderByCreatedAtDescIdAsc(hostId));
     }
 
     @Override
     public List<HostBookingRow> historyRowsFor(UUID hostId) {
-        return toHostRows(bookings.findByHost(hostId));
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<HostBookingRow> historyRowsFor(UUID hostId, int page, int size) {
-        return toHostRows(bookings.findHistoryByHostPage(hostId,
-                new OffsetLimitPageable(page, size)));
+        return toHostRows(bookings.findHistoryByHostOrderByCreatedAtDescIdAsc(hostId));
     }
 
     private List<HostBookingRow> toHostRows(List<Booking> source) {

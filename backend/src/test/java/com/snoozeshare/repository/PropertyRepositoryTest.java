@@ -24,7 +24,7 @@ import com.snoozeshare.domain.enums.Role;
 import com.snoozeshare.domain.model.Property;
 import com.snoozeshare.domain.model.User;
 
-/** Verifies the Host listing query is owner-scoped, deterministic, and database-bounded. */
+/** Verifies the complete Host listing query is owner-scoped and deterministic. */
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class PropertyRepositoryTest {
@@ -60,39 +60,21 @@ class PropertyRepositoryTest {
             UUID.fromString("ffffffff-ffff-ffff-ffff-ffffffffffff"), hostId, now, "Newest high");
         Property newestLowId = property(
             UUID.fromString("00000000-0000-0000-0000-000000000001"), hostId, now, "Newest low");
-        orderedHostProperties = List.of(newestLowId, newestHighId, old);
+        Property fourth = property(UUID.randomUUID(), hostId, older.minusSeconds(10), "Fourth");
+        orderedHostProperties = List.of(newestLowId, newestHighId, old, fourth);
         properties.saveAll(List.of(old, newestHighId, newestLowId,
-            property(UUID.randomUUID(), hostId, older.minusSeconds(10), "Fourth"),
+            fourth,
             property(UUID.randomUUID(), otherHostId, now.plusSeconds(10), "Other host")));
     }
 
     @Test
-    void hostPageReadsAtMostSizePlusOneRowsInStableOwnerScopedOrder() {
-        List<Property> fetched = properties.findByHostIdOrderByCreatedAtDescIdAsc(
-            hostId, new OffsetLimitPageable(0, 2));
+    void completeHostListingReadIsStableAndOwnerScoped() {
+        List<Property> fetched = properties.findByHostIdOrderByCreatedAtDescIdAsc(hostId);
 
-        assertThat(fetched).hasSize(3)
+        assertThat(fetched).hasSize(4)
             .extracting(Property::getId)
             .containsExactlyElementsOf(orderedHostProperties.stream().map(Property::getId).toList());
         assertThat(fetched).allMatch(property -> property.getHostId().equals(hostId));
-    }
-
-    @Test
-    void adjacentHostPagesDoNotSkipOrRepeatRows() {
-        List<Property> firstPage = properties.findByHostIdOrderByCreatedAtDescIdAsc(
-            hostId, new OffsetLimitPageable(0, 2));
-        List<Property> secondPage = properties.findByHostIdOrderByCreatedAtDescIdAsc(
-            hostId, new OffsetLimitPageable(1, 2));
-
-        assertThat(firstPage).extracting(Property::getId)
-            .containsExactly(orderedHostProperties.get(0).getId(), orderedHostProperties.get(1).getId(),
-                orderedHostProperties.get(2).getId());
-        assertThat(secondPage).extracting(Property::getId)
-            .containsExactly(orderedHostProperties.get(2).getId(),
-                properties.findByHostId(hostId).stream()
-                    .filter(property -> !orderedHostProperties.stream()
-                        .map(Property::getId).toList().contains(property.getId()))
-                    .findFirst().orElseThrow().getId());
     }
 
     private User user(UUID id, String suffix) {

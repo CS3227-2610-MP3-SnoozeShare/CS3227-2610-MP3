@@ -89,27 +89,44 @@ class HostListingsControllerTest {
     }
 
     @Test
-    void listingCollectionIsPagedAndOnlyIncludesTheAuthenticatedHost() throws Exception {
-        Property newest = saveProperty(hostId, "Newest", Instant.parse("2026-01-02T00:00:00Z"));
-        Property second = saveProperty(hostId, "Second", Instant.parse("2026-01-01T00:00:00Z"));
+    void listingCollectionReturnsAllOwnedPropertiesAndIgnoresLegacyPagination() throws Exception {
+        Property oldest = null;
+        Property newest = null;
+        for (int index = 0; index < 101; index++) {
+            Property property = saveProperty(hostId, "Listing " + index,
+                Instant.parse("2026-01-01T00:00:00Z").plusSeconds(index));
+            if (index == 0) {
+                oldest = property;
+            }
+            if (index == 100) {
+                newest = property;
+            }
+        }
         UUID otherHostId = UUID.randomUUID();
         saveUser(otherHostId, "other-host-" + otherHostId);
-        saveProperty(otherHostId, "Other host");
+        Property foreign = saveProperty(otherHostId, "Other host",
+            Instant.parse("2026-01-03T00:00:00Z"));
 
-        mockMvc.perform(get("/api/host/listings?page=0&size=1")
+        String completeResponse = mockMvc.perform(get("/api/host/listings")
                 .header("Authorization", "Bearer " + token))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.items.length()").value(1))
-            .andExpect(jsonPath("$.items[0].id").value(newest.getId().toString()))
-            .andExpect(jsonPath("$.items[0].hostId").value(hostId.toString()))
-            .andExpect(jsonPath("$.page").value(0))
-            .andExpect(jsonPath("$.size").value(1))
-            .andExpect(jsonPath("$.hasMore").value(true));
+            .andExpect(jsonPath("$.length()").value(101))
+            .andExpect(jsonPath("$[0].id").value(newest.getId().toString()))
+            .andExpect(jsonPath("$[0].hostId").value(hostId.toString()))
+            .andExpect(jsonPath("$[100].id").value(oldest.getId().toString()))
+            .andExpect(jsonPath("$[?(@.id == '" + foreign.getId() + "')]").isEmpty())
+            .andExpect(jsonPath("$.page").doesNotExist())
+            .andExpect(jsonPath("$.size").doesNotExist())
+            .andExpect(jsonPath("$.hasMore").doesNotExist())
+            .andReturn().getResponse().getContentAsString();
 
-        mockMvc.perform(get("/api/host/listings?page=1&size=1")
+        String legacyResponse = mockMvc.perform(get("/api/host/listings?page=0&size=1")
                 .header("Authorization", "Bearer " + token))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.items[0].id").value(second.getId().toString()));
+            .andExpect(jsonPath("$.length()").value(101))
+            .andExpect(jsonPath("$[0].id").value(newest.getId().toString()))
+            .andReturn().getResponse().getContentAsString();
+        assertThat(legacyResponse).isEqualTo(completeResponse);
     }
 
     @Test

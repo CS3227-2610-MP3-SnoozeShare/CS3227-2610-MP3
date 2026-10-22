@@ -20,7 +20,6 @@ import com.snoozeshare.domain.model.Property;
 import com.snoozeshare.domain.model.User;
 import com.snoozeshare.domain.policy.StayDatePolicy;
 import com.snoozeshare.domain.validation.DomainValidation;
-import com.snoozeshare.repository.OffsetLimitPageable;
 import com.snoozeshare.repository.PropertyRepository;
 import com.snoozeshare.repository.SearchCriteria;
 import com.snoozeshare.service.AuditRecord;
@@ -101,16 +100,7 @@ public class ListingServiceImpl implements ListingService {
 
     @Override
     public List<Property> findByHostId(UUID hostId) {
-        return properties.findByHostId(hostId);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<Property> findByHostId(UUID hostId, int page, int size) {
-        if (hostId == null || page < 0 || size < 1 || size > 100) {
-            throw new IllegalArgumentException("Invalid Host listing page");
-        }
-        return properties.findByHostIdOrderByCreatedAtDescIdAsc(hostId, new OffsetLimitPageable(page, size));
+        return properties.findByHostIdOrderByCreatedAtDescIdAsc(hostId);
     }
 
     @Override

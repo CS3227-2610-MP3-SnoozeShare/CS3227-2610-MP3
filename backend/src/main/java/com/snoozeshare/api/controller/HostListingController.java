@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -24,7 +23,6 @@ import com.snoozeshare.api.request.UpdateListingRequest;
 import com.snoozeshare.api.request.UpdateListingStatusRequest;
 import com.snoozeshare.api.response.HostListingDetailResponse;
 import com.snoozeshare.api.response.ListingMetricsResponse;
-import com.snoozeshare.api.response.PageResponse;
 import com.snoozeshare.api.response.PropertyResponse;
 import com.snoozeshare.auth.security.FirebaseTokenVerifier.FirebaseAuthentication;
 import com.snoozeshare.auth.service.HostIdentityResolver;
@@ -33,8 +31,6 @@ import com.snoozeshare.service.ListingMetricsService;
 import com.snoozeshare.service.ListingService;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 
 /** Authenticated Host listing reads and mutations. */
 @RestController
@@ -57,15 +53,12 @@ public class HostListingController {
     }
 
     @GetMapping
-    public PageResponse<PropertyResponse> list(
-        @AuthenticationPrincipal FirebaseAuthentication identity,
-        @RequestParam(defaultValue = "0") @Min(0) int page,
-        @RequestParam(defaultValue = "50") @Min(1) @Max(100) int size) {
+    public List<PropertyResponse> list(
+        @AuthenticationPrincipal FirebaseAuthentication identity) {
         UUID hostId = identityResolver.resolve(identity);
-        List<PropertyResponse> fetched = listings.findByHostId(hostId, page, size).stream()
+        return listings.findByHostId(hostId).stream()
             .map(PropertyResponse::from)
             .toList();
-        return PageResponse.from(fetched, page, size);
     }
 
     @GetMapping("/{listingId}")

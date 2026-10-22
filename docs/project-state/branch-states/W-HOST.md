@@ -32,7 +32,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| Current | 2026-10-22 | GPT-5 | W-HOST-API | Active | T11 return complete listing and booking-request collections | T11 step 1: add failing 101-row and legacy-parameter integration assertions | 2026-10-22 |
+| Current | 2026-10-22 | GPT-5 | W-HOST-API | Active | T12 return complete booking and ticket conversation collections | T12 step 1: add failing 101-row and 1,001-message integration assertions | 2026-10-22 |
 
 **Remaining**
 
@@ -44,14 +44,14 @@ No change.
 - [x] T8 wire listing, calendar, and request screens to the API provider; 166 frontend tests, lint and production build pass.
 - [x] T9 wire Host messages and wallet screens to the API provider; 172 frontend tests, lint, and production build pass.
 - [x] T10 backend/frontend acceptance, authenticated request captures, regression fixes, code review, and fresh build/test/lint gates complete; owner review remains (D~23/D~25/D~26/D~27).
-- [ ] T11 return complete listing and booking-request collections; begin with failing >100-row, owner-scope, ordering, and legacy-query tests (C~19).
+- [ ] T12 return complete booking and ticket conversation collections; start with >100-row and 1,001-message integration assertions (C~19).
 
 ## 3. Workstreams
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
 | W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Listing route/load failures use a generic page and listings link; validation and mutation errors stay inline (C~18) | guide out of date: W-HOST Host UI pages and Fall Light details |
-| W-HOST-API | Replace Host fixtures with authenticated backend integration | Planned | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T11 step 1/5 next: add failing complete listing/request integration assertions; T12 follows T11 due shared BookingRepository | — |
+| W-HOST-API | Replace Host fixtures with authenticated backend integration | Building | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T11 done: complete ordered listing/request arrays, legacy query compatibility, 101-row tenant-scope tests; next T12 step 1 | — |
 
 ## 4. Architecture
 
@@ -144,6 +144,7 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | D~25 | 2026-10-22 | A clean authenticated development reload duplicated the initial listings and shared wallet reads; React Strict Mode replayed mount effects and the provider did not coalesce same-key in-flight reads | Added provider-level in-flight request sharing for keyed page resources and wallet summary reads; the Strict Mode regressions pass, all 176 frontend tests/lint/build and backend build pass, and a fresh `/host/listings` capture showed one request each for `/api/auth/me`, `/api/host/listings?page=0&size=50`, and `/api/host/wallet?page=0&size=1`; the remaining route requests were later captured during T10 (D~23) |
 | D~26 | 2026-10-22 | A clean Wallet route capture duplicated `GET /api/host/wallet?page=0&size=50` under Strict Mode even though the summary and keyed page resources were already coalesced | Added separate in-flight sharing for wallet statement pages and a Strict Mode regression test; the regression failed with two page reads before the fix, passed after it, and a fresh authenticated Wallet capture now shows one statement request and one wallet summary request |
 | D~27 | 2026-10-22 | Read-only T10 review found stale gate wording and a handoff that still said route captures remained | Reconciled the evidence and next-action records; review found no code findings, and the final frontend/backend gates and plan closeout lint now pass |
+| D~28 | 2026-10-22 | T11's approved file list omitted `PropertyRepositoryTest`, which directly asserted the listing page-query API that T11 removes | Resolved: add the repository test to T11 and replace paging assertions with complete stable-order and owner-scope coverage; no API scope change |
 
 ## 10. Changes
 
@@ -231,3 +232,4 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | 2026-10-22 | Closed T10 with eight-route authenticated request capture, 176 frontend tests, lint/build, backend build, read-only review, and plan closeout lint | W-HOST-API | T10 |
 | 2026-10-22 | Unified listing collection/detail/edit/calendar route-load failures behind a generic error page with a return link; collection errors retain retry. Validation and mutation errors remain inline; 179 frontend tests, lint, and production build pass | W-HOST | C~18 |
 | 2026-10-22 | Reversed bounded Host collection/history pagination; corrected T12 dependency after source inspection showed a shared BookingRepository edit; approved T11-T17 plan (seven tasks, waves 7–11) and began T11 | W-HOST-API | C~19 |
+| 2026-10-22 | Replaced paged Host listing and pending/history request reads with complete ordered owner-scoped arrays; legacy page/size params return identical results. 101-row integration coverage, repository ordering/scope tests, Checkstyle, and backend build pass | W-HOST-API | T11 |

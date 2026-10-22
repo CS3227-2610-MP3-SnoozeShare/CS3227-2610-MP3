@@ -19,15 +19,12 @@ import com.snoozeshare.api.error.HostApiException;
 import com.snoozeshare.api.request.BookingDecisionRequest;
 import com.snoozeshare.api.response.BookingResponse;
 import com.snoozeshare.api.response.HostBookingRowResponse;
-import com.snoozeshare.api.response.PageResponse;
 import com.snoozeshare.auth.security.FirebaseTokenVerifier.FirebaseAuthentication;
 import com.snoozeshare.auth.service.HostIdentityResolver;
 import com.snoozeshare.domain.model.Booking;
 import com.snoozeshare.service.BookingService;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 
 /** Authenticated, host-scoped booking request reads and decisions. */
 @RestController
@@ -45,23 +42,21 @@ public class HostRequestsController {
     }
 
     @GetMapping
-    public PageResponse<HostBookingRowResponse> list(
+    public List<HostBookingRowResponse> list(
             @AuthenticationPrincipal FirebaseAuthentication identity,
-            @RequestParam String view,
-            @RequestParam(defaultValue = "0") @Min(0) int page,
-            @RequestParam(defaultValue = "50") @Min(1) @Max(100) int size) {
+            @RequestParam String view) {
         UUID hostId = identityResolver.resolve(identity);
         List<HostBookingRowResponse> rows;
         if ("pending".equals(view)) {
-            rows = bookings.pendingRequestRowsFor(hostId, page, size).stream()
+            rows = bookings.pendingRequestRowsFor(hostId).stream()
                     .map(HostBookingRowResponse::from).toList();
         } else if ("history".equals(view)) {
-            rows = bookings.historyRowsFor(hostId, page, size).stream()
+            rows = bookings.historyRowsFor(hostId).stream()
                     .map(HostBookingRowResponse::from).toList();
         } else {
             throw new HostApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR");
         }
-        return PageResponse.from(rows, page, size);
+        return rows;
     }
 
     @PostMapping("/{bookingId}/decision")

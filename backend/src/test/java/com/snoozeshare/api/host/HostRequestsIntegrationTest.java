@@ -36,7 +36,7 @@ import com.snoozeshare.repository.BookingRepository;
 import com.snoozeshare.repository.PropertyRepository;
 import com.snoozeshare.repository.UserRepository;
 
-/** E3/E7/E17: authenticated, owner-scoped Host booking request API. */
+/** E3/E7/E26/E27: authenticated, owner-scoped Host booking request API. */
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.MOCK,
     properties = "snoozeshare.security.enabled=true")
@@ -84,9 +84,24 @@ class HostRequestsIntegrationTest {
     }
 
     @Test
-    void pendingAndHistoryArePagedDeterministicallyAndDecisionIsOwned() throws Exception {
-        Booking newest = saveBooking(BookingStatus.PENDING, Instant.parse("2026-02-02T00:00:00Z"));
-        Booking older = saveBooking(BookingStatus.PENDING, Instant.parse("2026-02-01T00:00:00Z"));
+    void pendingAndHistoryReturnAllOwnedRowsInOrderAndIgnoreLegacyPagination() throws Exception {
+        Booking newestPending = null;
+        Booking oldestPending = null;
+        Booking newestHistory = null;
+        Booking oldestHistory = null;
+        Instant firstCreatedAt = Instant.parse("2026-02-01T00:00:00Z");
+        for (int index = 0; index < 101; index++) {
+            Booking pending = saveBooking(BookingStatus.PENDING, firstCreatedAt.plusSeconds(index));
+            Booking history = saveBooking(BookingStatus.REJECTED, firstCreatedAt.plusSeconds(index));
+            if (index == 0) {
+                oldestPending = pending;
+                oldestHistory = history;
+            }
+            if (index == 100) {
+                newestPending = pending;
+                newestHistory = history;
+            }
+        }
         UUID otherHost = UUID.randomUUID();
         UUID otherProperty = UUID.randomUUID();
         users.save(new User(otherHost, "other-" + otherHost, Role.HOST, "Other",
@@ -101,16 +116,38 @@ class HostRequestsIntegrationTest {
             LocalDate.now().plusDays(30), LocalDate.now().plusDays(32), BookingStatus.PENDING,
             new BigDecimal("80.00"), new BigDecimal("160.00"), Instant.now(), null, null, null));
 
-        mockMvc.perform(get("/api/host/requests?view=pending&page=0&size=1")
+        String pendingResponse = mockMvc.perform(get("/api/host/requests?view=pending")
                 .header("Authorization", "Bearer " + token))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.items.length()").value(1))
-            .andExpect(jsonPath("$.items[0].booking.id").value(newest.getId().toString()))
-            .andExpect(jsonPath("$.hasMore").value(true));
-        mockMvc.perform(get("/api/host/requests?view=pending&page=1&size=1")
+            .andExpect(jsonPath("$.length()").value(101))
+            .andExpect(jsonPath("$[0].booking.id").value(newestPending.getId().toString()))
+            .andExpect(jsonPath("$[100].booking.id").value(oldestPending.getId().toString()))
+            .andExpect(jsonPath("$[?(@.booking.id == '" + foreignBooking + "')]").isEmpty())
+            .andExpect(jsonPath("$.page").doesNotExist())
+            .andExpect(jsonPath("$.size").doesNotExist())
+            .andExpect(jsonPath("$.hasMore").doesNotExist())
+            .andReturn().getResponse().getContentAsString();
+        String pendingLegacyResponse = mockMvc.perform(get("/api/host/requests?view=pending&page=0&size=1")
                 .header("Authorization", "Bearer " + token))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.items[0].booking.id").value(older.getId().toString()));
+            .andExpect(jsonPath("$.length()").value(101))
+            .andReturn().getResponse().getContentAsString();
+        org.assertj.core.api.Assertions.assertThat(pendingLegacyResponse).isEqualTo(pendingResponse);
+
+        String historyResponse = mockMvc.perform(get("/api/host/requests?view=history")
+                .header("Authorization", "Bearer " + token))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(101))
+            .andExpect(jsonPath("$[0].booking.id").value(newestHistory.getId().toString()))
+            .andExpect(jsonPath("$[100].booking.id").value(oldestHistory.getId().toString()))
+            .andExpect(jsonPath("$[?(@.booking.id == '" + foreignBooking + "')]").isEmpty())
+            .andReturn().getResponse().getContentAsString();
+        String historyLegacyResponse = mockMvc.perform(get("/api/host/requests?view=history&page=0&size=1")
+                .header("Authorization", "Bearer " + token))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(101))
+            .andReturn().getResponse().getContentAsString();
+        org.assertj.core.api.Assertions.assertThat(historyLegacyResponse).isEqualTo(historyResponse);
         mockMvc.perform(get("/api/host/requests?view=invalid")
                 .header("Authorization", "Bearer " + token))
             .andExpect(status().isBadRequest());
@@ -137,10 +174,10 @@ class HostRequestsIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON).content("{\"approve\":true}"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.status").value("CONFIRMED"));
-        mockMvc.perform(get("/api/host/requests?view=history&page=0&size=1")
+        mockMvc.perform(get("/api/host/requests?view=history")
                 .header("Authorization", "Bearer " + token))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.items[0].booking.id").value(booking.getId().toString()));
+            .andExpect(jsonPath("$[0].booking.id").value(booking.getId().toString()));
         mockMvc.perform(post("/api/host/requests/" + booking.getId() + "/decision")
                 .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON).content("{\"approve\":true}"))
