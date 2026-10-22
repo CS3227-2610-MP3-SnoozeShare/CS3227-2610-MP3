@@ -33,7 +33,7 @@ No change.
 |---|---|---|---|---|---|---|---|
 | S1 | 2026-10-22 20:00 | Claude Opus 4.6 | W-GUEST | Done | Plan written, approved | — | 2026-10-22 |
 | S2 | 2026-10-22 | Claude Opus 4.6 | W-GUEST | Done | T1 partially coded, not committed | — | 2026-10-22 |
-| S3 | 2026-10-22 | Claude Opus 4.6 | W-GUEST | Active | T7 done; continuing Wave 2 | T8: Messages page | 2026-10-22 |
+| S3 | 2026-10-22 | Claude Opus 4.6 | W-GUEST | Active | T8 done; continuing Wave 2 | T9: Wallet page | 2026-10-22 |
 
 **Remaining**
 
@@ -50,7 +50,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-GUEST | Guest role controllers and frontend pages | Building | [spec](docs/superpowers/specs/2026-10-22-w-guest-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-guest.md) | Task 8/10: T8 Messages page | — |
+| W-GUEST | Guest role controllers and frontend pages | Building | [spec](docs/superpowers/specs/2026-10-22-w-guest-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-guest.md) | Task 9/10: T9 Wallet page | — |
 
 ---
 
@@ -108,3 +108,4 @@ No change.
 | 2026-10-22 | T5: GuestReviewController with POST /bookings/{id}/review. @Size(max=2000) on SubmitReviewRequest.comment. 7 integration tests. Wave 1 complete (T1-T5) | W-GUEST | T5 commit |
 | 2026-10-22 | T6: Guest search page with listing detail sheet. guest-api.ts typed wrappers for all 19 endpoints. ListingCard, ListingDetailSheet components. /guest redirects to /guest/search. 3 frontend tests | W-GUEST | T6 commit |
 | 2026-10-22 | T7: Trips page with cancel and review dialogs. TripCard, CancelDialog, ReviewDialog components. trips/page.tsx with 3 collapsible sections (Upcoming/Active/Past). 3 frontend tests | W-GUEST | T7 commit |
+| 2026-10-22 | T8: Messages page with conversation sidebar, thread view, ticket filing dialog. ConversationList, MessageThread, TicketFilingDialog components. ?booking={id} deep link. 3 frontend tests | W-GUEST | T8 commit |
