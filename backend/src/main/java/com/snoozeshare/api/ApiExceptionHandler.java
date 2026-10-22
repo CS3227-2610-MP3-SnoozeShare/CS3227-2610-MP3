@@ -9,9 +9,15 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import com.snoozeshare.auth.security.ProtectedRequestPath;
 import com.snoozeshare.service.NotFoundException;
@@ -76,6 +82,52 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
                 exception, request, new HttpHeaders());
     }
 
+    @Override
+    protected ResponseEntity<Object> handleExceptionInternal(Exception exception,
+                                                               Object body,
+                                                               HttpHeaders headers,
+                                                               HttpStatusCode statusCode,
+                                                               WebRequest request) {
+        ErrorDetails details = frameworkDetails(exception, statusCode);
+        return respond(statusCode, details.code(), details.message(), exception, request, headers);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleNoHandlerFoundException(NoHandlerFoundException exception,
+                                                                    HttpHeaders headers,
+                                                                    HttpStatusCode status,
+                                                                    WebRequest request) {
+        return respond(status, "NOT_FOUND", "Not found", exception, request, headers);
+    }
+
+    private static ErrorDetails frameworkDetails(Exception exception, HttpStatusCode status) {
+        if (exception instanceof HttpRequestMethodNotSupportedException) {
+            return new ErrorDetails("METHOD_NOT_ALLOWED", "Method not allowed");
+        }
+        if (exception instanceof HttpMediaTypeNotSupportedException) {
+            return new ErrorDetails("UNSUPPORTED_MEDIA_TYPE", "Unsupported media type");
+        }
+        if (exception instanceof NoHandlerFoundException
+                || exception instanceof NoResourceFoundException) {
+            return new ErrorDetails("NOT_FOUND", "Not found");
+        }
+        if (exception instanceof HttpMessageNotReadableException
+                || exception instanceof MethodArgumentNotValidException
+                || status.value() == HttpStatus.BAD_REQUEST.value()) {
+            return new ErrorDetails("VALIDATION_ERROR", VALIDATION_MESSAGE);
+        }
+        if (status.value() == HttpStatus.METHOD_NOT_ALLOWED.value()) {
+            return new ErrorDetails("METHOD_NOT_ALLOWED", "Method not allowed");
+        }
+        if (status.value() == HttpStatus.UNSUPPORTED_MEDIA_TYPE.value()) {
+            return new ErrorDetails("UNSUPPORTED_MEDIA_TYPE", "Unsupported media type");
+        }
+        if (status.value() == HttpStatus.NOT_FOUND.value()) {
+            return new ErrorDetails("NOT_FOUND", "Not found");
+        }
+        return new ErrorDetails("INTERNAL_ERROR", INTERNAL_MESSAGE);
+    }
+
     private ResponseEntity<Object> respond(HttpStatusCode status,
                                            String code,
                                            String message,
@@ -117,4 +169,5 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
                 || owner.startsWith("com.snoozeshare.domain.");
     }
 
+    private record ErrorDetails(String code, String message) { }
 }
