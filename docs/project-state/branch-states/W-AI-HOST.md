@@ -8,8 +8,8 @@ after the branch merges.
 - **Base:** `de137c6`
 - **Owner:** Xiao-Congchen
 - **Status:** Planned
-- **Approved:** Eligibility-amended spec approved (Xiao-Congchen, 2026-10-23); amended plan awaits Gate 2
-- **Last updated:** 2026-10-23 by GPT-5 — Gate 1 approval recorded for minimum-detail eligibility
+- **Approved:** Eligibility-amended spec and plan approved (Xiao-Congchen, 2026-10-23); implementation beginning
+- **Last updated:** 2026-10-23 by GPT-5 — Gate 2 approval recorded; starting T6
 
 ---
 
@@ -33,13 +33,13 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S2 | 2026-10-23 00:20 | GPT-5 (lead) | W~1 | Planned | Eligibility spec approved; amended plan ready for Gate 2 | Ask operator to approve the amended implementation plan | 2026-10-23 04:35 |
+| S2 | 2026-10-23 00:20 | GPT-5 (lead) | W~1 | Building | Gate 2 approved; starting T6 test-first implementation | Add failing minimum-detail eligibility tests | 2026-10-23 04:45 |
 
 **Remaining**
 
 - [ ] Operator/browser session checks at desktop/tablet/390px.
 - [ ] Resolve or separately accept the pre-existing Next.js prerender route-module failure.
-- [ ] Gate 2 plan approval, then implement T6.
+- [ ] Implement and verify T6 minimum-detail eligibility.
 - [ ] Gate 3 approval, then separately ask whether to push/open a PR.
 
 ---
@@ -48,7 +48,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W~1 | W-AI-HOST: Host AI Listing Optimisation Assistant | Planned | [design](../../superpowers/specs/2026-10-22-w-ai-host-design.md) | [plan](../../superpowers/plans/2026-10-22-w-ai-host.md) | Eligibility spec approved; amended plan awaits Gate 2 | — |
+| W~1 | W-AI-HOST: Host AI Listing Optimisation Assistant | Building | [design](../../superpowers/specs/2026-10-22-w-ai-host-design.md) | [plan](../../superpowers/plans/2026-10-22-w-ai-host.md) | T6 in flight: minimum-detail eligibility gate | — |
 
 ---
 
@@ -161,3 +161,4 @@ plain-text rendering conventions.
 | 2026-10-23 | T6 close-out checks passed: backend Checkstyle/tests, frontend tests/lint/build, diff audit, and implementation review; browser checks remain handover | W~1 | T6 |
 | 2026-10-23 | Amended the Host AI spec/plan to gate the frontend trigger on seven minimum listing details with a disabled-state hover explanation; spec and plan lint passed | W~1 | C~7, Gate 1 pending |
 | 2026-10-23 | Gate 1 approved for the minimum-detail eligibility amendment | W~1 | Operator approval |
+| 2026-10-23 | Gate 2 approved; T6 implementation started | W~1 | Operator approval |
