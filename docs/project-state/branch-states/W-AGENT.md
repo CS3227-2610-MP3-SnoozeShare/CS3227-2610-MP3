@@ -124,3 +124,4 @@ No change: Q~1 (audit zone) was answered on 2026-10-22 (C~7); nothing is open.
 | 2026-10-22 | Rebuilt T1 part 11/20: create funded dispute scenarios through real services | W-AGENT | small-commit reconstruction |
 | 2026-10-22 | Rebuilt T1 part 12/20: extend dispute fixtures for governance and bulk scenarios | W-AGENT | small-commit reconstruction |
 | 2026-10-22 | Rebuilt T1 part 13/20: expose API foundation fixtures and safe-message assertions | W-AGENT | small-commit reconstruction |
+| 2026-10-22 | Rebuilt T1 part 14/20: wire authenticated API integration fixtures and disabled security coverage | W-AGENT | small-commit reconstruction |
