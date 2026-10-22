@@ -10,9 +10,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
 
+import com.snoozeshare.config.ConditionalOnDatabase;
 import com.snoozeshare.domain.enums.AccountStatus;
 import com.snoozeshare.domain.enums.BookingStatus;
 import com.snoozeshare.domain.enums.Role;
@@ -28,7 +28,7 @@ import com.snoozeshare.repository.UserRepository;
 import com.snoozeshare.service.AvailabilityService;
 
 @Service
-@ConditionalOnBean(PropertyRepository.class)
+@ConditionalOnDatabase
 public class AvailabilityServiceImpl implements AvailabilityService {
 
     private static final Set<BookingStatus> CALENDAR_STATUSES = EnumSet.of(

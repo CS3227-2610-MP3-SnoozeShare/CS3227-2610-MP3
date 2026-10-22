@@ -7,10 +7,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+import com.snoozeshare.config.ConditionalOnDatabase;
 import com.snoozeshare.domain.enums.Role;
 import com.snoozeshare.domain.enums.ThreadChannel;
 import com.snoozeshare.domain.enums.TicketStatus;
@@ -31,7 +31,7 @@ import com.snoozeshare.service.ConversationSummary;
 import com.snoozeshare.service.MessageService;
 
 @Service
-@ConditionalOnBean(PropertyRepository.class)
+@ConditionalOnDatabase
 public class MessageServiceImpl implements MessageService {
 
     private static final String SUPPORT_TEAM = "Support team";

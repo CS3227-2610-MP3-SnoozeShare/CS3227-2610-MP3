@@ -10,17 +10,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import com.snoozeshare.repository.PropertyRepository;
+import com.snoozeshare.config.ConditionalOnDatabase;
 import com.snoozeshare.service.ListingMetrics;
 import com.snoozeshare.service.ListingMetricsService;
 import com.snoozeshare.service.ListingReview;
 
 @Service
-@ConditionalOnBean(PropertyRepository.class)
+@ConditionalOnDatabase
 public class ListingMetricsServiceImpl implements ListingMetricsService {
 
     private final JdbcTemplate jdbc;

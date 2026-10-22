@@ -11,12 +11,12 @@ import java.util.List;
 import java.util.OptionalDouble;
 import java.util.UUID;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.snoozeshare.config.ConditionalOnDatabase;
 import com.snoozeshare.domain.enums.AccountStatus;
 import com.snoozeshare.domain.enums.BookingStatus;
 import com.snoozeshare.domain.enums.ListingStatus;
@@ -50,7 +50,7 @@ import com.snoozeshare.service.TransactionService;
 import com.snoozeshare.service.TripFilter;
 
 @Service
-@ConditionalOnBean(PropertyRepository.class)
+@ConditionalOnDatabase
 public class BookingServiceImpl implements BookingService {
 
     private final BookingRepository bookings;
