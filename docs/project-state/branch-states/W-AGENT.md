@@ -37,7 +37,7 @@ No change.
 - [x] Confirm scope with the operator (done 2026-10-22)
 - [x] Gate 1: spec reviewed in two rounds, approved by Xiao-Congchen 2026-10-22 (Q~1 answered: Asia/Singapore)
 - [x] Gate 2: plan approved by Xiao-Congchen 2026-10-22
-- [x] Execute the plan (`executing-plans-lite`); T1 complete
+- [x] Execute the plan (`executing-plans-lite`); T1 to T12 complete (2026-10-23)
 - [ ] **Handover:** the W-AI-GATEWAY branch state is still in `branch-states/` on `development`: its fold (gate 4) is pending and is not this branch's work
 - [ ] **Handover:** audit reasons, notes and messages typed by agents will become LLM input in W-AI-AGENT; treat them as untrusted (prompt injection) in that spec
 
@@ -47,7 +47,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AGENT | Agent features: disputes, accounts, audit, categories — REST controllers and Next.js pages | Building | [spec](docs/superpowers/specs/2026-10-22-w-agent-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-agent.md) | T1-T12 Done; in review (gate 3) | — |
+| W-AGENT | Agent features: disputes, accounts, audit, categories — REST controllers and Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-22-w-agent-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-agent.md) | T1-T12 Done; in review (gate 3) | — |
 
 ---
 
