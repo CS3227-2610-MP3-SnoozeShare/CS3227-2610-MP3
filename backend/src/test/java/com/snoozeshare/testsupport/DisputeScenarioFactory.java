@@ -131,10 +131,11 @@ public class DisputeScenarioFactory {
             users.create(index % 2 == 0 ? Role.GUEST : Role.HOST);
         }
         for (int index = 0; index < auditRows; index++) {
-            jdbc.update("insert into audit_log (id, actor_user_id, action_type, entity_type, "
-                            + "entity_id, timestamp) values (?::uuid, ?::uuid, ?, ?, ?::uuid, ?)",
-                    UUID.randomUUID().toString(), agent.id(), "TICKET_OPENED", "Ticket",
-                    UUID.randomUUID().toString(), now);
+            jdbc.update("insert into audit_log (id, actor_user_id, actor_name, action_type, "
+                            + "entity_type, entity_id, timestamp) "
+                            + "values (?::uuid, ?::uuid, ?, ?, ?, ?::uuid, ?)",
+                    UUID.randomUUID().toString(), agent.id(), "Performance agent", "TICKET_OPENED",
+                    "Ticket", UUID.randomUUID().toString(), java.sql.Timestamp.from(now));
         }
     }
 
