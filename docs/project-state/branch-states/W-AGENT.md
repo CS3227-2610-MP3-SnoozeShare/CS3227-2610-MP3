@@ -7,9 +7,9 @@ after the branch merges.
 - **Branch:** W-AGENT (from `development` at `7eef36a`)
 - **Base:** `f50f437` (origin/development, with W-HOST, W-HOST-API and W-GUEST, merged into the branch on 2026-10-23; the branch was cut at `7eef36a`)
 - **Owner:** Xiao-Congchen
-- **Status:** In review
-- **Approved:** —
-- **Last updated:** 2026-10-23 by Claude Sonnet 5.5 — all tasks done; branch handed over for review (gate 3)
+- **Status:** Approved
+- **Approved:** Xiao-Congchen 2026-10-23
+- **Last updated:** 2026-10-23 by Claude Sonnet 5.5 — gate 3 approved by Xiao-Congchen; push and PR pending the operator's answer
 
 ---
 
