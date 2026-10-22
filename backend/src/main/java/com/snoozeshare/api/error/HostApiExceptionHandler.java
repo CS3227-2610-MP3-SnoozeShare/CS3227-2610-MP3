@@ -65,7 +65,9 @@ public class HostApiExceptionHandler {
     public ResponseEntity<AuthErrorResponse> handleAvailabilityConflict(
         AvailabilityConflictException exception,
         HttpServletRequest request) {
-        return respond(HttpStatus.CONFLICT, "DATE_RANGE_UNAVAILABLE", request);
+        String code = exception.getConflictType() == AvailabilityConflictException.ConflictType.BOOKING
+            ? "BOOKING_OVERLAP" : "HOST_BLOCK_OVERLAP";
+        return respond(HttpStatus.CONFLICT, code, request);
     }
 
     @ExceptionHandler(IllegalStateException.class)

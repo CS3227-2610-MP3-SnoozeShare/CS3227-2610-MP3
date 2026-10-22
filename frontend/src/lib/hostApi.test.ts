@@ -75,6 +75,10 @@ describe('Host API adapter', () => {
     const { hostSafeErrorMessage } = await import('./hostApi');
     expect(hostSafeErrorMessage(new BackendApiError('STATE_CONFLICT', 'internal details', 'req', 409)))
       .toBe('This item changed. Refresh and try again.');
+    expect(hostSafeErrorMessage(new BackendApiError('BOOKING_OVERLAP', 'internal details', 'req', 409)))
+      .toBe('These dates overlap an existing booking. Choose another date range.');
+    expect(hostSafeErrorMessage(new BackendApiError('HOST_BLOCK_OVERLAP', 'internal details', 'req', 409)))
+      .toBe('These dates overlap a date range you have already blocked. Choose another date range.');
     expect(hostSafeErrorMessage(new BackendApiError('DATE_RANGE_UNAVAILABLE', 'internal details', 'req', 409)))
       .toBe('These dates overlap an existing booking or blocked period. Choose another date range.');
     expect(hostSafeErrorMessage(new Error('secret or SQL details')))

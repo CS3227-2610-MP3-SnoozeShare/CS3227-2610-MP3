@@ -39,6 +39,7 @@ import com.snoozeshare.domain.enums.ListingStatus;
 import com.snoozeshare.domain.enums.PropertyType;
 import com.snoozeshare.domain.enums.Role;
 import com.snoozeshare.domain.model.AuditLogEntry;
+import com.snoozeshare.domain.model.AvailabilityBlock;
 import com.snoozeshare.domain.model.Booking;
 import com.snoozeshare.domain.model.Property;
 import com.snoozeshare.domain.model.User;
@@ -177,7 +178,7 @@ class HostCalendarIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(blockBody(end, end.plusDays(1), null)))
             .andExpect(status().isConflict())
-            .andExpect(jsonPath("$.code").value("DATE_RANGE_UNAVAILABLE"));
+            .andExpect(jsonPath("$.code").value("HOST_BLOCK_OVERLAP"));
         mockMvc.perform(post("/api/host/listings/" + propertyId + "/blocks")
                 .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -195,6 +196,46 @@ class HostCalendarIntegrationTest {
         assertThat(audits.findAll()).filteredOn(entry -> createdId.equals(entry.getEntityId()))
             .extracting(AuditLogEntry::getActionType)
             .containsExactly("HOST_BLOCK_CREATED");
+    }
+
+    @Test
+    void bookingOverlapReturnsItsOwnSafeConflictCode() throws Exception {
+        UUID guestId = UUID.randomUUID();
+        users.save(new User(guestId, "booking-guest-" + guestId, Role.GUEST, "Guest",
+            guestId + "@example.com", AccountStatus.ACTIVE, null, Instant.now(), Instant.now(), null));
+        LocalDate start = LocalDate.now().plusDays(45);
+        LocalDate end = start.plusDays(2);
+        bookings.save(new Booking(UUID.randomUUID(), propertyId, guestId, start, end,
+            BookingStatus.PENDING, new BigDecimal("80.00"), new BigDecimal("160.00"),
+            Instant.now(), null, null, null));
+
+        mockMvc.perform(post("/api/host/listings/" + propertyId + "/blocks")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(blockBody(start, end.minusDays(1), null)))
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.code").value("BOOKING_OVERLAP"));
+    }
+
+    @Test
+    void bookingConflictTakesPrecedenceWhenBothSourcesOverlap() throws Exception {
+        UUID guestId = UUID.randomUUID();
+        users.save(new User(guestId, "both-conflicts-guest-" + guestId, Role.GUEST, "Guest",
+            guestId + "@example.com", AccountStatus.ACTIVE, null, Instant.now(), Instant.now(), null));
+        LocalDate start = LocalDate.now().plusDays(50);
+        LocalDate end = start.plusDays(2);
+        bookings.save(new Booking(UUID.randomUUID(), propertyId, guestId, start, end,
+            BookingStatus.PENDING, new BigDecimal("80.00"), new BigDecimal("160.00"),
+            Instant.now(), null, null, null));
+        blocks.save(new AvailabilityBlock(UUID.randomUUID(), propertyId, start, end.plusDays(1),
+            "HOST_BLOCK", null, "Maintenance"));
+
+        mockMvc.perform(post("/api/host/listings/" + propertyId + "/blocks")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(blockBody(start, end.minusDays(1), null)))
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.code").value("BOOKING_OVERLAP"));
     }
 
     @Test

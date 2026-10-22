@@ -8,7 +8,7 @@ in after the branch merges.
 - **Base:** `e185dc0`
 - **Owner:** project owner
 - **Status:** In review
-- **Last updated:** 2026-10-22 by GPT-5 — displayed the canonical booking ID in Messages and Wallet
+- **Last updated:** 2026-10-22 by GPT-5 — distinguished calendar block conflicts by source
 
 ---
 
@@ -57,8 +57,8 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [experience corrections spec](docs/superpowers/specs/2026-10-22-w-host-experience-corrections-design.md); [UI spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [UI plan](docs/superpowers/plans/2026-10-21-w-host-ui.md); [experience corrections plan](docs/superpowers/plans/2026-10-22-w-host-experience-corrections.md) | Canonical booking ID visible in Messages and Wallet; 202 tests, lint, isolated build pass; owner review pending | guide out of date: Host metrics, time display, and calendar behavior |
-| W-HOST-API | Replace Host fixtures with authenticated backend integration | In review | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T17 complete: 101/1,001-row tests, full gates, and authenticated read-only captures; owner review pending | — |
+| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [experience corrections spec](docs/superpowers/specs/2026-10-22-w-host-experience-corrections-design.md); [UI spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [UI plan](docs/superpowers/plans/2026-10-21-w-host-ui.md); [experience corrections plan](docs/superpowers/plans/2026-10-22-w-host-experience-corrections.md) | Calendar block failures now identify booking vs prior host block; full gates pending | guide out of date: Host metrics, time display, and calendar behavior |
+| W-HOST-API | Replace Host fixtures with authenticated backend integration | In review | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T17 complete; block conflicts expose typed 409 codes; owner review pending | — |
 
 ## 4. Architecture
 
@@ -69,7 +69,7 @@ No change.
 | C~17 | *(superseded by C~20)* Persistence-backed services and adapters use the explicit property gate. |
 | C~20 | Database-dependent services and adapters use `@ConditionalOnDatabase`, matching the shared backend convention on `development`. |
 
-**Host API — Now:** Protected Host controllers register only when `snoozeshare.security.enabled=true`, matching `HostIdentityResolver`; listing, calendar, booking decision, conversation, and wallet routes resolve host identity server-side and call services rather than repositories. The authenticated frontend adapter routes requests through `authenticatedFetch`; all Host listing, calendar, request, message, and wallet screens use API-backed state with fixture mode retained for presentation tests. Collection and history GETs return every matching owner-scoped row in deterministic order, with no page/size contract; the listings collection carries booking count and average review rating from two grouped queries filtered by the resolved Host ID. Listing cards preserve those metrics when their status response patches only the matching row. The calendar route loads listing detail independently from month data, retains the last successful month while the requested month loads in-grid, and starts its block range empty; calendar data remains month-bounded with at most 42 grid cells. This accepts unbounded collection payloads and server/client memory use (C~19). Wallet mutations retain the existing ledger transaction and wallet row lock, with events after commit; ambiguous failures refresh balance and statement without retrying.
+**Host API — Now:** Protected Host controllers register only when `snoozeshare.security.enabled=true`, matching `HostIdentityResolver`; listing, calendar, booking decision, conversation, and wallet routes resolve host identity server-side and call services rather than repositories. The authenticated frontend adapter routes requests through `authenticatedFetch`; all Host listing, calendar, request, message, and wallet screens use API-backed state with fixture mode retained for presentation tests. Collection and history GETs return every matching owner-scoped row in deterministic order, with no page/size contract; the listings collection carries booking count and average review rating from two grouped queries filtered by the resolved Host ID. Listing cards preserve those metrics when their status response patches only the matching row. The calendar route loads listing detail independently from month data, retains the last successful month while the requested month loads in-grid, and starts its block range empty; calendar data remains month-bounded with at most 42 grid cells. Block-create conflicts return distinct 409 codes for booking overlap and prior host blocks, preferring the booking code if both sources overlap (C~27). This accepts unbounded collection payloads and server/client memory use (C~19). Wallet mutations retain the existing ledger transaction and wallet row lock, with events after commit; ambiguous failures refresh balance and statement without retrying.
 
 | Source | Standing choice |
 |---|---|
@@ -127,6 +127,7 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | C~24 | 2026-10-22 | Listing detail check-in/out display uses zero-padded `hh:mm AM/PM`; calendar block submission has no confirmation modal, submits by button or Enter, and reports booking/blocked-period overlap distinctly | The project owner requested these listing-detail and calendar interaction/error behaviors | Operator conversation |
 | C~25 | 2026-10-22 | Top-up and withdrawal dialogs follow their distinct approved artifact flows: top-up shows balance and $50/$100/$500/$1,000 presets; withdrawal shows available balance, supports filling the full amount, and cannot exceed available non-escrowed funds; each has its specific explanatory copy and confirm label | The project owner asked to resolve the identified differences from the Host UI artifact | Operator conversation |
 | C~26 | 2026-10-22 | Display the full canonical booking UUID with one `#` in booking Messages and Wallet references; do not derive a short booking number absent from the API contract | The project owner asked for the booking number in both views; the backend supplies only the UUID, so a derived short number would be synthetic and could collide | Operator conversation |
+| C~27 | 2026-10-22 | Calendar block conflicts return distinct 409 codes and safe UI messages for booking overlaps (`BOOKING_OVERLAP`) and existing host blocks (`HOST_BLOCK_OVERLAP`); when both overlap, report the booking conflict first and do not expose IDs or dates | The project owner asked to identify what a proposed block overlaps after learning the existing combined message cannot tell which source caused the conflict; booking precedence follows the calendar's existing Booked-over-Blocked precedence | Operator conversation |
 
 ## 9. Deviations
 
@@ -164,6 +165,7 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | D~30 | 2026-10-22 | T3's full frontend run found `HostListings.test.tsx` still asserted the prior `62%` presentation after occupancy changed to fixed two-decimal formatting | Resolved: added the existing fixture-backed test to T3's file list and updated its assertion to `62.00%`; no scope or behavior change |
 | D~31 | 2026-10-22 | T4's empty-range change also invalidated the existing local-only calendar interaction test, which was not listed in T4's file inventory | Resolved: added `HostPresentationInteractions.test.tsx` to T4 and changed it to choose a partial range explicitly; full frontend tests pass |
 | D~32 | 2026-10-22 | Read-only closeout review found the service query-count test used only a two-listing mocked batch, though the approved T1 checklist calls for sizes 1 and 101 | Added service coverage for both sizes and verified exactly two owner-scoped grouped queries in each case; backend checks rerun |
+| D~33 | 2026-10-22 | The approved W-HOST-API API/edge-case text says an overlap returns 422 `DOMAIN_RULE_VIOLATION`, while the implemented Host handler returned 409 `DATE_RANGE_UNAVAILABLE` | Per C~27, preserve the existing 409 status and replace its combined code with source-specific `BOOKING_OVERLAP` / `HOST_BLOCK_OVERLAP`; the branch state records the operative contract, while the approved spec/plan text remains unchanged pending an explicit spec amendment |
 
 ## 10. Changes
 
@@ -271,3 +273,4 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | 2026-10-22 | Preserved transaction IDs through wallet DTO mapping and keyed statement rows by transaction identity, with unique fallback keys; same-day/same-type regression, 199 frontend tests, lint, and production build pass | W-HOST | Operator follow-up |
 | 2026-10-22 | Normalized incoming leading hash markers for ticket conversation labels and booking/ticket Wallet references; duplicate-prefix regressions, 201 frontend tests, lint, and production build pass | W-HOST | Operator follow-up |
 | 2026-10-22 | Added the canonical booking ID to live Messages subtitles; Wallet shows the same ID for related transactions. Route-level regression, 202 frontend tests, lint, and isolated production build pass | W-HOST | C~26 |
+| 2026-10-22 | Split calendar block conflicts into booking and existing-host-block API codes and user-safe messages; 202 frontend tests, lint/build, backend Checkstyle/build, integration tests, and read-only review pass | W-HOST / W-HOST-API | `1ab37ca`, C~27 |

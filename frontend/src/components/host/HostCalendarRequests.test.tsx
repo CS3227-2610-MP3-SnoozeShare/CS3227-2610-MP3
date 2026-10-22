@@ -83,9 +83,9 @@ describe('Host calendar and requests', () => {
     expect(screen.queryByRole('dialog', { name: 'Block these dates?' })).not.toBeInTheDocument();
   });
 
-  it('submits the block form on Enter and shows a specific overlap error', async () => {
+  it('submits the block form on Enter and identifies a host-block overlap', async () => {
     const user = userEvent.setup();
-    const createBlock = vi.fn().mockRejectedValue(new BackendApiError('DATE_RANGE_UNAVAILABLE', 'Request could not be completed', 'req', 409));
+    const createBlock = vi.fn().mockRejectedValue(new BackendApiError('HOST_BLOCK_OVERLAP', 'Request could not be completed', 'req', 409));
     render(<HostCalendarPanel calendar={createHostFixtureAdapter().getCalendar('lakeside-cabin').data!} onCreateBlock={createBlock} />);
     await user.click(screen.getByRole('button', { name: 'Date range: Select dates' }));
     const picker = screen.getByRole('dialog', { name: 'Choose date range' });
@@ -95,7 +95,7 @@ describe('Host calendar and requests', () => {
     await user.type(screen.getByLabelText('Reason'), 'Maintenance{Enter}');
 
     await waitFor(() => expect(createBlock).toHaveBeenCalledOnce());
-    expect(await screen.findByRole('alert')).toHaveTextContent('These dates overlap an existing booking or blocked period. Choose another date range.');
+    expect(await screen.findByRole('alert')).toHaveTextContent('These dates overlap a date range you have already blocked. Choose another date range.');
   });
 
   it('keeps a chosen range open until Apply', () => {

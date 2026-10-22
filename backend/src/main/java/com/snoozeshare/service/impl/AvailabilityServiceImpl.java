@@ -97,9 +97,16 @@ public class AvailabilityServiceImpl implements AvailabilityService {
             if (!property.getHostId().equals(host.getId())) {
                 throw new IllegalStateException("Host does not own this property");
             }
-            if (!bookings.findOverlapping(propertyId, start, exclusiveEnd).isEmpty()
-                    || !blocks.findOverlapping(propertyId, start, exclusiveEnd).isEmpty()) {
-                throw new AvailabilityConflictException();
+            if (!bookings.findOverlapping(propertyId, start, exclusiveEnd).isEmpty()) {
+                throw new AvailabilityConflictException(AvailabilityConflictException.ConflictType.BOOKING);
+            }
+            List<AvailabilityBlock> overlappingBlocks = blocks.findOverlapping(
+                propertyId, start, exclusiveEnd);
+            if (overlappingBlocks.stream().anyMatch(block -> "HOST_BLOCK".equals(block.getSource()))) {
+                throw new AvailabilityConflictException(AvailabilityConflictException.ConflictType.HOST_BLOCK);
+            }
+            if (!overlappingBlocks.isEmpty()) {
+                throw new AvailabilityConflictException(AvailabilityConflictException.ConflictType.BOOKING);
             }
             String normalizedReason = reason == null ? null : reason.trim();
             if (normalizedReason != null && normalizedReason.isEmpty()) {

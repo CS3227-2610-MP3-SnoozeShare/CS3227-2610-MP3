@@ -117,12 +117,29 @@ class AvailabilityServiceRetryTest {
 
         assertThatThrownBy(() -> fixture.service.createHostBlock(PROPERTY_ID, START,
                 START.plusDays(1), HOST_ID, "Reason"))
-            .isInstanceOf(AvailabilityConflictException.class)
-            .hasMessage("Date range is not available");
+            .isInstanceOfSatisfying(AvailabilityConflictException.class, exception -> {
+                assertThat(exception.getMessage()).isEqualTo("Date range is not available");
+                assertThat(exception.getConflictType())
+                    .isEqualTo(AvailabilityConflictException.ConflictType.HOST_BLOCK);
+            });
 
         verify(fixture.transactions, times(2)).getTransaction(any(TransactionDefinition.class));
         verify(fixture.transactions).rollback(retry);
         verify(fixture.publisher, times(0)).publishEvent(any(ListingAvailabilityChangedEvent.class));
+    }
+
+    @Test
+    void bookingSourcedAvailabilityRowIsNotReportedAsAHostBlock() {
+        Fixture fixture = new Fixture();
+        when(fixture.blocks.findOverlapping(PROPERTY_ID, START, START.plusDays(2)))
+            .thenReturn(List.of(new AvailabilityBlock(UUID.randomUUID(), PROPERTY_ID,
+                START, START.plusDays(2), "BOOKING", UUID.randomUUID(), null)));
+
+        assertThatThrownBy(() -> fixture.service.createHostBlock(PROPERTY_ID, START,
+                START.plusDays(1), HOST_ID, "Reason"))
+            .isInstanceOfSatisfying(AvailabilityConflictException.class, exception ->
+                assertThat(exception.getConflictType())
+                    .isEqualTo(AvailabilityConflictException.ConflictType.BOOKING));
     }
 
     private TransactionSystemException serializationFailure() {
