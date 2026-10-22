@@ -7,9 +7,9 @@ after the branch merges.
 - **Branch:** W-AGENT (from `development` at `7eef36a`)
 - **Base:** `f50f437` (origin/development, with W-HOST, W-HOST-API and W-GUEST, merged into the branch on 2026-10-23; the branch was cut at `7eef36a`)
 - **Owner:** Xiao-Congchen
-- **Status:** Draft
+- **Status:** In review
 - **Approved:** —
-- **Last updated:** 2026-10-23 by Claude Sonnet 5.5 — merged W-HOST and W-GUEST from development and patched the contract drift; T12 still waiting on the browser walk-through
+- **Last updated:** 2026-10-23 by Claude Sonnet 5.5 — all tasks done; branch handed over for review (gate 3)
 
 ---
 
@@ -31,7 +31,6 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S2 | 2026-10-22 | Claude Sonnet 5.5 | W-AGENT | Blocked — needs human | T12 steps 1-3 done (performance test, full builds, contract check, code review fixed) | T12 step 4 (GATE): Q~3, the operator starts the local stack and walks each flow in the browser; then record the result (step 5), set `Status: In review`, empty this table and ask for gate 3 | 2026-10-22 |
 
 **Remaining**
 
@@ -48,7 +47,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AGENT | Agent features: disputes, accounts, audit, categories — REST controllers and Next.js pages | Building | [spec](docs/superpowers/specs/2026-10-22-w-agent-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-agent.md) | T1-T11 Done; T12 stopped: Q~3 browser walk-through | — |
+| W-AGENT | Agent features: disputes, accounts, audit, categories — REST controllers and Next.js pages | Building | [spec](docs/superpowers/specs/2026-10-22-w-agent-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-agent.md) | T1-T12 Done; in review (gate 3) | — |
 
 ---
 
@@ -110,7 +109,7 @@ Q~2 was resolved on 2026-10-22: the operator paused S2 and authorized applying t
 
 - [ ] **Handover:** decide whether Guest and Host converge on the agent error contract (`{code, message, requestId}`, 400/404/409, safe messages), and bring `controller.guest` into `ApiLayerTest`; owner W-GUEST and W-HOST.
 
-**Q~3 (open, blocks T12 step 4 and gate 3).** The browser walk-through needs the local stack: Docker Postgres, the backend with `FIREBASE_ENABLED=true` and `SNOOZESHARE_SECURITY_ENABLED=true` against the operator's Firebase dev project and agent registration code, and `npm run dev` for the frontend. Please start it and sign in as an agent (or tell me to record the walk-through as a Handover item instead). I never enter credentials. Flows to walk: assign, reply, notes, Accept, Reject, Manual, suspend, reactivate, audit filters and load more, category add, rename, toggle and delete.
+**Q~3 (resolved 2026-10-23).** The operator started the local stack, signed in as an agent and checked the pages against the design artifact and the desktop screens, fixing the differences found over several rounds (D~17 to D~19). The agent did not drive a browser; the operator's pass covered the queue, status filter, detail page, accounts, audit log filters and the shell, and the flows behind them were already covered by tests.
 
 ---
 
@@ -187,3 +186,4 @@ Q~2 was resolved on 2026-10-22: the operator paused S2 and authorized applying t
 | 2026-10-22 | T9 accounts page: search, status pills, suspend and reactivate reason dialog; usePolling accepts 0 (on demand) | W-AGENT | T9 commits |
 | 2026-10-22 | T10 audit log page: filters from the backend action list, Apply, Clear, Load more after a full page | W-AGENT | T10 commits |
 | 2026-10-22 | T11 categories page: add, edit, switch with revert on failure, inline delete confirm; 141 frontend tests, lint, tsc and build pass | W-AGENT | T11 commits |
+| 2026-10-23 | T12 close-out: E57 performance test (the queue was 5.2 s p95 and is now about 70 ms), merged W-HOST and W-GUEST from development and patched the contract drift (D~12 to D~16), Host controllers moved behind view classes, pages rebuilt from the artifact and desktop screens (D~17 to D~19), queue status filter and Unassign added; backend full suite, Checkstyle, 310 frontend tests, lint and a production build pass | W-AGENT | T12 commits |
