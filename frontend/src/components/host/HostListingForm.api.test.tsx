@@ -76,6 +76,7 @@ describe('HostListingForm with the API provider', () => {
       gatewayCode: null, requestId: 'request-1',
     });
     render(<HostListingForm />);
+    fillRequiredFields();
     fireEvent.change(screen.getByLabelText('Description'), { target: { value: 'Original draft' } });
     fireEvent.click(screen.getByRole('button', { name: 'Open AI assistant' }));
     fireEvent.click(screen.getByRole('button', { name: /^Generate/ }));
@@ -86,5 +87,22 @@ describe('HostListingForm with the API provider', () => {
     expect(screen.getByLabelText('Description')).toHaveValue('A generated draft description.');
     expect(createHostListing).not.toHaveBeenCalled();
     expect(updateHostListing).not.toHaveBeenCalled();
+  });
+
+  it('keeps AI unavailable until every minimum listing detail is present', () => {
+    render(<HostListingForm />);
+    const assistantButton = screen.getByRole('button', { name: 'Open AI assistant' });
+
+    expect(assistantButton).toBeDisabled();
+    expect(assistantButton).toHaveAttribute('title', 'Add title, property type, max guests, bedrooms, bathrooms, check-in time, and check-out time to use AI assistance.');
+
+    fireEvent.change(screen.getByLabelText('Title'), { target: { value: 'New Cabin' } });
+    fireEvent.change(screen.getByLabelText('Max guests'), { target: { value: '2' } });
+    fireEvent.change(screen.getByLabelText('Bedrooms'), { target: { value: '1' } });
+    fireEvent.change(screen.getByLabelText('Bathrooms'), { target: { value: '1' } });
+    fireEvent.change(screen.getByLabelText('Check-in time'), { target: { value: '15:00' } });
+    fireEvent.change(screen.getByLabelText('Check-out time'), { target: { value: '11:00' } });
+
+    expect(assistantButton).toBeEnabled();
   });
 });

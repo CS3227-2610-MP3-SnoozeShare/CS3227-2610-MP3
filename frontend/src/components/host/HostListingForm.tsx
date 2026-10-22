@@ -45,6 +45,9 @@ export function HostListingForm({ listing }: { listing?: ListingDetail }) {
   const [saving, setSaving] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>(() => listing?.amenities.map((amenity) => amenity.toUpperCase().replaceAll(' ', '_')) ?? []);
+  const aiEligibilityMessage = 'Add title, property type, max guests, bedrooms, bathrooms, check-in time, and check-out time to use AI assistance.';
+  const aiEligible = Boolean(values.title.trim() && values.propertyType.trim() && values.maxGuests.trim()
+    && values.bedrooms.trim() && values.bathrooms.trim() && values.checkIn.trim() && values.checkOut.trim());
   const update = (key: keyof ListingFormValues, value: string) => setValues((current) => ({ ...current, [key]: value }));
   const submit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -94,7 +97,7 @@ export function HostListingForm({ listing }: { listing?: ListingDetail }) {
             <CardHeader><CardTitle className="text-sm font-bold leading-tight text-primary">BASIC DETAILS</CardTitle></CardHeader>
             <CardContent className="space-y-2">
               {field('title', 'Title')}
-              <div className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--text-muted)]"><div className="flex items-center justify-between gap-2"><label htmlFor="description">Description</label><button aria-label="Open AI assistant" className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs font-semibold text-primary" onClick={() => setAiOpen(true)} title="AI Description Assistant" type="button"><Sparkles aria-hidden="true" size={14} />AI Description Assistant</button></div><textarea className="min-h-28 rounded-lg border border-input bg-background p-3 text-sm font-normal outline-none focus:border-ring focus:ring-3 focus:ring-ring/20" id="description" name="description" placeholder={fieldPlaceholders.description} value={values.description} onChange={(event) => update('description', event.target.value)} /></div>
+              <div className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--text-muted)]"><div className="flex items-center justify-between gap-2"><label htmlFor="description">Description</label><button aria-label="Open AI assistant" className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs font-semibold text-primary disabled:cursor-not-allowed disabled:opacity-50" disabled={!aiEligible} onClick={() => setAiOpen(true)} title={aiEligible ? 'AI Description Assistant' : aiEligibilityMessage} type="button"><Sparkles aria-hidden="true" size={14} />AI Description Assistant</button></div><textarea className="min-h-28 rounded-lg border border-input bg-background p-3 text-sm font-normal outline-none focus:border-ring focus:ring-3 focus:ring-ring/20" id="description" name="description" placeholder={fieldPlaceholders.description} value={values.description} onChange={(event) => update('description', event.target.value)} /></div>
               <p className="-mt-2 min-h-4 text-xs text-destructive">{errors.description}</p>
               <div className="grid gap-2 sm:grid-cols-2">
                 <label className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--text-muted)]"><span>Property type</span><SelectField aria-label="Property type" name="propertyType" value={values.propertyType} options={propertyTypes.map((value) => ({ value, label: value }))} onValueChange={(value) => update('propertyType', value)} /></label>

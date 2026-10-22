@@ -9,7 +9,7 @@ after the branch merges.
 - **Owner:** Xiao-Congchen
 - **Status:** Planned
 - **Approved:** Eligibility-amended spec and plan approved (Xiao-Congchen, 2026-10-23); implementation beginning
-- **Last updated:** 2026-10-23 by GPT-5 — Gate 2 approval recorded; starting T6
+- **Last updated:** 2026-10-23 by GPT-5 — T6 implemented and focused verification passed; T7 remains
 
 ---
 
@@ -33,13 +33,13 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S2 | 2026-10-23 00:20 | GPT-5 (lead) | W~1 | Building | Gate 2 approved; starting T6 test-first implementation | Add failing minimum-detail eligibility tests | 2026-10-23 04:45 |
+| S2 | 2026-10-23 00:20 | GPT-5 (lead) | W~1 | Building | T6 done: eligibility gate and hover hint verified; T7 close-out next | Run full verification and prepare Gate 3 | 2026-10-23 04:55 |
 
 **Remaining**
 
 - [ ] Operator/browser session checks at desktop/tablet/390px.
 - [ ] Resolve or separately accept the pre-existing Next.js prerender route-module failure.
-- [ ] Implement and verify T6 minimum-detail eligibility.
+- [ ] Run T7 full verification and prepare Gate 3 review.
 - [ ] Gate 3 approval, then separately ask whether to push/open a PR.
 
 ---
@@ -48,7 +48,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W~1 | W-AI-HOST: Host AI Listing Optimisation Assistant | Building | [design](../../superpowers/specs/2026-10-22-w-ai-host-design.md) | [plan](../../superpowers/plans/2026-10-22-w-ai-host.md) | T6 in flight: minimum-detail eligibility gate | — |
+| W~1 | W-AI-HOST: Host AI Listing Optimisation Assistant | Building | [design](../../superpowers/specs/2026-10-22-w-ai-host-design.md) | [plan](../../superpowers/plans/2026-10-22-w-ai-host.md) | T6 done; T7 full verification and review preparation remain | — |
 
 ---
 
@@ -162,3 +162,4 @@ plain-text rendering conventions.
 | 2026-10-23 | Amended the Host AI spec/plan to gate the frontend trigger on seven minimum listing details with a disabled-state hover explanation; spec and plan lint passed | W~1 | C~7, Gate 1 pending |
 | 2026-10-23 | Gate 1 approved for the minimum-detail eligibility amendment | W~1 | Operator approval |
 | 2026-10-23 | Gate 2 approved; T6 implementation started | W~1 | Operator approval |
+| 2026-10-23 | T6 disabled the AI trigger until title, property type, max guests, bedrooms, bathrooms, check-in, and check-out are present; added hover-hint and New/Edit regressions | W~1 | T6 |
