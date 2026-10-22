@@ -1,6 +1,7 @@
 package com.snoozeshare.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -8,14 +9,20 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.web.context.request.ServletWebRequest;
+import org.springframework.web.method.support.ModelAndViewContainer;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.snoozeshare.auth.security.ProtectedRequestPath;
 import com.snoozeshare.testsupport.AgentApiIntegrationTest;
@@ -109,6 +116,50 @@ class ApiFoundationIntegrationTest extends AgentApiIntegrationTest {
                 .andExpect(status().isUnauthorized())
                 .andReturn();
         assertThat(result.getResponse().getStatus()).isEqualTo(401);
+    }
+
+    @Test
+    void actorIdComesFromTheToken() throws Exception {
+        mockMvc.perform(get("/api/agent/_test/actor")
+                        .header("Authorization", "Bearer " + agent.token()))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                        .content().string(agent.id().toString()));
+    }
+
+    @Test
+    void missingActorAttributeFailsClosed() throws Exception {
+        Method method = ApiFoundationIntegrationTest.class
+                .getDeclaredMethod("actorParameter", UUID.class);
+        MethodParameter parameter = new MethodParameter(method, 0);
+        CurrentUserIdResolver resolver = new CurrentUserIdResolver();
+        assertThat(resolver.supportsParameter(parameter)).isTrue();
+        assertThatThrownBy(() -> resolver.resolveArgument(parameter,
+                new ModelAndViewContainer(),
+                new ServletWebRequest(new MockHttpServletRequest()), null))
+                .isInstanceOf(MissingActorException.class);
+    }
+
+    private UUID actorParameter(@CurrentUserId UUID actorId) {
+        return actorId;
+    }
+
+    @Test
+    void unknownAgentIdBodyFieldIsRejectedBeforeTheHandler() throws Exception {
+        assertThat(foundationController.noteCallCount()).isZero();
+        mockMvc.perform(post("/api/agent/_test/notes")
+                        .header("Authorization", "Bearer " + agent.token())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"notes\":\"private\",\"agentId\":\""
+                                + UUID.randomUUID() + "\"}"))
+                .andExpect(status().isBadRequest());
+        assertThat(foundationController.noteCallCount()).isZero();
+    }
+
+    @Test
+    void unknownPropertiesAreDisabledInJacksonConfiguration() {
+        assertThat(objectMapper.isEnabled(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES))
+                .isTrue();
     }
 
     @Test
