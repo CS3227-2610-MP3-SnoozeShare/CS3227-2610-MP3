@@ -10,7 +10,7 @@ Handover brief for developers taking over this project. It describes **confirmed
 is updated at checkpoints, so it can lag behind the code. For current status, work in flight, and
 what to build next, read [`PROJECT_STATE.md`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/PROJECT_STATE.md) — that is the source of truth.
 
-**Last updated:** 2026-10-22 — covers W1 to W16, MP3-0, W-INFRA, W-AUTH, W-DOMAIN, W-AI-GATEWAY, W-HOST and W-HOST-API; the desktop sections were checked against the built app on 2026-10-19, the web platform and deployment on 2026-10-20, auth on 2026-10-21, domain and AI gateway on 2026-10-22, and Host API/pages against merged backend/frontend code and tests plus authenticated read-only browser captures on 2026-10-22
+**Last updated:** 2026-10-22 — covers W1 to W16, MP3-0, W-INFRA, W-AUTH, W-DOMAIN, W-AI-GATEWAY, W-HOST, W-HOST-API and W-GUEST; the desktop sections were checked against the built app on 2026-10-19, the web platform and deployment on 2026-10-20, auth on 2026-10-21, domain and AI gateway on 2026-10-22, Host API/pages against merged backend/frontend code and tests plus authenticated read-only browser captures on 2026-10-22, and Guest controllers/pages against merged code and tests on 2026-10-22
 
 ## Contents
 
@@ -41,7 +41,8 @@ model, repositories and core services ported to Spring Data JPA
 ([4.19](#419-domain-model-repositories-and-services-backend-domain-layer)), a shared SoCLaaS LLM
 gateway for future role AI features, off by default ([4.20](#420-ai-gateway-backendai)), authenticated
 Host REST APIs and API-backed Host pages ([4.21](#421-host-rest-api-backendapicontroller),
-[4.22](#422-host-web-pages-frontendsrcapphost)), CI and a live dev deployment. Guest and Agent feature
+[4.22](#422-host-web-pages-frontendsrcapphost)), Guest REST controllers and Next.js pages
+([4.23](#423-guest-rest-api-and-web-pages)), CI and a live dev deployment. The Agent feature
 controllers/pages remain unbuilt (see [3.2](#32-web-platform-and-deployment)).
 
 **Target user:** the three roles the app serves — Guest (renter), Host (homeowner) and Support
@@ -71,6 +72,7 @@ dispute-resolution tooling, messaging, wallets and the platform audit trail.
 | — (W-AI-GATEWAY) | **LLM gateway:** one backend entry point, `LlmGateway.run`, for every role's AI feature, with input and output guardrails, a shared rate and cost budget, per-user and daily caps, a metadata-only audit row, mock mode and fallbacks; off by default, no role feature yet | [4.20](#420-ai-gateway-backendai) |
 | — (W-HOST) | **Web Host experience:** authenticated Next.js listings, listing detail/forms, calendar, requests, messages and wallet pages, preserving the approved Host presentation | [4.22](#422-host-web-pages-frontendsrcapphost) |
 | — (W-HOST-API) | **Host backend integration:** owner-scoped REST endpoints over existing services, complete collection/history responses, transactional booking/calendar/message/wallet operations | [4.21](#421-host-rest-api-backendapicontroller) |
+| — (W-GUEST) | **Guest web experience:** 5 REST controllers with 19 endpoints for search, bookings, wallet, messaging and reviews; 4 Next.js pages with typed API wrappers, components and integration tests | [4.23](#423-guest-rest-api-and-web-pages) |
 
 **Value proposition:** a support agent can take a dispute ticket, read both parties' evidence and
 chat, and settle the booking's held escrow between guest and host in one atomic, audited action.
@@ -412,29 +414,29 @@ change back. See [4.14](#414-audit-trail).
 
 ### 3.2 Web platform and deployment
 
-The web side has authentication and the ported domain layer: a Spring Boot API with Firebase auth, JPA entities, Spring Data repositories and service implementations; a Next.js app with sign-in, registration and authenticated Host pages backed by Host REST endpoints; a shared LLM gateway for future role AI features, off by default; and a hosted dev environment that tracks `development`. Guest and Agent feature controllers/pages remain to be built. Host pages use the same Host REST boundary locally and in the hosted environment.
+The web side has authentication and the ported domain layer: a Spring Boot API with Firebase auth, JPA entities, Spring Data repositories and service implementations; a Next.js app with sign-in, registration, authenticated Host pages backed by Host REST endpoints, and Guest pages backed by Guest REST controllers; a shared LLM gateway for future role AI features, off by default; and a hosted dev environment that tracks `development`. Agent feature controllers/pages remain to be built. Host and Guest pages use the same REST boundary locally and in the hosted environment.
 
 ```mermaid
 flowchart LR
   subgraph Local["Local development"]
-    FE1["frontend: Next.js, including Host pages :3000"]
-    BE1["backend: Spring Boot, Host REST API :8080 (profile dev)"]
+    FE1["frontend: Next.js, Host + Guest pages :3000"]
+    BE1["backend: Spring Boot, Host + Guest REST API :8080 (profile dev)"]
     PG1[("Postgres 17: docker-compose.yml")]
   end
   subgraph Hosted["Hosted dev environment (branch development)"]
-    V["Vercel: Next.js frontend and Host pages"]
-    R["Render: backend/Dockerfile, including Host API (profile prod)"]
+    V["Vercel: Next.js frontend, Host + Guest pages"]
+    R["Render: backend/Dockerfile, Host + Guest API (profile prod)"]
     N[("Neon: branch dev")]
   end
   FB["Firebase Authentication (Email/Password)"]
   SC["NUS SoCLaaS LLM (OpenAI-compatible API)"]
   FE1 -->|"GET /actuator/health"| BE1
-  FE1 -->|"Bearer ID token: /api/host/**"| BE1
+  FE1 -->|"Bearer ID token: /api/host/**, /api/guest/**"| BE1
   BE1 -->|"JDBC"| PG1
   V -->|"GET /actuator/health (one allowed origin)"| R
   V -->|"sign-up, sign-in (Firebase JS SDK)"| FB
   V -->|"Bearer ID token: /api/auth/*"| R
-  V -->|"Bearer ID token: /api/host/**"| R
+  V -->|"Bearer ID token: /api/host/**, /api/guest/**"| R
   R -->|"verify ID token (Firebase Admin)"| FB
   R -->|"JDBC, sslmode=require"| N
   R -->|"LlmGateway: chat/completions, Bearer key (off by default)"| SC
@@ -445,9 +447,9 @@ flowchart LR
 3. The backend answers only if the request's `Origin` equals `snoozeshare.cors.allowed-origin` (the actuator and application endpoints are configured separately but fed from that one property).
 4. The health check runs a query against Postgres: locally the compose container, hosted a Neon branch. Flyway applied `V001__baseline.sql` through `V005__tighten_nightly_rate_constraint.sql` at startup (V002 auth, V003 domain tables, V004 system-user seed, V005 nightly-rate constraint; see [4.19](#419-domain-model-repositories-and-services-backend-domain-layer)).
 5. The page shows `Backend: UP` for a 200 response whose JSON status is `UP`, and `Backend: unreachable` for anything else; `Re-check` repeats the request.
-6. An authenticated request starts in the browser: `authenticatedFetch` (`src/lib/api.ts`) attaches the signed-in user's Firebase ID token as `Authorization: Bearer <token>`; Host calls are wrapped by `frontend/src/lib/hostApi.ts` and shared through `HostApiProvider` ([4.22](#422-host-web-pages-frontendsrcapphost)).
+6. An authenticated request starts in the browser: `authenticatedFetch` (`src/lib/api.ts`) attaches the signed-in user's Firebase ID token as `Authorization: Bearer <token>`; Host calls are wrapped by `frontend/src/lib/hostApi.ts` and shared through `HostApiProvider` ([4.22](#422-host-web-pages-frontendsrcapphost)); Guest calls are wrapped by `frontend/src/lib/guest-api.ts` ([4.23](#423-guest-rest-api-and-web-pages)).
 7. `FirebaseAuthFilter` verifies the token with Firebase Admin, including a revocation check and project ID; a missing or invalid token gets `401 INVALID_TOKEN`, and an unreachable Firebase gets `503 AUTH_PROVIDER_UNAVAILABLE`.
-8. `RoleAuthorizationFilter` loads the active profile by Firebase UID and compares its role with the `/api/{role}/**` namespace; a mismatch gets `403 ROLE_MISMATCH`. For Host routes, `HostIdentityResolver` then cross-checks the active HOST identity against the domain user and supplies its UUID to the controller. The controller uses existing services, which access PostgreSQL through JPA/JDBC repositories ([4.21](#421-host-rest-api-backendapicontroller)).
+8. `RoleAuthorizationFilter` loads the active profile by Firebase UID and compares its role with the `/api/{role}/**` namespace; a mismatch gets `403 ROLE_MISMATCH`. For Host routes, `HostIdentityResolver` then cross-checks the active HOST identity against the domain user and supplies its UUID to the controller. For Guest routes, the filter stores the user ID as a request attribute and `ResolvedUser` reads it in the controller ([4.23](#423-guest-rest-api-and-web-pages)). The controller uses existing services, which access PostgreSQL through JPA/JDBC repositories ([4.21](#421-host-rest-api-backendapicontroller)).
 9. Host collection/history GETs return complete owner-scoped arrays in deterministic order, without `page`/`size` parameters or response-size caps. The calendar is the exception: it reads one requested month. See [4.21](#421-host-rest-api-backendapicontroller) and the accepted trade-off in [Known Limitations](#known-limitations).
 10. When a role feature calls the AI gateway (none does yet), `LlmGateway.run` sanitizes the input, checks the per-user and daily limits, sends one request to SoCLaaS through the global scheduler, validates the reply and writes one audit row, as described in [4.20](#420-ai-gateway-backendai).
 
@@ -1540,7 +1542,7 @@ sequenceDiagram
 
 ### 4.18 Authentication and role authorization (`backend/auth/`, frontend providers)
 
-**Purpose.** Establish who is calling the API and which role they hold, and keep Guest, Host and Support Agent access apart on the web. Firebase Authentication owns passwords and tokens; the backend owns each person's role and wallet. Host pages and REST endpoints are implemented; Guest and Agent feature pages/endpoints remain unbuilt.
+**Purpose.** Establish who is calling the API and which role they hold, and keep Guest, Host and Support Agent access apart on the web. Firebase Authentication owns passwords and tokens; the backend owns each person's role and wallet. Host and Guest pages and REST endpoints are implemented; Agent feature pages/endpoints remain unbuilt.
 
 **API.** Every error body is `{"code", "message", "requestId"}`; `requestId` is logged with the status, code and path.
 
@@ -1640,7 +1642,7 @@ sequenceDiagram
 
 ### 4.19 Domain model, repositories and services (`backend/` domain layer)
 
-**Purpose.** Port the desktop app's domain model, repositories and core services to Spring Boot with Spring Data JPA on PostgreSQL. The Host REST API now calls these services; Guest and Agent feature APIs can build on the same layer.
+**Purpose.** Port the desktop app's domain model, repositories and core services to Spring Boot with Spring Data JPA on PostgreSQL. The Host and Guest REST APIs now call these services; the Agent feature API can build on the same layer.
 
 **Packages.**
 
@@ -1945,9 +1947,45 @@ flowchart LR
 2. `hostApi.ts` calls `authenticatedFetch`, which attaches the Firebase ID token and maps safe backend errors.
 3. The returned DTO updates the corresponding Host page state; mutations update or refresh only the affected resource, except wallet recovery which refreshes its balance and statement together.
 
-**Dependencies and fixtures.** `frontend/src/app/host/layout.tsx` composes `RouteGuard`, `HostApiProvider`, `HostFixtureProvider` and `HostRoleShell`. `HostFixtureProvider` supports fixture-based visual and interaction tests; authenticated production routes use the API provider. Guest and Agent feature pages remain outside this component.
+**Dependencies and fixtures.** `frontend/src/app/host/layout.tsx` composes `RouteGuard`, `HostApiProvider`, `HostFixtureProvider` and `HostRoleShell`. `HostFixtureProvider` supports fixture-based visual and interaction tests; authenticated production routes use the API provider. Guest pages use their own layout and API wrappers ([4.23](#423-guest-rest-api-and-web-pages)); Agent feature pages remain outside this component.
 
 **Tests.** `HostApiProvider.test.tsx`, `hostApi.test.ts`, `HostRoutes.test.tsx`, the listing/calendar/requests/messages/wallet route tests, and the Host component interaction/visual tests cover request coalescing, complete arrays, mutations, errors, date/time behavior and page states. The authenticated read-only browser acceptance checked all eight Host routes at desktop, tablet and mobile widths and confirmed one GET per collection dataset with no `page` or `size` parameters (T10, T17).
+
+### 4.23 Guest REST API and web pages
+
+**Purpose.** Expose the Guest role's features — listing search, booking workflow, wallet, messaging and reviews — as authenticated REST endpoints under `/api/guest/**` and as Next.js pages under `/guest/`.
+
+**Backend controllers (`backend/src/main/java/com/snoozeshare/controller/guest/`).** Five controllers, all annotated with `@ConditionalOnDatabase`, covering 19 endpoints:
+
+| Controller | Base path | Endpoints |
+|---|---|---|
+| `GuestSearchController` | `/api/guest/listings` | `GET /` (search with optional `city`, `startDate`, `endDate`, `guests`, `maxNightlyRate`), `GET /{id}` (property detail with host info and metrics), `GET /{id}/estimate` (price estimate for a date range) |
+| `GuestBookingController` | `/api/guest/bookings` | `POST /` (create booking request), `GET /` (list trips with derived `canCancel`, `canFileDispute`, `hasReview` flags), `GET /{id}/cancel-preview` (refund preview), `POST /{id}/cancel` (cancel booking) |
+| `GuestWalletController` | `/api/guest/wallet` | `GET /` (wallet balance), `GET /transactions` (full transaction history), `POST /topup`, `POST /withdraw` |
+| `GuestMessageController` | — | `GET /tickets/categories`, `POST /tickets` (file dispute), `GET /tickets`, `GET /messages/conversations` (combined ticket + booking conversations with unread counts), `GET/POST /messages/tickets/{id}` (thread and post), `GET/POST /messages/bookings/{id}` (thread and post), `PUT /messages/tickets/{id}/read`, `PUT /messages/bookings/{id}/read` |
+| `GuestReviewController` | — | `POST /bookings/{id}/review` (star rating and comment) |
+
+**Shared infrastructure.** `ResolvedUser` reads the authenticated user ID from the `snoozeshare.userId` request attribute set by `RoleAuthorizationFilter`. `ForbiddenException` is thrown on ownership mismatches and maps to `403 FORBIDDEN`. `GuestExceptionHandler` (`@RestControllerAdvice` scoped to the guest package) maps `IllegalArgumentException`, `IllegalStateException`, `ForbiddenException` and validation errors to structured `{code, message, requestId}` JSON responses with specific error codes (`LISTING_NOT_FOUND`, `LISTING_INACTIVE`, `DATES_UNAVAILABLE`, `SELF_BOOKING`, `NOT_CANCELLABLE`, `DISPUTE_WINDOW_CLOSED`, `DUPLICATE_TICKET`, `DUPLICATE_REVIEW`, `THREAD_CLOSED`, `INSUFFICIENT_BALANCE`, etc.).
+
+**Frontend pages (`frontend/src/app/guest/`).** Four pages backed by typed API wrappers in `frontend/src/lib/guest-api.ts`:
+
+| Page | Route | Components | What it does |
+|---|---|---|---|
+| Search | `/guest/search` | `ListingCard`, `ListingDetailSheet` | Search active listings with filters; tap a card to open a detail sheet with property info, pricing and a booking action |
+| Trips | `/guest/trips` | `TripCard`, `CancelDialog`, `ReviewDialog` | Three collapsible sections (Upcoming/Active/Past); cancel with refund preview; submit a review for completed stays |
+| Messages | `/guest/messages` | `ConversationList`, `MessageThread`, `TicketFilingDialog` | Sidebar of ticket and booking conversations with unread counts; thread view with message bubbles; file a dispute ticket; `?booking={id}` deep link |
+| Wallet | `/guest/wallet` | — | Balance card, transaction history table with color-coded amounts and action type labels, top-up and withdraw forms |
+
+`/guest` redirects to `/guest/search`. All API calls use `authenticatedFetch` to attach the Firebase ID token.
+
+**Invariants.**
+
+- Every mutating endpoint checks ownership (booking, ticket, or booking conversation belongs to the calling guest); a mismatch throws `ForbiddenException`.
+- A `Clock` bean is injected for testable date comparisons (cancel eligibility, dispute window).
+- Self-booking is rejected at the service layer (`BookingServiceImpl`).
+- Guest controllers carry `@ConditionalOnDatabase`, matching the convention established by D51/D91.
+
+**Tests.** Five backend integration test classes (`GuestSearchControllerTest`, `GuestBookingControllerTest`, `GuestWalletControllerTest`, `GuestMessageControllerTest`, `GuestReviewControllerTest`) extend `PostgresIntegrationTest` with `FakeTokenVerifier` for auth bypass. They cover search/filter, booking creation and cancellation, wallet operations, messaging (both ticket and booking threads), review submission, role rejection (HOST → 403), ownership violations and concurrent booking/withdrawal. Four frontend test files cover the search, trips, messages and wallet pages. D91 records that `@ConditionalOnBean(PropertyRepository.class)` was removed from 20 domain beans during T1; D92 records the fix for the JDBC unread-count SQL type mismatch; D93 records that wallet withdrawal lacks locking (a known gap).
 
 ---
 
@@ -2074,7 +2112,8 @@ they exist. It describes current behavior, including deliberate deferrals and co
 - **Steered model text can pass output validation** — prose that matches no leak or link pattern is accepted, and a bare-domain link (no scheme) is not detected; role features keep AI output a suggestion the user confirms and render it as plain text (C80).
 - **A daily AI cap counts calls, not upstream requests** — the worst case is `global-daily-cap × (max-retries + 1)` requests a day. While audit writes fail, sent calls are counted in memory only until 00:00 UTC.
 - **Reasoning is one global setting** — `reasoning-effort` (default `none`) applies to every feature and tier; a feature that needs reasoning needs a gateway change. The 429 behaviour of SoCLaaS (`Retry-After`, budget wording) is unobserved.
-- **Guest and Agent feature pages/endpoints are still landing shells** — the Host web experience and API are implemented ([4.21](#421-host-rest-api-backendapicontroller), [4.22](#422-host-web-pages-frontendsrcapphost)); W-GUEST and W-AGENT remain future work.
+- **Agent feature pages/endpoints are still landing shells** — the Host and Guest web experiences are implemented ([4.21](#421-host-rest-api-backendapicontroller), [4.22](#422-host-web-pages-frontendsrcapphost), [4.23](#423-guest-rest-api-and-web-pages)); W-AGENT remains future work.
+- **Wallet withdrawal lacks locking** — concurrent full-balance withdrawals can both succeed, resulting in a negative balance (D93). Recorded for a future wallet-locking workstream.
 - **Host collection responses are unbounded** — listing, booking-request, conversation, message-history and wallet-statement reads return every matching row with no response-size or concurrency cap (C131). Calendar reads remain month-bounded. Revisit the trade-off before substantially increasing dataset size or traffic.
 - **The hosted dev backend sleeps when idle** — Render's free plan stops the service after a pause; the first request is slow and the page shows `Backend: unreachable` until `Re-check` (C85; `PROJECT_STATE.md` § Known Gaps).
 - **Vercel deploys from `development`** — its Production Branch stays `development` until the production deployment work re-points it at `main` (`PROJECT_STATE.md` § Known Gaps).
@@ -2202,6 +2241,8 @@ measured for this guide.
 | Frontend (`frontend/src`): `env.test.ts`, `BackendStatus.test.tsx` | Environment validation (including the six Firebase variables), and the status page for UP, each failure, the 5-second timeout, the disabled `Re-check` button and aborting on unmount. |
 | Frontend authentication: `firebase.test.ts`, `api.test.ts`, `AuthProvider.test.tsx`, `route-guards.test.tsx`, the `login`, `register` and `forgot-password` `page.test.tsx` files, `AuthHeader.test.tsx`, `RoleNavbar.test.tsx`, `RoleShell.test.tsx` | Firebase initialisation once, the bearer header and stable error mapping, the six provider states (a stale profile response after sign-out is ignored, a failed registration stays on the registration step, missing Firebase configuration shows an error instead of crashing), guard redirects, the register page's validate-before-signup order, safe `returnTo` handling, and the role shell. The Firebase client is mocked. |
 | Frontend Host pages and API: `HostApiProvider.test.tsx`, `hostApi.test.ts`, `HostRoutes.test.tsx`, Host listing, calendar, request, message and wallet route/component tests | Typed authenticated requests, complete-array rendering, in-flight read sharing, listing metrics and in-place status changes, empty/loading/error/not-found states, form validation, exact time handling, calendar month transitions and empty initial date range, separate message channels, mocked wallet recovery, and no pagination/load-more controls. Firebase and backend requests are mocked. |
+| Backend Guest API integration: `GuestSearchControllerTest`, `GuestBookingControllerTest`, `GuestWalletControllerTest`, `GuestMessageControllerTest`, `GuestReviewControllerTest` | Authenticated Guest search/filter, booking creation and cancellation, wallet balance and transactions, ticket and booking messaging (file, read, post, mark read), review submission, role-rejection tests (HOST → 403 on all five controllers), ownership-violation tests and concurrent booking/withdrawal tests. Extends `PostgresIntegrationTest` with `FakeTokenVerifier`. |
+| Frontend Guest pages: `search/page.test.tsx`, `trips/page.test.tsx`, `messages/page.test.tsx`, `wallet/page.test.tsx` | Listing search and detail sheet, trip cards with cancel/review dialogs, conversation list with message threads and ticket filing, and wallet balance/transaction display. Firebase and backend requests are mocked. |
 | Architecture: `LayerDependencyTest`, `UiDependencyTest` | `domain` has no JavaFX or `java.sql` imports; `ui` has no `com.snoozeshare.repository` or `java.sql` imports. |
 | Layout: `AdminFxmlLayoutTest`, `AdminShellInitialsTest`, `ShellLayoutTest`, `AuthLayoutTest` | FXML and CSS content checks; these need no display. |
 | FX smoke and flow: `AdminUiSmokeTest`, `AgentModalTest`, `ResolutionDialogFlowTest`, `CategoryDialogFlowTest` | Real JavaFX toolkit: screens render, dialogs validate and return results, the scrim is added and removed. They skip (`assumeTrue`) when the toolkit cannot start, for example on a headless machine. |

@@ -7,6 +7,7 @@ Iteration 2 started; earlier entries: [docs/project-history/iteration-1/done-led
 
 | Date | What changed | Workstream | Ref |
 |---|---|---|---|
+| 2026-10-22 | Updated the Developer Guide for confirmed W-GUEST: new § 4.23 (guest REST controllers, frontend pages, endpoints, shared infrastructure, invariants, tests), updated § 1 (delivered features), § 3.2 (diagram and flow steps), § 4.18 and § 4.19 (purpose lines), § 4.22 (dependencies), § 5 (known limitations: wallet locking, Agent-only shells), § 7 (testing: 5 backend + 4 frontend test suites) | W-GUEST | `docs/DeveloperGuide.md` |
 | 2026-10-22 | Folded the W-GUEST branch state into `PROJECT_STATE.md` (deviations D91–D93, new § 4.14 guest controllers/pages); W-GUEST is `Done`, guide confirmation pending | W-GUEST | [archive](branch-states/archive/2026-10-22-W-GUEST.md) |
 | 2026-10-22 | Updated the Developer Guide for confirmed W-HOST and W-HOST-API behavior, including authenticated Host architecture, pages/API, unbounded-collection limitation, tests and read-only browser acceptance | W-HOST / W-HOST-API | `docs/DeveloperGuide.md` §§ 3.2, 4.18–4.22, 5, 7 |
 | 2026-10-22 | Folded the W-HOST branch state into `PROJECT_STATE.md` (decisions C113–C141, deviations D57–D90, and Host API/availability architecture); W-HOST and W-HOST-API are Done, with guide confirmation pending | W-HOST / W-HOST-API | [archive](branch-states/archive/2026-10-22-W-HOST.md) |
