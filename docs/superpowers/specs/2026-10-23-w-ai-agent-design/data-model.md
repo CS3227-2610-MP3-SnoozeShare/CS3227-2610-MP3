@@ -33,7 +33,7 @@ No other table changes. `tickets`, `audit_log` and `booking_messages` are unchan
 | assistant `messages.author_id` | `users.id` (SYSTEM user) | many to 1 | no cascade | visible only in the ticket's GUEST thread to its Guest and to Agents |
 
 ## Lifecycle
-The row is created in `PENDING` by the listener at submission, before the first call, so every in-flight call has a row. Transitions into `PENDING` are bookkeeping and are not audited; every transition out of `PENDING`, and `WAITING_GUEST` to `STOPPED`, writes one `ASSISTANT_STATE` audit row.
+The row is created in `PENDING` by the listener at submission, before the first call, so every in-flight call has a row. Transitions into `PENDING` are bookkeeping and are not audited. Every transition into `WAITING_GUEST` (from `PENDING`, except the defensive move below), `DONE`, `UNAVAILABLE` or `STOPPED` writes one `ASSISTANT_STATE` audit row (exact fields: conventions.md R7); the row delete and the defensive move write none.
 
 | From state | To state | Triggered by (role) | Guard |
 |---|---|---|---|
@@ -43,7 +43,7 @@ The row is created in `PENDING` by the listener at submission, before the first 
 | `PENDING` | `WAITING_GUEST` | assistant job (SYSTEM) | call ok, not flagged, `enough` false, at least one screened question, `rounds` below the current `max-rounds`; `rounds` +1; the question message is posted |
 | `PENDING` | `DONE` | assistant job (SYSTEM) | call ok and (`flagged`, or `enough`, or no screened question, or `rounds` at or above the current `max-rounds`); the closing message is posted if `rounds >= 1` |
 | `PENDING` | `UNAVAILABLE` | assistant job (SYSTEM) | call degraded (any code, including `DISABLED` after the first call); the draft is unchanged; the closing message is posted if `rounds >= 1` |
-| `PENDING` | `STOPPED` | assistant job (SYSTEM) | the Guest's account is not `ACTIVE` when the job starts; no call |
+| `PENDING` | `STOPPED` | assistant job or applier (SYSTEM) | the Guest's account is not `ACTIVE` when the job starts (no call); or an `AGENT` message exists in the GUEST thread when the job starts or when its result is applied (no call, or the result is discarded) |
 | `PENDING` | `WAITING_GUEST` | assistant job (SYSTEM) | the built turns do not end with a Guest turn (defensive); no call, no audit row |
 | `WAITING_GUEST` | `PENDING` | `MessagePostedEvent` listener for a Guest message in the GUEST thread (SYSTEM) | the compare-and-set update changed one row and the ticket is `OPEN` or `IN_REVIEW` |
 | `WAITING_GUEST`, `PENDING` | `STOPPED` | `MessagePostedEvent` listener for an Agent message in the GUEST thread (SYSTEM) | conditional update on the two states |
@@ -67,7 +67,8 @@ stateDiagram-v2
 - At most one `ticket_assistants` row per ticket (primary key).
 - `rounds` equals the number of messages by the SYSTEM user in the ticket's GUEST thread that contain questions (closing messages do not count).
 - A call to the model starts only when `rounds` is below `max-rounds`, or when it is the final refresh call after the last round was answered; `rounds` never exceeds 5, and after a configuration change it may exceed the new `max-rounds`, in which case the next call ends the exchange.
-- `state = 'WAITING_GUEST'` implies the newest assistant message in the GUEST thread is a question message.
+- `state = 'WAITING_GUEST'` implies `rounds >= 1` and the newest assistant message in the GUEST thread is a question message (closing messages are posted only when the state becomes `DONE` or `UNAVAILABLE`, so the defensive move cannot leave a closing message newest).
+- A SYSTEM message is a question message or a closing message exactly as defined in conventions.md R6; `rounds` counts the question messages.
 - A row in a terminal state is never updated again, including `updated_at`.
 - `agent_notes` is never written by an assistant code path.
 - No `ticket_assistants` or assistant `messages` row exists for a ticket whose `raised_by_role` is `HOST`.
@@ -75,7 +76,7 @@ stateDiagram-v2
 
 ## Migration and rollback
 - Version: `V006__ticket_assistant.sql`. If another branch merges a `V006` first, this file is renumbered at merge, as W-DOMAIN did when W-AUTH had already taken V002.
-- Existing rows: none are transformed. Existing tickets have no `ticket_assistants` row, which reads as "assistant did not run" (the detail response carries `assistant: null`). The `messages.author_role` CHECK is dropped with `DROP CONSTRAINT IF EXISTS messages_author_role_check` (the name Postgres generates for the inline CHECK of V003, commented in the file) and recreated with the four values; every existing row already satisfies it. T1's migration test reads the constraint name from `pg_constraint` before V006 runs, so a wrong name fails the test instead of leaving the old CHECK in place.
+- Existing rows: none are transformed. Existing tickets have no `ticket_assistants` row, which reads as "assistant did not run" (the detail response carries `assistant: null`). The `messages.author_role` CHECK is dropped with `DROP CONSTRAINT IF EXISTS messages_author_role_check` (the name Postgres generates for the inline CHECK of V003, commented in the file) and recreated with the four values; every existing row already satisfies it. T1's migration test reads the constraint name from `pg_constraint` before V006 runs, so a wrong name fails the test instead of leaving the old CHECK in place. Re-validating the CHECK briefly locks `messages`; at current volume that is immaterial and the runbook (T9) notes it. `TestDataReset` gains `delete from ticket_assistants` before `delete from messages` (T1).
 - Regenerate committed data: no. `desktop/db/*` is the desktop reference database and is unaffected; the backend has no committed seed for tickets.
 - If it fails halfway: Flyway runs the migration in one transaction on PostgreSQL, so a failure leaves the schema at V005 and the application refuses to start (the existing behaviour for a failed migration). Rollback after a successful run is manual: drop `ticket_assistants`, delete messages whose `author_role` is `SYSTEM`, then restore the old CHECK; the application at the previous version ignores both.
 - Retention: assistant messages and drafts persist with the ticket and have no deletion path, like all other ticket data; recorded as an accepted gap (conventions.md R12).

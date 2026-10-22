@@ -9,7 +9,7 @@ after the branch merges.
 - **Owner:** Xiao-Congchen
 - **Status:** Draft
 - **Approved:** —
-- **Last updated:** 2026-10-23 by Claude Sonnet 5.5 — spec revised after review round 1
+- **Last updated:** 2026-10-23 by Claude Sonnet 5.5 — spec fixed after review round 2
 
 ---
 
@@ -31,7 +31,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-23 | Claude Sonnet 5.5 (lead) + four `lite-reviewer` subagents | W-AI-AGENT | Active | Spec review round 1 fixed; round 2 next | Run review round 2 (Implementer, Tester, Maintainer, Attacker) on `docs/superpowers/specs/2026-10-23-w-ai-agent-design.md`; done when no blocking finding remains and `lint.mjs spec` is clean; then ask the operator gate 1 (Q~1 first) | 2026-10-23 |
+| S1 | 2026-10-23 | Claude Sonnet 5.5 (lead) + four `lite-reviewer` subagents | W-AI-AGENT | Paused | Spec review rounds 1 and 2 done and fixed; waiting on Q~1 | Ask the operator Q~1 (keep `AI` or reverse to `SYSTEM`); if reverse, record it as a decision and the SYSTEM-label Convention; then ask gate 1 (spec approval) naming the spec path, High tier, the four lenses, the decisions and that the round-2 fixes were not re-reviewed; on yes write `Status: Approved (name, date)` in the spec index, run `lint.mjs spec ... --approved`, and start `writing-plans-lite` | 2026-10-23 |
 
 **Remaining**
 
@@ -47,7 +47,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AI-AGENT | Ticket clarification assistant and draft report for the Support Agent | Not started | [spec](docs/superpowers/specs/2026-10-23-w-ai-agent-design.md) | — | Spec drafted, round 1 fixes in; round 2 next; Q~1 open | — |
+| W-AI-AGENT | Ticket clarification assistant and draft report for the Support Agent | Not started | [spec](docs/superpowers/specs/2026-10-23-w-ai-agent-design.md) | — | Spec reviewed twice and fixed; waiting on Q~1, then gate 1 | — |
 
 ---
 
@@ -102,4 +102,5 @@ No change.
 |---|---|---|---|
 | 2026-10-23 | Open the branch state with the operator's scoping decisions (C~1 to C~6) | W-AI-AGENT | `ec5a98e` |
 | 2026-10-23 | Draft the ticket clarification assistant spec (index plus seven component files, High risk) | W-AI-AGENT | `78a517b` |
+| 2026-10-23 | Fix review round 2 findings: Host and Agent text removed from the prompt, NFKC-cleaned screens with wider lists, a job never runs on the submitting thread, stuck-row stop path, exact audit rows, test-harness rules, closing text made non-committal | W-AI-AGENT | this commit |
 | 2026-10-23 | Revise the spec after review round 1: row inserted at submission, `REQUIRES_NEW` listener writes, Agent and Host text moved to the untrusted slot, draft and question screens, closing message on failure, test harness rules | W-AI-AGENT | `9921059` |
