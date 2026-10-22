@@ -37,9 +37,18 @@ describe('HostAiDescriptionAssistant', () => {
       targetAudience: 'ALL_TRAVELLERS',
       listing: expect.objectContaining({ checkInTime: '15:00', checkOutTime: '11:00' }),
     }));
+    fireEvent.click(screen.getByRole('combobox', { name: 'Writing style' }));
+    fireEvent.click(screen.getByRole('option', { name: 'Professional' }));
+    fireEvent.click(screen.getByRole('combobox', { name: 'Target audience' }));
+    fireEvent.click(screen.getByRole('option', { name: 'Families' }));
+    fireEvent.click(screen.getByRole('combobox', { name: 'Description focus' }));
+    fireEvent.click(screen.getByRole('option', { name: 'Comfort' }));
     fireEvent.click(screen.getByRole('button', { name: 'Apply generated description' }));
     expect(onApply).toHaveBeenCalledWith(response.generatedDescription);
     expect(onClose).toHaveBeenCalledOnce();
+    expect(screen.getByLabelText('Writing style')).toHaveTextContent('Friendly');
+    expect(screen.getByLabelText('Target audience')).toHaveTextContent('All travellers');
+    expect(screen.getByLabelText('Description focus')).toHaveTextContent('Balanced');
   });
 
   it('closes from Escape, the backdrop, and the X button', () => {

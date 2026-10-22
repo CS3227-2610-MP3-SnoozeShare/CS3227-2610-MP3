@@ -80,6 +80,9 @@ export function HostAiDescriptionAssistant({ open, listingId, listing, descripti
     setDraft(generatedDescription);
     setResponse(null);
     setError('');
+    setStyle('FRIENDLY');
+    setAudience('ALL_TRAVELLERS');
+    setFocus('BALANCED');
     onApply(generatedDescription);
     onClose();
   };
