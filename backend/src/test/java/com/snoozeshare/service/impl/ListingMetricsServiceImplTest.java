@@ -13,6 +13,7 @@ import java.time.Clock;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -21,6 +22,31 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import com.snoozeshare.service.ListingSummaryMetrics;
 
 class ListingMetricsServiceImplTest {
+
+    @Test
+    void summaryMetricsForHostUsesTwoGroupedQueriesForOneAnd101Listings() {
+        for (int listingCount : List.of(1, 101)) {
+            JdbcTemplate jdbc = mock(JdbcTemplate.class);
+            UUID hostId = UUID.randomUUID();
+            List<Map<String, Object>> bookingRows = IntStream.range(0, listingCount)
+                .mapToObj(index -> Map.<String, Object>of(
+                    "listing_id", UUID.randomUUID(), "booking_count", (long) index))
+                .toList();
+            when(jdbc.queryForList(anyString(), any(Object[].class)))
+                .thenReturn(bookingRows)
+                .thenReturn(List.of());
+
+            ListingMetricsServiceImpl service = new ListingMetricsServiceImpl(jdbc, Clock.systemUTC());
+            Map<UUID, ListingSummaryMetrics> summaries = service.summaryMetricsForHost(hostId);
+
+            assertThat(summaries).hasSize(listingCount);
+            assertThat(summaries.values()).allSatisfy(summary -> assertThat(summary.averageRating()).isZero());
+            ArgumentCaptor<String> statements = ArgumentCaptor.forClass(String.class);
+            verify(jdbc, times(2)).queryForList(statements.capture(), eq(hostId));
+            assertThat(statements.getAllValues()).allSatisfy(statement ->
+                assertThat(statement).contains("p.host_id = ?", "GROUP BY p.id"));
+        }
+    }
 
     @Test
     void summaryMetricsForHostUsesTwoGroupedQueriesAndMapsZeros() {

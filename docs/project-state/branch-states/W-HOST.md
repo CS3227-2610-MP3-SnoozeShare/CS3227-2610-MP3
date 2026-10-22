@@ -31,7 +31,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| GPT-5 | 2026-10-22 | — | W-HOST follow-up | Active | T2 code complete; 188 tests, frontend lint, and production build pass | Closeout: backend Checkstyle/build, plan closeout lint, and code review | 2026-10-22 |
+| GPT-5 | 2026-10-22 | — | W-HOST follow-up | Active | Review Minor resolved; 1/101-row query tests and backend Checkstyle/build pass | Ask reviewer to verify coverage fix, then finish plan closeout | 2026-10-22 |
 
 **Remaining**
 
@@ -55,7 +55,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | Building | [experience corrections spec](docs/superpowers/specs/2026-10-22-w-host-experience-corrections-design.md); [UI spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [UI plan](docs/superpowers/plans/2026-10-21-w-host-ui.md); [experience corrections plan](docs/superpowers/plans/2026-10-22-w-host-experience-corrections.md) | T1–T4 implementation done; closeout gates and code review in progress | guide out of date: Host metrics, time display, and calendar behavior |
+| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | Building | [experience corrections spec](docs/superpowers/specs/2026-10-22-w-host-experience-corrections-design.md); [UI spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [UI plan](docs/superpowers/plans/2026-10-21-w-host-ui.md); [experience corrections plan](docs/superpowers/plans/2026-10-22-w-host-experience-corrections.md) | T1–T4 done; query-count review gap fixed; reviewer verification and closeout lint remain | guide out of date: Host metrics, time display, and calendar behavior |
 | W-HOST-API | Replace Host fixtures with authenticated backend integration | In review | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T17 complete: 101/1,001-row tests, full gates, and authenticated read-only captures; owner review pending | — |
 
 ## 4. Architecture
@@ -157,6 +157,7 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | D~29 | 2026-10-22 | T14's original file list omitted the four API-mode Host pages, which still consumed page-envelope types and separate wallet summary/statement calls | Resolved: include those route adapters and their route tests in T14 so each commit remains type-safe and consumes the complete response; T15/T16 still remove the now-inert pagination controls and handlers |
 | D~30 | 2026-10-22 | T3's full frontend run found `HostListings.test.tsx` still asserted the prior `62%` presentation after occupancy changed to fixed two-decimal formatting | Resolved: added the existing fixture-backed test to T3's file list and updated its assertion to `62.00%`; no scope or behavior change |
 | D~31 | 2026-10-22 | T4's empty-range change also invalidated the existing local-only calendar interaction test, which was not listed in T4's file inventory | Resolved: added `HostPresentationInteractions.test.tsx` to T4 and changed it to choose a partial range explicitly; full frontend tests pass |
+| D~32 | 2026-10-22 | Read-only closeout review found the service query-count test used only a two-listing mocked batch, though the approved T1 checklist calls for sizes 1 and 101 | Added service coverage for both sizes and verified exactly two owner-scoped grouped queries in each case; backend checks rerun |
 
 ## 10. Changes
 
@@ -257,3 +258,4 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | 2026-10-22 | Corrected exact HH:mm detail/edit values and two-decimal occupancy; updated the stale fixture assertion; 184 frontend tests, lint, and production build pass | W-HOST | T3, D~30 |
 | 2026-10-22 | Kept the calendar frame and block form mounted during month reads, showed loading only in the grid, synchronized the picker to the visible month, and cleared the initial range in API/fixture modes; 187 tests, lint, and production build pass | W-HOST | T4, D~31 |
 | 2026-10-22 | Mapped server listing summaries into card metrics and patched only the updated row's status from the mutation response; no collection reload; 188 frontend tests, lint, and production build pass | W-HOST | T2 |
+| 2026-10-22 | Added service-level query-count coverage for one- and 101-listing Host batches after review; exactly two grouped owner-scoped reads per size; Checkstyle/build pass | W-HOST | T1 review follow-up, D~32 |
