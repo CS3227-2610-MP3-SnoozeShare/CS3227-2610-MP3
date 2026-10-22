@@ -121,3 +121,4 @@ No change: Q~1 (audit zone) was answered on 2026-10-22 (C~7); nothing is open.
 | 2026-10-22 | Rebuilt T1 part 8/20: return structured errors for unmatched agent API routes | W-AGENT | small-commit reconstruction |
 | 2026-10-22 | Rebuilt T1 part 9/20: bound PostgreSQL transaction lock waits to five seconds | W-AGENT | small-commit reconstruction |
 | 2026-10-22 | Rebuilt T1 part 10/20: add isolated token users and database reset helpers | W-AGENT | small-commit reconstruction |
+| 2026-10-22 | Rebuilt T1 part 11/20: create funded dispute scenarios through real services | W-AGENT | small-commit reconstruction |
