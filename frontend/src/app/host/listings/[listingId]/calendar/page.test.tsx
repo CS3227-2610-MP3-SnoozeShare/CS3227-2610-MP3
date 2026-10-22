@@ -38,11 +38,15 @@ describe('Host calendar page', () => {
     const now = new Date();
     const monthLabel = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(now);
     await screen.findByRole('heading', { name: monthLabel });
+    fireEvent.click(screen.getByRole('button', { name: 'Date range: Select dates' }));
+    fireEvent.click(screen.getByRole('button', { name: String(Math.max(2, now.getDate() + 1)) }));
+    fireEvent.click(screen.getByRole('button', { name: String(Math.max(3, now.getDate() + 3)) }));
+    fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
     fireEvent.change(screen.getByLabelText('Reason'), { target: { value: 'Maintenance' } });
     fireEvent.click(screen.getByRole('button', { name: 'Block these dates' }));
     fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
     const startDay = String(Math.max(2, now.getDate() + 1)).padStart(2, '0');
-    const endDay = String(Math.min(Number(startDay) + 2, new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate())).padStart(2, '0');
+    const endDay = String(Math.max(3, now.getDate() + 3)).padStart(2, '0');
     const month = String(now.getMonth() + 1).padStart(2, '0');
     await waitFor(() => expect(createHostBlock).toHaveBeenCalledWith('lakeside-cabin', { startDate: `${now.getFullYear()}-${month}-${startDay}`, endDate: `${now.getFullYear()}-${month}-${endDay}`, reason: 'Maintenance' }));
     await waitFor(() => expect(fetchHostCalendar).toHaveBeenCalledTimes(2));
@@ -55,6 +59,55 @@ describe('Host calendar page', () => {
     await screen.findByRole('heading', { name: 'October 2026' });
     fireEvent.click(screen.getByRole('button', { name: 'Next month' }));
     await waitFor(() => expect(fetchHostCalendar).toHaveBeenCalledWith('lakeside-cabin', 2026, 11));
+  });
+  it('keeps the calendar form mounted while a requested month loads, then swaps the grid and blocks', async () => {
+    let resolveNovember!: (value: ReturnType<typeof currentCalendar>) => void;
+    fetchHostCalendar.mockImplementation((_id: string, year: number, month: number) => {
+      if (month === 11) return new Promise((resolve) => { resolveNovember = resolve; });
+      return Promise.resolve({ ...currentCalendar(), year, month, blocks: [{ id: 'oct-block', reason: 'October repair', startDate: '2026-10-05', endDate: '2026-10-06' }] });
+    });
+    fetchHostListing.mockResolvedValue({ listing: { id: 'lakeside-cabin', hostId: 'h', status: 'ACTIVE', title: 'API Cabin', description: '', propertyType: 'HOUSE', streetAddress: '1 Main', city: 'Reno', region: 'NV', postalCode: 89501, maxGuests: 2, bedrooms: 1, bathrooms: 1, baseNightlyRate: 90, checkInTime: '15:00:00', checkOutTime: '11:00:00', amenities: [], createdAt: '' }, metrics: { bookingCount: 0, averageRating: 0, reviews: [], occupancyPercentage: 0, earnings: 0 } });
+    fetchHostWallet.mockResolvedValue({ wallet: { id: 'w', userId: 'h', balance: 10, currency: 'SGD', updatedAt: '' }, statement: { items: [], page: 0, size: 1, hasMore: false } });
+    render(<HostApiProvider><HostFixtureProvider><HostCalendarPage /></HostFixtureProvider></HostApiProvider>);
+    await screen.findByRole('heading', { name: 'October 2026' });
+    expect(screen.getByRole('button', { name: 'Date range: Select dates' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Date range: Select dates' }));
+    fireEvent.click(screen.getByRole('button', { name: '10' }));
+    fireEvent.click(screen.getByRole('button', { name: '12' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
+    fireEvent.change(screen.getByLabelText('Reason'), { target: { value: 'Guest request' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Next month' }));
+
+    expect(screen.getByRole('heading', { name: 'November 2026' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Booking calendar and date blocking' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Date range: Oct 10 – Oct 12, 2026' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Reason')).toHaveValue('Guest request');
+    expect(screen.getByText('October repair')).toBeInTheDocument();
+    expect(fetchHostListing).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('status')).toHaveTextContent(/loading calendar/i);
+    expect(screen.queryByRole('grid')).not.toBeInTheDocument();
+
+    resolveNovember({ year: 2026, month: 11, days: [{ date: '2026-11-01', booked: true, blocked: false }], blocks: [{ id: 'nov-block', reason: 'New month block', startDate: '2026-11-05', endDate: '2026-11-06' }] });
+    expect(await screen.findByText('New month block')).toBeInTheDocument();
+    expect(screen.queryByText('October repair')).not.toBeInTheDocument();
+    expect(screen.getByRole('gridcell', { name: '1, Booked' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Date range: Oct 10 – Oct 12, 2026' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Reason')).toHaveValue('Guest request');
+  });
+  it('shows the generic listing error when a previous-month request fails', async () => {
+    fetchHostCalendar.mockImplementation((_id: string, year: number, month: number) => month === 9
+      ? Promise.reject(new Error('private calendar failure'))
+      : Promise.resolve({ ...currentCalendar(), year, month }));
+    fetchHostListing.mockResolvedValue({ listing: { id: 'lakeside-cabin', hostId: 'h', status: 'ACTIVE', title: 'API Cabin', description: '', propertyType: 'HOUSE', streetAddress: '1 Main', city: 'Reno', region: 'NV', postalCode: 89501, maxGuests: 2, bedrooms: 1, bathrooms: 1, baseNightlyRate: 90, checkInTime: '15:00:00', checkOutTime: '11:00:00', amenities: [], createdAt: '' }, metrics: { bookingCount: 0, averageRating: 0, reviews: [], occupancyPercentage: 0, earnings: 0 } });
+    fetchHostWallet.mockResolvedValue({ wallet: { id: 'w', userId: 'h', balance: 10, currency: 'SGD', updatedAt: '' }, statement: { items: [], page: 0, size: 1, hasMore: false } });
+    render(<HostApiProvider><HostFixtureProvider><HostCalendarPage /></HostFixtureProvider></HostApiProvider>);
+    await screen.findByRole('heading', { name: 'October 2026' });
+    fireEvent.click(screen.getByRole('button', { name: 'Previous month' }));
+
+    expect(await screen.findByRole('heading', { name: 'Something went wrong' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Back to Listings' })).toHaveAttribute('href', '/host/listings');
+    expect(screen.queryByRole('heading', { name: 'September 2026' })).not.toBeInTheDocument();
+    expect(screen.queryByText('private calendar failure')).not.toBeInTheDocument();
   });
   it('shows a safe unavailable state when the API says the listing does not exist', async () => {
     const notFound = () => new BackendApiError('NOT_FOUND', 'private backend details', 'request-1', 404);

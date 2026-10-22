@@ -42,7 +42,10 @@ describe('Host calendar and requests', () => {
     expect(screen.getByRole('gridcell', { name: '4, Booked' })).toBeInTheDocument();
     expect(screen.getByRole('gridcell', { name: '5, Booked' })).toBeInTheDocument();
     expect(screen.getByRole('gridcell', { name: '11, Available' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Date range: Sep 15 – Sep 17, 2026' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Date range: Select dates' })).toBeInTheDocument();
+    expect(screen.queryAllByRole('button', { pressed: true })).toHaveLength(0);
+    fireEvent.click(screen.getByRole('button', { name: 'Date range: Select dates' }));
+    expect(screen.getByRole('dialog', { name: 'Choose date range' })).toHaveTextContent('September 2026');
     expect(screen.queryByLabelText('From')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('To')).not.toBeInTheDocument();
     expect(screen.getByLabelText('Reason')).toBeRequired();
@@ -63,12 +66,12 @@ describe('Host calendar and requests', () => {
 
   it('keeps a chosen range open until Apply', () => {
     render(<HostCalendarPanel calendar={createHostFixtureAdapter().getCalendar('lakeside-cabin').data!} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Date range: Sep 15 – Sep 17, 2026' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Date range: Select dates' }));
     fireEvent.click(screen.getByRole('button', { name: '18' }));
     expect(screen.getByText('Select an end date')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '20' }));
     expect(screen.getByRole('dialog', { name: 'Choose date range' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Date range: Sep 15 – Sep 17, 2026' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Date range: Select dates' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
     expect(screen.getByRole('button', { name: 'Date range: Sep 18 – Sep 20, 2026' })).toBeInTheDocument();
     expect(screen.queryByRole('dialog', { name: 'Choose date range' })).not.toBeInTheDocument();
@@ -76,7 +79,7 @@ describe('Host calendar and requests', () => {
 
   it('reopens the date picker with the selected dates on their correct weekdays', () => {
     render(<HostCalendarPanel calendar={createHostFixtureAdapter().getCalendar('lakeside-cabin').data!} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Date range: Sep 15 – Sep 17, 2026' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Date range: Select dates' }));
     fireEvent.click(screen.getByRole('button', { name: '16' }));
     fireEvent.click(screen.getByRole('button', { name: '18' }));
     fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
@@ -217,7 +220,7 @@ describe('Host calendar and requests', () => {
 
   it('clears the draft range without closing the picker', () => {
     render(<HostCalendarPanel calendar={createHostFixtureAdapter().getCalendar('lakeside-cabin').data!} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Date range: Sep 15 – Sep 17, 2026' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Date range: Select dates' }));
     fireEvent.click(screen.getByRole('button', { name: 'Clear' }));
 
     expect(screen.getByRole('dialog', { name: 'Choose date range' })).toBeInTheDocument();
@@ -228,17 +231,32 @@ describe('Host calendar and requests', () => {
 
   it('closes on outside click without applying the draft range', () => {
     render(<HostCalendarPanel calendar={createHostFixtureAdapter().getCalendar('lakeside-cabin').data!} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Date range: Sep 15 – Sep 17, 2026' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Date range: Select dates' }));
     fireEvent.click(screen.getByRole('button', { name: '18' }));
     fireEvent.mouseDown(screen.getByLabelText('Reason'));
 
     expect(screen.queryByRole('dialog', { name: 'Choose date range' })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Date range: Sep 15 – Sep 17, 2026' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Date range: Select dates' })).toBeInTheDocument();
+  });
+
+  it('opens the fixture picker at the visible month and discards an unapplied draft when navigating months', () => {
+    render(<HostCalendarPanel calendar={createHostFixtureAdapter().getCalendar('lakeside-cabin').data!} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Date range: Select dates' }));
+    expect(screen.getByRole('dialog', { name: 'Choose date range' })).toHaveTextContent('September 2026');
+    fireEvent.click(screen.getByRole('button', { name: '18' }));
+    const nextMonth = screen.getByRole('button', { name: 'Next month' });
+    fireEvent.mouseDown(nextMonth);
+    fireEvent.click(nextMonth);
+
+    expect(screen.queryByRole('dialog', { name: 'Choose date range' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Date range: Select dates' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'October 2026' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Reason')).toHaveValue('');
   });
 
   it('shows the year on both ends when a selected range crosses years', () => {
     render(<HostCalendarPanel calendar={createHostFixtureAdapter().getCalendar('lakeside-cabin').data!} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Date range: Sep 15 – Sep 17, 2026' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Date range: Select dates' }));
     for (let month = 0; month < 3; month += 1) fireEvent.click(screen.getByRole('button', { name: 'Next date-picker month' }));
     fireEvent.click(screen.getByRole('button', { name: '30' }));
     fireEvent.click(screen.getByRole('button', { name: '1, Other month' }));
@@ -256,7 +274,7 @@ describe('Host calendar and requests', () => {
 
   it('shows a calendar icon at the right side of the date range field', () => {
     render(<HostCalendarPanel calendar={createHostFixtureAdapter().getCalendar('lakeside-cabin').data!} />);
-    const trigger = screen.getByRole('button', { name: 'Date range: Sep 15 – Sep 17, 2026' });
+    const trigger = screen.getByRole('button', { name: 'Date range: Select dates' });
     expect(trigger.querySelector('svg[aria-hidden="true"]')).toBeInTheDocument();
     expect(trigger.lastElementChild?.tagName.toLowerCase()).toBe('svg');
   });

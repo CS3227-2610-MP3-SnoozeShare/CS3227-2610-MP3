@@ -9,44 +9,35 @@ import type { CalendarData } from './hostTypes';
 import { hostSafeErrorMessage } from '@/lib/hostApi';
 
 type BlockInput = { startDate: string; endDate: string; reason: string };
-export function HostCalendarPanel({ calendar, onCreateBlock, onDeleteBlock, onMonthChange }: { calendar: CalendarData; onCreateBlock?: (block: BlockInput) => Promise<void>; onDeleteBlock?: (block: CalendarData['blockedDates'][number]) => Promise<void>; onMonthChange?: (year: number, month: number) => void }) {
+export function HostCalendarPanel({ calendar, onCreateBlock, onDeleteBlock, onMonthChange, requestedMonth, calendarLoading = false }: { calendar: CalendarData; onCreateBlock?: (block: BlockInput) => Promise<void>; onDeleteBlock?: (block: CalendarData['blockedDates'][number]) => Promise<void>; onMonthChange?: (year: number, month: number) => void; requestedMonth?: { year: number; month: number }; calendarLoading?: boolean }) {
   const [monthOffset, setMonthOffset] = useState(0);
   const [open, setOpen] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
-  const [draftFrom, setDraftFrom] = useState('2026-09-15');
-  const [draftTo, setDraftTo] = useState('2026-09-17');
-  const [pickerMonth, setPickerMonth] = useState(new Date(2026, 8, 1));
+  const [draftFrom, setDraftFrom] = useState('');
+  const [draftTo, setDraftTo] = useState('');
+  const initialDate = calendar.days.find((day) => day.month === 'current')?.date ?? '2026-09-01';
+  const initialParts = initialDate.split('-').map(Number);
+  const [pickerMonth, setPickerMonth] = useState(new Date(initialParts[0], initialParts[1] - 1, 1));
   const [choosingEnd, setChoosingEnd] = useState(false);
-  const [from, setFrom] = useState('2026-09-15');
-  const [to, setTo] = useState('2026-09-17');
+  const [from, setFrom] = useState('');
+  const [to, setTo] = useState('');
   const [reason, setReason] = useState('');
   const [error, setError] = useState('');
   const [blockedDates, setBlockedDates] = useState(calendar.blockedDates);
   const datePickerRef = useRef<HTMLDivElement>(null);
-  const monthDate = new Date(`${calendar.days.find((day) => day.month === 'current')?.date ?? '2026-09-01'}T12:00:00`);
-  monthDate.setMonth(monthDate.getMonth() + monthOffset);
-  const apiMode = Boolean(onCreateBlock);
+  const monthDate = requestedMonth
+    ? new Date(requestedMonth.year, requestedMonth.month - 1, 1)
+    : new Date(`${calendar.days.find((day) => day.month === 'current')?.date ?? '2026-09-01'}T12:00:00`);
+  if (!requestedMonth) monthDate.setMonth(monthDate.getMonth() + monthOffset);
+  const visibleYear = monthDate.getFullYear();
+  const visibleMonth = monthDate.getMonth();
   useEffect(() => {
     setMonthOffset(0);
     setBlockedDates(calendar.blockedDates);
-    if (!apiMode) return;
-    const firstDay = calendar.days.find((day) => day.month === 'current')?.date;
-    if (!firstDay) return;
-    const [year, month] = firstDay.split('-').map(Number);
-    const today = new Date();
-    const startDay = year === today.getFullYear() && month === today.getMonth() + 1
-      ? Math.max(2, today.getDate() + 1)
-      : 2;
-    const lastDay = new Date(year, month, 0).getDate();
-    const endDay = Math.min(startDay + 2, lastDay);
-    const nextFrom = `${year}-${String(month).padStart(2, '0')}-${String(startDay).padStart(2, '0')}`;
-    const nextTo = `${year}-${String(month).padStart(2, '0')}-${String(endDay).padStart(2, '0')}`;
-    setFrom(nextFrom);
-    setTo(nextTo);
-    setDraftFrom(nextFrom);
-    setDraftTo(nextTo);
-    setPickerMonth(new Date(year, month - 1, 1));
-  }, [apiMode, calendar]);
+  }, [calendar]);
+  useEffect(() => {
+    setPickerMonth(new Date(visibleYear, visibleMonth, 1));
+  }, [visibleMonth, visibleYear]);
   const monthLabel = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(monthDate);
   const formatDate = (value: string, includeYear = false) => value ? new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', ...(includeYear ? { year: 'numeric' as const } : {}) }).format(new Date(`${value}T12:00:00`)) : 'Select date';
   const days: GridDay[] = (() => {
@@ -105,7 +96,7 @@ export function HostCalendarPanel({ calendar, onCreateBlock, onDeleteBlock, onMo
     setDraftFrom(from);
     setDraftTo(to);
     setChoosingEnd(false);
-    const selectedStart = from ? new Date(`${from}T12:00:00`) : pickerMonth;
+    const selectedStart = from ? new Date(`${from}T12:00:00`) : monthDate;
     setPickerMonth(new Date(selectedStart.getFullYear(), selectedStart.getMonth(), 1));
     setDatePickerOpen(true);
   };
@@ -163,7 +154,9 @@ export function HostCalendarPanel({ calendar, onCreateBlock, onDeleteBlock, onMo
             ))}
           </div>
         </div>
-        <CalendarGrid className="rounded-lg" monthLabel={monthLabel} days={days} />
+        {calendarLoading
+          ? <div aria-label={monthLabel} className="grid min-h-[35.5rem] place-items-center rounded-lg border border-[var(--border-muted)] bg-white text-sm text-[var(--text-subtle)]" role="status">Loading calendar…</div>
+          : <CalendarGrid className="rounded-lg" monthLabel={monthLabel} days={days} />}
       </div>
 
       <aside className="border-t border-border bg-white px-5 py-5 lg:border-l lg:border-t-0">

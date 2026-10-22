@@ -18,7 +18,7 @@
 | T1 Add batched owner-scoped listing summary metrics | - | T3, T4 | 1 | Done |
 | T2 Consume metrics and update listing status in place | T1 | T4 | 2 | Not started |
 | T3 Correct listing detail time and occupancy formatting | - | T1, T4 | 1 | Done |
-| T4 Keep calendar mounted during month loads and clear initial range | - | T1, T2, T3 | 1 | Not started |
+| T4 Keep calendar mounted during month loads and clear initial range | - | T1, T2, T3 | 1 | Done |
 
 Tasks T2 and T3 both edit `frontend/src/components/host/hostTypes.ts`; perform them serially. The backend task and calendar task otherwise have disjoint files. The Wave column and task metadata mirror the spec; this note records the shared-file serialization needed during execution.
 
@@ -134,15 +134,16 @@ Tasks T2 and T3 both edit `frontend/src/components/host/hostTypes.ts`; perform t
 | Modify | `frontend/src/components/host/HostCalendarPanel.tsx` (`range` state, calendar effect, month heading/grid) | Initialize `from`, `to`, `draftFrom`, and `draftTo` empty; open picker at visible month; update month label immediately; render loading only in grid while preserving applied range/reason; refresh blocked dates from the successful month response; retain outside-click draft discard. |
 | Modify | `frontend/src/app/host/listings/[listingId]/calendar/page.test.tsx` | Cover pending next/previous-month load, requested label, mounted panel and preserved applied range/reason, month-specific blocked-date refresh, 404/error generic return link, and no stale grid. |
 | Modify | `frontend/src/components/host/HostCalendarRequests.test.tsx` | Assert fixture mode starts with “Select dates,” has no pressed days, and opens picker at visible fixture month. |
+| Modify | `frontend/src/components/host/HostPresentationInteractions.test.tsx` | Select dates explicitly in the local-only invalid-range regression after the initial range becomes empty. |
 
 **Checklist**
 
-- [ ] 1. Add failing E6/E7/E8 tests for both API and fixture modes. In the pending-month case assert the panel remains mounted, the requested month label changes immediately, only the grid indicates loading, applied dates/reason stay unchanged, and the new blocked list appears only after success. Also open the picker, change its draft, then navigate months from outside it and assert the picker closes, the draft is discarded, and the applied range remains. Expect FAIL.
-- [ ] 2. Keep the last successful calendar data available while a new month resource is loading; pass an explicit requested month/loading state to the panel so stale month cells are replaced by grid loading without removing the form.
-- [ ] 3. Remove generated sample range initialization; use empty applied/draft values and synchronize the date picker month with the visible calendar month. Preserve the existing outside-click close/discard behavior.
-- [ ] 4. Verify a failed month load routes to the existing generic error with Back to Listings, without displaying the prior month as the requested month.
-- [ ] 5. Run focused calendar tests; expect PASS. Run `npm test`, `npm run lint`, and `npm run build` from `frontend/`.
-- [ ] 6. Update branch state Progress and Changes; commit `fix: keep Host calendar state during month changes`.
+- [x] 1. Add failing E6/E7/E8 tests for both API and fixture modes. In the pending-month case assert the panel remains mounted, the requested month label changes immediately, only the grid indicates loading, applied dates/reason stay unchanged, and the new blocked list appears only after success. Also open the picker, change its draft, then navigate months from outside it and assert the picker closes, the draft is discarded, and the applied range remains. Expect FAIL.
+- [x] 2. Keep the last successful calendar data available while a new month resource is loading; pass an explicit requested month/loading state to the panel so stale month cells are replaced by grid loading without removing the form.
+- [x] 3. Remove generated sample range initialization; use empty applied/draft values and synchronize the date picker month with the visible calendar month. Preserve the existing outside-click close/discard behavior.
+- [x] 4. Verify a failed month load routes to the existing generic error with Back to Listings, without displaying the prior month as the requested month.
+- [x] 5. Run focused calendar tests; expect PASS. Run `npm test`, `npm run lint`, and `npm run build` from `frontend/`.
+- [x] 6. Update branch state Progress and Changes; commit `fix: keep Host calendar state during month changes`.
 
 ### Close-out
 
