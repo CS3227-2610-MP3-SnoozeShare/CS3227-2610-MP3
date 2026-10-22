@@ -93,7 +93,7 @@ class SoclaasClientTest {
         assertThat(body.path("messages").get(1).path("role").asText()).isEqualTo("user");
         assertThat(body.has("stream")).isFalse();
         assertThat(body.has("response_format")).isFalse();
-        assertThat(body.has("reasoning_effort")).isFalse();
+        assertThat(body.path("reasoning_effort").asText()).isEqualTo("none");
 
         LlmProperties both = props(stub.baseUrl(), "response-format-json", "true", "reasoning-effort", "low");
         new SoclaasClient(both).attempt(request(true), TIMEOUT);

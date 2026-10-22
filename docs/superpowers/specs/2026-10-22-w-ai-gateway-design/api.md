@@ -78,7 +78,7 @@ R rows are limited to one per user per code per 10 minutes (further ones are cou
 | `snoozeshare.ai.base-url` [`SOCLAAS_BASE_URL`] | empty | when enabled and not mock: `https://` and ending `/v1` with no trailing slash; `http://` allowed only for `localhost`, `127.0.0.1` or `[::1]` outside prod |
 | `snoozeshare.ai.api-key` [`SOCLAAS_API_KEY`] | empty | non-blank when enabled and not mock; a value that still contains `${` counts as blank; never in `toString` |
 | `snoozeshare.ai.model-fast` / `-standard` / `-strong` [`SNOOZESHARE_AI_MODEL_FAST` / `_STANDARD` / `_STRONG`] | `llama3.1:8b` / `qwen3.5:9b` / `gemma4:26b` | 1 to 100 characters |
-| `snoozeshare.ai.max-rpm` / `max-concurrent` / `max-queue` | 55 / 4 / 20 | 1 to 90 / 2 to 16 / 1 to 200 |
+| `snoozeshare.ai.max-rpm` / `max-concurrent` / `max-queue` | 25 / 4 / 20 | 1 to 90 / 2 to 16 / 1 to 200 |
 | `snoozeshare.ai.queue-wait-ms` / `request-timeout-ms` / `deadline-ms` | 10,000 / 30,000 / 45,000 | 100 to 60,000 / 1,000 to 120,000 / at least `request-timeout-ms` |
 | `snoozeshare.ai.max-retries` | 2 | 0 to 5 |
 | `snoozeshare.ai.breaker-failures` / `breaker-open-ms` | 5 / 30,000 | 3 to 50 / 1,000 to 600,000 |
@@ -88,9 +88,9 @@ R rows are limited to one per user per code per 10 minutes (further ones are cou
 | `snoozeshare.ai.priority-zero-reserve-percent` | 5 | 0 to 50; the share of `global-daily-cap` only priority 0 calls may use |
 | `snoozeshare.ai.max-prompt-chars` | 40,000 | 2,000 to 200,000 |
 | `snoozeshare.ai.response-format-json` | false | boolean; sends `response_format` `json_object` for JSON features when true |
-| `snoozeshare.ai.reasoning-effort` | empty (field omitted) | empty, `none`, `low`, `medium` or `high` |
+| `snoozeshare.ai.reasoning-effort` | `none` | empty (field omitted), `none`, `low`, `medium` or `high`; T8 found `none` accepted by all three models and `low` rejected by `llama3.1:8b` |
 
-The last two stay off until T8 records that the models accept them (SD10). Development and production use separate SoCLaaS keys, each supplied only by the environment. An invalid value fails startup in every profile, naming the key. The `prod` profile has no placeholder default for `enabled`; `base-url` and `api-key` default to empty in `application-prod.yml` because they are required only when enabled, and `ProdEnvironmentGuard` fails startup naming `SNOOZESHARE_AI_ENABLED` when it is unset, naming `snoozeshare.ai.base-url` or `snoozeshare.ai.api-key` when enabled, not mock and blank, and rejects `mock=true` in every case.
+`response-format-json` stays off; `reasoning-effort` defaults to `none` after T8 (SD10, amended). `max-rpm` defaults to 25 because the development key allows 30 requests a minute. Development and production use separate SoCLaaS keys, each supplied only by the environment. An invalid value fails startup in every profile, naming the key. The `prod` profile has no placeholder default for `enabled`; `base-url` and `api-key` default to empty in `application-prod.yml` because they are required only when enabled, and `ProdEnvironmentGuard` fails startup naming `SNOOZESHARE_AI_ENABLED` when it is unset, naming `snoozeshare.ai.base-url` or `snoozeshare.ai.api-key` when enabled, not mock and blank, and rejects `mock=true` in every case.
 
 ## AiFeature<T> (a Spring bean per feature, registered by the role workstream)
 

@@ -7,6 +7,33 @@ Iteration 2 started; earlier entries: [docs/project-history/iteration-1/done-led
 
 | Date | What changed | Workstream | Ref |
 |---|---|---|---|
+| 2026-10-22 | Developer guide: added a "Hosting and deployment" block to § 3.2 (owner-approved): the Render, Vercel, Neon, Render order and the five traps from the runbook (Neon connection string, new variables on an existing Render service, Vercel Framework Preset and Production Branch, free-plan memory), after the owner noticed the guide did not carry them. Runbook Verify command: `<railway-url>` corrected to `<render-url>` (C85) | W-INFRA | `docs/DeveloperGuide.md`, `docs/runbooks/dev-environment.md` |
+| 2026-10-22 | Developer guide checkpoint for W-AI-GATEWAY (owner-confirmed): new § 4.20 (packages, call contract, 14-step pipeline and call-sequence diagrams, defaults, security measures, configuration, observed upstream behaviour from the T8 live checks, rules for role code), updated § 1 (delivered features), § 2 (AI variables and a mock-mode snippet), § 3.2 (SoCLaaS in the diagram, flow step 9, decisions C103–C111), § 4.17 (production guard), § 4.19 (the `@ConditionalOnDatabase` invariant, D51), § 5 (NFR13–NFR16 and the AI limitations), § 6 (glossary), § 7 (AI suites and a manual live check). Part of the rolling web rewrite of the guide | W-AI-GATEWAY | `docs/DeveloperGuide.md` |
+| 2026-10-22 | Folded the ai-gateway-t8-defaults branch state into `PROJECT_STATE.md` (decisions C110–C112): T8 results, `max-rpm` 25, `reasoning-effort` `none`, startup success log; the Known Gap that waited for T8 is retired; the owner approved after the merge and confirmed Render reachable and the key rotated | W-AI-GATEWAY | [archive](branch-states/archive/2026-10-22-ai-gateway-t8-defaults.md) |
+| 2026-10-22 | Owner reported that Render is reachable with AI enabled, and that the development key was rotated; the runbook Evidence row was updated | W-AI-GATEWAY | — |
+| 2026-10-22 | Pull request merged (PR #18) before the approval was recorded; the owner confirmed the approval afterwards in chat and it was written then | W-AI-GATEWAY | — |
+| 2026-10-22 | `ModelCheck` logs an INFO line on success | W-AI-GATEWAY | — |
+| 2026-10-22 | Defaults: `max-rpm` 25, `reasoning-effort` `none`; spec SD9, SD10, api.md, F8, E27, E37 amended; tests updated | W-AI-GATEWAY | — |
+| 2026-10-22 | T8 live-check results recorded in the runbook Evidence block | W-AI-GATEWAY | — |
+| 2026-10-22 | Branch cut from `development` after PR #17 merged | W-AI-GATEWAY | — |
+| 2026-10-22 | Folded the W-AI-GATEWAY branch state into `PROJECT_STATE.md` (decisions C101–C109, deviations D47–D56, new § 4.11); W-AI-GATEWAY is `Done`, awaiting guide confirmation; the second branch state, `ai-gateway-t8-defaults`, is folded next | W-AI-GATEWAY | [archive](branch-states/archive/2026-10-22-W-AI-GATEWAY.md) |
+| 2026-10-22 | Branch re-approved by Xiao-Congchen (gate 3) after C109 | W-AI-GATEWAY | — |
+| 2026-10-22 | Amendment C109: default staff reserve 20 to 5 percent; branch returned from Approved to In review | W-AI-GATEWAY | — |
+| 2026-10-22 | Branch approved by Xiao-Congchen (gate 3) | W-AI-GATEWAY | — |
+| 2026-10-22 | Code review of the whole branch (high effort): 5 findings fixed, 1 test-coverage gap left open; branch moved to In review | W-AI-GATEWAY | — |
+| 2026-10-22 | T7 done: `AiBoundaryTest`, `SecretScanTest`, `AiHealthTest`, `AiDatasourceFreeContextTest`, `AiLogLeakTest`, runbook variables and AI gateway section | W-AI-GATEWAY | — |
+| 2026-10-22 | T6 done: `LlmGateway.run` pipeline and attempt loop, `ModelCheck`, `AiConfig` beans, `LlmGatewayTest`, `LlmGatewayIntegrationTest`, `ModelCheckTest` | W-AI-GATEWAY | — |
+| 2026-10-22 | Fix: W-DOMAIN services and JDBC repositories were never registered in the app (`@ConditionalOnBean` evaluated too early); replaced by `@ConditionalOnDatabase` on 20 classes plus `DatabaseBeansTest` | W-AI-GATEWAY | — |
+| 2026-10-22 | T5 done: `SoclaasClient` and `AttemptResult` | W-AI-GATEWAY | — |
+| 2026-10-22 | T4 done: `SchedulerCore`, `LlmScheduler`, `UserThrottle`, `CircuitBreaker`, `BudgetBlock`, `Backoff`, `Sleeper`, `Jitter` | W-AI-GATEWAY | — |
+| 2026-10-22 | T3 done: `InputSanitizer`, `PiiRedactor`, `InjectionDetector`, `PromptBuilder`, `OutputValidator` | W-AI-GATEWAY | — |
+| 2026-10-22 | T2 done: `AI_CALL` and `AI_CALL_REJECTED` audit actions, cap count queries, `AiAuditWriter` (reservations, R-row coalescing) | W-AI-GATEWAY | — |
+| 2026-10-22 | T1 done: `ai` core types, validated `LlmProperties`, `AiFeatureRegistry`, prod guard rules, `SNOOZESHARE_AI_ENABLED` in yml and `render.yaml` | W-AI-GATEWAY | — |
+| 2026-10-22 | Plan approved by Xiao-Congchen (gate 2); workstream Planned | W-AI-GATEWAY | — |
+| 2026-10-22 | Plan written (8 tasks plus close-out) and reviewed; test infrastructure fixes merged | W-AI-GATEWAY | — |
+| 2026-10-22 | Spec approved by Xiao-Congchen (gate 1) | W-AI-GATEWAY | — |
+| 2026-10-22 | Spec drafted (index plus six components, High tier); both review rounds merged | W-AI-GATEWAY | — |
+| 2026-10-22 | Branch cut and branch state created | W-AI-GATEWAY | — |
 | 2026-10-22 | Developer guide checkpoint for W-DOMAIN (owner-confirmed): new § 4.19 (domain model, repositories, services — packages, ER diagram, invariants, deviations), updated § 1 (delivered features, out of scope), § 3.2 (domain ported, Flyway V003–V005, C99 decision), § 4.17 (Flyway list), § 5 Known Limitations (landing shells note), § 6 Glossary (JPA terms), § 7 Testing (6 unit + 5 repository suites), § 8 Acknowledgements. Part of the rolling web rewrite of the guide | W-DOMAIN | `docs/DeveloperGuide.md` |
 | 2026-10-22 | Folded the W-DOMAIN branch state into `PROJECT_STATE.md` (decisions C99–C100, deviations D45–D46); W-DOMAIN is `Done`, guide confirmed | W-DOMAIN | [archive](branch-states/archive/2026-10-22-W-DOMAIN.md) |
 | 2026-10-21 | Fix 6 PR review bugs: SERIALIZABLE isolation on `submitRequest`; pessimistic wallet locking via `findByIdForUpdate`; role/status authorization in `submitRequest` and `createHostBlock`; force-cancel audit captures before-state; `@NotNull` on `FileTicketRequest.requestedRemedy`; V005 tightens nightly-rate CHECK to reject zero and enforce two-decimal precision | W-DOMAIN | `7516b64` |
