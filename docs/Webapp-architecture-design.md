@@ -448,7 +448,7 @@ Login, token refresh, and password reset are handled entirely by the Firebase JS
 | 5 | **W-HOST** | Host features — listings, calendar, requests, wallet, messages, Next.js pages | W-DOMAIN |
 | 6 | **W-AGENT** | Agent features — disputes, accounts, audit, categories, Next.js pages | W-DOMAIN |
 | 7 | **W-AI-GUEST** | Guest AI search assistant (NUS SOC LLM) | W-GUEST |
-| 8 | **W-AI-HOST** | Host AI feature TBD (NUS SOC LLM) | W-HOST |
+| 8 | **W-AI-HOST** | Host AI listing optimisation assistant (NUS SOC LLM) | W-HOST |
 | 9 | **W-AI-AGENT** | Agent AI feature TBD (NUS SOC LLM) | W-AGENT |
 | 10 | **W-SECURITY** | AI security hardening — penetration testing, injection tests, rate limiting audit | W-AI-* |
 | 11 | **W-DEPLOY** | Production deployment — final env separation, DNS, HTTPS, monitoring | All |
