@@ -6,6 +6,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.snoozeshare.api.CurrentUserIdResolver;
 import com.snoozeshare.auth.model.AuthRole;
 import com.snoozeshare.auth.repository.AuthUserRepository;
 import com.snoozeshare.auth.security.FirebaseTokenVerifier.FirebaseAuthentication;
@@ -26,9 +27,10 @@ public class RoleAuthorizationFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getRequestURI();
+        String path = protectedPath(request);
         return !path.startsWith("/api/guest/")
             && !path.startsWith("/api/host/")
+            && !"/api/agent".equals(path)
             && !path.startsWith("/api/agent/");
     }
 
@@ -44,7 +46,8 @@ public class RoleAuthorizationFilter extends OncePerRequestFilter {
         }
         try {
             AuthUserRepository.AuthUser user = authorization.requireActiveUser(identity);
-            authorization.requireRole(user.role(), expectedRole(request.getRequestURI()));
+            authorization.requireRole(user.role(), expectedRole(protectedPath(request)));
+            request.setAttribute(CurrentUserIdResolver.ATTRIBUTE, user.id());
             var authenticated = UsernamePasswordAuthenticationToken.authenticated(
                 identity,
                 null,
@@ -56,6 +59,10 @@ public class RoleAuthorizationFilter extends OncePerRequestFilter {
                 ? HttpServletResponse.SC_NOT_FOUND : HttpServletResponse.SC_FORBIDDEN;
             AuthErrorWriter.write(request, response, status, exception.code());
         }
+    }
+
+    private static String protectedPath(HttpServletRequest request) {
+        return ProtectedRequestPath.withinApplication(request);
     }
 
     private AuthRole expectedRole(String path) {

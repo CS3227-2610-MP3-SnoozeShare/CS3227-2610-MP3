@@ -114,3 +114,4 @@ No change: Q~1 (audit zone) was answered on 2026-10-22 (C~7); nothing is open.
 | 2026-10-22 | Rebuilt T1 part 1/20: distinguish missing agent resources from invalid requests | W-AGENT | small-commit reconstruction |
 | 2026-10-22 | Rebuilt T1 part 2/20: normalize protected API paths and disable agent response caching | W-AGENT | small-commit reconstruction |
 | 2026-10-22 | Rebuilt T1 part 3/20: resolve actor UUIDs from authenticated request attributes | W-AGENT | small-commit reconstruction |
+| 2026-10-22 | Rebuilt T1 part 4/20: enforce role rules and request sizes on protected APIs | W-AGENT | small-commit reconstruction |

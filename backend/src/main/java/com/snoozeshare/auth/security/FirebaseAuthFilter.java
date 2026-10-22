@@ -27,8 +27,12 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getRequestURI();
+        String path = protectedPath(request);
         return !isProtectedPath(path) || "OPTIONS".equals(request.getMethod());
+    }
+
+    private static String protectedPath(HttpServletRequest request) {
+        return ProtectedRequestPath.withinApplication(request);
     }
 
     @Override
@@ -63,6 +67,7 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
             || "/api/auth/me".equals(path)
             || path.startsWith("/api/guest/")
             || path.startsWith("/api/host/")
+            || "/api/agent".equals(path)
             || path.startsWith("/api/agent/");
     }
 
