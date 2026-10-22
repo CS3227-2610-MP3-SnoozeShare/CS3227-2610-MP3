@@ -1,5 +1,6 @@
 package com.snoozeshare.api.controller.agent;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -8,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 
@@ -16,6 +18,9 @@ import com.snoozeshare.testsupport.AgentApiIntegrationTest;
 
 /** A1 to A5 of the agent dispute API. */
 class AgentDisputeControllerTest extends AgentApiIntegrationTest {
+
+    @MockitoSpyBean
+    private com.snoozeshare.service.impl.LedgerWriter ledgerWriter;
 
     private ResultActions getAs(String path, String token) throws Exception {
         return mockMvc.perform(get(path).header("Authorization", "Bearer " + token));
@@ -210,6 +215,47 @@ class AgentDisputeControllerTest extends AgentApiIntegrationTest {
         expectInvalid(path, "{\"mode\":\"REJECT\"}", "VALIDATION_ERROR", null);
         expectInvalid(path, resolveBody("REJECT", "null", "x".repeat(1001)), "VALIDATION_ERROR", null);
         putAs(path, agent.token(), resolveBody("REJECT", "null", "x".repeat(1000))).andExpect(status().isOk());
+    }
+
+    @Test
+    void unknownTicketIs404ForEveryAction() throws Exception { // E66
+        String id = java.util.UUID.randomUUID().toString();
+        for (String action : java.util.List.of("assign", "notes", "resolve")) {
+            var result = putAs("/api/agent/disputes/" + id + "/" + action, agent.token(),
+                    "resolve".equals(action) ? resolveBody("REJECT", "null", "r")
+                            : "notes".equals(action) ? "{\"notes\":\"n\"}" : "")
+                    .andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("NOT_FOUND")).andReturn();
+            com.snoozeshare.testsupport.ErrorAssertions.assertCleanMessage(result, "Ticket does not exist");
+        }
+    }
+
+    @Test
+    void resolveWritesTheServiceAuditRows() throws Exception { // E56
+        var dispute = scenarios.inReviewDispute(agent.id());
+        long before = auditRows("TICKET_RESOLVED");
+
+        putAs(resolvePath(dispute.ticket().getId()), agent.token(), resolveBody("MANUAL", "10.00", "audit"))
+                .andExpect(status().isOk());
+
+        org.assertj.core.api.Assertions.assertThat(auditRows("TICKET_RESOLVED") - before).isEqualTo(1);
+        org.assertj.core.api.Assertions.assertThat(auditRows("AGENT_OVERRIDE")).isGreaterThanOrEqualTo(1);
+    }
+
+    @Test
+    void resolveRollsBack() throws Exception { // E68
+        var dispute = scenarios.inReviewDispute(agent.id());
+        var guestBefore = balanceOf(dispute.guest().getId());
+        long resolvedBefore = auditRows("TICKET_RESOLVED");
+        org.mockito.Mockito.doThrow(new org.springframework.dao.DataAccessResourceFailureException("simulated database outage")).when(ledgerWriter)
+                .postPayout(any(), any(), any(), any(), any(), any(), any());
+
+        putAs(resolvePath(dispute.ticket().getId()), agent.token(), resolveBody("MANUAL", "10.00", "boom"))
+                .andExpect(status().isInternalServerError()).andExpect(jsonPath("$.code").value("INTERNAL_ERROR"));
+
+        org.assertj.core.api.Assertions.assertThat(balanceOf(dispute.guest().getId())).isEqualByComparingTo(guestBefore);
+        org.assertj.core.api.Assertions.assertThat(auditRows("TICKET_RESOLVED")).isEqualTo(resolvedBefore);
+        getAs("/api/agent/disputes/" + dispute.ticket().getId(), agent.token())
+                .andExpect(jsonPath("$.ticket.status").value("IN_REVIEW"));
     }
 
     @Test
