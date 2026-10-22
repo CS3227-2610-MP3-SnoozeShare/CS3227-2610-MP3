@@ -33,7 +33,7 @@ No change.
 |---|---|---|---|---|---|---|---|
 | S1 | 2026-10-22 20:00 | Claude Opus 4.6 | W-GUEST | Done | Plan written, approved | — | 2026-10-22 |
 | S2 | 2026-10-22 | Claude Opus 4.6 | W-GUEST | Done | T1 partially coded, not committed | — | 2026-10-22 |
-| S3 | 2026-10-22 | Claude Opus 4.6 | W-GUEST | Active | T3 done; continuing Wave 1 | T4: GuestMessageController | 2026-10-22 |
+| S3 | 2026-10-22 | Claude Opus 4.6 | W-GUEST | Active | T4 done; continuing Wave 1 | T5: GuestReviewController | 2026-10-22 |
 
 **Remaining**
 
@@ -50,7 +50,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-GUEST | Guest role controllers and frontend pages | Building | [spec](docs/superpowers/specs/2026-10-22-w-guest-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-guest.md) | Task 4/10: T4 GuestMessageController | — |
+| W-GUEST | Guest role controllers and frontend pages | Building | [spec](docs/superpowers/specs/2026-10-22-w-guest-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-guest.md) | Task 5/10: T5 GuestReviewController | — |
 
 ---
 
@@ -88,6 +88,7 @@ No change.
 
 ## 9. Deviations
 
+- **D~2** — `JdbcBookingMessageReadRepository.countUnread` and `JdbcMessageReadRepository.countUnread` compared `sent_at` (timestamp) against `last_read_message_id` (UUID) via COALESCE, causing `BadSqlGrammarException` on Postgres. The desktop SQLite version used `rowid` comparison, which works. Fixed by selecting `lm.sent_at` instead of `mr.last_read_message_id` in both queries.
 - **D~1** — `@ConditionalOnBean(PropertyRepository.class)` on component-scanned beans (`@Service`, `@Repository`, `@RestController`) never matched because Spring's `DeferredImportSelector` processes JPA auto-configuration AFTER component scanning evaluates `@Conditional`. All 20 domain service impls, JDBC repos and the guest exception handler silently failed to register as beans. Discovered during W-GUEST T1 integration testing. Fixed by removing the annotation (20 files) and adding `spring.main.lazy-initialization=true` to the two no-DB tests (`ServerPortDefaultTest`, `ServerPortOverrideTest`) that relied on it to exclude domain beans.
 
 ---
@@ -103,3 +104,4 @@ No change.
 | 2026-10-22 | T1: GuestSearchController, PropertyDetailResponse, ResolvedUser, ForbiddenException, GuestExceptionHandler. RoleAuthorizationFilter stores userId attribute. Fixed D~1: removed @ConditionalOnBean from 20 domain beans; PostgresIntegrationTest now public | W-GUEST | T1 commit |
 | 2026-10-22 | T2: GuestBookingController with trip listing and cancellation. GuestTripResponse DTO. Self-booking guard added to BookingServiceImpl. 9 integration tests | W-GUEST | T2 commit |
 | 2026-10-22 | T3: GuestWalletController with balance, transactions, top-up, withdraw. Added Insufficient check to IllegalArgumentException handler. 8 integration tests | W-GUEST | T3 commit |
+| 2026-10-22 | T4: GuestMessageController with 10 endpoints (tickets + messages). GuestConversationListResponse DTO. @Size constraints on FileTicketRequest and PostMessageRequest. Fixed D~2: countUnread SQL type mismatch in both JDBC read repos. 8 integration tests | W-GUEST | T4 commit |
