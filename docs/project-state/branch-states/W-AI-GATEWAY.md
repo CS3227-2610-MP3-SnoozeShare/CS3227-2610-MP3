@@ -7,9 +7,9 @@ after the branch merges.
 - **Branch:** W-AI-GATEWAY (from `development` at `4257d4b`)
 - **Base:** `4257d4b` (development tip when the branch was cut)
 - **Owner:** CongChen
-- **Status:** Draft
+- **Status:** In review
 - **Approved:** —
-- **Last updated:** 2026-10-22 by Claude Sonnet 5.5 — plan drafted and reviewed
+- **Last updated:** 2026-10-22 by Claude Sonnet 5.5 - code review done, awaiting gate 3
 
 ---
 
@@ -31,12 +31,11 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-22 | Claude Sonnet 5.5 | W~1 | Active | T7 done, build green | Close-out of `docs/superpowers/plans/2026-10-22-w-ai-gateway.md` (code review, then gate 3) | 2026-10-22 |
 
 **Remaining**
 
 - [x] Gate 2 (plan approval) - done 2026-10-22
-- [ ] Execute T1 to T7 (`executing-plans-lite`); T8 is Post-merge
+- [x] Execute T1 to T7 (`executing-plans-lite`); T8 is Post-merge - done 2026-10-22
 - [ ] **Handover:** `GATE:` before the merge, confirm the Render dev service has `SNOOZESHARE_AI_ENABLED=false` (the prod guard fails startup without it)
 - [ ] **Handover:** the W-AI-AGENT scoping decisions of 2026-10-22 belong in that branch's state: the report goes in a separate AI draft field; the assistant posts as the SYSTEM user with a new `AI` author role in the GUEST channel only; Guest-raised tickets only; it asks at submission, then on each guest reply up to a fixed round cap; it depends on this gateway
 - [ ] **Handover:** `GATE:` T8 of the spec - set `SNOOZESHARE_AI_ENABLED` and the SoCLaaS variables in Render and verify reachability and the unconfirmed upstream behaviours (E27) before any W-AI-* spec starts
@@ -47,7 +46,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W~1 | W-AI-GATEWAY: shared SoCLaaS LLM gateway | Building | [spec](docs/superpowers/specs/2026-10-22-w-ai-gateway-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-ai-gateway.md) | Tasks 1-7/8 done; T8 is Post-merge; close-out and gate 3 next | — |
+| W~1 | W-AI-GATEWAY: shared SoCLaaS LLM gateway | In review | [spec](docs/superpowers/specs/2026-10-22-w-ai-gateway-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-ai-gateway.md) | T1-T7 done, T8 Post-merge; code review done; awaiting gate 3 | — |
 
 ---
 
@@ -129,6 +128,7 @@ No change. Resolves, on fold, the SoCLaaS-contract half of `PROJECT_STATE.md` Q6
 - **T6:** `ModelCheck` creates its own single-thread daemon executor (a second constructor takes an `Executor` for tests) instead of an `Executor` bean in `AiConfig`, because any `Executor` bean switches off Spring Boot's auto-configured task executor. `OutputValidator` is a `@Lazy` bean so slice tests without an `ObjectMapper` still start. Tests of `LlmGatewayTest` use a mocked `AiAuditWriter`; real audit rows are covered by `LlmGatewayIntegrationTest`.
 - **T6 test coverage gaps against the plan list:** `pipelineOrder` (the six pairs of E49), `floodDoesNotStarveOthers`, `obedientModel` and `deadlineDuringBackoff` are not separate tests; the fixed check order is covered by the individual tests above, and these are carried to the branch review as a known gap in test depth.
 - **T7:** `ProdEnvironmentGuard` no longer imports `ai.config` (it keeps its own blank/placeholder check) so the boundary test holds; key-shaped strings in earlier AI tests were shortened to `clsk_..._fakekey` because `SecretScanTest` scans every tracked file.
+- **Code review (high, 2026-10-22) fixed in `070191e`:** the client now reads the whole response within the attempt timeout (a stall after the headers could hold a thread and its slots); the sanitizer re-checks injection phrases after delimiter tags are removed; `run` validates the feature it receives; `ConditionalOnDatabase` reads list-form excludes; `SecretScanTest` skips without git. One finding left open: four planned gateway tests are not separate tests (above). The plan's Traceability table names about 15 test methods that exist under other names (for example `retryMatrix` is `serverErrorsRetryTwiceWithBackoffThenReturnServer` and `rateLimitThenSuccessReportsTwoAttempts`); the table was not renamed, and the Close-out item "every Traceability row verified" stays unticked for that reason.
 - **T2:** tests build `LlmProperties` with `enabled=false` (enabled demands a URL and key).
 
 ---
@@ -150,3 +150,4 @@ No change. Resolves, on fold, the SoCLaaS-contract half of `PROJECT_STATE.md` Q6
 | 2026-10-22 | Fix: W-DOMAIN services and JDBC repositories were never registered in the app (`@ConditionalOnBean` evaluated too early); replaced by `@ConditionalOnDatabase` on 20 classes plus `DatabaseBeansTest` | W~1 | — |
 | 2026-10-22 | T6 done: `LlmGateway.run` pipeline and attempt loop, `ModelCheck`, `AiConfig` beans, `LlmGatewayTest`, `LlmGatewayIntegrationTest`, `ModelCheckTest` | W~1 | — |
 | 2026-10-22 | T7 done: `AiBoundaryTest`, `SecretScanTest`, `AiHealthTest`, `AiDatasourceFreeContextTest`, `AiLogLeakTest`, runbook variables and AI gateway section | W~1 | — |
+| 2026-10-22 | Code review of the whole branch (high effort): 5 findings fixed, 1 test-coverage gap left open; branch moved to In review | W~1 | — |

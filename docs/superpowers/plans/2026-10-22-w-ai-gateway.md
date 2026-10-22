@@ -436,6 +436,6 @@ public <T> LlmResult<T> run(AiFeature<T> feature, LlmCall call) {
 ### Close-out
 - [ ] GATE: before the merge, confirm the Render dev service has `SNOOZESHARE_AI_ENABLED=false` (a Blueprint re-sync or the dashboard), because the prod guard fails startup without it; record it as a Handover item in the branch state.
 - [ ] Every Traceability row verified; `cd backend; .\gradlew build` green with no `SOCLAAS_*` variable set.
-- [ ] Spec index status and the plan Task order reflect reality; amendments recorded in the branch state.
-- [ ] Branch state: workstream `In review`, session rows removed, Changes lines complete, new Known Gaps, Conventions and Deviations written (the process-local, many-accounts and bare-domain gaps are already there), Handover items for T8 and for the W-AI-AGENT decisions, `guide out of date: the AI gateway` noted (the guide is not edited on a branch, `AGENTS.md` § 5).
+- [x] Spec index status and the plan Task order reflect reality; amendments recorded in the branch state.
+- [x] Branch state: workstream `In review`, session rows removed, Changes lines complete, new Known Gaps, Conventions and Deviations written (the process-local, many-accounts and bare-domain gaps are already there), Handover items for T8 and for the W-AI-AGENT decisions, `guide out of date: the AI gateway` noted (the guide is not edited on a branch, `AGENTS.md` § 5).
 - [ ] Ask the operator to review the branch (`AGENTS.md` § 8, gate 3); write `Approved` only on their yes, and never push, open a PR or merge before it.
