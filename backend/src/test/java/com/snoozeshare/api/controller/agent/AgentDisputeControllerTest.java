@@ -1,16 +1,17 @@
 package com.snoozeshare.api.controller.agent;
 
-import static org.mockito.ArgumentMatchers.any;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
 
 import com.snoozeshare.domain.enums.RemedyType;
@@ -44,7 +45,7 @@ class AgentDisputeControllerTest extends AgentApiIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.ticket.status").value("IN_REVIEW"))
                 .andExpect(jsonPath("$.ticket.assignedAgentId").value(agent.id().toString()));
-        org.assertj.core.api.Assertions.assertThat(auditRows("TICKET_ASSIGNED")).isEqualTo(1);
+        assertThat(auditRows("TICKET_ASSIGNED")).isEqualTo(1);
         var repeat = putAs(path, agent.token(), "").andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("CONFLICT")).andReturn();
         com.snoozeshare.testsupport.ErrorAssertions.assertCleanMessage(repeat, "Ticket is not open");
@@ -108,16 +109,16 @@ class AgentDisputeControllerTest extends AgentApiIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.ticket.status").value("RESOLVED_APPROVED"))
                 .andExpect(jsonPath("$.ticket.resolutionReason").value("partial"));
-        org.assertj.core.api.Assertions.assertThat(balanceOf(approved.guest().getId()).subtract(guestBefore))
+        assertThat(balanceOf(approved.guest().getId()).subtract(guestBefore))
                 .isEqualByComparingTo("40.00");
-        org.assertj.core.api.Assertions.assertThat(balanceOf(approved.host().getId()).subtract(hostBefore))
+        assertThat(balanceOf(approved.host().getId()).subtract(hostBefore))
                 .isEqualByComparingTo("77.60");
 
         var rejected = scenarios.inReviewDispute(agent.id());
         var hostBeforeReject = balanceOf(rejected.host().getId());
         putAs(resolvePath(rejected.ticket().getId()), agent.token(), resolveBody("MANUAL", "0.00", "none"))
                 .andExpect(jsonPath("$.ticket.status").value("RESOLVED_REJECTED"));
-        org.assertj.core.api.Assertions.assertThat(balanceOf(rejected.host().getId()).subtract(hostBeforeReject))
+        assertThat(balanceOf(rejected.host().getId()).subtract(hostBeforeReject))
                 .isEqualByComparingTo("116.40");
     }
 
@@ -131,7 +132,8 @@ class AgentDisputeControllerTest extends AgentApiIntegrationTest {
                 resolveBody("REJECT", "null", "nope")).andExpect(status().isConflict()).andReturn();
 
         com.snoozeshare.testsupport.ErrorAssertions.assertCleanMessage(result, "Ticket is not assigned to this agent");
-        org.assertj.core.api.Assertions.assertThat(balanceOf(dispute.guest().getId())).isEqualByComparingTo(guestBefore);
+        assertThat(balanceOf(dispute.guest().getId()))
+                .isEqualByComparingTo(guestBefore);
     }
 
     @Test
@@ -148,7 +150,8 @@ class AgentDisputeControllerTest extends AgentApiIntegrationTest {
 
     private com.snoozeshare.testsupport.DisputeScenarioFactory.Scenario assigned(RemedyType remedy) throws Exception {
         var dispute = scenarios.openDispute(remedy);
-        putAs("/api/agent/disputes/" + dispute.ticket().getId() + "/assign", agent.token(), "").andExpect(status().isOk());
+        putAs("/api/agent/disputes/" + dispute.ticket().getId() + "/assign", agent.token(), "")
+                .andExpect(status().isOk());
         return dispute;
     }
 
@@ -185,7 +188,8 @@ class AgentDisputeControllerTest extends AgentApiIntegrationTest {
         expectInvalid(path, resolveBody("MANUAL", "-1", "r"), "VALIDATION_ERROR", null);
         expectInvalid(path, resolveBody("MANUAL", "10.505", "r"), "VALIDATION_ERROR", null);
         expectInvalid(path, resolveBody("MANUAL", "1234567890", "r"), "VALIDATION_ERROR", null);
-        org.assertj.core.api.Assertions.assertThat(balanceOf(dispute.guest().getId())).isEqualByComparingTo(guestBefore);
+        assertThat(balanceOf(dispute.guest().getId()))
+                .isEqualByComparingTo(guestBefore);
         putAs(path, agent.token(), resolveBody("MANUAL", "120.00", "all")).andExpect(status().isOk());
     }
 
@@ -198,13 +202,14 @@ class AgentDisputeControllerTest extends AgentApiIntegrationTest {
         var guestBefore = balanceOf(full.guest().getId());
         putAs(resolvePath(full.ticket().getId()), agent.token(), resolveBody("ACCEPT", "5", "r"))
                 .andExpect(jsonPath("$.ticket.status").value("RESOLVED_APPROVED"));
-        org.assertj.core.api.Assertions.assertThat(balanceOf(full.guest().getId()).subtract(guestBefore))
+        assertThat(balanceOf(full.guest().getId()).subtract(guestBefore))
                 .isEqualByComparingTo("120.00");
         var payout = assigned(RemedyType.HOST_PAYOUT);
         putAs(resolvePath(payout.ticket().getId()), agent.token(), resolveBody("ACCEPT", "null", "r"))
                 .andExpect(jsonPath("$.ticket.status").value("RESOLVED_APPROVED"));
         var invalid = scenarios.inReviewDispute(agent.id());
-        expectInvalid(resolvePath(invalid.ticket().getId()), resolveBody("REJECT", "-1", "r"), "VALIDATION_ERROR", null);
+        expectInvalid(resolvePath(invalid.ticket().getId()), resolveBody("REJECT", "-1", "r"),
+                "VALIDATION_ERROR", null);
     }
 
     @Test
@@ -237,8 +242,8 @@ class AgentDisputeControllerTest extends AgentApiIntegrationTest {
         putAs(resolvePath(dispute.ticket().getId()), agent.token(), resolveBody("MANUAL", "10.00", "audit"))
                 .andExpect(status().isOk());
 
-        org.assertj.core.api.Assertions.assertThat(auditRows("TICKET_RESOLVED") - before).isEqualTo(1);
-        org.assertj.core.api.Assertions.assertThat(auditRows("AGENT_OVERRIDE")).isGreaterThanOrEqualTo(1);
+        assertThat(auditRows("TICKET_RESOLVED") - before).isEqualTo(1);
+        assertThat(auditRows("AGENT_OVERRIDE")).isGreaterThanOrEqualTo(1);
     }
 
     @Test
@@ -246,14 +251,17 @@ class AgentDisputeControllerTest extends AgentApiIntegrationTest {
         var dispute = scenarios.inReviewDispute(agent.id());
         var guestBefore = balanceOf(dispute.guest().getId());
         long resolvedBefore = auditRows("TICKET_RESOLVED");
-        org.mockito.Mockito.doThrow(new org.springframework.dao.DataAccessResourceFailureException("simulated database outage")).when(ledgerWriter)
+        org.mockito.Mockito.doThrow(
+                new org.springframework.dao.DataAccessResourceFailureException("simulated database outage"))
+                .when(ledgerWriter)
                 .postPayout(any(), any(), any(), any(), any(), any(), any());
 
         putAs(resolvePath(dispute.ticket().getId()), agent.token(), resolveBody("MANUAL", "10.00", "boom"))
                 .andExpect(status().isInternalServerError()).andExpect(jsonPath("$.code").value("INTERNAL_ERROR"));
 
-        org.assertj.core.api.Assertions.assertThat(balanceOf(dispute.guest().getId())).isEqualByComparingTo(guestBefore);
-        org.assertj.core.api.Assertions.assertThat(auditRows("TICKET_RESOLVED")).isEqualTo(resolvedBefore);
+        assertThat(balanceOf(dispute.guest().getId()))
+                .isEqualByComparingTo(guestBefore);
+        assertThat(auditRows("TICKET_RESOLVED")).isEqualTo(resolvedBefore);
         getAs("/api/agent/disputes/" + dispute.ticket().getId(), agent.token())
                 .andExpect(jsonPath("$.ticket.status").value("IN_REVIEW"));
     }
