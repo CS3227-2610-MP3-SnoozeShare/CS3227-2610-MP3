@@ -2,15 +2,15 @@ package com.snoozeshare.repository;
 
 import java.util.UUID;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import com.snoozeshare.config.ConditionalOnDatabase;
 import com.snoozeshare.domain.enums.ThreadChannel;
 
 /** JDBC operations for ticket message read tracking (composite-key table). */
 @Repository
-@ConditionalOnProperty(name = "snoozeshare.persistence.enabled", havingValue = "true", matchIfMissing = false)
+@ConditionalOnDatabase
 public class JdbcMessageReadRepository {
 
     private final JdbcTemplate jdbc;

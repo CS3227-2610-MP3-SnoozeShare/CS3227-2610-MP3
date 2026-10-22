@@ -5,11 +5,11 @@ read it for context and write here instead of editing it. `sync-project-state` f
 in after the branch merges.
 
 - **Branch:** W-HOST (from `development` at `8702e88`)
-- **Base:** `6b242b2`
+- **Base:** `e185dc0`
 - **Owner:** project owner
 - **Status:** In review
 - **Approved:** —
-- **Last updated:** 2026-10-22 by GPT-5 — completed T17; handing off W-HOST for owner review
+- **Last updated:** 2026-10-22 by GPT-5 — merged development through `e185dc0`; backend/frontend verification passed
 
 ---
 
@@ -50,6 +50,7 @@ No change.
 - [x] T15 remove listing/request pagination controls and state; tests render 101 listings, pending rows, and history rows, all 177 frontend tests, lint, and production build pass.
 - [x] T16 remove message-history and wallet load-more controls/state; 1,001-message and 101-row tests, 178 frontend tests, lint, and production build pass.
 - [x] T17 final verification: fresh backend full rerun, 178 frontend tests/lint/build, integration coverage, and authenticated read-only request capture complete; owner review remains.
+- [x] Merged `development` through `e185dc0`, adopted `@ConditionalOnDatabase`, and verified backend build plus frontend tests/lint/production build; W-HOST remains awaiting owner review.
 
 ## 3. Workstreams
 
@@ -60,11 +61,12 @@ No change.
 
 ## 4. Architecture
 
-**Persistence — Now:** W-DOMAIN's JPA model and repositories are merged; W-HOST-API activates JDBC adapters and service implementations via `snoozeshare.persistence.enabled` rather than repository-bean ordering.
+**Persistence — Now:** W-DOMAIN's JPA model and repositories are merged; database-dependent service implementations and JDBC adapters use the shared `@ConditionalOnDatabase` condition, which matches unless datasource auto-configuration is excluded.
 
 | Source | Standing choice |
 |---|---|
-| C~17 | Persistence-backed services and adapters use the explicit property gate. |
+| C~17 | *(superseded by C~20)* Persistence-backed services and adapters use the explicit property gate. |
+| C~20 | Database-dependent services and adapters use `@ConditionalOnDatabase`, matching the shared backend convention on `development`. |
 
 **Host API — Now:** Protected Host controllers register only when `snoozeshare.security.enabled=true`, matching `HostIdentityResolver`; listing, calendar, booking decision, conversation, and wallet routes resolve host identity server-side and call services rather than repositories. The authenticated frontend adapter routes requests through `authenticatedFetch`; all Host listing, calendar, request, message, and wallet screens use API-backed state with fixture mode retained for presentation tests. Collection and history GETs return every matching owner-scoped row in deterministic order, with no page/size contract; calendar remains month-bounded and its grid contains at most 42 cells. This accepts unbounded collection payloads and server/client memory use (C~19). Wallet mutations retain the existing ledger transaction and wallet row lock, with events after commit; ambiguous failures refresh balance and statement without retrying.
 
@@ -81,11 +83,11 @@ No change.
 
 ## 5. Conventions
 
-Host route content uses a full-width page frame; input value text is normal-weight, while field labels remain emphasized. Listings, requests, messages, and wallet keep the navbar fixed to the viewport and scroll long content internally; requests cap pending rows at four and let past rows use remaining height, while the wallet statement uses remaining height. Scrollable Host tables keep their header visible, including on horizontal overflow. Per operator-approved C~17, W-HOST-API persistence-backed service implementations and JDBC adapters use `@ConditionalOnProperty(name = "snoozeshare.persistence.enabled", havingValue = "true")`; `application.yml` sets it true, and database-free contexts set false, replacing the current `@ConditionalOnBean(PropertyRepository.class)` convention for this integration. The Host listing API controller is gated by `snoozeshare.security.enabled=true` so auth-disabled dev contexts do not register a route without its identity resolver.
+Host route content uses a full-width page frame; input value text is normal-weight, while field labels remain emphasized. Listings, requests, messages, and wallet keep the navbar fixed to the viewport and scroll long content internally; requests cap pending rows at four and let past rows use remaining height, while the wallet statement uses remaining height. Scrollable Host tables keep their header visible, including on horizontal overflow. Per C~20, database-dependent service implementations and JDBC adapters use `@ConditionalOnDatabase`, matching the shared backend convention; datasource-free contexts must exclude datasource auto-configuration. The Host listing API controller is separately gated by `snoozeshare.security.enabled=true` so auth-disabled dev contexts do not register a route without its identity resolver.
 
 ## 6. Known Gaps
 
-W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJECT_STATE.md` § Known Gaps. D~6 is being resolved by the operator-approved W-HOST-API prerequisite recorded as C~17.
+W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJECT_STATE.md` § Known Gaps. D~6's missing service-bean prerequisite is resolved by C~17; C~20 adopts `development`'s shared activation mechanism.
 
 - C~19 accepts unbounded response size and memory use for complete Host collections and histories, without adding response-size, per-request rate, or concurrency limits; a future pagination/response-bound decision requires owner approval.
 
@@ -117,6 +119,7 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | C~17 | 2026-10-22 | Amend W-HOST-API to include deterministic activation of existing W-DOMAIN services and JDBC adapters through `snoozeshare.persistence.enabled` (`true` by default; `false` in DB-free contexts), without changing service/domain behavior | Project owner approved amending and continuing after T2 exposed that `@ConditionalOnBean(PropertyRepository.class)` runs before JPA repository registration. Deferring the prerequisite to separate work was rejected because all Host API endpoints depend on those services | Operator conversation |
 | C~18 | 2026-10-22 | All Host listing route/load failures use one generic error page with a link to `/host/listings`; form validation and mutation failures remain inline | Project owner clarified scope as route/load failures only and approved the shared error-page design; the listings index additionally offers retry on its own load failure | Operator conversation |
 | C~19 | 2026-10-22 | Reverse bounded Host collection/history pagination: listing, request, conversation-summary, message-history, and wallet-statement GETs return every matching row in one response; remove `page`, `size`, `items`, `hasMore`, and pagination controls. Preserve owner scoping, authorization, deterministic ordering, DTOs, and the calendar's one-month bound | Project owner explicitly chose to remove pagination and return whole collections after the bounded database-pagination decision was surfaced; rejected retaining pagination or silently loading full rows and slicing them in memory. This knowingly accepts unbounded response size and memory use, with no added response-size, per-request rate, or concurrency limits | Operator conversation |
+| C~20 | 2026-10-22 | Replace W-HOST-API's explicit `snoozeshare.persistence.enabled` bean gate (C~17) with `@ConditionalOnDatabase`, which matches unless datasource auto-configuration is excluded | Project owner approved adopting `development`'s convention after learning the former gate would be replaced by the shared backend condition; this aligns W-HOST-API with the integrated service/repository activation model | Operator conversation |
 
 ## 9. Deviations
 
@@ -245,3 +248,4 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | 2026-10-22 | Removed listing and request page state, handlers, and controls; 101-row listing/pending/history coverage passes with 177 frontend tests, lint, and production build | W-HOST-API | T15 |
 | 2026-10-22 | Removed message-history and wallet load-more state/controls; 1,001 messages and 101 statement rows render with 178 frontend tests, lint, production build pass; full wallet recovery behavior retained | W-HOST-API | T16 |
 | 2026-10-22 | Verified complete Host collections: backend full rerun, 178 frontend tests/lint/production build, 101/1,001-row integration evidence, and authenticated GET-only browser captures with no page/size parameters; no N1/N3/N4 findings | W-HOST-API | T17 |
+| 2026-10-22 | Merged `development` through `e185dc0`; adopted `@ConditionalOnDatabase`, retaining W-HOST behavior and both branches' audit actions; backend build and frontend tests/lint/production build pass | W-HOST | C~20 |

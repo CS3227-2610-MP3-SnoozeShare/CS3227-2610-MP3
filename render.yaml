@@ -41,3 +41,10 @@ services:
         sync: false
       - key: GOOGLE_APPLICATION_CREDENTIALS
         sync: false
+      # AI stays off until the SoCLaaS values are verified (W-AI-GATEWAY T8); the key is added in the dashboard.
+      - key: SNOOZESHARE_AI_ENABLED
+        value: "false"
+      - key: SOCLAAS_BASE_URL
+        sync: false
+      - key: SOCLAAS_API_KEY
+        sync: false

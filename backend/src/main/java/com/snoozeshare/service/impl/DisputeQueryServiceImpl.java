@@ -5,9 +5,9 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
+import com.snoozeshare.config.ConditionalOnDatabase;
 import com.snoozeshare.domain.enums.AssigneeFilter;
 import com.snoozeshare.domain.enums.BookingStatus;
 import com.snoozeshare.domain.enums.TicketStatus;
@@ -26,7 +26,7 @@ import com.snoozeshare.service.DisputeQueryService;
 import com.snoozeshare.service.DisputeSummary;
 
 @Service
-@ConditionalOnProperty(name = "snoozeshare.persistence.enabled", havingValue = "true", matchIfMissing = false)
+@ConditionalOnDatabase
 public class DisputeQueryServiceImpl implements DisputeQueryService {
 
     private final TicketRepository tickets;

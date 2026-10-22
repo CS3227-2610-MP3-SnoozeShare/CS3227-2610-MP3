@@ -5,12 +5,12 @@ import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.UUID;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import com.snoozeshare.config.ConditionalOnDatabase;
 import com.snoozeshare.domain.enums.AuditAction;
 import com.snoozeshare.domain.enums.WalletTransactionType;
 import com.snoozeshare.domain.model.Wallet;
@@ -29,7 +29,7 @@ import com.snoozeshare.service.AuditService;
  * {@link ApplicationEventPublisher}.
  */
 @Service
-@ConditionalOnProperty(name = "snoozeshare.persistence.enabled", havingValue = "true", matchIfMissing = false)
+@ConditionalOnDatabase
 public class LedgerWriter {
 
     private final WalletRepository wallets;

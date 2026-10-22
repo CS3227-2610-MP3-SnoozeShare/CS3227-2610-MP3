@@ -13,7 +13,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
  * a dead port.
  */
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-abstract class PostgresIntegrationTest {
+public abstract class PostgresIntegrationTest {
 
     @ServiceConnection
     protected static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:17");

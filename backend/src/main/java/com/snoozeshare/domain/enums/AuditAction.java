@@ -34,7 +34,9 @@ public enum AuditAction {
     ACCOUNT_SUSPENDED,
     ACCOUNT_REACTIVATED,
     HOST_BLOCK_CREATED,
-    HOST_BLOCK_REMOVED;
+    HOST_BLOCK_REMOVED,
+    AI_CALL,
+    AI_CALL_REJECTED;
 
     /** Money rows reuse the wallet transaction type's name so the two ledgers line up. */
     public static AuditAction forWallet(WalletTransactionType type) {

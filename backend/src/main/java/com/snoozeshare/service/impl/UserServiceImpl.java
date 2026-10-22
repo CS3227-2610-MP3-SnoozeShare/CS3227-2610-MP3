@@ -3,16 +3,16 @@ package com.snoozeshare.service.impl;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
+import com.snoozeshare.config.ConditionalOnDatabase;
 import com.snoozeshare.domain.enums.Role;
 import com.snoozeshare.domain.model.User;
 import com.snoozeshare.repository.UserRepository;
 import com.snoozeshare.service.UserService;
 
 @Service
-@ConditionalOnProperty(name = "snoozeshare.persistence.enabled", havingValue = "true", matchIfMissing = false)
+@ConditionalOnDatabase
 public class UserServiceImpl implements UserService {
 
     private final UserRepository users;

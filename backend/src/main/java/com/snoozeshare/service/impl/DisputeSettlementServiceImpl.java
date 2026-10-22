@@ -5,11 +5,11 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.UUID;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.snoozeshare.config.ConditionalOnDatabase;
 import com.snoozeshare.domain.enums.AuditAction;
 import com.snoozeshare.domain.enums.BookingStatus;
 import com.snoozeshare.domain.enums.RemedyType;
@@ -42,7 +42,7 @@ import com.snoozeshare.service.DisputeSettlementService;
 import com.snoozeshare.service.Settlement;
 
 @Service
-@ConditionalOnProperty(name = "snoozeshare.persistence.enabled", havingValue = "true", matchIfMissing = false)
+@ConditionalOnDatabase
 public class DisputeSettlementServiceImpl implements DisputeSettlementService {
 
     private final TicketRepository tickets;

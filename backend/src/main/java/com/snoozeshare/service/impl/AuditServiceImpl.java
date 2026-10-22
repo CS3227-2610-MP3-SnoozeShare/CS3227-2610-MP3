@@ -9,9 +9,9 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
+import com.snoozeshare.config.ConditionalOnDatabase;
 import com.snoozeshare.domain.model.AuditLogEntry;
 import com.snoozeshare.domain.model.User;
 import com.snoozeshare.repository.AuditCriteria;
@@ -23,7 +23,7 @@ import com.snoozeshare.service.AuditService;
 
 /** Writes and queries audit log entries. */
 @Service
-@ConditionalOnProperty(name = "snoozeshare.persistence.enabled", havingValue = "true", matchIfMissing = false)
+@ConditionalOnDatabase
 public class AuditServiceImpl implements AuditService {
 
     private static final Pattern ID_FRAGMENT =

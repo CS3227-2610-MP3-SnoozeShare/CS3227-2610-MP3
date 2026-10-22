@@ -5,10 +5,10 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.snoozeshare.config.ConditionalOnDatabase;
 import com.snoozeshare.domain.enums.WalletTransactionType;
 import com.snoozeshare.domain.model.Wallet;
 import com.snoozeshare.domain.model.WalletTransaction;
@@ -18,7 +18,7 @@ import com.snoozeshare.repository.WalletRepository;
 import com.snoozeshare.service.WalletService;
 
 @Service
-@ConditionalOnProperty(name = "snoozeshare.persistence.enabled", havingValue = "true", matchIfMissing = false)
+@ConditionalOnDatabase
 public class WalletServiceImpl implements WalletService {
 
     private final WalletRepository wallets;

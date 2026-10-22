@@ -8,13 +8,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import com.snoozeshare.config.ConditionalOnDatabase;
 import com.snoozeshare.domain.enums.BookingStatus;
 import com.snoozeshare.domain.enums.Role;
 import com.snoozeshare.domain.model.Booking;
@@ -32,7 +32,7 @@ import com.snoozeshare.service.BookingConversationService;
 import com.snoozeshare.service.BookingConversationSummary;
 
 @Service
-@ConditionalOnProperty(name = "snoozeshare.persistence.enabled", havingValue = "true", matchIfMissing = false)
+@ConditionalOnDatabase
 public class BookingConversationServiceImpl implements BookingConversationService {
 
     static final int CHAT_DAYS_AFTER_CHECKOUT = 7;

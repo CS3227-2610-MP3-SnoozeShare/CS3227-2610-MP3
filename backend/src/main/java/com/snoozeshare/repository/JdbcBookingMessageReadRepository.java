@@ -2,13 +2,14 @@ package com.snoozeshare.repository;
 
 import java.util.UUID;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import com.snoozeshare.config.ConditionalOnDatabase;
+
 /** JDBC operations for booking message read tracking (composite-key table). */
 @Repository
-@ConditionalOnProperty(name = "snoozeshare.persistence.enabled", havingValue = "true", matchIfMissing = false)
+@ConditionalOnDatabase
 public class JdbcBookingMessageReadRepository {
 
     private final JdbcTemplate jdbc;
