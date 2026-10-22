@@ -9,7 +9,7 @@ after the branch merges.
 - **Owner:** Xiao-Congchen
 - **Status:** Draft
 - **Approved:** —
-- **Last updated:** 2026-10-22 by Codex — T1 history split applied; S2 paused after T2
+- **Last updated:** 2026-10-22 by Claude Sonnet 5.5 — T1-T11 done, T12 waiting on the browser walk-through
 
 ---
 
@@ -31,7 +31,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S2 | 2026-10-22 | Claude Sonnet 5.5 | W-AGENT | Active | T11 done | T12 step 1: performance test, full builds, close-out | 2026-10-22 |
+| S2 | 2026-10-22 | Claude Sonnet 5.5 | W-AGENT | Blocked — needs human | T12 steps 1-3 done (performance test, full builds, contract check, code review fixed) | T12 step 4 (GATE): Q~3, the operator starts the local stack and walks each flow in the browser; then record the result (step 5), set `Status: In review`, empty this table and ask for gate 3 | 2026-10-22 |
 
 **Remaining**
 
@@ -48,7 +48,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AGENT | Agent features: disputes, accounts, audit, categories — REST controllers and Next.js pages | Building | [spec](docs/superpowers/specs/2026-10-22-w-agent-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-agent.md) | T1-T11 Done; T12 next | — |
+| W-AGENT | Agent features: disputes, accounts, audit, categories — REST controllers and Next.js pages | Building | [spec](docs/superpowers/specs/2026-10-22-w-agent-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-agent.md) | T1-T11 Done; T12 stopped: Q~3 browser walk-through | — |
 
 ---
 
@@ -62,6 +62,14 @@ No change.
 |---|---|
 | C~3 | The agent REST layer owns the shared API foundation because Guest and Host routes do not yet exist |
 
+### Agent API and pages
+
+**Now:** `/api/agent/**` has five controllers: `AgentDisputeController` (queue, detail, assign, notes, resolve), `AgentMessageController` (guest and host threads), `AgentAccountController` (list Guests and Hosts, suspend, reactivate), `AgentAuditController` (search, action list) and `AgentCategoryController` (list, add, rename, toggle, delete). Controllers convert only through `api.mapper`, call services (audit reads through `AuditQueryService`) and take the actor from `@CurrentUserId`. Ticket and user mutations lock the row first. The frontend has four tabs under `/agent/{disputes,accounts,audit,categories}` plus `/agent/disputes/{ticketId}`, built from `src/components/agent/*` over the typed helpers in `src/lib/agent-api/`.
+
+| ID | Decision |
+|---|---|
+| C~8, C~9 | Spec amendments: the audit search escape, path helper and lock timeout mechanism |
+
 ---
 
 ## 5. Conventions
@@ -72,6 +80,8 @@ No change.
 | Layer boundary | Controllers do not depend on repositories, domain models, persistence types, money services or the audit write service; audit reads use `AuditQueryService` |
 | Actor identity | Controller actor ids use `@CurrentUserId`, resolved from the authenticated request attribute |
 | Locking | Ticket and governed-user mutations take `RowLocks.timeout()` and then lock the target row before reading it |
+| Web layering | `ApiLayerTest` (ArchUnit) enforces the controller rules for every role; a controller test asserts the response field names with `jsonPath` and the frontend fixtures use the same names |
+| Frontend polling | Pages poll through `usePolling` (30 s queue, 10 s detail and threads); `usePolling(load, 0)` loads on demand only and does not refetch on focus; session failures replace the page with `SessionNotice` |
 | Commits | Logical, reviewable units (`AGENTS.md` § 6): no numeric line cap, no hundreds of lines across unrelated files, no fragments that mean nothing alone |
 | Test runs | Warm Gradle daemon; run only the touched test classes, several related tests per run; full suite and Checkstyle once per task; spy and mock beans live in the shared `AgentApiIntegrationTest` base so API tests share one Spring context |
 
@@ -84,7 +94,9 @@ No change.
 | Queue and account lists | Unpaginated |
 | Audit paging | Offset paging can repeat or skip rows when new entries arrive between pages |
 | Agent API | No per-agent rate limit |
-| Missing related records | Missing Booking, Property or Guest wallet still map to 400 |
+| Missing related records | Missing Booking, Property or Guest wallet still map to 400; one ticket with a missing booking or property makes the whole dispute queue answer 400 |
+| Request size | `RequestSizeFilter` checks `Content-Length` and `Transfer-Encoding`; an HTTP/2 body with neither is bounded only by the container |
+| Guide | `guide out of date: agent API and pages` (the Developer Guide is written on `development` only) |
 
 ---
 
@@ -92,7 +104,9 @@ No change.
 
 Q~1 (audit zone) was answered on 2026-10-22 (C~7).
 
-Q~2 was resolved on 2026-10-22: the operator paused S2 and authorized applying the history rewrite. It is now applied; there are no open questions.
+Q~2 was resolved on 2026-10-22: the operator paused S2 and authorized applying the history rewrite. It is now applied.
+
+**Q~3 (open, blocks T12 step 4 and gate 3).** The browser walk-through needs the local stack: Docker Postgres, the backend with `FIREBASE_ENABLED=true` and `SNOOZESHARE_SECURITY_ENABLED=true` against the operator's Firebase dev project and agent registration code, and `npm run dev` for the frontend. Please start it and sign in as an agent (or tell me to record the walk-through as a Handover item instead). I never enter credentials. Flows to walk: assign, reply, notes, Accept, Reject, Manual, suspend, reactivate, audit filters and load more, category add, rename, toggle and delete.
 
 ---
 
@@ -125,6 +139,9 @@ Q~2 was resolved on 2026-10-22: the operator paused S2 and authorized applying t
 | D~6 | Original T1 commits exceeded the operator's later commit-size cap | Resolved: the operator restructured the T1 history; the cap was then replaced by the logical-commit rule in AGENTS.md § 6 (2026-10-22) |
 | D~7 | `JdbcLedgerRepository.entriesForBooking` read `timestamptz` as `Instant`, which the PostgreSQL driver rejects, so every dispute resolution on PostgreSQL failed; no test covered the ledger read | Fixed in `fix: read ledger timestamps as OffsetDateTime` with `JdbcLedgerRepositoryTest`; the W-DOMAIN settlement path had never run on PostgreSQL before T2 |
 | D~8 | T1's `ApiExceptionHandler.respond` set the content type on read-only headers Spring passes for bean-validation errors, so every `@Valid` failure returned an empty 400; T1 tests did not cover a `@Valid` body | Fixed in `fix: copy read-only headers`; covered by the notes length case in `AgentDisputeControllerTest` |
+| D~9 | The queue built each row with five single-row lookups (booking, property, up to three users); the E57 performance test measured 5.2 s p95 with 300 tickets, over the 5 s limit | Fixed in `DisputeQueryServiceImpl.queue` with batched `findAllById` lookups (now about 70 ms); `detail` is unchanged |
+| D~10 | The spec binds the audit `actions` parameter as `Set<AuditAction>`; a `Set` collapses duplicates before the 40-item cap, so 41 duplicates would pass. Class-level `@Validated` on the controller turns a bad `limit` into a 500 | `actions` is a `List` (deduplicated in the filter); no `@Validated`, Spring 6 method validation answers 400 |
+| D~11 | The T11 categories page and others call `usePolling(load, 0)`; the T7 hook had no on-demand mode | The hook treats an interval of 0 as on-demand and does not refetch on focus |
 
 ---
 
