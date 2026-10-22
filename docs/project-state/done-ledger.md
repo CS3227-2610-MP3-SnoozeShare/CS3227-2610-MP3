@@ -7,6 +7,7 @@ Iteration 2 started; earlier entries: [docs/project-history/iteration-1/done-led
 
 | Date | What changed | Workstream | Ref |
 |---|---|---|---|
+| 2026-10-22 | Updated the Developer Guide for confirmed W-HOST and W-HOST-API behavior, including authenticated Host architecture, pages/API, unbounded-collection limitation, tests and read-only browser acceptance | W-HOST / W-HOST-API | `docs/DeveloperGuide.md` §§ 3.2, 4.18–4.22, 5, 7 |
 | 2026-10-22 | Folded the W-HOST branch state into `PROJECT_STATE.md` (decisions C113–C141, deviations D57–D90, and Host API/availability architecture); W-HOST and W-HOST-API are Done, with guide confirmation pending | W-HOST / W-HOST-API | [archive](branch-states/archive/2026-10-22-W-HOST.md) |
 | 2026-10-22 | Reconciled approved API, edge-case, requirement, and T3 plan text with typed calendar 409 behavior; lint clean and focused review complete | W-HOST-API | C140, D89 |
 | 2026-10-22 | Split calendar block conflicts into booking and existing-host-block API codes and user-safe messages; 202 frontend tests, lint/build, backend Checkstyle/build, integration tests, and read-only review pass | W-HOST / W-HOST-API | `e25744a`, C139 |
