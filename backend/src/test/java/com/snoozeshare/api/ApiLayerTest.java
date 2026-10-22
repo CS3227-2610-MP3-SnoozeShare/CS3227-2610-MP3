@@ -21,12 +21,6 @@ import com.tngtech.archunit.lang.SimpleConditionEvent;
 /** Protects the boundary between web controllers and persistence/domain internals. */
 class ApiLayerTest {
 
-    /**
-     * Host controllers merged from W-HOST that still hand domain entities around (calendar blocks, properties,
-     * wallets). They predate this rule; convert them to mappers, then delete this exemption.
-     */
-    private static final String LEGACY_HOST_ENTITY_CONTROLLERS = ".*[.]Host(Calendar|Listing|Wallet)Controller.*";
-
     @Test
     void controllersFollowTheLayerRules() {
         var controllers = new ClassFileImporter().withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
@@ -61,7 +55,6 @@ class ApiLayerTest {
 
     private static ArchRule noPersistenceDependencies(String packageName) {
         return noClasses().that().resideInAPackage(packageName)
-                .and().haveNameNotMatching(LEGACY_HOST_ENTITY_CONTROLLERS)
                 .should().dependOnClassesThat().resideInAnyPackage(
                         "..repository..", "..domain.model..", "jakarta.persistence..").allowEmptyShould(true);
     }
