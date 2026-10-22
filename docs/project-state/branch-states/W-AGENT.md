@@ -31,6 +31,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
+| S1 | 2026-10-22 | Codex | W-AGENT | Blocked — needs human | T1 history split ready on `rewrite/w-agent-150loc`; Q~2 | After S2 is paused, preserve later commits and working changes while applying the rewritten history | 2026-10-22 |
 | S2 | 2026-10-22 | Claude Sonnet 5.5 | W-AGENT | Active | T7 done; T2 next | T2 step 1 in `backend/src/test/java/com/snoozeshare/api/controller/agent/AgentDisputeConcurrencyTest.java`: write the failing E20 and E10 tests; commits stay under 150 changed lines | 2026-10-22 |
 
 **Remaining**
@@ -39,6 +40,7 @@ No change.
 - [x] Gate 1: spec reviewed in two rounds, approved by Xiao-Congchen 2026-10-22 (Q~1 answered: Asia/Singapore)
 - [x] Gate 2: plan approved by Xiao-Congchen 2026-10-22
 - [x] Execute the plan (`executing-plans-lite`); T1 complete
+- [ ] Apply the prepared history after Q~2: `rewrite/w-agent-150loc` at `b16f8b9` contains 23 T1 replacement commits plus eight preserved T7 commits; its implementation matches `2948454`. `W-AGENT` and S2's uncommitted T2 files are untouched. Preserve any later commits and working changes when applying. Backup refs: `backup/w-agent-t1-before-150loc`, `backup/w-agent-t7-before-150loc`.
 - [ ] **Handover:** the W-AI-GATEWAY branch state is still in `branch-states/` on `development`: its fold (gate 4) is pending and is not this branch's work
 - [ ] **Handover:** audit reasons, notes and messages typed by agents will become LLM input in W-AI-AGENT; treat them as untrusted (prompt injection) in that spec
 
@@ -89,7 +91,11 @@ No change.
 
 ## 7. Needs a Human
 
-No change: Q~1 (audit zone) was answered on 2026-10-22 (C~7); nothing is open.
+Q~1 (audit zone) was answered on 2026-10-22 (C~7).
+
+| ID | Question | Needed before |
+|---|---|---|
+| Q~2 | Pause the active S2 session briefly to apply the prepared history, or retain the rewrite on its separate branch? S2 has concurrent T7 commits and uncommitted T2 edits. | Moving `W-AGENT` to the rewritten history without racing S2's Git operations |
 
 ---
 
@@ -98,8 +104,8 @@ No change: Q~1 (audit zone) was answered on 2026-10-22 (C~7); nothing is open.
 | ID | Date | Decision | Why / who asked | Source |
 |---|---|---|---|---|
 | C~1 | 2026-10-22 | W-AGENT covers all four agent areas (disputes with threads and notes, accounts, audit, categories), API and pages in one workstream, no AI | Operator confirmed the proposed scope | Operator conversation |
-| C~11 | 2026-10-22 | Skip repeated per-commit build and test runs for this history-only split; verify changed-line budgets and final implementation parity | Operator: "skip the per commit checks since we are just splitting them"; the completed T1 backend suite was already green | Operator conversation |
 | C~10 | 2026-10-22 | Keep every commit under 150 changed lines; split the local T1 history and retain the final implementation | Operator found the T1 commits too large to review | Operator conversation |
+| C~11 | 2026-10-22 | Skip repeated per-commit build and test runs for this history-only split; verify changed-line budgets and final implementation parity | Operator: "skip the per commit checks since we are just splitting them"; the completed T1 backend suite was already green | Operator conversation |
 | C~2 | 2026-10-22 | Where the desktop screens and the design artifact differ, the desktop behaviour wins: keep C22 (no force actions), Manual adjustment is one guest refund, audit filters are Search / Action / From / To / Load more, Accounts lists Guests and Hosts only, categories keep Delete, amounts in SGD | Operator answered each difference, 2026-10-22 | Spec SD2 to SD5 |
 | C~4 | 2026-10-22 | Tickets are locked pessimistically in assign, notes, unassign and settlement so an escrow cannot be settled twice. Rejected: `@Version`, SERIALIZABLE, leaving the race | Review (Tester, Attacker, Maintainer) found no lock in the ported services | Spec SD10 |
 | C~6 | 2026-10-22 | Round 2 review: the ticket lock is the first read of resolve; suspend and reactivate lock the target user; audit reads use `AuditQueryService`; the error handler passes on messages only from service and domain code; request size is checked after authentication | Review (Attacker, Implementer, Tester) found stale-read, cascade-race, layering and message-leak gaps | Spec SD10, SD19, SD20, SD21 |
@@ -119,7 +125,7 @@ No change: Q~1 (audit zone) was answered on 2026-10-22 (C~7); nothing is open.
 | D~3 | `UrlPathHelper.getPathWithinApplication` drops the `/api` segment on a request URI beginning `//api/...` | `ProtectedRequestPath` collapses repeated slashes in the raw URI first, then uses UrlPathHelper for decoding and matrix-parameter removal; E62 covers it |
 | D~4 | The E69 missing-actor unit test was added after the resolver types because they did not yet exist; E4 reuses the existing Jackson unknown-property setting | The actor route did run red before filter/resolver changes; E69 now directly verifies fail-closed resolution |
 | D~5 | Spring's standard MVC exception advice did not render JSON for unmatched paths (the `NoHandlerFoundException` was left with an empty 404 in MockMvc) | `ApiNoRouteExceptionResolver` handles only unmatched `/api/agent/**` paths before default resolution; other namespaces keep their prior behavior |
-| D~6 | Original T1 commits exceeded the operator's later commit-size cap | Rewritten as 23 commits, at most 133 changed lines each; original history is retained in backup refs and concurrent T7 commits are preserved |
+| D~6 | Original T1 commits exceeded the operator's later commit-size cap | Rewritten as 23 commits, at most 133 changed lines each; original history is retained in backup refs and concurrent later commits are preserved |
 
 ---
 
@@ -136,7 +142,8 @@ No change: Q~1 (audit zone) was answered on 2026-10-22 (C~7); nothing is open.
 | 2026-10-22 | T1 Slice C guards decoded agent paths, applies no-store and caps request bodies; full backend tests pass | W-AGENT | T1 Slice C |
 | 2026-10-22 | T1 Slice D adds token-derived actor resolution and fail-closed missing-actor handling; backend suite passes | W-AGENT | T1 Slice D |
 | 2026-10-22 | T1 Slice E adds consistent API errors and safe logging; `RowLocks` and ArchUnit boundary rules; full backend Checkstyle and tests pass | W-AGENT | T1 complete |
-| 2026-10-22 | Recorded the operator's commit cap in AGENTS.md; T1 history split finished; per-commit checks waived by the operator; line budgets and implementation parity verified; concurrent T7 commits preserved | W-AGENT | commit organization |
+| 2026-10-22 | Recorded the operator's commit cap in AGENTS.md; T1 history split finished; per-commit checks waived by the operator; line budgets and implementation parity verified; concurrent later commits preserved | W-AGENT | commit organization |
+| 2026-10-22 | Prepared the T1 split on `rewrite/w-agent-150loc`: 23 replacement commits (maximum 133 changed lines), plus eight preserved T7 commits (maximum 148); implementation parity verified; apply waits for Q~2 | W-AGENT | commit organization |
 | 2026-10-22 | `development` merged into the branch (W-AI-GATEWAY folded; no conflict with the spec) | W-AGENT | merge commit |
 | 2026-10-22 | T7 frontend foundation: `apiJson` and `isSessionFailure`, `usePolling`, `SessionNotice`, `AgentDialog`, agent navbar links without the wallet pill, `/agent` redirect, API types and formatting; 101 frontend tests, lint and build pass | W-AGENT | T7 commits |
 | 2026-10-22 | Plan-only fix: the frontend build command needs the CI placeholder Firebase variables | W-AGENT | T7 close |
