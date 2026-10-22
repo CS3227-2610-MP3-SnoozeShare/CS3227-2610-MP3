@@ -18,8 +18,8 @@ const styles: { value: AiWritingStyle; label: string }[] = [
 const audiences: { value: AiTargetAudience; label: string }[] = [
   { value: 'FAMILIES', label: 'Families' }, { value: 'COUPLES', label: 'Couples' }, { value: 'BUSINESS_TRAVELLERS', label: 'Business travellers' }, { value: 'ALL_TRAVELLERS', label: 'All travellers' },
 ];
-const lengths: { value: AiDescriptionLength; label: string; range: string }[] = [
-  { value: 'SHORT', label: 'Short', range: '50–75 words' }, { value: 'MEDIUM', label: 'Medium', range: '75–125 words' }, { value: 'LONG', label: 'Long', range: '125–200 words' },
+const lengths: { value: AiDescriptionLength; label: string }[] = [
+  { value: 'SHORT', label: 'Short' }, { value: 'MEDIUM', label: 'Medium' }, { value: 'LONG', label: 'Long' },
 ];
 
 export function HostAiDescriptionAssistant({ open, listingId, listing, description, onApply, onClose }: Props) {
@@ -76,7 +76,7 @@ export function HostAiDescriptionAssistant({ open, listingId, listing, descripti
               <label className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--text-muted)]">Writing style<select className="h-9 rounded-lg border border-input bg-background px-3 text-sm font-normal" disabled={disabled} value={style} onChange={(event) => setStyle(event.target.value as AiWritingStyle)}>{styles.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
               <label className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--text-muted)]">Target audience<select className="h-9 rounded-lg border border-input bg-background px-3 text-sm font-normal" disabled={disabled} value={audience} onChange={(event) => setAudience(event.target.value as AiTargetAudience)}>{audiences.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
             </div>
-            <fieldset className="space-y-2" disabled={disabled}><legend className="text-xs font-semibold text-[var(--text-muted)]">Description length</legend><div className="flex flex-wrap gap-4">{lengths.map((option) => <label className="flex items-center gap-2 text-sm" key={option.value}><input checked={length === option.value} name="ai-description-length" onChange={() => setLength(option.value)} type="radio" />{option.label} <span className="text-xs text-[var(--text-subtle)]">({option.range})</span></label>)}</div></fieldset>
+            <fieldset className="space-y-2" disabled={disabled}><legend className="text-xs font-semibold text-[var(--text-muted)]">Description length</legend><div className="flex flex-wrap gap-4">{lengths.map((option) => <label className="flex items-center gap-2 text-sm" key={option.value}><input checked={length === option.value} name="ai-description-length" onChange={() => setLength(option.value)} type="radio" />{option.label}</label>)}</div></fieldset>
             <label className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--text-muted)]">Current description<textarea className="min-h-44 rounded-lg border border-input bg-background p-3 text-sm font-normal outline-none focus:border-ring focus:ring-3 focus:ring-ring/20" disabled={disabled} value={draft} onChange={(event) => setDraft(event.target.value)} /></label>
             <div className="flex flex-wrap items-center gap-2"><button className="rounded-lg border border-border px-4 py-2 text-sm font-semibold" disabled={disabled || !draft.trim()} onClick={() => void run('EVALUATE')} type="button">{pending === 'EVALUATE' ? 'Evaluating…' : 'Evaluate'}</button><button className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground" disabled={disabled} onClick={() => void run('GENERATE')} type="button">{pending === 'GENERATE' ? 'Generating…' : 'Generate'}</button>{pending && <span aria-label="AI request loading" className="text-sm text-[var(--text-subtle)]" role="status">Loading…</span>}</div>
           </section>

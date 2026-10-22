@@ -9,7 +9,7 @@ after the branch merges.
 - **Owner:** Xiao-Congchen
 - **Status:** In review
 - **Approved:** Spec and plan approved (Xiao-Congchen, 2026-10-22); Gate 3 review requested
-- **Last updated:** 2026-10-23 by GPT-5 — made Generate word targets explicit in request context and prompt
+- **Last updated:** 2026-10-23 by GPT-5 — removed Host-side word-band rejection and UI range labels per operator direction
 
 ---
 
@@ -33,7 +33,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S2 | 2026-10-23 00:20 | GPT-5 (lead) | W~1 | In review | Corrected live 400/time-field, response-lifecycle, prompt-contract, and Generate band issues; made numeric targets authoritative | Commit explicit target fix, then leave branch ready for Gate 3 review | 2026-10-23 01:26 |
+| S2 | 2026-10-23 00:20 | GPT-5 (lead) | W~1 | In review | Corrected live 400/time-field, response-lifecycle, prompt-contract, and Generate band issues; removed strict Host word-band rejection per operator | Commit word-band relaxation and UI label fix, then leave branch ready for Gate 3 review | 2026-10-23 01:45 |
 
 **Remaining**
 
@@ -47,7 +47,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W~1 | W-AI-HOST: Host AI Listing Optimisation Assistant | In review | [design](../../superpowers/specs/2026-10-22-w-ai-host-design.md) | [plan](../../superpowers/plans/2026-10-22-w-ai-host.md) | T1–T4 plus live 400, response-lifecycle, prompt-contract, Generate band, diagnostics, and explicit numeric targets complete; backend checks pass | — |
+| W~1 | W-AI-HOST: Host AI Listing Optimisation Assistant | In review | [design](../../superpowers/specs/2026-10-22-w-ai-host-design.md) | [plan](../../superpowers/plans/2026-10-22-w-ai-host.md) | T1–T4 plus live 400, response-lifecycle, prompt-contract, diagnostics, and relaxed Generate validation complete; backend/frontend checks pass | — |
 
 ---
 
@@ -100,6 +100,7 @@ plain-text rendering conventions.
 | C~1 | 2026-10-22 | Narrow C142's "style or instructions" for this feature to fixed style, audience, length, listing context, and current description; add no free-text instruction control | The operator's detailed modal requirements specify the complete input surface; a free-text instruction box would change the requested layout and expand the prompt-injection surface | Operator requirements; spec SD7 |
 | C~2 | 2026-10-22 | Superseded by C~3: reject gateway-invalid or clearly over-limit results, while factual grounding and broader PII detection remain advisory/inherited | The operator chose the narrower gateway-compatible scope after review; the earlier stronger rejection rule required new shared-gateway or validation behavior | Operator decision |
 | C~3 | 2026-10-22 | Do not amend W-AI-GATEWAY in this workstream; constrain Host AI to the existing 8,000-character input cap, gateway token/output validation, current error conventions, advisory flagging, and advisory factual analysis | The operator chose the narrower implementation after reviewing the gateway constraints; broader moderation, correlation, and grounding changes are deferred rather than silently added | Operator conversation |
+| C~4 | 2026-10-23 | Do not degrade a successful Host Generate response solely because its generated description falls outside the selected word band; keep length selection in the request and prompt, but remove numeric range labels from the UI | The operator intentionally chose to stop the post-response word-band check because it caused otherwise usable LLM responses to degrade, while retaining Short/Medium/Long host guidance | Operator request |
 
 ---
 
@@ -140,3 +141,4 @@ plain-text rendering conventions.
 | 2026-10-23 | Added safe logs distinguishing gateway degradation from Host-side output validation, correlated by HTTP request ID without logging AI content | W~1 | Post-review diagnostic |
 | 2026-10-23 | Added safe midpoint targets of 60/100/160 words and explicit pre-return counting instructions to reduce Generate band failures; added prompt regression coverage | W~1 | Post-review fix |
 | 2026-10-23 | Added server-derived `targetWordCount` values to the serialized context and made the prompt require the selected numeric target using the application's word-count rule; added contract regression coverage | W~1 | Post-review fix |
+| 2026-10-23 | Removed Host-side generated word-band rejection and the corresponding UI range labels; added regressions for accepting an out-of-band generated response and displaying only Short/Medium/Long | W~1 | Operator-directed change |

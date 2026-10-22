@@ -30,10 +30,9 @@ class ListingDescriptionFeatureConfigTest {
     }
 
     @Test
-    void promptTargetsSafeWordCountsInsideEachRequestedBand() {
+    void promptDefinesTheSelectedDescriptionLengthGuidance() {
         assertThat(feature.systemPrompt())
-            .contains("exactly 60 words", "exactly 100 words", "exactly 160 words")
-            .contains("Count the words before returning")
-            .contains("targetWordCount", "numeric targetWordCount");
+            .contains("SHORT is 50-75 words", "MEDIUM is 75-125 words", "LONG is 125-200 words")
+            .contains("descriptionLength is authoritative", "Count the words before returning");
     }
 }

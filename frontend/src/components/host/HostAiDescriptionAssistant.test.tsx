@@ -21,6 +21,12 @@ describe('HostAiDescriptionAssistant', () => {
     render(<StrictMode><HostAiDescriptionAssistant open listing={listing} description="Existing copy" onApply={onApply} onClose={onClose} /></StrictMode>);
 
     expect(screen.getByLabelText('Current description')).toHaveValue('Existing copy');
+    expect(screen.getByText('Short')).toBeInTheDocument();
+    expect(screen.getByText('Medium')).toBeInTheDocument();
+    expect(screen.getByText('Long')).toBeInTheDocument();
+    expect(screen.queryByText('50–75 words')).not.toBeInTheDocument();
+    expect(screen.queryByText('75–125 words')).not.toBeInTheDocument();
+    expect(screen.queryByText('125–200 words')).not.toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Current description'), { target: { value: '' } });
     expect(screen.getByRole('button', { name: 'Evaluate' })).toBeDisabled();
     fireEvent.click(screen.getByRole('button', { name: 'Generate' }));

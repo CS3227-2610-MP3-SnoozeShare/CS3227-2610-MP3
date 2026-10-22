@@ -104,7 +104,6 @@ public class HostListingDescriptionService {
             if (model.generatedDescription() == null || model.generatedDescription().isBlank()) {
                 throw new IllegalArgumentException("generate response has no description");
             }
-            ListingDescriptionContract.requireWordBand(model.generatedDescription(), request.length());
             requireAnalysis(model.generatedAnalysis());
         }
     }

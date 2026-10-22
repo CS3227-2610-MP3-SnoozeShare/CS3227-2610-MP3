@@ -23,9 +23,6 @@ class ListingDescriptionContractTest {
         assertThat(ListingDescriptionContract.DescriptionLength.SHORT.range()).isEqualTo("50-75");
         assertThat(ListingDescriptionContract.DescriptionLength.MEDIUM.range()).isEqualTo("75-125");
         assertThat(ListingDescriptionContract.DescriptionLength.LONG.range()).isEqualTo("125-200");
-        assertThat(ListingDescriptionContract.DescriptionLength.SHORT.targetWordCount()).isEqualTo(60);
-        assertThat(ListingDescriptionContract.DescriptionLength.MEDIUM.targetWordCount()).isEqualTo(100);
-        assertThat(ListingDescriptionContract.DescriptionLength.LONG.targetWordCount()).isEqualTo(160);
     }
 
     @Test
@@ -42,28 +39,10 @@ class ListingDescriptionContractTest {
     }
 
     @Test
-    void validatesFeedbackAndSelectedWordBand() {
+    void validatesFeedback() {
         ListingDescriptionContract.requireFeedback("Clear and specific.");
         assertThatThrownBy(() -> ListingDescriptionContract.requireFeedback("x".repeat(241)))
             .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> ListingDescriptionContract.requireWordBand(
-            "one two", ListingDescriptionContract.DescriptionLength.SHORT))
-            .isInstanceOf(IllegalArgumentException.class);
-    }
-
-    @Test
-    void acceptsTheRequestedInclusiveGenerateBoundaries() {
-        String seventyFiveWords = "word ".repeat(75).trim();
-        String oneHundredTwentyFiveWords = "word ".repeat(125).trim();
-
-        ListingDescriptionContract.requireWordBand(
-            seventyFiveWords, ListingDescriptionContract.DescriptionLength.SHORT);
-        ListingDescriptionContract.requireWordBand(
-            seventyFiveWords, ListingDescriptionContract.DescriptionLength.MEDIUM);
-        ListingDescriptionContract.requireWordBand(
-            oneHundredTwentyFiveWords, ListingDescriptionContract.DescriptionLength.MEDIUM);
-        ListingDescriptionContract.requireWordBand(
-            oneHundredTwentyFiveWords, ListingDescriptionContract.DescriptionLength.LONG);
     }
 
     @Test
@@ -73,7 +52,8 @@ class ListingDescriptionContractTest {
             new ListingDescriptionContract.ListingFacts("Cabin", "HOUSE", "Reno", "NV", 2, 1, 1,
                 List.of("WIFI", "WIFI"), "15:00", "11:00"));
 
-        assertThat(context).contains("Cabin", "Reno", "WIFI", "\"targetWordCount\":100");
+        assertThat(context).contains("Cabin", "Reno", "WIFI");
+        assertThat(context).doesNotContain("targetWordCount");
         assertThat(context).doesNotContain("streetAddress", "postalCode");
     }
 }

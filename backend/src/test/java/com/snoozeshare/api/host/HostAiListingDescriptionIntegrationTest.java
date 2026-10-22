@@ -86,7 +86,7 @@ class HostAiListingDescriptionIntegrationTest {
     void generatesWithAnEmptyCurrentDescription() {
         HostAiListingDescriptionRequest request = request(
             ListingDescriptionContract.Mode.GENERATE, "");
-        String description = "A ".repeat(75).trim();
+        String description = "A concise generated description.";
         ListingDescriptionModelResponse model = new ListingDescriptionModelResponse(
             ListingDescriptionContract.Outcome.SUCCESS, ListingDescriptionContract.Mode.GENERATE,
             null, description, analysis());
@@ -96,6 +96,7 @@ class HostAiListingDescriptionIntegrationTest {
 
         assertThat(response.generatedDescription()).isEqualTo(description);
         assertThat(response.generatedAnalysis()).isNotNull();
+        assertThat(response.outcome()).isEqualTo(ListingDescriptionContract.Outcome.SUCCESS);
     }
 
     @Test

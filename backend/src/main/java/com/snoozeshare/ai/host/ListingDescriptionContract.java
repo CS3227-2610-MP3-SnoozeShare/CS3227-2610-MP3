@@ -45,18 +45,16 @@ public final class ListingDescriptionContract {
     }
 
     public enum DescriptionLength {
-        SHORT(50, 75, 60),
-        MEDIUM(75, 125, 100),
-        LONG(125, 200, 160);
+        SHORT(50, 75),
+        MEDIUM(75, 125),
+        LONG(125, 200);
 
         private final int minimum;
         private final int maximum;
-        private final int targetWordCount;
 
-        DescriptionLength(int minimum, int maximum, int targetWordCount) {
+        DescriptionLength(int minimum, int maximum) {
             this.minimum = minimum;
             this.maximum = maximum;
-            this.targetWordCount = targetWordCount;
         }
 
         public int minimum() {
@@ -65,10 +63,6 @@ public final class ListingDescriptionContract {
 
         public int maximum() {
             return maximum;
-        }
-
-        public int targetWordCount() {
-            return targetWordCount;
         }
 
         public String range() {
@@ -118,13 +112,6 @@ public final class ListingDescriptionContract {
         }
     }
 
-    public static void requireWordBand(String description, DescriptionLength length) {
-        Objects.requireNonNull(length, "description length must not be null");
-        if (!length.contains(wordCount(description))) {
-            throw new IllegalArgumentException("generated description is outside the selected word band");
-        }
-    }
-
     public static String serializeContext(String mode, String style, String audience, String length,
                                           String currentDescription, ListingFacts facts) {
         Objects.requireNonNull(facts, "listing facts must not be null");
@@ -133,7 +120,6 @@ public final class ListingDescriptionContract {
         root.put("writingStyle", style);
         root.put("targetAudience", audience);
         root.put("descriptionLength", length);
-        root.put("targetWordCount", DescriptionLength.valueOf(length).targetWordCount());
         root.put("currentDescription", currentDescription == null ? "" : currentDescription);
         root.put("listing", facts);
         try {
