@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { StrictMode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { HostAiDescriptionAssistant } from './HostAiDescriptionAssistant';
@@ -29,9 +29,11 @@ describe('HostAiDescriptionAssistant', () => {
     expect(screen.queryByText('125–200 words')).not.toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Current description'), { target: { value: '' } });
     expect(screen.getByRole('button', { name: 'Evaluate' })).toBeDisabled();
-    fireEvent.click(screen.getByRole('button', { name: 'Generate' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Generate/ }));
 
     await waitFor(() => expect(screen.getByLabelText('Generated description')).toHaveValue(response.generatedDescription));
+    expect(screen.queryByText('PASS: Clear.')).not.toBeInTheDocument();
+    expect(screen.getAllByText('Clear.')).toHaveLength(2);
     expect(postHostAiListingDescription).toHaveBeenCalledWith(expect.objectContaining({
       listing: expect.objectContaining({ checkInTime: '15:00', checkOutTime: '11:00' }),
     }));
@@ -59,12 +61,12 @@ describe('HostAiDescriptionAssistant', () => {
     postHostAiListingDescription.mockResolvedValue(response);
     render(<HostAiDescriptionAssistant open listing={listing} description="Existing copy" onApply={vi.fn()} onClose={vi.fn()} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Generate' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Generate/ }));
     await waitFor(() => expect(screen.getByLabelText('Generated description')).toHaveValue(response.generatedDescription));
 
     const currentDescription = screen.getByLabelText('Current description');
     const currentAnalysis = screen.getByRole('heading', { name: 'Current analysis' });
-    const generateButton = screen.getByRole('button', { name: 'Generate' });
+    const generateButton = screen.getByRole('button', { name: /^Generate/ });
     expect(currentDescription.compareDocumentPosition(currentAnalysis) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(currentAnalysis.compareDocumentPosition(generateButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(screen.getAllByTestId('analysis-pass-icon')).toHaveLength(4);
@@ -80,7 +82,7 @@ describe('HostAiDescriptionAssistant', () => {
     postHostAiListingDescription.mockResolvedValue(response);
     render(<HostAiDescriptionAssistant open listing={listing} description="Existing copy" onApply={vi.fn()} onClose={vi.fn()} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Generate' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Generate/ }));
     await waitFor(() => expect(screen.getByLabelText('Generated description')).toHaveValue(response.generatedDescription));
 
     const currentDescription = screen.getByLabelText('Current description');
@@ -91,27 +93,50 @@ describe('HostAiDescriptionAssistant', () => {
     expect(currentAnalysis.compareDocumentPosition(generatedAnalysis) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
+  it('preserves generated state across reopen, refreshes current state, and clears on apply', async () => {
+    postHostAiListingDescription.mockResolvedValue(response);
+    const onApply = vi.fn();
+    const onClose = vi.fn();
+    const props = { listing, onApply, onClose };
+    const { rerender } = render(<HostAiDescriptionAssistant {...props} open description="Existing copy" />);
+
+    fireEvent.click(screen.getByRole('button', { name: /^Generate/ }));
+    await waitFor(() => expect(screen.getByLabelText('Generated description')).toHaveValue(response.generatedDescription));
+
+    rerender(<HostAiDescriptionAssistant {...props} open={false} description="Existing copy" />);
+    rerender(<HostAiDescriptionAssistant {...props} open description="Refreshed copy" />);
+    expect(screen.getByLabelText('Current description')).toHaveValue('Refreshed copy');
+    expect(screen.getByLabelText('Generated description')).toHaveValue(response.generatedDescription);
+    expect(within(screen.getByRole('region', { name: 'AI input' })).getAllByText('—')).toHaveLength(3);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Apply generated description' }));
+    expect(onApply).toHaveBeenCalledWith(response.generatedDescription);
+    rerender(<HostAiDescriptionAssistant {...props} open={false} description={response.generatedDescription} />);
+    rerender(<HostAiDescriptionAssistant {...props} open description={response.generatedDescription} />);
+    expect(screen.getByLabelText('Generated description')).toHaveValue('');
+  });
+
   it('disables every action while waiting for the response', async () => {
     let resolve: (value: typeof response) => void = () => undefined;
     postHostAiListingDescription.mockReturnValue(new Promise<typeof response>((nextResolve) => { resolve = nextResolve; }));
     render(<StrictMode><HostAiDescriptionAssistant open listing={listing} description="Existing copy" onApply={vi.fn()} onClose={vi.fn()} /></StrictMode>);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Generate' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Generate/ }));
     expect(screen.getByRole('button', { name: 'Generating…' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Close AI Description Assistant' })).toBeDisabled();
     expect(screen.getByRole('status')).toHaveTextContent('Loading');
     resolve(response);
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Generate' })).not.toBeDisabled());
+    await waitFor(() => expect(screen.getByRole('button', { name: /^Generate/ })).not.toBeDisabled());
   });
 
   it('shows a degraded response and unlocks the assistant', async () => {
     postHostAiListingDescription.mockResolvedValue(degradedResponse);
     render(<StrictMode><HostAiDescriptionAssistant open listing={listing} description="Existing copy" onApply={vi.fn()} onClose={vi.fn()} /></StrictMode>);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Generate' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Generate/ }));
 
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('AI assistance is temporarily unavailable'));
-    expect(screen.getByRole('button', { name: 'Generate' })).not.toBeDisabled();
+    expect(screen.getByRole('button', { name: /^Generate/ })).not.toBeDisabled();
     expect(screen.getByRole('button', { name: 'Close AI Description Assistant' })).not.toBeDisabled();
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
@@ -120,10 +145,10 @@ describe('HostAiDescriptionAssistant', () => {
     postHostAiListingDescription.mockRejectedValue(new Error('request failed'));
     render(<StrictMode><HostAiDescriptionAssistant open listing={listing} description="Existing copy" onApply={vi.fn()} onClose={vi.fn()} /></StrictMode>);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Generate' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Generate/ }));
 
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Unable to complete the AI request'));
-    expect(screen.getByRole('button', { name: 'Generate' })).not.toBeDisabled();
+    expect(screen.getByRole('button', { name: /^Generate/ })).not.toBeDisabled();
     expect(screen.getByRole('button', { name: 'Close AI Description Assistant' })).not.toBeDisabled();
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });

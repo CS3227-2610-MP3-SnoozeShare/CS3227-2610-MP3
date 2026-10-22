@@ -9,7 +9,7 @@ after the branch merges.
 - **Owner:** Xiao-Congchen
 - **Status:** In review
 - **Approved:** Spec and plan approved (Xiao-Congchen, 2026-10-22); Gate 3 review requested
-- **Last updated:** 2026-10-23 by GPT-5 — removed Host diagnosis logging and completed Long-option cleanup
+- **Last updated:** 2026-10-23 by GPT-5 — preserved assistant results across reopen and simplified analysis feedback
 
 ---
 
@@ -33,7 +33,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S2 | 2026-10-23 00:20 | GPT-5 (lead) | W~1 | In review | Corrected live AI issues; refined modal behavior and removed Host diagnosis logging; completed Long cleanup | Commit logging cleanup, then leave branch ready for Gate 3 review | 2026-10-23 02:16 |
+| S2 | 2026-10-23 00:20 | GPT-5 (lead) | W~1 | In review | Preserved Host AI modal state and removed PASS/IMPROVE feedback prefixes; frontend checks pass | Commit modal-state cleanup, then leave branch ready for Gate 3 review | 2026-10-23 02:28 |
 
 **Remaining**
 
@@ -47,7 +47,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W~1 | W-AI-HOST: Host AI Listing Optimisation Assistant | In review | [design](../../superpowers/specs/2026-10-22-w-ai-host-design.md) | [plan](../../superpowers/plans/2026-10-22-w-ai-host.md) | T1–T4 plus live fixes, relaxed Generate validation, modal refinement, and logging cleanup complete; checks pass | — |
+| W~1 | W-AI-HOST: Host AI Listing Optimisation Assistant | In review | [design](../../superpowers/specs/2026-10-22-w-ai-host-design.md) | [plan](../../superpowers/plans/2026-10-22-w-ai-host.md) | T1–T4 plus live fixes, modal refinement, logging cleanup, and state persistence complete; checks pass | — |
 
 ---
 
@@ -145,3 +145,4 @@ plain-text rendering conventions.
 | 2026-10-23 | Refined the assistant modal with Escape/backdrop/X closing, full viewport backdrop, listing-form dropdowns, reordered analysis/actions, error placement, and PASS/IMPROVE icons; added UI regressions | W~1 | Operator-directed change |
 | 2026-10-23 | Removed Long length, aligned the three controls in one row, and aligned current/generated descriptions and analyses into matching rows; added layout regressions | W~1 | Operator-directed change |
 | 2026-10-23 | Removed Host-specific gateway/validation diagnosis warnings and completed Long removal from the backend contract/prompt; added a no-diagnosis-log regression | W~1 | Operator-directed change |
+| 2026-10-23 | Removed PASS/IMPROVE prefixes from analysis feedback, preserved generated results across modal reopen, reset current analysis when the description refreshes, and reset results only after Apply; added regressions | W~1 | Operator-directed change |

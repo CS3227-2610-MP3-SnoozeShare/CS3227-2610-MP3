@@ -42,9 +42,7 @@ export function HostAiDescriptionAssistant({ open, listingId, listing, descripti
   useEffect(() => {
     if (!open) return;
     setDraft(description);
-    setResponse(null);
-    setError('');
-    setPending(null);
+    setResponse((current) => current ? { ...current, currentAnalysis: null } : null);
   }, [open, description]);
 
   useEffect(() => {
@@ -76,6 +74,15 @@ export function HostAiDescriptionAssistant({ open, listingId, listing, descripti
       if (mounted.current) setPending(null);
     }
   };
+  const applyGeneratedDescription = () => {
+    if (!response?.generatedDescription) return;
+    const generatedDescription = response.generatedDescription;
+    setDraft(generatedDescription);
+    setResponse(null);
+    setError('');
+    onApply(generatedDescription);
+    onClose();
+  };
   const disabled = pending !== null;
   return (
     <div className="fixed inset-0 z-50 flex min-h-dvh w-screen items-center justify-center bg-black/30 p-4" onClick={(event) => { if (!disabled && event.target === event.currentTarget) onClose(); }} role="presentation">
@@ -102,7 +109,7 @@ export function HostAiDescriptionAssistant({ open, listingId, listing, descripti
             </section>
             <section aria-label="AI output" className="space-y-4">
             <AnalysisPanel heading="Generated analysis" analysis={response?.generatedAnalysis ?? null} />
-            <button className="rounded-lg bg-[var(--success)] px-4 py-2 text-sm font-semibold text-white" disabled={disabled || !response?.generatedDescription} onClick={() => { if (response?.generatedDescription) { onApply(response.generatedDescription); onClose(); } }} type="button">Apply generated description</button>
+            <button className="rounded-lg bg-[var(--success)] px-4 py-2 text-sm font-semibold text-white" disabled={disabled || !response?.generatedDescription} onClick={applyGeneratedDescription} type="button">Apply generated description</button>
             </section>
           </div>
         </div>
@@ -113,5 +120,5 @@ export function HostAiDescriptionAssistant({ open, listingId, listing, descripti
 
 function AnalysisPanel({ heading, analysis }: { heading: string; analysis: AiAnalysis | null }) {
   const rows: [string, keyof AiAnalysis][] = [['Clarity', 'clarity'], ['Completeness', 'completeness'], ['Accuracy', 'accuracy']];
-  return <div><h3 className="text-sm font-semibold">{heading}</h3><div className="mt-2 divide-y rounded-lg border border-border">{rows.map(([label, key]) => { const criterion = analysis?.[key]; const passes = criterion?.status === 'PASS'; return <div className="grid gap-2 p-3 text-sm sm:grid-cols-[7rem_1fr]" key={key}><span className="font-medium">{label}</span><span className="flex items-start gap-2"><span aria-hidden="true" className="mt-0.5 shrink-0">{criterion && (passes ? <Check className="size-4 text-emerald-600" data-testid="analysis-pass-icon" /> : <CircleAlert className="size-4 text-orange-500" data-testid="analysis-improve-icon" />)}</span><span className={criterion?.status === 'IMPROVE' ? 'text-orange-700' : 'text-[var(--text-subtle)]'}>{criterion ? `${criterion.status}: ${criterion.feedback}` : '—'}</span></span></div>; })}</div></div>;
+  return <div><h3 className="text-sm font-semibold">{heading}</h3><div className="mt-2 divide-y rounded-lg border border-border">{rows.map(([label, key]) => { const criterion = analysis?.[key]; const passes = criterion?.status === 'PASS'; return <div className="grid gap-2 p-3 text-sm sm:grid-cols-[7rem_1fr]" key={key}><span className="font-medium">{label}</span><span className="flex items-start gap-2"><span aria-hidden="true" className="mt-0.5 shrink-0">{criterion && (passes ? <Check className="size-4 text-emerald-600" data-testid="analysis-pass-icon" /> : <CircleAlert className="size-4 text-orange-500" data-testid="analysis-improve-icon" />)}</span><span className={criterion?.status === 'IMPROVE' ? 'text-orange-700' : 'text-[var(--text-subtle)]'}>{criterion?.feedback ?? '—'}</span></span></div>; })}</div></div>;
 }

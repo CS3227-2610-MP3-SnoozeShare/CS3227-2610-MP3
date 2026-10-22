@@ -78,7 +78,7 @@ describe('HostListingForm with the API provider', () => {
     render(<HostListingForm />);
     fireEvent.change(screen.getByLabelText('Description'), { target: { value: 'Original draft' } });
     fireEvent.click(screen.getByRole('button', { name: 'Open AI assistant' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Generate' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Generate/ }));
 
     await waitFor(() => expect(screen.getByLabelText('Generated description')).toHaveValue('A generated draft description.'));
     fireEvent.click(screen.getByRole('button', { name: 'Apply generated description' }));
