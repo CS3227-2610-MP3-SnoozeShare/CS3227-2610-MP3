@@ -1,6 +1,7 @@
 package com.snoozeshare.api;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.UUID;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
@@ -20,7 +22,8 @@ class ApiLayerTest {
 
     @Test
     void controllersFollowTheLayerRules() {
-        var controllers = new ClassFileImporter().importPackages("com.snoozeshare.api.controller..");
+        var controllers = new ClassFileImporter().withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+                .importPackages("com.snoozeshare.api.controller..");
         noPersistenceDependencies("..api.controller..").check(controllers);
         noMoneyAndAuditDependencies("..api.controller..").check(controllers);
         uuidParametersAreExplicit("..api.controller..").check(controllers);
@@ -43,24 +46,22 @@ class ApiLayerTest {
     }
 
     private static void assertFixtureViolation(ArchRule rule, String fixtureName) {
-        JavaClass fixture = new ClassFileImporter().importPackages("com.snoozeshare.api.layerfixtures")
-                .stream().filter(type -> type.getSimpleName().equals(fixtureName))
-                .findFirst().orElseThrow();
-        assertThat(rule.evaluate(new ClassFileImporter().importPackages("com.snoozeshare"))
-                .getFailureReport().getDetails()).isNotEmpty();
+        var fixtures = new ClassFileImporter().importPackages("com.snoozeshare.api.layerfixtures");
+        var result = rule.evaluate(fixtures);
+        assertThat(result.hasViolation()).as("rule must reject " + fixtureName).isTrue();
+        assertThat(result.getFailureReport().getDetails().toString()).contains(fixtureName);
     }
 
     private static ArchRule noPersistenceDependencies(String packageName) {
-        return classes().that().resideInAPackage(packageName)
+        return noClasses().that().resideInAPackage(packageName)
                 .should().dependOnClassesThat().resideInAnyPackage(
                         "..repository..", "..domain.model..", "jakarta.persistence..").allowEmptyShould(true);
     }
 
     private static ArchRule noMoneyAndAuditDependencies(String packageName) {
-        return classes().that().resideInAPackage(packageName)
-                .should().dependOnClassesThat().haveFullyQualifiedName("com.snoozeshare.service.impl.LedgerWriter")
-                .orShould().dependOnClassesThat().haveFullyQualifiedName("com.snoozeshare.service.WalletService")
-                .orShould().dependOnClassesThat().haveFullyQualifiedName("com.snoozeshare.service.AuditService")
+        return noClasses().that().resideInAPackage(packageName)
+                .should().dependOnClassesThat().haveNameMatching(
+                        "com[.]snoozeshare[.]service([.]impl)?[.](LedgerWriter|WalletService|AuditService)")
                 .allowEmptyShould(true);
     }
 
