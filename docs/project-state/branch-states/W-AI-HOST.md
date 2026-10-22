@@ -9,7 +9,7 @@ after the branch merges.
 - **Owner:** Xiao-Congchen
 - **Status:** In review
 - **Approved:** Spec and plan approved (Xiao-Congchen, 2026-10-22); Gate 3 review requested
-- **Last updated:** 2026-10-23 by GPT-5 — fixed Host AI response lifecycle handling
+- **Last updated:** 2026-10-23 by GPT-5 — fixed Host AI prompt contract
 
 ---
 
@@ -33,7 +33,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S2 | 2026-10-23 00:20 | GPT-5 (lead) | W~1 | In review | Corrected live 400 time-field contract; fixed Strict Mode response lifecycle and added degraded/error regressions | Leave branch ready for Gate 3 review | 2026-10-23 00:45 |
+| S2 | 2026-10-23 00:20 | GPT-5 (lead) | W~1 | In review | Corrected live 400/time-field and response-lifecycle issues; fixed missing Host AI prompt contract | Commit prompt fix, then leave branch ready for Gate 3 review | 2026-10-23 00:56 |
 
 **Remaining**
 
@@ -47,7 +47,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W~1 | W-AI-HOST: Host AI Listing Optimisation Assistant | In review | [design](../../superpowers/specs/2026-10-22-w-ai-host-design.md) | [plan](../../superpowers/plans/2026-10-22-w-ai-host.md) | T1–T4 plus live 400 and response-lifecycle fixes complete; full frontend tests/lint pass | — |
+| W~1 | W-AI-HOST: Host AI Listing Optimisation Assistant | In review | [design](../../superpowers/specs/2026-10-22-w-ai-host-design.md) | [plan](../../superpowers/plans/2026-10-22-w-ai-host.md) | T1–T4 plus live 400, response-lifecycle, and prompt-contract fixes complete; backend checks pass | — |
 
 ---
 
@@ -135,3 +135,4 @@ plain-text rendering conventions.
 | 2026-10-23 | T5 verification: backend build, frontend tests (219), lint, diff inspection, and implementation review passed; frontend production prerender and browser checks remain recorded deviations | W~1 | T5 |
 | 2026-10-23 | Fixed live AI request 400 by aligning frontend `checkInTime`/`checkOutTime` fields with backend `ListingFacts`, with a regression payload assertion | W~1 | Post-review fix |
 | 2026-10-23 | Fixed React Strict Mode mounted-ref handling so degraded and error responses display safely and all controls unlock after completion; added regression coverage | W~1 | Post-review fix |
+| 2026-10-23 | Added the missing server-side Host AI mode instructions and exact JSON response contract; added prompt regression coverage | W~1 | Post-review fix |
