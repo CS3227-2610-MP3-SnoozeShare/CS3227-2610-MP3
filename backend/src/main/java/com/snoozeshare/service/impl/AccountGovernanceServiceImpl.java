@@ -75,14 +75,6 @@ public class AccountGovernanceServiceImpl implements AccountGovernanceService {
     }
 
     @Override
-    public List<AccountSummary> listAccounts() {
-        return users.findAllByOrderByCreatedAtAscIdAsc().stream()
-                .filter(user -> user.getRole() != Role.SYSTEM)
-                .map(AccountSummary::from)
-                .toList();
-    }
-
-    @Override
     public List<AccountSummary> listGovernableAccounts() {
         return users.findByRoleInOrderByCreatedAtAscIdAsc(List.of(Role.GUEST, Role.HOST)).stream()
                 .map(AccountSummary::from)
