@@ -33,7 +33,7 @@
 | T9 Wire messages and wallet screens | T5,T6,T7,T8 | - | 5 | Done |
 | T10 Verify integration and close the phase | T9 | - | 6 | Done |
 | T11 Return complete listing and booking-request collections | T2,T4 | T13 | 7 | Done |
-| T12 Return complete booking and ticket conversation collections | T5,T11 | T13 | 8 | Not started |
+| T12 Return complete booking and ticket conversation collections | T5,T11 | T13 | 8 | Done |
 | T13 Return the complete wallet statement | T6 | T11,T12 | 7 | Not started |
 | T14 Replace paged frontend API and provider types | T11,T12,T13 | - | 9 | Not started |
 | T15 Remove listing and request pagination UI | T14 | T16 | 10 | Not started |
@@ -401,11 +401,11 @@
 
 **Checklist**
 
-- [ ] 1. Add failing integration tests for all four 101-row response types, a 1,001-message history, legacy page/size values, and cross-tenant/private-thread exclusion.
-- [ ] 2. Remove paging from both controllers, service interfaces/implementations, and repository reads; preserve `sentAt DESC, id DESC`, channel scope, and existing transactional writes.
-- [ ] 3. Run `./gradlew test --tests 'com.snoozeshare.api.host.HostBookingMessagesIntegrationTest' --tests 'com.snoozeshare.api.host.HostTicketMessagesIntegrationTest'`; assert no truncation and no event/read/write regressions.
-- [ ] 4. Run `./gradlew checkstyleMain checkstyleTest` and `./gradlew build` from `backend/`.
-- [ ] 5. Update branch-state Progress and Changes; commit `feat: return complete Host conversation collections`.
+- [x] 1. Add failing integration tests for all four 101-row response types, a 1,001-message history, legacy page/size values, and cross-tenant/private-thread exclusion; they failed against the prior paged API and passed after implementation.
+- [x] 2. Remove paging from both controllers, service interfaces/implementations, and repository reads; preserve `sentAt DESC, id DESC`, channel scope, and existing transactional writes.
+- [x] 3. Run `./gradlew test --tests 'com.snoozeshare.api.host.HostBookingMessagesIntegrationTest' --tests 'com.snoozeshare.api.host.HostTicketMessagesIntegrationTest'`; complete histories, privacy, and existing event/read/write tests pass.
+- [x] 4. Run `./gradlew checkstyleMain checkstyleTest` and `./gradlew build` from `backend/`; both pass.
+- [x] 5. Update branch-state Progress and Changes; commit `feat: return complete Host conversation collections`.
 
 ### T13: Return the complete wallet statement
 

@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,15 +16,12 @@ public interface BookingMessageRepository
 
     @Query("SELECT m FROM BookingMessage m "
             + "WHERE m.bookingId = :bookingId "
-            + "ORDER BY m.sentAt ASC")
+            + "ORDER BY m.sentAt DESC, m.id DESC")
     List<BookingMessage> findThread(@Param("bookingId") UUID bookingId);
 
     @Query("SELECT m FROM BookingMessage m "
             + "WHERE m.bookingId = :bookingId "
-            + "ORDER BY m.sentAt DESC LIMIT 1")
+            + "ORDER BY m.sentAt DESC, m.id DESC LIMIT 1")
     Optional<BookingMessage> findLast(@Param("bookingId") UUID bookingId);
 
-    @Query("SELECT m FROM BookingMessage m WHERE m.bookingId = :bookingId "
-            + "ORDER BY m.sentAt DESC, m.id DESC")
-    List<BookingMessage> findThreadPage(@Param("bookingId") UUID bookingId, Pageable pageable);
 }

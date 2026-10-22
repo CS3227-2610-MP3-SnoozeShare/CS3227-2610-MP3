@@ -26,7 +26,6 @@ import com.snoozeshare.infra.events.BookingMessagePostedEvent;
 import com.snoozeshare.repository.BookingMessageRepository;
 import com.snoozeshare.repository.BookingRepository;
 import com.snoozeshare.repository.JdbcBookingMessageReadRepository;
-import com.snoozeshare.repository.OffsetLimitPageable;
 import com.snoozeshare.repository.PropertyRepository;
 import com.snoozeshare.repository.UserRepository;
 import com.snoozeshare.service.BookingConversationService;
@@ -70,14 +69,6 @@ public class BookingConversationServiceImpl implements BookingConversationServic
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<BookingMessage> thread(UUID bookingId, UUID viewerId, Role viewerRole,
-                                       int page, int size) {
-        requireParty(booking(bookingId), viewerId, viewerRole);
-        return messages.findThreadPage(bookingId, new OffsetLimitPageable(page, size));
-    }
-
-    @Override
     @Transactional
     public BookingMessage post(UUID bookingId, UUID authorId, Role authorRole, String body) {
         DomainValidation.requireText(body, "body");
@@ -95,25 +86,19 @@ public class BookingConversationServiceImpl implements BookingConversationServic
 
     @Override
     @Transactional(readOnly = true)
-    public List<BookingConversationSummary> conversationsFor(UUID userId, Role role,
-                                                               int page, int size) {
-        if (role != Role.HOST) {
-            throw new IllegalArgumentException("Host inbox requires a Host role");
-        }
-        LocalDate openCutoff = LocalDate.now(clock).minusDays(CHAT_DAYS_AFTER_CHECKOUT);
-        return bookings.findConversationBookingsByHost(userId, openCutoff,
-                new OffsetLimitPageable(page, size)).stream()
-                .map(booking -> summarize(booking, userId).summary())
-                .toList();
-    }
-
-    @Override
     public List<BookingConversationSummary> conversationsFor(UUID userId, Role role) {
+        if (role == Role.HOST) {
+            LocalDate openCutoff = LocalDate.now(clock).minusDays(CHAT_DAYS_AFTER_CHECKOUT);
+            return bookings.findConversationBookingsByHost(userId, openCutoff).stream()
+                    .map(booking -> summarize(booking, userId).summary())
+                    .toList();
+        }
         return partyBookings(userId, role).stream()
                 .map(booking -> summarize(booking, userId))
                 .filter(ranked -> ranked.summary().open()
                         || ranked.summary().lastMessage() != null)
-                .sorted(Comparator.comparing(Ranked::lastActivity).reversed())
+                .sorted(Comparator.comparing(Ranked::lastActivity).reversed()
+                        .thenComparing(ranked -> ranked.summary().bookingId()))
                 .map(Ranked::summary)
                 .toList();
     }

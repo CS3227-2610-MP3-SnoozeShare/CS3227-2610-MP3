@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -69,8 +68,7 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
             + "ORDER BY COALESCE((SELECT MAX(m.sentAt) FROM BookingMessage m "
             + "WHERE m.bookingId = b.id), b.createdAt) DESC, b.id ASC")
     List<Booking> findConversationBookingsByHost(@Param("hostId") UUID hostId,
-                                                  @Param("openCutoff") LocalDate openCutoff,
-                                                  Pageable pageable);
+                                                  @Param("openCutoff") LocalDate openCutoff);
 
     @Query("SELECT b FROM Booking b WHERE b.status = "
             + "com.snoozeshare.domain.enums.BookingStatus.CONFIRMED "

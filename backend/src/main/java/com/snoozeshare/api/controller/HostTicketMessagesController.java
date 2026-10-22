@@ -20,7 +20,6 @@ import com.snoozeshare.api.error.HostApiException;
 import com.snoozeshare.api.request.PostMessageRequest;
 import com.snoozeshare.api.response.ConversationSummaryResponse;
 import com.snoozeshare.api.response.MessageResponse;
-import com.snoozeshare.api.response.PageResponse;
 import com.snoozeshare.auth.security.FirebaseTokenVerifier.FirebaseAuthentication;
 import com.snoozeshare.auth.service.HostIdentityResolver;
 import com.snoozeshare.domain.enums.Role;
@@ -28,8 +27,6 @@ import com.snoozeshare.domain.enums.ThreadChannel;
 import com.snoozeshare.service.MessageService;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 
 /** Host-channel access to agent-managed ticket conversations; Hosts cannot create tickets. */
 @RestController
@@ -48,33 +45,29 @@ public class HostTicketMessagesController {
     }
 
     @GetMapping
-    public PageResponse<ConversationSummaryResponse> list(
-            @AuthenticationPrincipal FirebaseAuthentication identity,
-            @RequestParam(defaultValue = "0") @Min(0) int page,
-            @RequestParam(defaultValue = "50") @Min(1) @Max(100) int size) {
+    public List<ConversationSummaryResponse> list(
+            @AuthenticationPrincipal FirebaseAuthentication identity) {
         UUID hostId = identityResolver.resolve(identity);
         try {
             List<ConversationSummaryResponse> items = messages.conversationsFor(
-                    hostId, Role.HOST, page, size).stream()
+                    hostId, Role.HOST).stream()
                     .map(ConversationSummaryResponse::from).toList();
-            return PageResponse.from(items, page, size);
+            return items;
         } catch (IllegalArgumentException exception) {
             throw notFound();
         }
     }
 
     @GetMapping("/{ticketId}")
-    public PageResponse<MessageResponse> thread(
+    public List<MessageResponse> thread(
             @AuthenticationPrincipal FirebaseAuthentication identity,
             @PathVariable UUID ticketId,
-            @RequestParam ThreadChannel channel,
-            @RequestParam(defaultValue = "0") @Min(0) int page,
-            @RequestParam(defaultValue = "50") @Min(1) @Max(100) int size) {
+            @RequestParam ThreadChannel channel) {
         UUID hostId = identityResolver.resolve(identity);
         requireHostChannel(channel);
         try {
-            return PageResponse.from(messages.thread(ticketId, channel, hostId, Role.HOST,
-                    page, size).stream().map(MessageResponse::from).toList(), page, size);
+            return messages.thread(ticketId, channel, hostId, Role.HOST).stream()
+                    .map(MessageResponse::from).toList();
         } catch (IllegalArgumentException exception) {
             throw notFound();
         }

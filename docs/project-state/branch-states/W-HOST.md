@@ -9,7 +9,7 @@ in after the branch merges.
 - **Owner:** project owner
 - **Status:** Draft
 - **Approved:** —
-- **Last updated:** 2026-10-22 by GPT-5 — approved plan amendment and started T11 (C~19)
+- **Last updated:** 2026-10-22 by GPT-5 — completed T12; moving to T13
 
 ---
 
@@ -32,7 +32,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| Current | 2026-10-22 | GPT-5 | W-HOST-API | Active | T12 return complete booking and ticket conversation collections | T12 step 1: add failing 101-row and 1,001-message integration assertions | 2026-10-22 |
+| Current | 2026-10-22 | GPT-5 | W-HOST-API | Active | T13 return the complete wallet statement | T13 step 1: add failing 101-row ledger integration assertions for stable order, owner scope, and legacy params | 2026-10-22 |
 
 **Remaining**
 
@@ -44,14 +44,14 @@ No change.
 - [x] T8 wire listing, calendar, and request screens to the API provider; 166 frontend tests, lint and production build pass.
 - [x] T9 wire Host messages and wallet screens to the API provider; 172 frontend tests, lint, and production build pass.
 - [x] T10 backend/frontend acceptance, authenticated request captures, regression fixes, code review, and fresh build/test/lint gates complete; owner review remains (D~23/D~25/D~26/D~27).
-- [ ] T12 return complete booking and ticket conversation collections; start with >100-row and 1,001-message integration assertions (C~19).
+- [x] T12 return complete booking/ticket conversation arrays; 101-row collections, 1,001-message history, legacy parameter equivalence, privacy, Checkstyle, and backend build pass.
 
 ## 3. Workstreams
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
 | W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Listing route/load failures use a generic page and listings link; validation and mutation errors stay inline (C~18) | guide out of date: W-HOST Host UI pages and Fall Light details |
-| W-HOST-API | Replace Host fixtures with authenticated backend integration | Building | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T11 done: complete ordered listing/request arrays, legacy query compatibility, 101-row tenant-scope tests; next T12 step 1 | — |
+| W-HOST-API | Replace Host fixtures with authenticated backend integration | Building | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T12 done: full stable booking/ticket summaries and histories, 1,001-message test; next T13 wallet statement | — |
 
 ## 4. Architecture
 
@@ -233,3 +233,4 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | 2026-10-22 | Unified listing collection/detail/edit/calendar route-load failures behind a generic error page with a return link; collection errors retain retry. Validation and mutation errors remain inline; 179 frontend tests, lint, and production build pass | W-HOST | C~18 |
 | 2026-10-22 | Reversed bounded Host collection/history pagination; corrected T12 dependency after source inspection showed a shared BookingRepository edit; approved T11-T17 plan (seven tasks, waves 7–11) and began T11 | W-HOST-API | C~19 |
 | 2026-10-22 | Replaced paged Host listing and pending/history request reads with complete ordered owner-scoped arrays; legacy page/size params return identical results. 101-row integration coverage, repository ordering/scope tests, Checkstyle, and backend build pass | W-HOST-API | T11 |
+| 2026-10-22 | Replaced paged booking/ticket conversation summary and history APIs with complete stable-order arrays; retained host/channel scoping, read/post transactions, and after-commit events. Tests cover 101 summaries/messages, a 1,001-message thread, legacy parameter equivalence, privacy; Checkstyle and backend build pass | W-HOST-API | T12 |

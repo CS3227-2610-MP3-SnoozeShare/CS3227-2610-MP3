@@ -14,14 +14,9 @@ public interface MessageService {
 
     List<Message> thread(UUID ticketId, ThreadChannel channel, UUID viewerId, Role viewerRole);
 
-    List<Message> thread(UUID ticketId, ThreadChannel channel, UUID viewerId, Role viewerRole,
-                         int page, int size);
-
     Message post(UUID ticketId, ThreadChannel channel, UUID authorId, Role authorRole, String body);
 
     List<ConversationSummary> conversationsFor(UUID userId, Role role);
-
-    List<ConversationSummary> conversationsFor(UUID userId, Role role, int page, int size);
 
     int unreadCount(UUID userId, Role role);
 

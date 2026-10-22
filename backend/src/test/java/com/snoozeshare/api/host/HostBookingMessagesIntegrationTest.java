@@ -39,6 +39,7 @@ import com.snoozeshare.domain.enums.ListingStatus;
 import com.snoozeshare.domain.enums.PropertyType;
 import com.snoozeshare.domain.enums.Role;
 import com.snoozeshare.domain.model.Booking;
+import com.snoozeshare.domain.model.BookingMessage;
 import com.snoozeshare.domain.model.Property;
 import com.snoozeshare.domain.model.User;
 import com.snoozeshare.infra.events.BookingMessagePostedEvent;
@@ -107,7 +108,7 @@ class HostBookingMessagesIntegrationTest {
     }
 
     @Test
-    void hostCanPagePostAndReadBookingChatWithoutExposingItToAnotherHost() throws Exception {
+    void hostGetsCompleteBookingCollectionsAndCannotReadAnotherHostsChat() throws Exception {
         sendMessage("first private note");
         sendMessage("second private note");
         UUID secondBooking = UUID.randomUUID();
@@ -115,17 +116,38 @@ class HostBookingMessagesIntegrationTest {
             LocalDate.now().plusDays(42), BookingStatus.CONFIRMED, new BigDecimal("80.00"),
             new BigDecimal("160.00"), Instant.now().minusSeconds(30), Instant.now(), null, null));
 
+        for (int index = 0; index < 99; index++) {
+            UUID id = UUID.randomUUID();
+            bookings.save(new Booking(id, propertyId, guestId,
+                LocalDate.now().plusDays(50 + index * 3L), LocalDate.now().plusDays(52 + index * 3L),
+                BookingStatus.CONFIRMED, new BigDecimal("80.00"), new BigDecimal("160.00"),
+                Instant.now().minusSeconds(index + 1L), Instant.now(), null, null));
+        }
+        String summaries = mockMvc.perform(get("/api/host/messages/bookings")
+                .header("Authorization", "Bearer " + token))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(101))
+            .andExpect(jsonPath("$[0].bookingId").value(bookingId.toString()))
+            .andReturn().getResponse().getContentAsString();
         mockMvc.perform(get("/api/host/messages/bookings?page=0&size=1")
                 .header("Authorization", "Bearer " + token))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.items.length()").value(1))
-            .andExpect(jsonPath("$.items[0].bookingId").value(bookingId.toString()))
-            .andExpect(jsonPath("$.hasMore").value(true));
-        mockMvc.perform(get("/api/host/messages/bookings/" + bookingId + "?page=0&size=1")
+            .andExpect(status().isOk()).andExpect(result ->
+                assertThat(result.getResponse().getContentAsString()).isEqualTo(summaries));
+
+        for (int index = 0; index < 1001; index++) {
+            messages.save(new BookingMessage(UUID.randomUUID(), bookingId, guestId, Role.GUEST,
+                "history-" + index, Instant.parse("2027-01-01T00:00:00Z").plusSeconds(index)));
+        }
+        String history = mockMvc.perform(get("/api/host/messages/bookings/" + bookingId)
                 .header("Authorization", "Bearer " + token))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.items[0].body").value("second private note"))
-            .andExpect(jsonPath("$.hasMore").value(true));
+            .andExpect(jsonPath("$.length()").value(1003))
+            .andExpect(jsonPath("$[0].body").value("history-1000"))
+            .andReturn().getResponse().getContentAsString();
+        mockMvc.perform(get("/api/host/messages/bookings/" + bookingId + "?page=0&size=1")
+                .header("Authorization", "Bearer " + token))
+            .andExpect(status().isOk()).andExpect(result ->
+                assertThat(result.getResponse().getContentAsString()).isEqualTo(history));
         mockMvc.perform(post("/api/host/messages/bookings/" + bookingId + "/read")
                 .header("Authorization", "Bearer " + token))
             .andExpect(status().isNoContent());
@@ -142,6 +164,21 @@ class HostBookingMessagesIntegrationTest {
                 .header("Authorization", "Bearer " + foreignToken))
             .andExpect(status().isNotFound())
             .andExpect(jsonPath("$.code").value("NOT_FOUND"));
+    }
+
+    @Test
+    void bookingThreadReturnsMoreThanOneThousandMessagesInStableOrder() throws Exception {
+        Instant start = Instant.parse("2027-01-01T00:00:00Z");
+        for (int index = 0; index < 1001; index++) {
+            messages.save(new BookingMessage(UUID.randomUUID(), bookingId, guestId, Role.GUEST,
+                "bulk-" + index, start.plusSeconds(index)));
+        }
+        mockMvc.perform(get("/api/host/messages/bookings/" + bookingId)
+                .header("Authorization", "Bearer " + token))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(1001))
+            .andExpect(jsonPath("$[0].body").value("bulk-1000"))
+            .andExpect(jsonPath("$[1000].body").value("bulk-0"));
     }
 
     @Test

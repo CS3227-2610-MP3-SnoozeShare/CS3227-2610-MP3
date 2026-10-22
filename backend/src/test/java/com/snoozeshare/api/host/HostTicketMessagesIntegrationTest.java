@@ -42,6 +42,7 @@ import com.snoozeshare.domain.enums.Role;
 import com.snoozeshare.domain.enums.ThreadChannel;
 import com.snoozeshare.domain.enums.TicketStatus;
 import com.snoozeshare.domain.model.Booking;
+import com.snoozeshare.domain.model.Message;
 import com.snoozeshare.domain.model.Property;
 import com.snoozeshare.domain.model.Ticket;
 import com.snoozeshare.domain.model.User;
@@ -115,26 +116,46 @@ class HostTicketMessagesIntegrationTest {
     }
 
     @Test
-    void hostChannelIsPagedAndWrongChannelOrForeignHostIsHidden(CapturedOutput output) throws Exception {
+    void hostGetsCompleteTicketCollectionsAndWrongChannelOrForeignHostIsHidden(CapturedOutput output) throws Exception {
         sendMessage("first support note");
         sendMessage("second support note");
-        UUID secondTicket = UUID.randomUUID();
-        tickets.save(new Ticket(secondTicket, tickets.findById(ticketId).orElseThrow().getBookingId(),
-            tickets.findById(ticketId).orElseThrow().getRaisedByUserId(), Role.GUEST, "Other",
-            "Another issue", "Description", RemedyType.OTHER, null, TicketStatus.OPEN,
-            null, null, null, Instant.now(), null));
+        Ticket baseTicket = tickets.findById(ticketId).orElseThrow();
+        for (int index = 0; index < 100; index++) {
+            UUID id = UUID.randomUUID();
+            tickets.save(new Ticket(id, baseTicket.getBookingId(), baseTicket.getRaisedByUserId(),
+                Role.GUEST, "Other", "Issue " + index, "Description", RemedyType.OTHER, null,
+                TicketStatus.OPEN, null, null, null, Instant.now().minusSeconds(index + 1L), null));
+        }
+        String summaries = mockMvc.perform(get("/api/host/messages/tickets")
+                .header("Authorization", "Bearer " + token))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(101))
+            .andExpect(jsonPath("$[0].ticketId").value(ticketId.toString()))
+            .andExpect(jsonPath("$[0].channel").value("HOST"))
+            .andReturn().getResponse().getContentAsString();
         mockMvc.perform(get("/api/host/messages/tickets?page=0&size=1")
                 .header("Authorization", "Bearer " + token))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.items[0].channel").value("HOST"))
-            .andExpect(jsonPath("$.hasMore").value(true));
+            .andExpect(status().isOk()).andExpect(result ->
+                org.assertj.core.api.Assertions.assertThat(result.getResponse().getContentAsString())
+                    .isEqualTo(summaries));
         org.assertj.core.api.Assertions.assertThat(output)
             .doesNotContain("first support note", "second support note");
-        mockMvc.perform(get("/api/host/messages/tickets/" + ticketId + "?channel=HOST&page=0&size=1")
+        for (int index = 0; index < 101; index++) {
+            messageRows.save(new Message(UUID.randomUUID(), ticketId, ThreadChannel.HOST,
+                baseTicket.getRaisedByUserId(), Role.GUEST, "bulk-" + index,
+                Instant.parse("2027-01-01T00:00:00Z").plusSeconds(index)));
+        }
+        String history = mockMvc.perform(get("/api/host/messages/tickets/" + ticketId + "?channel=HOST")
                 .header("Authorization", "Bearer " + token))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.items[0].body").value("second support note"))
-            .andExpect(jsonPath("$.hasMore").value(true));
+            .andExpect(jsonPath("$.length()").value(103))
+            .andExpect(jsonPath("$[0].body").value("bulk-100"))
+            .andReturn().getResponse().getContentAsString();
+        mockMvc.perform(get("/api/host/messages/tickets/" + ticketId + "?channel=HOST&page=0&size=1")
+                .header("Authorization", "Bearer " + token))
+            .andExpect(status().isOk()).andExpect(result ->
+                org.assertj.core.api.Assertions.assertThat(result.getResponse().getContentAsString())
+                    .isEqualTo(history));
         mockMvc.perform(get("/api/host/messages/tickets/" + ticketId + "?channel=GUEST")
                 .header("Authorization", "Bearer " + token))
             .andExpect(status().isBadRequest());

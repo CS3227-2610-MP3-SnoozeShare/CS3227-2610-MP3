@@ -27,7 +27,6 @@ import com.snoozeshare.infra.events.MessagePostedEvent;
 import com.snoozeshare.repository.BookingRepository;
 import com.snoozeshare.repository.JdbcMessageReadRepository;
 import com.snoozeshare.repository.MessageRepository;
-import com.snoozeshare.repository.OffsetLimitPageable;
 import com.snoozeshare.repository.PropertyRepository;
 import com.snoozeshare.repository.TicketRepository;
 import com.snoozeshare.repository.UserRepository;
@@ -77,14 +76,6 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<Message> thread(UUID ticketId, ThreadChannel channel, UUID viewerId,
-                                Role viewerRole, int page, int size) {
-        requireParty(ticket(ticketId), channel, viewerId, viewerRole);
-        return messages.findThreadPage(ticketId, channel, new OffsetLimitPageable(page, size));
-    }
-
-    @Override
     @Transactional
     public Message post(UUID ticketId, ThreadChannel channel, UUID authorId, Role authorRole,
                         String body) {
@@ -103,24 +94,17 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ConversationSummary> conversationsFor(UUID userId, Role role,
-                                                       int page, int size) {
-        ThreadChannel channel = channelOf(role);
-        if (role != Role.HOST) {
-            throw new IllegalArgumentException("Host inbox requires a Host role");
-        }
-        return tickets.findConversationTicketsByHost(userId, channel,
-                new OffsetLimitPageable(page, size)).stream()
-                .map(ticket -> summarize(ticket, channel, userId).summary())
-                .toList();
-    }
-
-    @Override
     public List<ConversationSummary> conversationsFor(UUID userId, Role role) {
         ThreadChannel channel = channelOf(role);
+        if (role == Role.HOST) {
+            return tickets.findConversationTicketsByHost(userId, channel).stream()
+                    .map(ticket -> summarize(ticket, channel, userId).summary())
+                    .toList();
+        }
         return ticketsFor(userId, role).stream()
                 .map(ticket -> summarize(ticket, channel, userId))
-                .sorted(Comparator.comparing(Ranked::lastActivity).reversed())
+                .sorted(Comparator.comparing(Ranked::lastActivity).reversed()
+                        .thenComparing(ranked -> ranked.summary().ticketId()))
                 .map(Ranked::summary)
                 .toList();
     }

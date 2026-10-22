@@ -13,15 +13,9 @@ public interface BookingConversationService {
 
     List<BookingMessage> thread(UUID bookingId, UUID viewerId, Role viewerRole);
 
-    List<BookingMessage> thread(UUID bookingId, UUID viewerId, Role viewerRole,
-                                int page, int size);
-
     BookingMessage post(UUID bookingId, UUID authorId, Role authorRole, String body);
 
     List<BookingConversationSummary> conversationsFor(UUID userId, Role role);
-
-    List<BookingConversationSummary> conversationsFor(UUID userId, Role role,
-                                                       int page, int size);
 
     int unreadCount(UUID userId, Role role);
 
