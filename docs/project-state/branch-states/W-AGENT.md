@@ -9,7 +9,7 @@ after the branch merges.
 - **Owner:** Xiao-Congchen
 - **Status:** Draft
 - **Approved:** —
-- **Last updated:** 2026-10-22 by Claude Sonnet 5.5 — spec approved, development merged
+- **Last updated:** 2026-10-22 by Codex — T1 complete, paused at operator request
 
 ---
 
@@ -31,14 +31,15 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-22 | Codex | W-AGENT | Active | Rebuild T1 commit history under the operator cap | Verify each small snapshot; pause again before T7 | 2026-10-22 |
+| S1 | 2026-10-22 | Codex | W-AGENT | Paused | T1 complete; commit history split below 150 changed lines | Resume with T7 step 1 when the operator asks | 2026-10-22 |
 
 **Remaining**
 
 - [x] Confirm scope with the operator (done 2026-10-22)
 - [x] Gate 1: spec reviewed in two rounds, approved by Xiao-Congchen 2026-10-22 (Q~1 answered: Asia/Singapore)
 - [x] Gate 2: plan approved by Xiao-Congchen 2026-10-22
-- [ ] Execute the plan (`executing-plans-lite`); T1 in progress
+- [x] Execute the plan (`executing-plans-lite`); T1 complete
+- [ ] Resume at T7 step 1 when the operator asks to continue
 - [ ] **Handover:** the W-AI-GATEWAY branch state is still in `branch-states/` on `development`: its fold (gate 4) is pending and is not this branch's work
 - [ ] **Handover:** audit reasons, notes and messages typed by agents will become LLM input in W-AI-AGENT; treat them as untrusted (prompt injection) in that spec
 
@@ -48,25 +49,42 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AGENT | Agent features: disputes, accounts, audit, categories — REST controllers and Next.js pages | Building | [spec](docs/superpowers/specs/2026-10-22-w-agent-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-agent.md) | T1 history split in flight; final implementation preserved in backup | — |
+| W-AGENT | Agent features: disputes, accounts, audit, categories — REST controllers and Next.js pages | Building | [spec](docs/superpowers/specs/2026-10-22-w-agent-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-agent.md) | T1 Done; T7 step 1 next after operator resumes | — |
 
 ---
 
 ## 4. Architecture
 
-No change: nothing built yet.
+### Shared agent REST foundation
+
+**Now:** `com.snoozeshare.api` provides the shared `{code, message, requestId}` error body and safe exception mapping; unmatched `/api/agent/**` requests use a servlet exception resolver; `@CurrentUserId` reads the token-derived actor attribute set by `RoleAuthorizationFilter`; decoded-path filters enforce role, no-store and request-size rules; `RowLocks` applies PostgreSQL's transaction-local five-second lock timeout. `ApiLayerTest` pins controller boundaries and proves each rule with deliberate test fixtures.
+
+| ID | Decision |
+|---|---|
+| C~3 | The agent REST layer owns the shared API foundation because Guest and Host routes do not yet exist |
 
 ---
 
 ## 5. Conventions
 
-No change: nothing built yet. (The spec proposes web layering rules, ArchUnit `ApiLayerTest`, `@CurrentUserId` and ticket row locks; they land here when built.)
+| Rule | Current convention |
+|---|---|
+| API controllers | Live under `com.snoozeshare.api.controller.<role>`; records stay in `api.request`/`api.response`, conversions in `api.mapper` |
+| Layer boundary | Controllers do not depend on repositories, domain models, persistence types, money services or the audit write service; audit reads use `AuditQueryService` |
+| Actor identity | Controller actor ids use `@CurrentUserId`, resolved from the authenticated request attribute |
+| Locking | Ticket and governed-user mutations take `RowLocks.timeout()` and then lock the target row before reading it |
+| Commit size | Fewer than 150 changed lines per commit, counting additions plus deletions including tests and docs |
 
 ---
 
 ## 6. Known Gaps
 
-No change: nothing built yet. (To add when built: queue and accounts lists are unpaginated; offset paging of the audit log can repeat or skip rows while new entries arrive; no per-agent rate limit; `Booking`/`Property`/`Guest wallet does not exist` map to 400.)
+| Gap | Accepted limitation |
+|---|---|
+| Queue and account lists | Unpaginated |
+| Audit paging | Offset paging can repeat or skip rows when new entries arrive between pages |
+| Agent API | No per-agent rate limit |
+| Missing related records | Missing Booking, Property or Guest wallet still map to 400 |
 
 ---
 
@@ -80,11 +98,10 @@ No change: Q~1 (audit zone) was answered on 2026-10-22 (C~7); nothing is open.
 
 | ID | Date | Decision | Why / who asked | Source |
 |---|---|---|---|---|
-| C~10 | 2026-10-22 | Keep every commit under 150 changed lines; split the local T1 history and retain the final implementation | Operator found the T1 commits too large to review | Operator conversation |
-| C~11 | 2026-10-22 | Skip repeated per-commit build and test runs for this history-only split; verify changed-line budgets and final implementation parity | Operator: "skip the per commit checks since we are just splitting them"; the completed T1 backend suite was already green | Operator conversation |
 | C~1 | 2026-10-22 | W-AGENT covers all four agent areas (disputes with threads and notes, accounts, audit, categories), API and pages in one workstream, no AI | Operator confirmed the proposed scope | Operator conversation |
+| C~11 | 2026-10-22 | Skip repeated per-commit build and test runs for this history-only split; verify changed-line budgets and final implementation parity | Operator: "skip the per commit checks since we are just splitting them"; the completed T1 backend suite was already green | Operator conversation |
+| C~10 | 2026-10-22 | Keep every commit under 150 changed lines; split the local T1 history and retain the final implementation | Operator found the T1 commits too large to review | Operator conversation |
 | C~2 | 2026-10-22 | Where the desktop screens and the design artifact differ, the desktop behaviour wins: keep C22 (no force actions), Manual adjustment is one guest refund, audit filters are Search / Action / From / To / Load more, Accounts lists Guests and Hosts only, categories keep Delete, amounts in SGD | Operator answered each difference, 2026-10-22 | Spec SD2 to SD5 |
-| C~3 | 2026-10-22 | W-AGENT builds the shared REST foundation (global error handler, `@CurrentUserId`, ArchUnit layering test, typed frontend helpers) because no controllers or backend exist elsewhere | `origin/W-HOST` is fixture-only frontend and has no open pull request | Spec SD1, SD12 |
 | C~4 | 2026-10-22 | Tickets are locked pessimistically in assign, notes, unassign and settlement so an escrow cannot be settled twice. Rejected: `@Version`, SERIALIZABLE, leaving the race | Review (Tester, Attacker, Maintainer) found no lock in the ported services | Spec SD10 |
 | C~6 | 2026-10-22 | Round 2 review: the ticket lock is the first read of resolve; suspend and reactivate lock the target user; audit reads use `AuditQueryService`; the error handler passes on messages only from service and domain code; request size is checked after authentication | Review (Attacker, Implementer, Tester) found stale-read, cascade-race, layering and message-leak gaps | Spec SD10, SD19, SD20, SD21 |
 | C~7 | 2026-10-22 | The audit-log date range uses a fixed `Asia/Singapore` zone by default (`snoozeshare.audit.zone`), not the server zone. Rejected: server default (UTC on Render) | Operator: "Use Singapore timezone as default"; resolves Q~1 | Spec SD16 |
@@ -99,6 +116,10 @@ No change: Q~1 (audit zone) was answered on 2026-10-22 (C~7); nothing is open.
 | ID | What | Consequence |
 |---|---|---|
 | D~1 | The spec edits W-DOMAIN services (`TicketServiceImpl`, `DisputeSettlementServiceImpl`, `DisputeQueryService`, `AccountGovernanceService`, `AuditServiceImpl`, not-found throws) and the shared `TicketResponse` | Recorded now so the plan and review expect changes outside the new API packages; the repo's earlier tests must still pass |
+| D~2 | The plan assumed ticket categories were seeded, but migrations V001-V005 contain no category seed | Test reset removes all categories; scenario fixtures create them explicitly so assertions remain isolated |
+| D~3 | `UrlPathHelper.getPathWithinApplication` drops the `/api` segment on a request URI beginning `//api/...` | `ProtectedRequestPath` collapses repeated slashes in the raw URI first, then uses UrlPathHelper for decoding and matrix-parameter removal; E62 covers it |
+| D~4 | The E69 missing-actor unit test was added after the resolver types because they did not yet exist; E4 reuses the existing Jackson unknown-property setting | The actor route did run red before filter/resolver changes; E69 now directly verifies fail-closed resolution |
+| D~5 | Spring's standard MVC exception advice did not render JSON for unmatched paths (the `NoHandlerFoundException` was left with an empty 404 in MockMvc) | `ApiNoRouteExceptionResolver` handles only unmatched `/api/agent/**` paths before default resolution; other namespaces keep their prior behavior |
 
 ---
 
@@ -110,24 +131,10 @@ No change: Q~1 (audit zone) was answered on 2026-10-22 (C~7); nothing is open.
 | 2026-10-22 | Spec for the agent REST API and pages drafted, linted, reviewed in two rounds and approved | W-AGENT | `ecfc451` |
 | 2026-10-22 | Plan for the agent REST API and pages written, linted and reviewed once; spec text amended for plan refinements (C~8, C~9) | W-AGENT | next commit |
 | 2026-10-22 | Plan approved by Xiao-Congchen; T1 started | W-AGENT | this commit |
+| 2026-10-22 | T1 Slice A adds shared API fixtures and ArchUnit dependency; baseline and auth regression pass | W-AGENT | T1 Slice A |
+| 2026-10-22 | T1 Slice B adds typed not-found failures for tickets, threads, categories and governed users | W-AGENT | T1 Slice B |
+| 2026-10-22 | T1 Slice C guards decoded agent paths, applies no-store and caps request bodies; full backend tests pass | W-AGENT | T1 Slice C |
+| 2026-10-22 | T1 Slice D adds token-derived actor resolution and fail-closed missing-actor handling; backend suite passes | W-AGENT | T1 Slice D |
+| 2026-10-22 | T1 Slice E adds consistent API errors and safe logging; `RowLocks` and ArchUnit boundary rules; full backend Checkstyle and tests pass | W-AGENT | T1 complete |
+| 2026-10-22 | Recorded the operator's commit cap in AGENTS.md; T1 history split finished; per-commit checks waived by the operator; line budgets and implementation parity verified; paused before T7 | W-AGENT | commit organization |
 | 2026-10-22 | `development` merged into the branch (W-AI-GATEWAY folded; no conflict with the spec) | W-AGENT | merge commit |
-| 2026-10-22 | Rebuilt T1 part 1/20: distinguish missing agent resources from invalid requests | W-AGENT | small-commit reconstruction |
-| 2026-10-22 | Rebuilt T1 part 2/20: normalize protected API paths and disable agent response caching | W-AGENT | small-commit reconstruction |
-| 2026-10-22 | Rebuilt T1 part 3/20: resolve actor UUIDs from authenticated request attributes | W-AGENT | small-commit reconstruction |
-| 2026-10-22 | Rebuilt T1 part 4/20: enforce role rules and request sizes on protected APIs | W-AGENT | small-commit reconstruction |
-| 2026-10-22 | Rebuilt T1 part 5/20: add correlated API errors with sanitized server logs | W-AGENT | small-commit reconstruction |
-| 2026-10-22 | Rebuilt T1 part 6/20: map service failures and lock conflicts to safe API errors | W-AGENT | small-commit reconstruction |
-| 2026-10-22 | Rebuilt T1 part 7/20: format MVC validation and protocol errors consistently | W-AGENT | small-commit reconstruction |
-| 2026-10-22 | Rebuilt T1 part 8/20: return structured errors for unmatched agent API routes | W-AGENT | small-commit reconstruction |
-| 2026-10-22 | Rebuilt T1 part 9/20: bound PostgreSQL transaction lock waits to five seconds | W-AGENT | small-commit reconstruction |
-| 2026-10-22 | Rebuilt T1 part 10/20: add isolated token users and database reset helpers | W-AGENT | small-commit reconstruction |
-| 2026-10-22 | Rebuilt T1 part 11/20: create funded dispute scenarios through real services | W-AGENT | small-commit reconstruction |
-| 2026-10-22 | Rebuilt T1 part 12/20: extend dispute fixtures for governance and bulk scenarios | W-AGENT | small-commit reconstruction |
-| 2026-10-22 | Rebuilt T1 part 13/20: expose API foundation fixtures and safe-message assertions | W-AGENT | small-commit reconstruction |
-| 2026-10-22 | Rebuilt T1 part 14/20: wire authenticated API integration fixtures and disabled security coverage | W-AGENT | small-commit reconstruction |
-| 2026-10-22 | Rebuilt T1 part 15/20: verify typed missing-resource errors through shared API fixtures | W-AGENT | small-commit reconstruction |
-| 2026-10-22 | Rebuilt T1 part 16/20: cover role authentication and inactive agent profiles | W-AGENT | small-commit reconstruction |
-| 2026-10-22 | Rebuilt T1 part 17/20: cover protected path variants and agent request limits | W-AGENT | small-commit reconstruction |
-| 2026-10-22 | Rebuilt T1 part 18/20: verify token actor resolution and strict JSON properties | W-AGENT | small-commit reconstruction |
-| 2026-10-22 | Rebuilt T1 part 19/20: pin safe API errors and correlated logs | W-AGENT | small-commit reconstruction |
-| 2026-10-22 | Rebuilt T1 part 20/20: enforce API layer boundaries with violating fixtures | W-AGENT | small-commit reconstruction |
