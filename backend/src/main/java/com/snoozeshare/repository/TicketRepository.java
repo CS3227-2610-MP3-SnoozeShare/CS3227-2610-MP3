@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.snoozeshare.domain.enums.ThreadChannel;
 import com.snoozeshare.domain.enums.TicketStatus;
 import com.snoozeshare.domain.model.Ticket;
 
@@ -45,4 +46,12 @@ public interface TicketRepository
             + "(SELECT p.id FROM Property p WHERE p.hostId = :userId)) "
             + "ORDER BY t.createdAt DESC")
     List<Ticket> findByHost(@Param("userId") UUID userId);
+
+    @Query("SELECT t FROM Ticket t WHERE t.bookingId IN "
+            + "(SELECT b.id FROM Booking b WHERE b.listingId IN "
+            + "(SELECT p.id FROM Property p WHERE p.hostId = :hostId)) "
+            + "ORDER BY COALESCE((SELECT MAX(m.sentAt) FROM Message m "
+            + "WHERE m.ticketId = t.id AND m.channel = :channel), t.createdAt) DESC, t.id ASC")
+    List<Ticket> findConversationTicketsByHost(@Param("hostId") UUID hostId,
+                                               @Param("channel") ThreadChannel channel);
 }

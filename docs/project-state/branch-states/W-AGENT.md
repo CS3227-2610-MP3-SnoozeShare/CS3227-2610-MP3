@@ -5,11 +5,11 @@ read it for context and write here instead of editing it. `sync-project-state` f
 after the branch merges.
 
 - **Branch:** W-AGENT (from `development` at `7eef36a`)
-- **Base:** `e185dc0` (development tip merged into the branch on 2026-10-22; the branch was cut at `7eef36a`)
+- **Base:** `f50f437` (origin/development, with W-HOST, W-HOST-API and W-GUEST, merged into the branch on 2026-10-23; the branch was cut at `7eef36a`)
 - **Owner:** Xiao-Congchen
 - **Status:** Draft
 - **Approved:** —
-- **Last updated:** 2026-10-22 by Claude Sonnet 5.5 — T1-T11 done, T12 waiting on the browser walk-through
+- **Last updated:** 2026-10-23 by Claude Sonnet 5.5 — merged W-HOST and W-GUEST from development and patched the contract drift; T12 still waiting on the browser walk-through
 
 ---
 
@@ -106,6 +106,8 @@ Q~1 (audit zone) was answered on 2026-10-22 (C~7).
 
 Q~2 was resolved on 2026-10-22: the operator paused S2 and authorized applying the history rewrite. It is now applied.
 
+**Q~4 (open, not blocking).** The three roles now answer the same conditions with different errors: a closed ticket thread is 400 `THREAD_CLOSED` (Guest), 409 `STATE_CONFLICT` (Host) and 409 `CONFLICT` (Agent); invalid input is 422 `DOMAIN_RULE_VIOLATION` (Host) but 400 `INVALID_REQUEST` or `VALIDATION_ERROR` (Guest, Agent); a created message is 200 (Guest) but 201 (Host, Agent); Host error messages are always the generic "Request could not be completed". Each client works today. Should the roles converge on the agent contract (`{code, message, requestId}`, 400/404/409 with service messages), or stay as built? I changed nothing here because it is a cross-workstream decision.
+
 **Q~3 (open, blocks T12 step 4 and gate 3).** The browser walk-through needs the local stack: Docker Postgres, the backend with `FIREBASE_ENABLED=true` and `SNOOZESHARE_SECURITY_ENABLED=true` against the operator's Firebase dev project and agent registration code, and `npm run dev` for the frontend. Please start it and sign in as an agent (or tell me to record the walk-through as a Handover item instead). I never enter credentials. Flows to walk: assign, reply, notes, Accept, Reject, Manual, suspend, reactivate, audit filters and load more, category add, rename, toggle and delete.
 
 ---
@@ -142,6 +144,11 @@ Q~2 was resolved on 2026-10-22: the operator paused S2 and authorized applying t
 | D~9 | The queue built each row with five single-row lookups (booking, property, up to three users); the E57 performance test measured 5.2 s p95 with 300 tickets, over the 5 s limit | Fixed in `DisputeQueryServiceImpl.queue` with batched `findAllById` lookups (now about 70 ms); `detail` is unchanged |
 | D~10 | The spec binds the audit `actions` parameter as `Set<AuditAction>`; a `Set` collapses duplicates before the 40-item cap, so 41 duplicates would pass. Class-level `@Validated` on the controller turns a bad `limit` into a 500 | `actions` is a `List` (deduplicated in the filter); no `@Validated`, Spring 6 method validation answers 400 |
 | D~11 | The T11 categories page and others call `usePolling(load, 0)`; the T7 hook had no on-demand mode | The hook treats an interval of 0 as on-demand and does not refetch on focus |
+| D~12 | Merging `origin/development` (W-HOST, W-GUEST) was textually clean in `application.yml` but gave two top-level `snoozeshare:` keys, so the whole Spring context failed to load (duplicate YAML key) | The audit zone now sits under the single existing `snoozeshare:` key |
+| D~13 | `HostApiExceptionHandler` was scoped to the package `com.snoozeshare.api.controller`, which includes `api.controller.agent`, so agent failures would have been rendered as Host errors (422 `DOMAIN_RULE_VIOLATION` with a generic message) | Scoped to the six Host controller classes; all three advices now have an explicit order (Host and Guest highest, the global agent advice lowest) |
+| D~14 | The merged Host controllers (`HostCalendarController`, `HostListingController`, `HostWalletController`) hand domain entities around and use `WalletService`, so the agent layering rules (SD12) failed on them | The entity rule exempts those three classes by name until W-HOST converts them to mappers; the money and audit rule applies to `api.controller.agent` only; the UUID-parameter rule checks public handler methods only |
+| D~15 | Agent tests leave committed rows and `GuestSearchControllerTest` assumes an empty `properties` table, so it failed depending on test order | `AgentApiIntegrationTest` resets the database after every test as well as before |
+| D~16 | The Guest TypeScript `TicketResponse` still declared `agentNotes`, which the backend no longer sends (SD14) | Removed from `guest-api.ts`; `AgentCrossRoleContractTest` asserts the Guest API never carries agent notes |
 
 ---
 

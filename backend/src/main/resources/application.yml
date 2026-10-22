@@ -1,7 +1,3 @@
-snoozeshare:
-  audit:
-    # Audit From/To dates are whole days in this zone
-    zone: Asia/Singapore
 spring:
   profiles:
     default: dev
@@ -19,6 +15,12 @@ spring:
       ddl-auto: validate
 server:
   port: ${PORT:8080}
+snoozeshare:
+  persistence:
+    enabled: true
+  audit:
+    # Audit From/To dates are whole days in this zone
+    zone: Asia/Singapore
 management:
   endpoints:
     web:

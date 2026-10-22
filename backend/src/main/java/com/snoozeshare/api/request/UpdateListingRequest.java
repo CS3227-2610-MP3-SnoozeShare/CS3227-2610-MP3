@@ -12,12 +12,13 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
 
 /** Update an existing property listing (does not change status). */
 @JsonIgnoreProperties(ignoreUnknown = false)
 public record UpdateListingRequest(
-        @NotBlank String title,
-        @NotBlank String description,
+        @NotBlank @Size(max = 120) String title,
+        @NotBlank @Size(max = 5000) String description,
         @NotNull PropertyType propertyType,
         @NotBlank String streetAddress,
         @NotBlank String city,

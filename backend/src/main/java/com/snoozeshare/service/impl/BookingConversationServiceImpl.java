@@ -10,6 +10,9 @@ import java.util.UUID;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.snoozeshare.config.ConditionalOnDatabase;
 import com.snoozeshare.domain.enums.BookingStatus;
@@ -66,6 +69,7 @@ public class BookingConversationServiceImpl implements BookingConversationServic
     }
 
     @Override
+    @Transactional
     public BookingMessage post(UUID bookingId, UUID authorId, Role authorRole, String body) {
         DomainValidation.requireText(body, "body");
         Booking booking = booking(bookingId);
@@ -76,17 +80,25 @@ public class BookingConversationServiceImpl implements BookingConversationServic
         Instant now = clock.instant();
         BookingMessage saved = messages.save(new BookingMessage(UUID.randomUUID(), bookingId,
                 authorId, authorRole, body.trim(), now));
-        publisher.publishEvent(new BookingMessagePostedEvent(saved.getId(), bookingId, now));
+        publishAfterCommit(new BookingMessagePostedEvent(saved.getId(), bookingId, now));
         return saved;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<BookingConversationSummary> conversationsFor(UUID userId, Role role) {
+        if (role == Role.HOST) {
+            LocalDate openCutoff = LocalDate.now(clock).minusDays(CHAT_DAYS_AFTER_CHECKOUT);
+            return bookings.findConversationBookingsByHost(userId, openCutoff).stream()
+                    .map(booking -> summarize(booking, userId).summary())
+                    .toList();
+        }
         return partyBookings(userId, role).stream()
                 .map(booking -> summarize(booking, userId))
                 .filter(ranked -> ranked.summary().open()
                         || ranked.summary().lastMessage() != null)
-                .sorted(Comparator.comparing(Ranked::lastActivity).reversed())
+                .sorted(Comparator.comparing(Ranked::lastActivity).reversed()
+                        .thenComparing(ranked -> ranked.summary().bookingId()))
                 .map(Ranked::summary)
                 .toList();
     }
@@ -99,10 +111,24 @@ public class BookingConversationServiceImpl implements BookingConversationServic
     }
 
     @Override
+    @Transactional
     public void markRead(UUID bookingId, UUID userId, Role role) {
         requireParty(booking(bookingId), userId, role);
         messages.findLast(bookingId)
                 .ifPresent(last -> messageReads.markRead(bookingId, userId, last.getId()));
+    }
+
+    private void publishAfterCommit(Object event) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            publisher.publishEvent(event);
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                publisher.publishEvent(event);
+            }
+        });
     }
 
     private List<Booking> partyBookings(UUID userId, Role role) {

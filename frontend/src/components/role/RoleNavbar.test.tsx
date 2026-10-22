@@ -18,6 +18,7 @@ describe('RoleNavbar', () => {
     const brand = screen.getByRole('link', { name: 'SnoozeShare' });
 
     expect(topRow).toHaveTextContent('SnoozeShare');
+    expect(topRow).toHaveClass('flex-wrap');
     if (role === 'AGENT') expect(topRow).not.toHaveTextContent('Wallet');
     else expect(topRow).toHaveTextContent('Wallet');
     expect(brand).toHaveClass('text-base', 'tracking-[0.04em]');

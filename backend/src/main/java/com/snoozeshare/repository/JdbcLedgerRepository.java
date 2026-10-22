@@ -39,7 +39,7 @@ public class JdbcLedgerRepository implements LedgerRepository {
                 BASE_SELECT
                 + " AND a.subject_user_id = ("
                 + "SELECT w.user_id FROM wallets w WHERE w.id = ?)"
-                + " ORDER BY a.timestamp ASC, a.id ASC",
+                + " ORDER BY a.timestamp DESC, a.id DESC",
                 this::mapRow, walletId);
     }
 
@@ -63,6 +63,6 @@ public class JdbcLedgerRepository implements LedgerRepository {
                 rs.getString("reason"),
                 rs.getObject("booking_id", UUID.class),
                 rs.getObject("ticket_id", UUID.class),
-                rs.getObject("timestamp", java.time.OffsetDateTime.class).toInstant());
+                rs.getTimestamp("timestamp").toInstant());
     }
 }

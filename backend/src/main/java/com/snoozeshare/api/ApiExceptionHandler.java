@@ -26,6 +26,7 @@ import jakarta.servlet.http.HttpServletRequest;
 
 /** Maps application and framework failures to a safe, consistent API response. */
 @org.springframework.web.bind.annotation.RestControllerAdvice
+@org.springframework.core.annotation.Order(org.springframework.core.Ordered.LOWEST_PRECEDENCE)
 public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiExceptionHandler.class);

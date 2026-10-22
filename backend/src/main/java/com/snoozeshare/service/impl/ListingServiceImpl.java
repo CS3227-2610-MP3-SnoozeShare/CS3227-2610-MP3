@@ -100,7 +100,7 @@ public class ListingServiceImpl implements ListingService {
 
     @Override
     public List<Property> findByHostId(UUID hostId) {
-        return properties.findByHostId(hostId);
+        return properties.findByHostIdOrderByCreatedAtDescIdAsc(hostId);
     }
 
     @Override
@@ -139,7 +139,7 @@ public class ListingServiceImpl implements ListingService {
         if (!host.getId().equals(existing.getHostId())) {
             throw new IllegalStateException("Host does not own this property");
         }
-        validateDraft(draft);
+        validateDraft(draft, false);
         existing.setTitle(draft.getTitle());
         existing.setDescription(draft.getDescription());
         existing.setPropertyType(draft.getPropertyType());
@@ -198,6 +198,10 @@ public class ListingServiceImpl implements ListingService {
     }
 
     private static void validateDraft(Property draft) {
+        validateDraft(draft, true);
+    }
+
+    private static void validateDraft(Property draft, boolean requireStatus) {
         if (draft == null) {
             throw new IllegalArgumentException("Property must not be null");
         }
@@ -206,7 +210,7 @@ public class ListingServiceImpl implements ListingService {
         if (draft.getPropertyType() == null) {
             throw new IllegalArgumentException("Property Type must be selected");
         }
-        if (draft.getStatus() == null) {
+        if (requireStatus && draft.getStatus() == null) {
             throw new IllegalArgumentException("Status must be selected");
         }
         if (draft.getMaxGuests() <= 0) {

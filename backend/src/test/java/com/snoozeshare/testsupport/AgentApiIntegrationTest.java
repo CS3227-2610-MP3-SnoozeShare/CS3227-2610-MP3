@@ -1,5 +1,6 @@
 package com.snoozeshare.testsupport;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -62,6 +63,12 @@ public abstract class AgentApiIntegrationTest extends PostgresIntegrationTest {
         agent = testUsers.create(Role.AGENT);
         guest = testUsers.create(Role.GUEST);
         host = testUsers.create(Role.HOST);
+    }
+
+    /** The database is shared with other test classes (the Guest and Host suites assume no stray rows). */
+    @AfterEach
+    void cleanApiFixture() {
+        TestDataReset.reset(jdbc);
     }
 
     @TestConfiguration(proxyBeanMethods = false)

@@ -16,11 +16,12 @@ public interface BookingMessageRepository
 
     @Query("SELECT m FROM BookingMessage m "
             + "WHERE m.bookingId = :bookingId "
-            + "ORDER BY m.sentAt ASC")
+            + "ORDER BY m.sentAt DESC, m.id DESC")
     List<BookingMessage> findThread(@Param("bookingId") UUID bookingId);
 
     @Query("SELECT m FROM BookingMessage m "
             + "WHERE m.bookingId = :bookingId "
-            + "ORDER BY m.sentAt DESC LIMIT 1")
+            + "ORDER BY m.sentAt DESC, m.id DESC LIMIT 1")
     Optional<BookingMessage> findLast(@Param("bookingId") UUID bookingId);
+
 }

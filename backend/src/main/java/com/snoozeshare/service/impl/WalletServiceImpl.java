@@ -63,7 +63,8 @@ public class WalletServiceImpl implements WalletService {
     }
 
     private WalletTransaction move(UUID userId, WalletTransactionType type, BigDecimal amount) {
-        Wallet wallet = getWallet(userId);
-        return ledger.post(wallet.getId(), type, amount, userId, null, null, null, Instant.now());
+        UUID walletId = wallets.findIdByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Wallet does not exist"));
+        return ledger.post(walletId, type, amount, userId, null, null, null, Instant.now());
     }
 }

@@ -36,7 +36,7 @@ public class JdbcBookingMessageReadRepository {
                 + "WHERE m.booking_id = ? "
                 + "AND m.author_id <> ? "
                 + "AND m.sent_at > COALESCE("
-                + "(SELECT bmr.last_read_message_id "
+                + "(SELECT lm.sent_at "
                 + "FROM booking_message_reads bmr "
                 + "JOIN booking_messages lm "
                 + "ON lm.id = bmr.last_read_message_id "
