@@ -41,11 +41,14 @@ describe('Host requests page', () => {
   });
 
   it('renders all pending requests from one complete collection request', async () => {
-    fetchHostRequests.mockImplementation((view: string) => Promise.resolve(view === 'pending' ? Array.from({ length: 101 }, (_, index) => ({ booking: { id: `booking-${index}`, status: 'PENDING', startDate: '2026-11-01', endDate: '2026-11-03' }, guestDisplayName: `Guest ${index}`, listingTitle: 'API Listing', nights: 2, grossAmount: 200, projectedNetAmount: 194, guestAverageRating: null })) : []));
+    fetchHostRequests.mockImplementation((view: string) => Promise.resolve(view === 'pending'
+      ? Array.from({ length: 101 }, (_, index) => ({ booking: { id: `booking-${index}`, status: 'PENDING', startDate: '2026-11-01', endDate: '2026-11-03' }, guestDisplayName: `Guest ${index}`, listingTitle: 'API Listing', nights: 2, grossAmount: 200, projectedNetAmount: 194, guestAverageRating: null }))
+      : Array.from({ length: 101 }, (_, index) => ({ booking: { id: `history-${index}`, status: 'CONFIRMED', startDate: '2026-10-01', endDate: '2026-10-03' }, guestDisplayName: `Past Guest ${index}`, listingTitle: 'API Listing', nights: 2, grossAmount: 200, projectedNetAmount: 194, guestAverageRating: null }))));
     fetchHostWallet.mockResolvedValue({ wallet: { id: 'w', userId: 'h', balance: 10, currency: 'SGD', updatedAt: '' }, statement: [] });
     render(<HostApiProvider><HostFixtureProvider><HostRequestsPage /></HostFixtureProvider></HostApiProvider>);
     await screen.findByText('Guest 0');
     expect(screen.getByText('Guest 100')).toBeInTheDocument();
+    expect(screen.getByText('Past Guest 100')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Next pending' })).not.toBeInTheDocument();
     expect(fetchHostRequests).toHaveBeenCalledTimes(2);
   });

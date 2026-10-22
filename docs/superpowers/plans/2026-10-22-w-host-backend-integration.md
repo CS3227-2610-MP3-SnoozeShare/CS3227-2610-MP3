@@ -36,7 +36,7 @@
 | T12 Return complete booking and ticket conversation collections | T5,T11 | T13 | 8 | Done |
 | T13 Return the complete wallet statement | T6 | T11,T12 | 7 | Done |
 | T14 Replace paged frontend API and provider types | T11,T12,T13 | - | 9 | Done |
-| T15 Remove listing and request pagination UI | T14 | T16 | 10 | Not started |
+| T15 Remove listing and request pagination UI | T14 | T16 | 10 | Done |
 | T16 Remove message-history and wallet load-more UI | T14 | T15 | 10 | Not started |
 | T17 Verify the pagination reversal | T15,T16 | - | 11 | Not started |
 
@@ -464,10 +464,10 @@
 
 **Checklist**
 
-- [ ] 1. Add failing route/component tests for >100 listings, pending rows, and history rows; assert complete rendering and absence of pagination controls or follow-up requests.
-- [ ] 2. Remove page counters and handlers; keep the existing scroll containers, sticky table headers, and route/error behavior unchanged.
-- [ ] 3. Run affected listing/request tests and `npm run lint` from `frontend/`.
-- [ ] 4. Update branch-state Progress and Changes; commit `refactor: remove Host listing and request pagination`.
+- [x] 1. Add route tests for 101 listings, 101 pending rows, and 101 history rows; assert complete rendering, no pagination controls, and one collection read per view.
+- [x] 2. Remove page counters, request-table pagination props, and handlers; preserve the scroll containers, sticky table headers, decision behavior, and route/error behavior.
+- [x] 3. Run the focused listing/request/calendar-request tests (31 pass), full `npm test` (177 pass), `npm run lint`, and production build (16 routes generated).
+- [x] 4. Update branch-state Progress and Changes; commit `refactor: remove Host listing and request pagination`.
 
 ### T16: Remove message-history and wallet load-more UI
 

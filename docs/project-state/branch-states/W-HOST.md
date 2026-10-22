@@ -9,7 +9,7 @@ in after the branch merges.
 - **Owner:** project owner
 - **Status:** Draft
 - **Approved:** —
-- **Last updated:** 2026-10-22 by GPT-5 — completed T14; moving to T15
+- **Last updated:** 2026-10-22 by GPT-5 — completed T15; moving to T16
 
 ---
 
@@ -32,7 +32,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| Current | 2026-10-22 | GPT-5 | W-HOST-API | Active | T15 remove listing and request pagination UI | T15 step 1: add failing >100 listing/pending/history rendering assertions and verify no controls or follow-up requests | 2026-10-22 |
+| Current | 2026-10-22 | GPT-5 | W-HOST-API | Active | T16 remove message-history and wallet load-more UI | T16 step 1: add failing 1,001-message and 101-transaction render assertions with no load-more control or follow-up request | 2026-10-22 |
 
 **Remaining**
 
@@ -47,13 +47,14 @@ No change.
 - [x] T12 return complete booking/ticket conversation arrays; 101-row collections, 1,001-message history, legacy parameter equivalence, privacy, Checkstyle, and backend build pass.
 - [x] T13 return the complete newest-first wallet statement; 101-row stable-order/owner-scope test, legacy parameter equivalence, Checkstyle, and backend build pass.
 - [x] T14 replace paged frontend API/provider types with complete arrays; 177 tests, lint, and production build pass; wallet response is shared between navbar and Wallet screen.
+- [x] T15 remove listing/request pagination controls and state; tests render 101 listings, pending rows, and history rows, all 177 frontend tests, lint, and production build pass.
 
 ## 3. Workstreams
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
 | W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Listing route/load failures use a generic page and listings link; validation and mutation errors stay inline (C~18) | guide out of date: W-HOST Host UI pages and Fall Light details |
-| W-HOST-API | Replace Host fixtures with authenticated backend integration | Building | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T14 done: complete-array adapters/providers; 177 tests, lint, build pass; next T15 remove listing/request controls | — |
+| W-HOST-API | Replace Host fixtures with authenticated backend integration | Building | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T15 done: listings and request views render complete collections without paging state or controls; next T16 messages/wallet | — |
 
 ## 4. Architecture
 
@@ -239,3 +240,4 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | 2026-10-22 | Replaced paged booking/ticket conversation summary and history APIs with complete stable-order arrays; retained host/channel scoping, read/post transactions, and after-commit events. Tests cover 101 summaries/messages, a 1,001-message thread, legacy parameter equivalence, privacy; Checkstyle and backend build pass | W-HOST-API | T12 |
 | 2026-10-22 | Replaced the paged wallet statement with a complete newest-first owner-scoped array and stable timestamp/ID ordering; 101-row plus foreign-owner integration coverage, legacy parameter equivalence, Checkstyle, and backend build pass | W-HOST-API | T13 |
 | 2026-10-22 | Replaced frontend page envelopes with complete arrays, removed page/size URL generation, and shared the complete wallet response across navbar and Wallet; 177 frontend tests, lint, and production build pass | W-HOST-API | T14 |
+| 2026-10-22 | Removed listing and request page state, handlers, and controls; 101-row listing/pending/history coverage passes with 177 frontend tests, lint, and production build | W-HOST-API | T15 |

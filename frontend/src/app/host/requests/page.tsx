@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useHostFixtures } from '@/components/host/HostFixtureProvider';
 import { useOptionalHostApi } from '@/components/host/HostApiProvider';
 import { HostPageFrame } from '@/components/host/HostPageFrame';
@@ -10,8 +10,6 @@ import { mapHostBooking, type HostBookingDto } from '@/components/host/hostTypes
 export default function HostRequestsPage() {
   const fixtures = useHostFixtures();
   const api = useOptionalHostApi();
-  const [pendingPage, setPendingPage] = useState(0);
-  const [historyPage, setHistoryPage] = useState(0);
   const pendingKey = 'host:requests:pending';
   const historyKey = 'host:requests:history';
   const loadResource = api?.loadResource;
@@ -20,7 +18,7 @@ export default function HostRequestsPage() {
     if (!loadResource || !fetchRequests) return;
     void loadResource(pendingKey, () => fetchRequests('pending')).catch(() => undefined);
     void loadResource(historyKey, () => fetchRequests('history')).catch(() => undefined);
-  }, [fetchRequests, historyKey, historyPage, loadResource, pendingKey, pendingPage]);
+  }, [fetchRequests, historyKey, loadResource, pendingKey]);
   const pendingResource = api?.getResource<HostBookingDto[]>(pendingKey);
   const historyResource = api?.getResource<HostBookingDto[]>(historyKey);
   const fixture = fixtures.getRequests();
@@ -37,8 +35,6 @@ export default function HostRequestsPage() {
       past: historyResource?.status === 'ready' || historyResource?.status === 'empty' ? historyResource.data.map(mapHostBooking) : [],
     }
     : fixture.data ?? { pending: [], past: [] };
-  const pendingHasMore = false;
-  const historyHasMore = false;
   const refresh = useCallback(() => {
     if (!api || !loadResource || !fetchRequests) return;
     void loadResource(pendingKey, () => fetchRequests('pending')).catch(() => undefined);
@@ -54,14 +50,6 @@ export default function HostRequestsPage() {
     {loading ? <div className="ss-card h-64 animate-pulse bg-[var(--surface-inset)]" /> : error ? <div className="ss-card space-y-3 p-8 text-center"><p>{error}</p><button className="rounded-lg border border-border px-3 py-2 text-sm" onClick={refresh} type="button">Retry</button></div> : <HostRequestsTable
       requests={requests}
       onDecision={api ? (request, approve, message) => decide(request.id, approve, message) : undefined}
-      pendingHasMore={pendingHasMore}
-      historyHasMore={historyHasMore}
-      onNextPending={() => setPendingPage((value) => value + 1)}
-      onPreviousPending={() => setPendingPage((value) => Math.max(0, value - 1))}
-      onNextHistory={() => setHistoryPage((value) => value + 1)}
-      onPreviousHistory={() => setHistoryPage((value) => Math.max(0, value - 1))}
-      pendingPage={pendingPage}
-      historyPage={historyPage}
     />}
   </HostPageFrame>;
 }

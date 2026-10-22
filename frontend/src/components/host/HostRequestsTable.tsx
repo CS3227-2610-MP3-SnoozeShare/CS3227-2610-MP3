@@ -12,8 +12,8 @@ function money(amount: number) {
   return `$${amount.toFixed(2)}`;
 }
 
-type Props = { requests: RequestData; onDecision?: (request: BookingRequest, approve: boolean, message?: string) => Promise<void>; pendingHasMore?: boolean; historyHasMore?: boolean; pendingPage?: number; historyPage?: number; onNextPending?: () => void; onPreviousPending?: () => void; onNextHistory?: () => void; onPreviousHistory?: () => void };
-export function HostRequestsTable({ requests, onDecision, pendingHasMore, historyHasMore, pendingPage = 0, historyPage = 0, onNextPending, onPreviousPending, onNextHistory, onPreviousHistory }: Props) {
+type Props = { requests: RequestData; onDecision?: (request: BookingRequest, approve: boolean, message?: string) => Promise<void> };
+export function HostRequestsTable({ requests, onDecision }: Props) {
   const [decision, setDecision] = useState<Decision>(null);
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -53,13 +53,11 @@ export function HostRequestsTable({ requests, onDecision, pendingHasMore, histor
   return <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-hidden">
     <section aria-label="Pending requests" className="shrink-0">
       {requests.pending.length ? table(requests.pending, true) : <div className="ss-card p-6 text-center text-[var(--text-subtle)]">No pending requests</div>}
-      {onDecision && (pendingPage > 0 || pendingHasMore) && <div className="mt-2 flex justify-between"><button disabled={pendingPage === 0} onClick={onPreviousPending} type="button">Previous pending</button><span>Page {pendingPage + 1}</span><button disabled={!pendingHasMore} onClick={onNextPending} type="button">Next pending</button></div>}
       <p className="mt-2 text-xs text-[var(--text-subtle)]">Net earning = gross − 3% platform fee. Guest rating is their average review score, or &quot;No ratings yet&quot;.</p>
     </section>
     <section aria-label="Past requests" className="flex min-h-0 flex-1 flex-col">
       <h2 className="mb-2 shrink-0 text-sm font-bold uppercase tracking-wide text-[var(--text-subtle)]">PAST REQUESTS</h2>
       {requests.past.length ? table(requests.past) : <div className="ss-card p-6 text-center text-[var(--text-subtle)]">No past requests</div>}
-      {onDecision && (historyPage > 0 || historyHasMore) && <div className="mt-2 flex justify-between"><button disabled={historyPage === 0} onClick={onPreviousHistory} type="button">Previous history</button><span>Page {historyPage + 1}</span><button disabled={!historyHasMore} onClick={onNextHistory} type="button">Next history</button></div>}
     </section>
     {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
     <Modal
