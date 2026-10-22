@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -13,6 +14,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import com.snoozeshare.auth.security.ProtectedRequestPath;
+import com.snoozeshare.service.NotFoundException;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -23,6 +25,50 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiExceptionHandler.class);
     private static final String INTERNAL_MESSAGE = "Something went wrong";
     private static final String VALIDATION_MESSAGE = "Request is not valid";
+
+    @org.springframework.web.bind.annotation.ExceptionHandler(MissingActorException.class)
+    public ResponseEntity<Object> handleMissingActor(MissingActorException exception,
+                                                      WebRequest request) {
+        return respond(HttpStatus.UNAUTHORIZED, "INVALID_TOKEN",
+                "Request cannot be authorized", exception, request, new HttpHeaders());
+    }
+
+    @org.springframework.web.bind.annotation.ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<Object> handleNotFound(NotFoundException exception,
+                                                 WebRequest request) {
+        String message = ownMessage(exception) ? exception.getMessage() : "Not found";
+        return respond(HttpStatus.NOT_FOUND, "NOT_FOUND", message,
+                exception, request, new HttpHeaders());
+    }
+
+    @org.springframework.web.bind.annotation.ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Object> handleIllegalArgument(IllegalArgumentException exception,
+                                                        WebRequest request) {
+        if (ownMessage(exception)) {
+            return respond(HttpStatus.BAD_REQUEST, "INVALID_REQUEST", exception.getMessage(),
+                    exception, request, new HttpHeaders());
+        }
+        return respond(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", VALIDATION_MESSAGE,
+                exception, request, new HttpHeaders());
+    }
+
+    @org.springframework.web.bind.annotation.ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Object> handleIllegalState(IllegalStateException exception,
+                                                     WebRequest request) {
+        if (ownMessage(exception)) {
+            return respond(HttpStatus.CONFLICT, "CONFLICT", exception.getMessage(),
+                    exception, request, new HttpHeaders());
+        }
+        return respond(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR", INTERNAL_MESSAGE,
+                exception, request, new HttpHeaders());
+    }
+
+    @org.springframework.web.bind.annotation.ExceptionHandler(PessimisticLockingFailureException.class)
+    public ResponseEntity<Object> handleLockFailure(
+            PessimisticLockingFailureException exception, WebRequest request) {
+        return respond(HttpStatus.CONFLICT, "CONFLICT",
+                "Another change is in progress. Try again.", exception, request, new HttpHeaders());
+    }
 
     @org.springframework.web.bind.annotation.ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleUnexpected(Exception exception, WebRequest request) {
@@ -59,6 +105,16 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         Exception safe = new Exception(exception.getClass().getName());
         safe.setStackTrace(exception.getStackTrace());
         return safe;
+    }
+
+    private static boolean ownMessage(Throwable exception) {
+        StackTraceElement[] stack = exception.getStackTrace();
+        if (stack.length == 0) {
+            return false;
+        }
+        String owner = stack[0].getClassName();
+        return owner.startsWith("com.snoozeshare.service.")
+                || owner.startsWith("com.snoozeshare.domain.");
     }
 
 }

@@ -116,3 +116,4 @@ No change: Q~1 (audit zone) was answered on 2026-10-22 (C~7); nothing is open.
 | 2026-10-22 | Rebuilt T1 part 3/20: resolve actor UUIDs from authenticated request attributes | W-AGENT | small-commit reconstruction |
 | 2026-10-22 | Rebuilt T1 part 4/20: enforce role rules and request sizes on protected APIs | W-AGENT | small-commit reconstruction |
 | 2026-10-22 | Rebuilt T1 part 5/20: add correlated API errors with sanitized server logs | W-AGENT | small-commit reconstruction |
+| 2026-10-22 | Rebuilt T1 part 6/20: map service failures and lock conflicts to safe API errors | W-AGENT | small-commit reconstruction |
