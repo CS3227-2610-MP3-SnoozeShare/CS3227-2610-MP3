@@ -1,6 +1,6 @@
 # W-AI-HOST Design
 
-- **Status:** In review
+- **Status:** Approved (Xiao-Congchen, 2026-10-23)
 - **Amended 2026-10-23:** Host guidance now uses fixed 50–150-word generation, adds description focus, and places All travellers first; see SD10.
 - **Amended 2026-10-23:** New/Edit forms now gate the AI trigger on seven minimum listing details and explain the disabled state on hover; see F9 and E23.
 - **Risk tier:** High — Host-authored text and listing data cross the backend-to-LLM boundary, and the feature must prevent cross-Host access and fabricated property claims.
