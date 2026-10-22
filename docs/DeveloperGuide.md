@@ -10,7 +10,7 @@ Handover brief for developers taking over this project. It describes **confirmed
 is updated at checkpoints, so it can lag behind the code. For current status, work in flight, and
 what to build next, read [`PROJECT_STATE.md`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/PROJECT_STATE.md) — that is the source of truth.
 
-**Last updated:** 2026-10-22 — covers W1 to W16, the MP3-0 fixes, the W-INFRA web skeletons and dev deployment, the W-AUTH web authentication, and the W-DOMAIN ported domain layer; the desktop sections were checked against the built app on 2026-10-19, the web sections against `backend/`, `frontend/`, `render.yaml` and the live health check on 2026-10-20, the W-AUTH parts against `backend/src/main/java/com/snoozeshare/auth`, `frontend/src` and their tests on 2026-10-21, and the W-DOMAIN parts against `backend/src/main/java/com/snoozeshare/domain`, `repository`, `service`, `api` and their tests on 2026-10-22
+**Last updated:** 2026-10-22 — covers W1 to W16, the MP3-0 fixes, the W-INFRA web skeletons and dev deployment, the W-AUTH web authentication, the W-DOMAIN ported domain layer, and the W-AI-GATEWAY LLM gateway; the desktop sections were checked against the built app on 2026-10-19, the web sections against `backend/`, `frontend/`, `render.yaml` and the live health check on 2026-10-20, the W-AUTH parts against `backend/src/main/java/com/snoozeshare/auth`, `frontend/src` and their tests on 2026-10-21, the W-DOMAIN parts against `backend/src/main/java/com/snoozeshare/domain`, `repository`, `service`, `api` and their tests on 2026-10-22, and the W-AI-GATEWAY parts against `backend/src/main/java/com/snoozeshare/ai`, its tests and the live SoCLaaS checks on 2026-10-22
 
 ## Contents
 
@@ -35,7 +35,7 @@ database; there is no server.
 
 The project is being re-platformed as a web app (C76). The repository is a mono-repo of three
 independent builds: `desktop/` (this guide's JavaFX app), `backend/` (a Spring Boot API on PostgreSQL) and
-`frontend/` (a Next.js app). The web side has Firebase authentication with role authorization ([4.18](#418-authentication-and-role-authorization-backendauth-frontend-providers)), the full domain model, repositories and core services ported to Spring Data JPA ([4.19](#419-domain-model-repositories-and-services-backend-domain-layer)), CI and a live dev deployment. No REST controllers expose the domain services yet; the role pages are empty landing shells (see [3.2](#32-web-platform-and-deployment)).
+`frontend/` (a Next.js app). The web side has Firebase authentication with role authorization ([4.18](#418-authentication-and-role-authorization-backendauth-frontend-providers)), the full domain model, repositories and core services ported to Spring Data JPA ([4.19](#419-domain-model-repositories-and-services-backend-domain-layer)), a shared SoCLaaS LLM gateway for the AI features, off by default ([4.20](#420-ai-gateway-backendai)), CI and a live dev deployment. No REST controllers expose the domain services yet; the role pages are empty landing shells (see [3.2](#32-web-platform-and-deployment)).
 
 **Target user:** the three roles the app serves — Guest (renter), Host (homeowner) and Support
 Agent (platform admin). This guide documents the role shells, Host operations, Support Agent
@@ -61,6 +61,7 @@ dispute-resolution tooling, messaging, wallets and the platform audit trail.
 | — (W14) | **Unified Ledger:** every wallet movement is a single `audit_log` money row (with the wallet's running balance); the System user gets a real role and wallet and receives the platform's 3% fee | [4.16](#416-unified-ledger-ledgerwriter) |
 | — (W-AUTH) | **Web authentication:** Firebase sign-up and sign-in, registration with Host and Agent codes, role-based API authorization, and client-side route guards | [4.18](#418-authentication-and-role-authorization-backendauth-frontend-providers) |
 | — (W-DOMAIN) | **Web domain layer:** 12 JPA entities, 12 Spring Data repositories, 15 service implementations, 16 request DTOs and 21 response DTOs ported from the desktop app to Spring Boot with Spring Data JPA on PostgreSQL | [4.19](#419-domain-model-repositories-and-services-backend-domain-layer) |
+| — (W-AI-GATEWAY) | **LLM gateway:** one backend entry point, `LlmGateway.run`, for every role's AI feature, with input and output guardrails, a shared rate and cost budget, per-user and daily caps, a metadata-only audit row, mock mode and fallbacks; off by default, no role feature yet | [4.20](#420-ai-gateway-backendai) |
 
 **Value proposition:** a support agent can take a dispute ticket, read both parties' evidence and
 chat, and settle the booking's held escrow between guest and host in one atomic, audited action.
@@ -161,6 +162,14 @@ Then put the six `NEXT_PUBLIC_FIREBASE_*` values from the Firebase console, plus
 gitignored `frontend/.env.local` and run `npm run dev`. With auth on, the backend fails at startup if the project ID, either
 code or the credentials are missing.
 
+**Run the AI gateway locally without SoCLaaS.** The gateway is off by default. To switch it on in mock mode (each feature answers from its own `mockResponse`; no key and no network), set these before `bootRun`. No role feature uses the gateway yet, so the settings take effect when one registers an `AiFeature` ([4.20](#420-ai-gateway-backendai)):
+
+```powershell
+$env:SNOOZESHARE_AI_ENABLED = "true"
+$env:SNOOZESHARE_AI_MOCK = "true"
+.\gradlew bootRun
+```
+
 **Continuous integration.** Two workflows live in `.github/workflows/`. `ci.yml` has two jobs, `checkstyle` and `build`, and each covers all three components (steps are named `desktop:`, `backend:` and `frontend:`). `checkstyle` runs on every push to any branch: Checkstyle for `desktop/` and `backend/`, and `npm run lint` for `frontend/`. `build` runs on every pull request and on every push to `development` and `main`: the desktop build (under `xvfb-run` so the JavaFX suites have a display), the backend build (its tests use Testcontainers on the runner's Docker) and the frontend `npm test` and `npm run build`. A failed run uploads the `checkstyle-reports` and `test-reports` artifacts. The frontend production build also needs the six public `NEXT_PUBLIC_FIREBASE_*` values; CI reads them from repository variables and falls back to dummy values, so builds without those variables (forks, Dependabot) still pass. `jekyll-gh-pages.yml` builds `docs/` with Jekyll and publishes it to GitHub
 Pages on every push to `main` (Settings > Pages > Source is GitHub Actions). Making the `build` check
 required before merge is a repository branch-protection setting, not something the workflows enforce.
@@ -181,6 +190,10 @@ required before merge is a repository branch-protection setting, not something t
 | `GOOGLE_APPLICATION_CREDENTIALS` | Path to the Firebase Admin service-account JSON (Application Default Credentials); keep it out of git | Firebase console > Project settings > Service accounts |
 | `SNOOZESHARE_HOST_REGISTRATION_CODE`, `SNOOZESHARE_AGENT_REGISTRATION_CODE` | The two secrets a person must enter to register as a Host or an Agent; required when auth is on; use long random values | Chosen by the operator; set on Render |
 | `SNOOZESHARE_TRUST_FORWARD_HEADERS` | `true` makes the backend take the client address for rate limits from `CF-Connecting-IP` (Render sits behind Cloudflare); `false` uses the direct peer. `dev` defaults to `false`; `prod` requires it | Render |
+| `SNOOZESHARE_AI_ENABLED` | Turns the LLM gateway on. Defaults to `false` in `dev`; in `prod` it has no default and startup fails naming it when unset (`render.yaml` sets `"false"`) | Render |
+| `SOCLAAS_BASE_URL`, `SOCLAAS_API_KEY` | The NUS SoCLaaS base URL (ending `/v1`, `https` in `prod`) and your environment's own key. Needed only when the gateway is enabled and not in mock mode. Development and production use separate keys; never commit one | SoCLaaS portal (`soclaas-portal.comp.nus.edu.sg`) and the integration guide |
+| `SNOOZESHARE_AI_MOCK` | `true` answers AI calls from each feature's mock response instead of calling SoCLaaS; the `prod` profile rejects it | Local only |
+| `SNOOZESHARE_AI_MODEL_FAST`, `_STANDARD`, `_STRONG` and other `snoozeshare.ai.*` keys (for example `SNOOZESHARE_AI_MAX_RPM`) | Optional overrides of the model names and limits listed in [4.20](#420-ai-gateway-backendai) | `GET /v1/models` for model ids |
 | `NEXT_PUBLIC_FIREBASE_API_KEY`, `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`, `NEXT_PUBLIC_FIREBASE_PROJECT_ID`, `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`, `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`, `NEXT_PUBLIC_FIREBASE_APP_ID` | The public Firebase web-app configuration; all six are required for sign-in and for a production build | Firebase console > Project settings > Your apps |
 | `SNOOZESHARE_DB_URL` | Optional JDBC URL that points the app at a SQLite file, for example `jdbc:sqlite:build/acceptance.db`. When unset or blank the app opens `desktop/db/snoozeshare-mock.db` if that file exists in the working directory (it does when you run from the project root); only if the file is missing does it fall back to an empty in-memory database, which nothing survives a restart. | Build it from a copy of the mock DB (below). No secret is involved. |
 
@@ -389,7 +402,7 @@ change back. See [4.14](#414-audit-trail).
 
 ### 3.2 Web platform and deployment
 
-The web side has authentication and the full ported domain layer: a Spring Boot API with Firebase auth, the domain model as JPA entities, Spring Data repositories, and 15 service implementations; a Next.js app with sign-in, registration and empty role landing pages; and a hosted dev environment that tracks the `development` branch. No REST controllers expose the domain services yet — the role pages are empty landing shells.
+The web side has authentication and the full ported domain layer: a Spring Boot API with Firebase auth, the domain model as JPA entities, Spring Data repositories, and 15 service implementations; a Next.js app with sign-in, registration and empty role landing pages; a shared LLM gateway for the AI features that is off by default, and a hosted dev environment that tracks the `development` branch. No REST controllers expose the domain services yet — the role pages are empty landing shells.
 
 ```mermaid
 flowchart LR
@@ -404,6 +417,7 @@ flowchart LR
     N[("Neon: branch dev")]
   end
   FB["Firebase Authentication (Email/Password)"]
+  SC["NUS SoCLaaS LLM (OpenAI-compatible API)"]
   FE1 -->|"GET /actuator/health"| BE1
   BE1 -->|"JDBC"| PG1
   V -->|"GET /actuator/health (one allowed origin)"| R
@@ -411,6 +425,7 @@ flowchart LR
   V -->|"Bearer ID token: /api/auth/*"| R
   R -->|"verify ID token (Firebase Admin)"| FB
   R -->|"JDBC, sslmode=require"| N
+  R -->|"LlmGateway: chat/completions, Bearer key (off by default)"| SC
 ```
 
 1. The browser loads the page from `frontend/` (locally on port 3000, in the hosted environment from Vercel).
@@ -421,6 +436,7 @@ flowchart LR
 6. An authenticated request starts in the browser: `authenticatedFetch` (`src/lib/api.ts`) takes the signed-in user's Firebase ID token and sends it as `Authorization: Bearer <token>` (the sign-up and register flow is in [4.18](#418-authentication-and-role-authorization-backendauth-frontend-providers)).
 7. `FirebaseAuthFilter` verifies the token with Firebase Admin, including a revocation check and the project ID; a missing or invalid token gets `401 INVALID_TOKEN`, and an unreachable Firebase `503 AUTH_PROVIDER_UNAVAILABLE`.
 8. For `/api/guest/**`, `/api/host/**` and `/api/agent/**`, `RoleAuthorizationFilter` loads the `users` row by Firebase UID and compares its role with the URL namespace; a mismatch gets `403 ROLE_MISMATCH`. The controller then runs.
+9. When a role feature calls the AI gateway (none does yet), `LlmGateway.run` sanitizes the input, checks the per-user and daily limits, sends one request to SoCLaaS through the global scheduler, validates the reply and writes one audit row, as described in [4.20](#420-ai-gateway-backendai).
 
 The hosted backend runs from `backend/Dockerfile` on Render's free plan, so it sleeps when idle and the first
 request after a pause is slow. `docs/runbooks/dev-environment.md` holds the deployment order, variables and
@@ -438,6 +454,14 @@ evidence.
 | The `prod` profile fails startup unless security, Firebase, both codes and the Admin credentials are configured | An unset toggle would otherwise serve a permit-all production API | | C95 |
 | The client address for rate limits is `CF-Connecting-IP` when forwarded headers are trusted, and `X-Forwarded-For` is never read | Render's proxy appends to a client-supplied `X-Forwarded-For`, so its first entry is forgeable | The first `X-Forwarded-For` entry | C97 |
 | Spring Data JPA for persistence; entities use `id` as the PK column on every table | Cleaner Spring integration than ported JDBC; column naming follows W-AUTH's convention | Ported JDBC DAOs (C5 desktop) | C99 |
+| One generic LLM gateway; each role registers its own `AiFeature` (prompt, output type, caps) | A role feature should not need a gateway change, and Host's feature is undecided | A gateway that owns every feature's prompt | C103 |
+| The audit row stores metadata only, never prompt or reply text | Avoids copying personal data into `audit_log` | Truncated sanitized text | C104 |
+| A custom scheduler and circuit breaker, in package `com.snoozeshare.ai` | One shared key needs a global queue with priorities, which a per-user limiter does not give; no new dependency | Bucket4j; `service/ai` | C105 |
+| Daily caps count `AI_CALL` audit rows plus in-flight reservations, the audit is fail-closed, and no gateway call runs inside a transaction | Caps survive restarts and bursts; unaudited output must not reach a user; a 45 s call must not hold a connection | In-memory counters | C106 |
+| Replies with links, HTML or Markdown images are rejected by default; the base URL must be `https` and redirects are never followed; a budget 429 blocks calls for 15 minutes, then re-probes | Exfiltration through rendered links, the key leaving for another host, and a forged "quota" phrase causing a day-long outage | Blocking until 00:00 UTC | C107 |
+| Priority 0 (staff-facing features) may use the last 5% of the global daily cap | Guest registration needs no code, so many accounts could otherwise starve Host and Agent features; the key is not shared with any other system, so a large reserve is not needed | A 20% reserve; no reserve | C109 |
+| `max-rpm` defaults to 25 | The development key allows 30 requests a minute | 55 | C110 |
+| `reasoning-effort` defaults to `none` | `qwen3.5:9b` and `gemma4:26b` spend `max_tokens` on reasoning and return empty content on small limits; all three models accept `none` | Other, costlier models; reasoning on with large `maxTokens` | C111 |
 
 ---
 
@@ -1475,7 +1499,7 @@ sequenceDiagram
 **Depends on.** PostgreSQL 17 through Spring JDBC/JPA and Flyway (`db/migration/V001__baseline.sql`, a comment-only baseline; `V002__auth_users_wallets.sql` belongs to [4.18](#418-authentication-and-role-authorization-backendauth-frontend-providers); `V003`–`V005` belong to [4.19](#419-domain-model-repositories-and-services-backend-domain-layer)); the frontend depends on the backend URL.
 
 **Invariants.**
-- The `prod` profile has no defaults for the database or the allowed origin; `ProdEnvironmentGuard` fails startup and names any of `SPRING_DATASOURCE_URL`, `_USERNAME`, `_PASSWORD` or `SNOOZESHARE_CORS_ALLOWED_ORIGIN` that is missing, and fails unless `snoozeshare.security.enabled` and `snoozeshare.firebase.enabled` are true ([4.18](#418-authentication-and-role-authorization-backendauth-frontend-providers)). With no profile set the `dev` profile applies.
+- The `prod` profile has no defaults for the database or the allowed origin; `ProdEnvironmentGuard` fails startup and names any of `SPRING_DATASOURCE_URL`, `_USERNAME`, `_PASSWORD` or `SNOOZESHARE_CORS_ALLOWED_ORIGIN` that is missing, and fails unless `snoozeshare.security.enabled` and `snoozeshare.firebase.enabled` are true ([4.18](#418-authentication-and-role-authorization-backendauth-frontend-providers)). It also fails unless `snoozeshare.ai.enabled` is set (naming `SNOOZESHARE_AI_ENABLED`), rejects `snoozeshare.ai.mock=true`, and, when the AI gateway is enabled, requires a non-blank `https` base URL and key ([4.20](#420-ai-gateway-backendai)). With no profile set the `dev` profile applies.
 - The allowed origin is one `http(s)` origin with no wildcard and no trailing slash, or the application does not start.
 - `src/lib/env.ts` is the only reader of `NEXT_PUBLIC_API_BASE_URL`, and a production build fails without it.
 - The health body must stay exactly `{"status":"UP"}`.
@@ -1636,7 +1660,7 @@ Left out for clarity: the `ticket_categories` lookup table (no FK from `tickets`
 
 - JPA is configured with `ddl-auto: validate` (Hibernate checks the entity mappings against the Flyway-managed schema at startup) and `open-in-view: false` (no lazy loading outside a transaction).
 - Every entity uses `id` as the PK column name, matching W-AUTH's `users` and `wallets` convention (C99). The getter is `getId()`, not an entity-specific name.
-- All service implementations and JDBC repositories are annotated `@ConditionalOnBean(PropertyRepository.class)` so they do not load in test contexts that have no database (e.g. `ServerPortDefaultTest`).
+- All service implementations and JDBC repositories carry `@ConditionalOnDatabase` (`config/ConditionalOnDatabase`), which matches unless `spring.autoconfigure.exclude` lists `DataSourceAutoConfiguration`, so test contexts that have no database (e.g. `ServerPortDefaultTest`) start without them. `DatabaseBeansTest` checks that they exist in the running application.
 - Service implementations use entity-style getters (`.getField()`) and mutation via setters + `repository.save()`, not record accessors or new-record construction.
 - `BookingServiceImpl.submitRequest` runs at `Isolation.SERIALIZABLE` to prevent double-booking the same dates.
 - `WalletRepository.findByIdForUpdate` uses `@Lock(LockModeType.PESSIMISTIC_WRITE)` so concurrent money operations on the same wallet are serialised.
@@ -1647,7 +1671,170 @@ Left out for clarity: the `ticket_categories` lookup table (no FK from `tickets`
 - `AuthorizationService` checks that the acting user exists, is `ACTIVE`, and holds the required role; services delegate to it instead of repeating the check.
 - Request DTOs use Jakarta Bean Validation (`@NotNull`, `@NotBlank`, `@Positive`, `@DecimalMin`, `@Size`) and reject unknown JSON fields. Response DTOs expose a `static from(entity)` factory.
 
-**Deviations.** D45 (W-AUTH's V002 used `id` as the PK for `users` and `wallets` instead of entity-specific names, so the plan's V002 migration was restructured as V003 ALTER + CREATE, and all entity PK fields were renamed to `id`). D46 (the Flyway version numbers shifted: domain tables to V003, seed to V004, constraint to V005).
+**Deviations.** D45 (W-AUTH's V002 used `id` as the PK for `users` and `wallets` instead of entity-specific names, so the plan's V002 migration was restructured as V003 ALTER + CREATE, and all entity PK fields were renamed to `id`). D46 (the Flyway version numbers shifted: domain tables to V003, seed to V004, constraint to V005). D51 (these classes first carried `@ConditionalOnBean(PropertyRepository.class)`, which is evaluated while Spring scans components, before Spring Data registers its repositories, so it never matched and the services and JDBC repositories were absent from the running application until W-AI-GATEWAY replaced it; [4.20](#420-ai-gateway-backendai)).
+
+### 4.20 AI gateway (`backend/ai/`)
+
+**Purpose.** One backend entry point, `LlmGateway.run`, through which every role's AI feature calls the NUS SoCLaaS LLM, with guardrails, a shared request budget and an audit row. It adds no endpoint, table or migration, and contains no role feature: each role registers its own `AiFeature` and owns its prompt, output type and endpoint.
+
+**Packages.** All under `backend/src/main/java/com/snoozeshare/ai/`.
+
+| Path | Contents |
+|---|---|
+| `ai/` | `LlmGateway`, `AiFeature`, `AiFeatureRegistry`, `LlmCall`, `LlmResult`, `LlmErrorCode`, `OutputSpec`, `Turn`, `TurnRole`, `AuditContext`, `ModelTier` |
+| `ai/config/` | `LlmProperties` (the validated `snoozeshare.ai.*` settings), `AiConfig` (beans that need no database), `ModelCheck` (startup model check) |
+| `ai/guard/` | `InputSanitizer`, `PiiRedactor`, `InjectionDetector`, `PromptBuilder`, `OutputValidator` — pure classes: no Spring, no I/O, no clock |
+| `ai/limit/` | `SchedulerCore` and `LlmScheduler` (global rate, concurrency and priority queue), `UserThrottle`, `CircuitBreaker`, `BudgetBlock`, `Backoff`, and the seams `Sleeper` and `Jitter` |
+| `ai/client/` | `SoclaasClient` (one HTTP attempt) and `AttemptResult` |
+| `ai/audit/` | `AiAuditWriter` (audit rows, daily-cap counts and reservations) |
+| `config/ConditionalOnDatabase.java` | Registers a bean only when the application has a database ([4.19](#419-domain-model-repositories-and-services-backend-domain-layer)) |
+| `domain/enums/AuditAction.java` | Gains `AI_CALL` and `AI_CALL_REJECTED` |
+
+**API.** A role service registers an `AiFeature<T>` bean and calls the gateway:
+
+```java
+LlmResult<T> r = gateway.run(feature, new LlmCall(userId, role, turns, trustedContext, untrustedContext, auditContext));
+```
+
+| Type | Contents |
+|---|---|
+| `AiFeature<T>` | `id` (`^[a-z]+\.[a-zA-Z]+$`, at most 40 characters, unique), `allowedRoles` (a non-empty subset of GUEST, HOST, AGENT), `tier` (`FAST`, `STANDARD`, `STRONG`), `systemPrompt`, `maxTokens` (1–4,000), `temperature` (0.0–1.0), `priority` (0 for staff-facing features, up to 2), `perUserPerMinute`, `maxInputChars` (default 2,000), `maxTurns` (default 10), `output` (`OutputSpec.text(maxChars, allowLinks)` or `OutputSpec.json(RecordClass, allowLinks)`), `fallback` and `mockResponse` |
+| `LlmCall` | `userId`, `role`, `turns` (USER or ASSISTANT `Turn`s, the last one USER), `trustedContext` (server-built text only), `untrustedContext` (user- or host-authored text), `audit` (`AuditContext` with optional ticket, booking and subject ids) |
+| `LlmResult<T>` | `ok`, `value` (the validated output, or the feature's fallback), `code`, `flagged` (the input matched an injection pattern), `truncated`, `callId` |
+| `LlmErrorCode` | `DISABLED`, `ROLE_DENIED`, `USER_THROTTLED`, `BLOCKED_INPUT`, `DAILY_CAP`, `BUDGET_EXHAUSTED`, `CIRCUIT_OPEN`, `QUEUE_FULL`, `QUEUE_TIMEOUT`, `RATE_LIMITED`, `SERVER`, `TIMEOUT`, `NETWORK`, `BAD_REQUEST`, `AUTH`, `FORBIDDEN`, `INVALID_OUTPUT`, `REFUSED`, `AUDIT_FAILED` |
+
+`run` never throws for an expected failure: it returns the feature's fallback with a code. It throws `IllegalArgumentException` for a malformed call or feature and `IllegalStateException` when a database transaction is active. A bad `AiFeature` bean, or two with the same id, fails startup naming the feature id and the field.
+
+**Pipeline.** `run` applies a fixed order of checks, and the first that fails decides the code.
+
+```mermaid
+flowchart TD
+  A["LlmGateway.run(feature, call)"] --> B{"shape, no active transaction"}
+  B -- "malformed" --> X["IllegalArgumentException / IllegalStateException"]
+  B --> C{"enabled, role allowed, UserThrottle"}
+  C -- "no" --> F["fallback with a code, no audit row"]
+  C --> E["PromptBuilder: sanitize and assemble"]
+  E -- "last turn blank" --> R["AI_CALL_REJECTED row"]
+  E --> G{"AiAuditWriter.reserve: daily caps"}
+  G -- "over a cap" --> R
+  G --> H{"mock mode?"}
+  H -- "yes" --> K["mockResponse"]
+  H -- "no" --> I["attempt loop: BudgetBlock, CircuitBreaker, LlmScheduler, SoclaasClient"]
+  K --> J["OutputValidator"]
+  I --> J
+  J --> L["AiAuditWriter.write, release the reservation"]
+  R --> M["LlmResult"]
+  L --> M
+  F --> M
+```
+
+1. `run` rejects a malformed `LlmCall` or `AiFeature` and any call made inside a transaction (a call can take 45 s and must not hold a connection).
+2. A disabled gateway, a role outside `allowedRoles`, or an exhausted per-user minute or in-flight limit returns the fallback with `DISABLED`, `ROLE_DENIED` or `USER_THROTTLED`. These three write no row.
+3. `PromptBuilder` sanitizes every turn and the contexts, sets `flagged` and `truncated`, and assembles the messages. A last turn that is empty after sanitizing returns `BLOCKED_INPUT` with a rejected row.
+4. `AiAuditWriter.reserve` counts today's (UTC) `AI_CALL` rows plus in-flight reservations against the per-user and global caps; over a cap returns `DAILY_CAP` with a rejected row, and a failed count returns `AUDIT_FAILED`.
+5. Mock mode answers from the feature's `mockResponse`; otherwise the attempt loop runs (next diagram).
+6. `OutputValidator` checks the reply. `AiAuditWriter.write` then writes one row (`AI_CALL` when a request was sent or in mock mode, otherwise `AI_CALL_REJECTED`) and the reservation is released. If the row of an otherwise good result cannot be written, the result is `AUDIT_FAILED` with the fallback.
+
+**One call, with a retry.**
+
+```mermaid
+sequenceDiagram
+  participant S as Role service
+  participant G as LlmGateway
+  participant A as AiAuditWriter
+  participant Q as LlmScheduler
+  participant C as SoclaasClient
+  participant U as SoCLaaS
+  participant V as OutputValidator
+  S->>G: run(feature, call)
+  G->>A: reserve(userId, priority)
+  loop up to max-retries + 1 attempts
+    G->>G: BudgetBlock.tryAdmit, CircuitBreaker.tryAdmit
+    G->>Q: acquire(priority, arrival, maxWait)
+    Q-->>G: Permit
+    G->>C: attempt(request, timeout)
+    C->>U: POST /chat/completions
+    U-->>C: 503, then 200 on the retry
+    C-->>G: Failure(SERVER), then Success
+    G->>G: Backoff.delayMs, Sleeper.sleep
+  end
+  G->>V: validate(content, finishReason, output)
+  V-->>G: Outcome
+  G->>A: write(callId, ...), release
+  G-->>S: LlmResult
+```
+
+1. The gateway reserves one call against the daily caps before anything is sent.
+2. Every attempt, retries included, first asks the budget block and the circuit breaker; a rejection ends the loop with `BUDGET_EXHAUSTED` or `CIRCUIT_OPEN` (or the last failure's code if a request was already sent).
+3. The attempt takes a permit from the one global scheduler. Priority 0 jobs run first and may use every concurrency slot; other priorities may use all but one.
+4. `SoclaasClient.attempt` sends one request and classifies the response. `RATE_LIMITED`, `SERVER`, `TIMEOUT` and `NETWORK` are retried after a backoff (500 ms doubling, at most 8 s, jittered; the `Retry-After` value when present, at most 10 s); everything else ends the loop. The whole call stops at `deadline-ms`.
+5. After the loop the reply is validated and audited as above.
+
+**Defaults** (all overridable through `snoozeshare.ai.*`; an out-of-range value fails startup naming the key):
+
+| Setting | Default |
+|---|---|
+| `max-rpm` / `max-concurrent` / `max-queue` | 25 / 4 / 20 |
+| `queue-wait-ms` / `request-timeout-ms` / `deadline-ms` | 10,000 / 30,000 / 45,000 |
+| `max-retries` | 2 |
+| `breaker-failures` / `breaker-open-ms` | 5 (from at least 3 different users) / 30,000 |
+| `budget-block-ms` | 900,000 (15 minutes, never past 00:00 UTC) |
+| `per-user-max-in-flight` | 2 |
+| `daily-cap-per-user` / `global-daily-cap` | 200 / 3,000 per UTC day |
+| `priority-zero-reserve-percent` | 5 (the share of the global cap only priority 0 calls may use) |
+| `max-prompt-chars` | 40,000 |
+| `response-format-json` / `reasoning-effort` | `false` / `none` |
+| `model-fast` / `model-standard` / `model-strong` | `llama3.1:8b` / `qwen3.5:9b` / `gemma4:26b` |
+
+**Security measures.**
+
+- **Key.** The key comes only from the environment (`SOCLAAS_API_KEY`), development and production use separate keys, and it never appears in logs, errors, results, request bodies or the audit log. `LlmProperties.toString` prints it as `***`; `SecretScanTest` fails the build if a key-shaped string is committed; `AiLogLeakTest` checks the logs across failure scenarios.
+- **Transport.** The base URL must be `https` (loopback `http` is allowed outside `prod`) and redirects are never followed, so the key cannot be sent to another host. The whole response is read within the attempt timeout and capped at 262,144 bytes.
+- **Input.** Text is Unicode-normalised, control and format characters are stripped, card numbers, NRIC/FIN numbers, Singapore phone numbers and e-mail addresses are redacted, prompt delimiter tags are removed, and the result is wrapped in `<user_input>` and `<untrusted_data>` tags under a fixed security suffix. Phrases such as "ignore the previous instructions" set `flagged`; the role code decides what to do.
+- **Output.** A reply is rejected as `INVALID_OUTPUT` if it contains a link (unless the feature sets `allowLinks`), HTML, a Markdown image, key-shaped text or a leftover prompt tag, if the finish reason is not `stop`, or if it fails the length or JSON-schema check. JSON strings are checked after parsing, so escaped tricks do not pass. A reply that is only `{"refusal":true}` returns `REFUSED`.
+- **Abuse and cost.** Per-user minute and in-flight limits, daily caps counted from `audit_log` (so they survive a restart), a priority-0 share reserved for staff-facing features, and a circuit breaker that needs failures from three different users before it opens.
+- **Audit.** One metadata-only row per call (feature, model, tokens, latency, attempts, `flagged`, `truncated`, a hash of the prompt). No prompt or reply text is stored. The audit is fail-closed: an unwritable row withholds the answer.
+
+**Configuration.**
+
+| Variable | Notes |
+|---|---|
+| `SNOOZESHARE_AI_ENABLED` | Required in `prod` (no default); `render.yaml` sets it to `"false"`. In `dev` it defaults to `false` |
+| `SOCLAAS_BASE_URL`, `SOCLAAS_API_KEY` | Required only when enabled; the base URL ends in `/v1` |
+| `SNOOZESHARE_AI_MOCK` | Local only: answer from each feature's `mockResponse`; `prod` rejects `true` |
+| `SNOOZESHARE_AI_MODEL_FAST`, `_STANDARD`, `_STRONG` and other `snoozeshare.ai.*` keys | Optional overrides, for example `SNOOZESHARE_AI_MAX_RPM` |
+
+**Observed upstream behaviour** (T8 live checks, 2026-10-22, recorded in `docs/runbooks/dev-environment.md` § Evidence):
+
+| Item | Observed |
+|---|---|
+| Models | `llama3.1:8b`, `qwen3.5:9b` and `gemma4:26b` are offered as chat models to the development key |
+| `response_format` `json_object` | Accepted (HTTP 200) by all three |
+| `reasoning_effort` `none` | Accepted by all three; turns reasoning off on `qwen3.5:9b` and `gemma4:26b` |
+| `reasoning_effort` `low` | `llama3.1:8b` returns HTTP 400 ("does not support thinking"); the other two accept it but still reason |
+| Reasoning models without the option | `qwen3.5:9b` and `gemma4:26b` spend `max_tokens` on reasoning first, so a small limit returns empty `content` with `finish_reason` `length`; a one-word answer took 135 tokens on `qwen3.5:9b` |
+| Rate limit | The development key allows 30 requests a minute (hence the `max-rpm` default of 25). A burst of 100 requests produced no 429, so `Retry-After` and the budget-429 wording are unobserved |
+| Reachability | SoCLaaS is reachable from the Render dev service (confirmed by the owner) |
+
+**Rules for role code** (also in `docs/runbooks/dev-environment.md`):
+
+1. Take `userId` and `role` from the authorized principal, never from a request body (C79).
+2. Call `run` outside any transaction.
+3. Build ASSISTANT turns only from server-stored history; put only server-built text in `trustedContext`; put user- or host-authored text in `untrustedContext` or USER turns.
+4. Act on `flagged` and `truncated`.
+5. Render `value` as plain text, through a response DTO (C73); never as HTML or Markdown.
+6. Treat a degraded result as final: do not loop on it.
+
+**Depends on.** SoCLaaS `POST {base-url}/chat/completions` (and `GET {base-url}/models` once at startup, by `ModelCheck`) through one shared `java.net.http.HttpClient` and Jackson; `AuditService` and `AuditLogRepository` for the audit rows and cap counts. No new library. With the gateway disabled, or SoCLaaS unreachable, the backend and its health endpoint are unaffected.
+
+**Invariants.**
+
+- Nothing outside `com.snoozeshare.ai` imports `ai.config`, `ai.guard`, `ai.limit`, `ai.client` or `ai.audit`, and nothing outside `ai/client` uses `java.net.http` or the text `chat/completions` (`AiBoundaryTest`).
+- Daily boundaries use UTC; waiting and randomness go through `Sleeper` and `Jitter`, so tests need no real sleep.
+- Limiter, breaker and budget-block state is process-local and lost on restart (C69).
+- `LlmGateway`, `AiAuditWriter` and `ModelCheck` carry `@ConditionalOnDatabase`, so a datasource-free context starts without a gateway bean (`AiDatasourceFreeContextTest`).
+
+**Deviations.** D47–D56 (W-AI-GATEWAY). The ones that matter to a reader: D48 (output validation is stricter than the spec in three places), D51 (the `@ConditionalOnBean` registration bug found and fixed here, [4.19](#419-domain-model-repositories-and-services-backend-domain-layer)), D52 (`ModelCheck` makes its own executor, because any `Executor` bean would switch off Spring Boot's task executor) and D55 (the code-review fixes). Residual limits are listed in [Known Limitations](#known-limitations).
 
 ---
 
@@ -1729,6 +1916,10 @@ they exist. It describes current behavior, including deliberate deferrals and co
 - **NFR10** The backend auth tests use a token-verifier double and the frontend tests mock the Firebase client, so no test calls Firebase.
 - **NFR11** Repeated or concurrent registration for one UID leaves at most one profile and one required wallet.
 - **NFR12** The backend and frontend tests cover code-validation ordering, no sign-up on an invalid code, valid-code continuation, rate limiting and a modified client skipping the pre-check.
+- **NFR13** The SoCLaaS key comes only from the environment and never appears in committed files, logs, error messages, results, request bodies or the audit log.
+- **NFR14** An AI call is bounded: at most `deadline-ms` (45 s by default) plus its database calls, with the whole response read within the attempt timeout.
+- **NFR15** The AI audit row stores metadata only (feature, model, tokens, latency, attempts, flags, prompt hash); no prompt or reply text.
+- **NFR16** The backend and its health endpoint are unaffected when the AI gateway is disabled or SoCLaaS is unreachable, and no test contacts SoCLaaS.
 
 ### Known Limitations
 
@@ -1743,6 +1934,11 @@ they exist. It describes current behavior, including deliberate deferrals and co
 - **Host and Agent codes are reusable configuration values** — rotating one means changing the deployment setting.
 - **Web route guards are client-side** — the backend filters are the authority.
 - **Each API request checks Firebase token revocation** — request latency and availability depend on Firebase.
+- **AI limiter, breaker and budget-block state is process-local** — it is lost on restart, and a Render redeploy briefly runs two instances on one shared key (C69).
+- **Many accounts can still use up the shared AI quota** — guest registration needs no code (C87), so enough accounts can exhaust the non-reserved 95% of the global daily cap and the queue, and a coordinated group can open the circuit breaker (it needs failures from three different users). The per-user and global daily caps bound the damage.
+- **Steered model text can pass output validation** — prose that matches no leak or link pattern is accepted, and a bare-domain link (no scheme) is not detected; role features keep AI output a suggestion the user confirms and render it as plain text (C80).
+- **A daily AI cap counts calls, not upstream requests** — the worst case is `global-daily-cap × (max-retries + 1)` requests a day. While audit writes fail, sent calls are counted in memory only until 00:00 UTC.
+- **Reasoning is one global setting** — `reasoning-effort` (default `none`) applies to every feature and tier; a feature that needs reasoning needs a gateway change. The 429 behaviour of SoCLaaS (`Retry-After`, budget wording) is unobserved.
 - **The role pages are empty landing shells** — the domain model and services are ported ([4.19](#419-domain-model-repositories-and-services-backend-domain-layer)) but no REST controllers expose them yet; the role workstreams (W-GUEST, W-HOST, W-AGENT) will add the endpoints and pages.
 - **The hosted dev backend sleeps when idle** — Render's free plan stops the service after a pause; the first request is slow and the page shows `Backend: unreachable` until `Re-check` (C85; `PROJECT_STATE.md` § Known Gaps).
 - **Vercel deploys from `development`** — its Production Branch stays `development` until the production deployment work re-points it at `main` (`PROJECT_STATE.md` § Known Gaps).
@@ -1767,7 +1963,7 @@ they exist. It describes current behavior, including deliberate deferrals and co
 
 - **CF-Connecting-IP:** the request header Cloudflare sets to the real client address; with `SNOOZESHARE_TRUST_FORWARD_HEADERS=true` the backend uses it for rate limits and never reads `X-Forwarded-For`.
 - **Firebase ID token:** the signed token Firebase issues to a signed-in user; the frontend sends it as `Authorization: Bearer <token>` and the backend verifies it on each protected request.
-- **`@ConditionalOnBean(PropertyRepository.class)`:** the annotation on every domain service impl and JDBC repository that prevents them from loading in test contexts with no database.
+- **`@ConditionalOnDatabase`:** the annotation (`config/ConditionalOnDatabase`) on every database-backed service, JDBC repository and AI gateway bean; it matches unless the datasource auto-configuration is excluded, so no-database test contexts start without them. It replaced `@ConditionalOnBean(PropertyRepository.class)`, which never matched at scan time (D51).
 - **`ddl-auto: validate`:** the Hibernate setting that checks entity mappings against the Flyway-managed schema at startup without creating or altering tables.
 - **Flyway:** the database migration tool used by `backend/`; `V001__baseline.sql` through `V005__tighten_nightly_rate_constraint.sql` are its migrations (V001 baseline, V002 auth, V003 domain tables, V004 system-user seed, V005 nightly-rate constraint).
 - **Neon:** the hosted PostgreSQL service; the hosted dev backend uses its `dev` branch.
@@ -1779,6 +1975,13 @@ they exist. It describes current behavior, including deliberate deferrals and co
 - **Testcontainers:** the library that starts a throwaway Postgres 17 container for the backend tests.
 - **Vercel:** the host for the Next.js frontend.
 - **`AuthorizationService`:** a utility in `service/impl/` that checks the acting user exists, is `ACTIVE` and holds the required role; services delegate to it instead of repeating the check.
+- **`AiFeature`:** a Spring bean a role registers to use the LLM gateway: its id, allowed roles, model tier, prompt, limits, output type, fallback and mock response ([4.20](#420-ai-gateway-backendai)).
+- **Budget block:** the 15-minute (never past 00:00 UTC) refusal of all AI calls after SoCLaaS reports its spend budget used up; one probe call then re-tests it.
+- **Circuit breaker:** stops AI calls for 30 seconds after five failed attempts from at least three different users, then lets one probe through.
+- **LLM gateway:** `LlmGateway.run`, the single backend entry point for every call to the NUS SoCLaaS model ([4.20](#420-ai-gateway-backendai)).
+- **PII redaction:** replacing card numbers, NRIC/FIN numbers, Singapore phone numbers and e-mail addresses with `[card]`, `[id-number]`, `[phone]` and `[email]` before text goes to the model.
+- **Reasoning effort:** the `reasoning_effort` request field; `none` stops `qwen3.5:9b` and `gemma4:26b` spending `max_tokens` on hidden reasoning before they answer.
+- **SoCLaaS:** the NUS School of Computing LLM service, an OpenAI-compatible API reached with a per-environment key; the only LLM provider the app may use (C80).
 - **Agent (Support Agent):** the platform-admin role. Agents triage tickets, settle disputes and maintain ticket categories.
 - **AGENT_OVERRIDE:** wallet transaction type written on the guest's wallet for a manual adjustment that refunds the guest.
 - **Action type:** the kind of change an audit row records, one `AuditAction` constant (for example `TICKET_RESOLVED`, `ESCROW_HOLD`). The Audit Log filters by a set of them.
@@ -1858,6 +2061,7 @@ measured for this guide.
 | Backend authentication: `AuthMigrationTest`, `FirebaseConfigTest`, `FirebaseTokenVerifierTest`, `AuthSecurityIntegrationTest`, `AuthRegistrationIntegrationTest`, `AuthContractTest`, `RegistrationCodeValidationTest`, `RegistrationRateLimiterTest`, `PublicRegistrationRateLimiterTest`, `ClientIpResolverTest` | The `users` and `wallets` constraints, blank Firebase settings refused, token and project checks, `401` and `403` per route and role, registration (one wallet for a Guest and none for an Agent, same-role retry, inactive profile, concurrent registration), stable error shapes that leak no secret, the public pre-check and its limits (a correct code cannot beat an exhausted limit), and the client address (a forged `X-Forwarded-For` is ignored). A token-verifier double replaces Firebase, so no network is needed. |
 | Backend domain unit: `BookingStateMachineTest`, `TicketStateMachineTest`, `StayDatePolicyTest`, `DisputeWindowPolicyTest`, `SettlementCalculatorTest`, `DomainValidationTest` | The web-side copies of the desktop domain logic: every legal and illegal booking/ticket transition, past-date and inverted-range rejection, the day-7/day-8 boundary, escrow split maths and fee rounding, and field validation (postal codes, rates, required text). Pure unit tests, no Spring context. |
 | Backend domain repository integration: `UserRepositoryTest`, `BookingRepositoryTest`, `WalletRepositoryTest`, `TicketRepositoryTest`, `AuditLogRepositoryTest` | `@DataJpaTest` with Testcontainers Postgres 17: entity round trips, custom query methods (`findByFirebaseUid`, `findByIdForUpdate`, `findByGuestIdAndStatus`), the V003 schema constraints, and the audit-log search and indexing. Each test class starts its own application context with only JPA and Flyway. |
+| Backend AI gateway (`backend/src/test/java/com/snoozeshare/ai`, plus `DatabaseBeansTest`): `LlmGatewayTest`, `LlmGatewayIntegrationTest`, `AiFeatureRegistryTest`, `LlmCallTest`, `LlmPropertiesTest`, `ProdEnvironmentGuardAiTest`, `ModelCheckTest`, `InputSanitizerTest`, `PiiRedactorTest`, `InjectionDetectorTest`, `PromptBuilderTest`, `OutputValidatorTest`, `SchedulerCoreTest`, `LlmSchedulerTest`, `UserThrottleTest`, `CircuitBreakerTest`, `BudgetBlockTest`, `BackoffTest`, `SoclaasClientTest`, `SoclaasClientStallTest`, `AiAuditWriterTest`, `AiBoundaryTest`, `SecretScanTest`, `AiHealthTest`, `AiDatasourceFreeContextTest`, `AiLogLeakTest` | The 14-step pipeline with a stub SoCLaaS server, a fake clock and a recording sleeper; real audit rows and cap counts on Postgres (including a parallel burst); sanitizing, output validation, scheduling, breaker and budget logic as pure classes; configuration ranges and the production guard; the package boundary, no committed key, no key or prompt in logs, a healthy backend with an unreachable service, and `DatabaseBeansTest` for the bean registration. No test contacts SoCLaaS. |
 | Frontend (`frontend/src`): `env.test.ts`, `BackendStatus.test.tsx` | Environment validation (including the six Firebase variables), and the status page for UP, each failure, the 5-second timeout, the disabled `Re-check` button and aborting on unmount. |
 | Frontend authentication: `firebase.test.ts`, `api.test.ts`, `AuthProvider.test.tsx`, `route-guards.test.tsx`, the `login`, `register` and `forgot-password` `page.test.tsx` files, `AuthHeader.test.tsx`, `RoleNavbar.test.tsx`, `RoleShell.test.tsx` | Firebase initialisation once, the bearer header and stable error mapping, the six provider states (a stale profile response after sign-out is ignored, a failed registration stays on the registration step, missing Firebase configuration shows an error instead of crashing), guard redirects, the register page's validate-before-signup order, safe `returnTo` handling, and the role shell. The Firebase client is mocked. |
 | Architecture: `LayerDependencyTest`, `UiDependencyTest` | `domain` has no JavaFX or `java.sql` imports; `ui` has no `com.snoozeshare.repository` or `java.sql` imports. |
@@ -1944,6 +2148,17 @@ measured for this guide.
   5. Resolve a ticket on the Disputes tab, return to Audit Log and Apply: the resolution's rows appear together, in order.
   6. Scroll the table: the header stays fixed; check the same on the Disputes and Categories tabs, and that hovering a row shows a grey background without a hand cursor.
 - **Expected:** filters combine as described in [4.14](#414-audit-trail); the red Clear button resets them; the ticket resolution appears as its ticket, booking and wallet rows; table headers stay put while rows scroll.
+
+
+**AI gateway live check.** Whether SoCLaaS behaves as the gateway assumes can only be judged against the real service, so repeat this after changing a model name, the base URL or a limit, and before a role feature relies on a model.
+
+- **Prerequisites:** your environment's own SoCLaaS key in `$env:SOCLAAS_API_KEY` in the shell you use (never in a file, and never printed); `curl.exe`.
+- **Steps:**
+  1. List the models: `curl.exe -sS https://soclaas-api.comp.nus.edu.sg/v1/models -H "Authorization: Bearer $env:SOCLAAS_API_KEY"`. Check that the three configured names appear and are chat models.
+  2. Post one chat request per model to `/v1/chat/completions` with a small `max_tokens`, then again with `"reasoning_effort":"none"` and with `"response_format":{"type":"json_object"}`. Note the status, `finish_reason` and whether `content` is empty.
+  3. Read your key's limits from `https://soclaas-portal.comp.nus.edu.sg/api-key/budget` and check that `max-rpm` is below `requests_per_minute_limit`.
+  4. On the Render dev service, set `SNOOZESHARE_AI_ENABLED=true`, `SOCLAAS_BASE_URL` and `SOCLAAS_API_KEY`, redeploy, and read the startup log.
+- **Expected:** the models are listed; `reasoning_effort` `none` returns a short non-empty `content` with `finish_reason` `stop`; the log shows `SoCLaaS reachable: N models listed, all configured models present`, or one warning naming a missing model or the failing status. The results of the first run are in [4.20](#420-ai-gateway-backendai).
 
 ---
 
