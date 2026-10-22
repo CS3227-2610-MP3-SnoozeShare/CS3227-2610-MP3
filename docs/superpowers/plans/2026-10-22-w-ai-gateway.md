@@ -25,7 +25,7 @@
 | T3 Guardrails | T1 | T2, T4, T5 | 2 | Done |
 | T4 Limits and resilience | T1 | T2, T3, T5 | 2 | Done |
 | T5 SoCLaaS client | T1 | T2, T3, T4 | 2 | Done |
-| T6 Gateway facade | T2, T3, T4, T5 | - | 3 | Not started |
+| T6 Gateway facade | T2, T3, T4, T5 | - | 3 | Done |
 | T7 Integration tests, boundary test and docs | T6 | - | 4 | Not started |
 | T8 Live verification | T7 | - | 5 | Post-merge |
 
@@ -364,16 +364,16 @@ return switch (status) {
 | Test | `backend/src/test/java/com/snoozeshare/ai/config/ModelCheckTest.java` | E38 |
 
 **Checklist**
-- [ ] 1. Write failing `LlmGatewayTest` with fake limit classes, the stub server, a recording `Sleeper` and a fixed `Jitter`: `pipelineOrder` (the six pairs of E49), `roleDenied`, `disabled`, `mockMode` (steps 10 to 12 skipped, `model=mock`), `retryMatrix` (SERVER three times; 429 then success sets `attempts` 2 and resets the breaker), `budgetBlock`, `breakerOpens`, `retryRechecksBreaker`, `refusalAfterSendKeepsLastCode`, `deadline`, `deadlineDuringBackoff`, `floodDoesNotStarveOthers`, `inFlightLimit`, `keyNeverInRequestBody`, `obedientModel`, `auditFailed`, `throwingFallbackPropagates`. Expect FAIL.
-- [ ] 2. Implement `LlmGateway.run` step by step per the snippet; every checkpoint returns through one `finish(...)` that validates, audits and releases reservations in a `finally`.
-- [ ] 3. Implement the attempt loop (scheduler permit, breaker and budget re-check, send, classify, backoff through `Sleeper`, deadline arithmetic, interrupt handling, probes get one attempt).
-- [ ] 4. Run `LlmGatewayTest`; expect PASS.
-- [ ] 5. Write failing `LlmGatewayIntegrationTest`: `auditRows` (one row per A and R outcome with fresh user ids), `noMarkersInRows`, `unauditedCodes` (no row, non-null `callId`), `rejectedRows`, `refusesInsideTransaction` (a `TransactionTemplate` caller gets `IllegalStateException`, also when disabled). Implement `ModelCheck` with `ModelCheckTest` (missing model WARN, failing `/models` WARN, direct executor). Expect PASS after wiring `AiConfig`.
-- [ ] 6. Confirm `ServerPortDefaultTest` (datasource-free context) still passes: the gateway beans are absent there.
-- [ ] 7. Run Checkstyle separately; expect no violations.
-- [ ] 8. Run `.\gradlew build`; expect green.
-- [ ] 9. Update the branch state: Progress, a Changes line.
-- [ ] 10. Commit: `feat: add the AI gateway pipeline and startup model check (W-AI-GATEWAY)`.
+- [x] 1. Write failing `LlmGatewayTest` with fake limit classes, the stub server, a recording `Sleeper` and a fixed `Jitter`: `pipelineOrder` (the six pairs of E49), `roleDenied`, `disabled`, `mockMode` (steps 10 to 12 skipped, `model=mock`), `retryMatrix` (SERVER three times; 429 then success sets `attempts` 2 and resets the breaker), `budgetBlock`, `breakerOpens`, `retryRechecksBreaker`, `refusalAfterSendKeepsLastCode`, `deadline`, `deadlineDuringBackoff`, `floodDoesNotStarveOthers`, `inFlightLimit`, `keyNeverInRequestBody`, `obedientModel`, `auditFailed`, `throwingFallbackPropagates`. Expect FAIL.
+- [x] 2. Implement `LlmGateway.run` step by step per the snippet; every checkpoint returns through one `finish(...)` that validates, audits and releases reservations in a `finally`.
+- [x] 3. Implement the attempt loop (scheduler permit, breaker and budget re-check, send, classify, backoff through `Sleeper`, deadline arithmetic, interrupt handling, probes get one attempt).
+- [x] 4. Run `LlmGatewayTest`; expect PASS.
+- [x] 5. Write failing `LlmGatewayIntegrationTest`: `auditRows` (one row per A and R outcome with fresh user ids), `noMarkersInRows`, `unauditedCodes` (no row, non-null `callId`), `rejectedRows`, `refusesInsideTransaction` (a `TransactionTemplate` caller gets `IllegalStateException`, also when disabled). Implement `ModelCheck` with `ModelCheckTest` (missing model WARN, failing `/models` WARN, direct executor). Expect PASS after wiring `AiConfig`.
+- [x] 6. Confirm `ServerPortDefaultTest` (datasource-free context) still passes: the gateway beans are absent there.
+- [x] 7. Run Checkstyle separately; expect no violations.
+- [x] 8. Run `.\gradlew build`; expect green.
+- [x] 9. Update the branch state: Progress, a Changes line.
+- [x] 10. Commit: `feat: add the AI gateway pipeline and startup model check (W-AI-GATEWAY)`.
 
 ```java
 // LlmGateway.run - skeleton of the pipeline (api.md); each early return goes through finish()

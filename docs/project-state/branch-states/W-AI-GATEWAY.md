@@ -31,7 +31,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-22 | Claude Sonnet 5.5 | W~1 | Active | Wave 2 done, build green | T6 step 1 of `docs/superpowers/plans/2026-10-22-w-ai-gateway.md` | 2026-10-22 |
+| S1 | 2026-10-22 | Claude Sonnet 5.5 | W~1 | Active | T6 done, build green | T7 step 1 of `docs/superpowers/plans/2026-10-22-w-ai-gateway.md` | 2026-10-22 |
 
 **Remaining**
 
@@ -47,7 +47,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W~1 | W-AI-GATEWAY: shared SoCLaaS LLM gateway | Building | [spec](docs/superpowers/specs/2026-10-22-w-ai-gateway-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-ai-gateway.md) | Tasks 1-5/8 done; T6 gateway facade next | — |
+| W~1 | W-AI-GATEWAY: shared SoCLaaS LLM gateway | Building | [spec](docs/superpowers/specs/2026-10-22-w-ai-gateway-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-ai-gateway.md) | Tasks 1-6/8 done; T7 integration, boundary tests and docs next | — |
 
 ---
 
@@ -82,7 +82,7 @@ Entries added (new in this branch):
 - Nothing outside `com.snoozeshare.ai` imports `ai.config`, `ai.guard`, `ai.limit`, `ai.client` or `ai.audit`, and nothing outside `ai/client` calls SoCLaaS; a JUnit source-scan test enforces it.
 - Daily boundaries for AI caps use UTC; waiting and randomness in `ai.limit` go through `Sleeper` and `Jitter` so tests need no real sleep.
 - Logs for AI failures carry feature id, user id, code, status and latency only, and exceptions are logged by class name; the JDK HTTP client debug logger is never enabled.
-- Gateway beans that need the database carry `@ConditionalOnBean(PropertyRepository.class)`, like the W-DOMAIN services, so datasource-free contexts start without them.
+- Beans that need the database carry `@ConditionalOnDatabase` (`config/ConditionalOnDatabase`), which matches unless `spring.autoconfigure.exclude` lists `DataSourceAutoConfiguration`, so datasource-free contexts start without them. Do not use `@ConditionalOnBean(PropertyRepository.class)` on scanned classes: it is evaluated before Spring Data registers repositories and never matches (see Deviations).
 - `application-prod.yml` has no default for `snoozeshare.ai.enabled`; `render.yaml` sets `SNOOZESHARE_AI_ENABLED` to `"false"` until AI is switched on.
 
 ---
@@ -125,6 +125,9 @@ No change. Resolves, on fold, the SoCLaaS-contract half of `PROJECT_STATE.md` Q6
 - **T3 output validation is stricter than conventions.md in three places:** `data:` and `javascript:` links match on a word boundary (so "metadata:" passes); Unicode format characters (zero-width, bidi) are stripped before the key, tag and link checks; leak checks also cover JSON keys, not only values. A fence with no newline after the opening fence is not unwrapped.
 - **T5:** `AttemptResult.Failure` carries an extra `httpStatus` for the WARN line; a 429 body over 4,096 bytes is cut mid-JSON and so classed RATE_LIMITED; the request timeout bounds time to headers only, so T6's deadline is the backstop for a stalled body, and T6 must check the interrupt flag after each attempt.
 - **T4:** the gateway (T6) must call `abandonProbe()` on the breaker or budget block that issued a `PROBE` when the call ends without an outcome; none of the `ai.limit` classes is a Spring bean yet, so T6 wires them.
+- **W-DOMAIN's `@ConditionalOnBean(PropertyRepository.class)` never matched in the running app (found in T6, fixed in `d049995`).** The condition is evaluated during component scanning, before Spring Data registers repositories, so all 15 W-DOMAIN service impls, the JDBC repositories and `LedgerWriter` were silently absent from the application. The operator chose to fix it on this branch: all 20 classes now use `@ConditionalOnDatabase`, and `DatabaseBeansTest` proves the beans exist. This makes those beans live in the app for the first time, so W-DOMAIN's wiring is exercised by the full build; fold this into W-DOMAIN's description of how beans register.
+- **T6:** `ModelCheck` creates its own single-thread daemon executor (a second constructor takes an `Executor` for tests) instead of an `Executor` bean in `AiConfig`, because any `Executor` bean switches off Spring Boot's auto-configured task executor. `OutputValidator` is a `@Lazy` bean so slice tests without an `ObjectMapper` still start. Tests of `LlmGatewayTest` use a mocked `AiAuditWriter`; real audit rows are covered by `LlmGatewayIntegrationTest`.
+- **T6 test coverage gaps against the plan list:** `pipelineOrder` (the six pairs of E49), `floodDoesNotStarveOthers`, `obedientModel` and `deadlineDuringBackoff` are not separate tests; the fixed check order is covered by the individual tests above, and these are carried to the branch review as a known gap in test depth.
 - **T2:** tests build `LlmProperties` with `enabled=false` (enabled demands a URL and key).
 
 ---
@@ -143,3 +146,5 @@ No change. Resolves, on fold, the SoCLaaS-contract half of `PROJECT_STATE.md` Q6
 | 2026-10-22 | T3 done: `InputSanitizer`, `PiiRedactor`, `InjectionDetector`, `PromptBuilder`, `OutputValidator` | W~1 | — |
 | 2026-10-22 | T4 done: `SchedulerCore`, `LlmScheduler`, `UserThrottle`, `CircuitBreaker`, `BudgetBlock`, `Backoff`, `Sleeper`, `Jitter` | W~1 | — |
 | 2026-10-22 | T5 done: `SoclaasClient` and `AttemptResult` | W~1 | — |
+| 2026-10-22 | Fix: W-DOMAIN services and JDBC repositories were never registered in the app (`@ConditionalOnBean` evaluated too early); replaced by `@ConditionalOnDatabase` on 20 classes plus `DatabaseBeansTest` | W~1 | — |
+| 2026-10-22 | T6 done: `LlmGateway.run` pipeline and attempt loop, `ModelCheck`, `AiConfig` beans, `LlmGatewayTest`, `LlmGatewayIntegrationTest`, `ModelCheckTest` | W~1 | — |
