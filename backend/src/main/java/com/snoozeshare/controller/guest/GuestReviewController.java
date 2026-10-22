@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.snoozeshare.api.request.SubmitReviewRequest;
 import com.snoozeshare.api.response.ReviewResponse;
+import com.snoozeshare.config.ConditionalOnDatabase;
 import com.snoozeshare.domain.model.Booking;
 import com.snoozeshare.repository.BookingRepository;
 import com.snoozeshare.service.ReviewService;
@@ -17,6 +18,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 @RestController
+@ConditionalOnDatabase
 public class GuestReviewController {
 
     private final ReviewService reviewService;

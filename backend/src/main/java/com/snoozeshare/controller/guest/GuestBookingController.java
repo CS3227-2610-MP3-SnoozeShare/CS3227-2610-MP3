@@ -18,6 +18,7 @@ import com.snoozeshare.api.request.CreateBookingRequest;
 import com.snoozeshare.api.response.BookingResponse;
 import com.snoozeshare.api.response.CancellationRefundResponse;
 import com.snoozeshare.api.response.GuestTripResponse;
+import com.snoozeshare.config.ConditionalOnDatabase;
 import com.snoozeshare.domain.enums.BookingStatus;
 import com.snoozeshare.domain.model.Booking;
 import com.snoozeshare.domain.model.Property;
@@ -37,6 +38,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/guest/bookings")
+@ConditionalOnDatabase
 public class GuestBookingController {
 
     private final BookingService bookingService;

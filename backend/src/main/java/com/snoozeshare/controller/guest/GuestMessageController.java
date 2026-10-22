@@ -18,6 +18,7 @@ import com.snoozeshare.api.response.ConversationSummaryResponse;
 import com.snoozeshare.api.response.GuestConversationListResponse;
 import com.snoozeshare.api.response.MessageResponse;
 import com.snoozeshare.api.response.TicketResponse;
+import com.snoozeshare.config.ConditionalOnDatabase;
 import com.snoozeshare.domain.enums.Role;
 import com.snoozeshare.domain.enums.ThreadChannel;
 import com.snoozeshare.domain.model.Booking;
@@ -33,6 +34,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 @RestController
+@ConditionalOnDatabase
 public class GuestMessageController {
 
     private final TicketService ticketService;

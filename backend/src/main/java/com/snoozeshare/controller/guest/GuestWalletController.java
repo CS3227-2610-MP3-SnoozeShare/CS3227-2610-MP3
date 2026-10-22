@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.snoozeshare.api.request.WalletAmountRequest;
 import com.snoozeshare.api.response.TransactionResponse;
 import com.snoozeshare.api.response.WalletResponse;
+import com.snoozeshare.config.ConditionalOnDatabase;
 import com.snoozeshare.service.WalletService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,6 +20,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/guest/wallet")
+@ConditionalOnDatabase
 public class GuestWalletController {
 
     private final WalletService walletService;

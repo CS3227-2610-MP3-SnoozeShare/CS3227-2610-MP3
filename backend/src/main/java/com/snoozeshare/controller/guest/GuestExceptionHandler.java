@@ -8,6 +8,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.snoozeshare.config.ConditionalOnDatabase;
+
 import jakarta.validation.ConstraintViolationException;
 
 /**
@@ -15,7 +17,7 @@ import jakarta.validation.ConstraintViolationException;
  * for all controllers in the guest package.
  */
 @RestControllerAdvice(basePackages = "com.snoozeshare.controller.guest")
-
+@ConditionalOnDatabase
 public class GuestExceptionHandler {
 
     @ExceptionHandler(ForbiddenException.class)

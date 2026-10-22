@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.snoozeshare.api.response.PriceBreakdownResponse;
 import com.snoozeshare.api.response.PropertyDetailResponse;
 import com.snoozeshare.api.response.SearchResultResponse;
+import com.snoozeshare.config.ConditionalOnDatabase;
 import com.snoozeshare.domain.enums.ListingStatus;
 import com.snoozeshare.domain.model.Property;
 import com.snoozeshare.domain.model.User;
@@ -24,6 +25,7 @@ import com.snoozeshare.service.UserService;
 
 @RestController
 @RequestMapping("/api/guest/listings")
+@ConditionalOnDatabase
 public class GuestSearchController {
 
     private final ListingService listingService;
