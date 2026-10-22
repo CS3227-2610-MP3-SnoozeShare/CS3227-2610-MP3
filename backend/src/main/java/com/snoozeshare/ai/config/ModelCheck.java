@@ -86,6 +86,9 @@ public class ModelCheck {
             for (String model : missing) {
                 LOG.warn("Configured SoCLaaS model not offered by the service: {}", model);
             }
+            if (missing.isEmpty()) {
+                LOG.info("SoCLaaS reachable: {} models listed, all configured models present", result.ids().size());
+            }
         } catch (LlmScheduler.SchedulerRejection e) {
             LOG.warn("SoCLaaS model check skipped: reason={}", e.reason());
         } catch (RuntimeException e) {

@@ -38,7 +38,7 @@ class LlmPropertiesTest {
             LlmProperties p = context.getBean(LlmProperties.class);
             assertThat(p.enabled()).isFalse();
             assertThat(p.mock()).isFalse();
-            assertThat(p.maxRpm()).isEqualTo(55);
+            assertThat(p.maxRpm()).isEqualTo(25);
             assertThat(p.maxConcurrent()).isEqualTo(4);
             assertThat(p.maxQueue()).isEqualTo(20);
             assertThat(p.queueWaitMs()).isEqualTo(10_000);
@@ -49,7 +49,7 @@ class LlmPropertiesTest {
             assertThat(p.globalDailyCap()).isEqualTo(3_000);
             assertThat(p.priorityZeroReservePercent()).isEqualTo(5);
             assertThat(p.modelStandard()).isEqualTo("qwen3.5:9b");
-            assertThat(p.reasoningEffort()).isEmpty();
+            assertThat(p.reasoningEffort()).isEqualTo("none");
             assertThat(p.responseFormatJson()).isFalse();
         });
     }

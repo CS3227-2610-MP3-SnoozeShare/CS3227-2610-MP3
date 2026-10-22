@@ -17,7 +17,7 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  * @param modelFast model name for the FAST tier
  * @param modelStandard model name for the STANDARD tier
  * @param modelStrong model name for the STRONG tier
- * @param maxRpm requests per minute the process may send, 1 to 90
+ * @param maxRpm requests per minute the process may send, 1 to 90 (the development key allows 30)
  * @param maxConcurrent requests in flight at once, 2 to 16
  * @param maxQueue jobs that may wait for a slot, 1 to 200
  * @param queueWaitMs longest wait for a slot, 100 to 60,000
@@ -33,7 +33,8 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  * @param priorityZeroReservePercent share of the global cap only priority 0 calls may use, 0 to 50
  * @param maxPromptChars upper bound of the assembled prompt, 2,000 to 200,000
  * @param responseFormatJson whether JSON features send {@code response_format}
- * @param reasoningEffort empty (field omitted), {@code none}, {@code low}, {@code medium} or {@code high}
+ * @param reasoningEffort sent as {@code reasoning_effort}; {@code none} by default, empty omits the field,
+ *     otherwise {@code low}, {@code medium} or {@code high}
  */
 @ConfigurationProperties(prefix = "snoozeshare.ai")
 public record LlmProperties(
@@ -44,7 +45,7 @@ public record LlmProperties(
     @DefaultValue("llama3.1:8b") String modelFast,
     @DefaultValue("qwen3.5:9b") String modelStandard,
     @DefaultValue("gemma4:26b") String modelStrong,
-    @DefaultValue("55") int maxRpm,
+    @DefaultValue("25") int maxRpm,
     @DefaultValue("4") int maxConcurrent,
     @DefaultValue("20") int maxQueue,
     @DefaultValue("10000") long queueWaitMs,
@@ -60,7 +61,7 @@ public record LlmProperties(
     @DefaultValue("5") int priorityZeroReservePercent,
     @DefaultValue("40000") int maxPromptChars,
     @DefaultValue("false") boolean responseFormatJson,
-    @DefaultValue("") String reasoningEffort) {
+    @DefaultValue("none") String reasoningEffort) {
 
     private static final String PREFIX = "snoozeshare.ai.";
     private static final Set<String> REASONING_EFFORTS = Set.of("", "none", "low", "medium", "high");
