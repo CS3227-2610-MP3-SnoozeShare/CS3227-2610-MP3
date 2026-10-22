@@ -37,7 +37,7 @@ describe('Host wallet page', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Top up' }));
     const dialog = screen.getByRole('dialog');
     fireEvent.change(within(dialog).getByLabelText('Amount'), { target: { value: '25' } });
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Top up' }));
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Confirm top up' }));
 
     await waitFor(() => expect(topUpHostWallet).toHaveBeenCalledWith(25));
     expect((await screen.findAllByText('$125.00')).length).toBeGreaterThan(0);

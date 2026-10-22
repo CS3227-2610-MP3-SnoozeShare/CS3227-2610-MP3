@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { HostMessagesPanel } from './HostMessagesPanel';
 import { HostWalletPanel } from './HostWalletPanel';
 import { createHostFixtureAdapter } from './hostFixtures';
@@ -147,5 +147,45 @@ describe('Host messages and wallet', () => {
     render(<HostWalletPanel wallet={adapter.getWalletSummary().data!} statement={adapter.getStatement().data!} />);
     fireEvent.click(screen.getByRole('button', { name: 'Top up' }));
     await waitFor(() => expect(screen.getByRole('dialog')).toHaveTextContent('no real payment gateway'));
+  });
+
+  it('shows the artifact top-up balance, amount presets, copy, and specific confirmation', async () => {
+    const adapter = createHostFixtureAdapter();
+    render(<HostWalletPanel wallet={adapter.getWalletSummary().data!} statement={adapter.getStatement().data!} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Top up' }));
+
+    expect(screen.getByRole('heading', { name: 'Top up wallet' })).toBeInTheDocument();
+    expect(screen.getByText('Current balance $3,920.50 SGD')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '$50' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '$100' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '$500' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '$1,000' })).toBeInTheDocument();
+    expect(screen.getByText(/records a TOP_UP wallet transaction and credits your balance immediately/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Confirm top up' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: '$500' }));
+    expect(screen.getByLabelText('Amount')).toHaveValue(500);
+  });
+
+  it('limits withdrawal to available balance and submits the full-balance shortcut', async () => {
+    const adapter = createHostFixtureAdapter();
+    const onMutation = vi.fn().mockResolvedValue(undefined);
+    render(<HostWalletPanel wallet={adapter.getWalletSummary().data!} statement={adapter.getStatement().data!} onMutation={onMutation} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Withdraw' }));
+
+    expect(screen.getByRole('heading', { name: 'Withdraw funds' })).toBeInTheDocument();
+    expect(screen.getByText('Available to withdraw $3,920.50 SGD — non-escrowed balance only')).toBeInTheDocument();
+    expect(screen.getByText(/funds held in escrow for pending bookings are not withdrawable/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Withdraw full available balance' }));
+    expect(screen.getByLabelText('Amount')).toHaveValue(3920.5);
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm withdraw' }));
+    await waitFor(() => expect(onMutation).toHaveBeenCalledWith('withdraw', 3920.5));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Withdraw' }));
+    fireEvent.change(screen.getByLabelText('Amount'), { target: { value: '4000' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm withdraw' }));
+    expect(screen.getByRole('alert')).toHaveTextContent('You can withdraw up to your available balance of $3,920.50.');
+    expect(onMutation).toHaveBeenCalledTimes(1);
   });
 });

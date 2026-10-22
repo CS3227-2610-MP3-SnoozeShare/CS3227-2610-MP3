@@ -25,8 +25,16 @@ export function HostWalletPanel({ wallet, statement, onMutation, mutationPending
   const close = () => { if (mutationPending) return; setAction(null); setAmount(''); setError(''); };
   const confirm = async () => {
     const parsedAmount = Number(amount);
-    if (!Number.isFinite(parsedAmount) || parsedAmount < 0.01 || parsedAmount > 100000 || Math.round(parsedAmount * 100) !== parsedAmount * 100) {
-      setError('Enter an amount from $0.01 to $100,000.00 with up to two decimal places.');
+    if (!Number.isFinite(parsedAmount) || parsedAmount < 0.01 || Math.round(parsedAmount * 100) !== parsedAmount * 100) {
+      setError('Enter an amount of at least $0.01 with up to two decimal places.');
+      return;
+    }
+    if (parsedAmount > 100000) {
+      setError('The maximum amount per wallet transaction is $100,000.00.');
+      return;
+    }
+    if (action === 'Withdraw' && parsedAmount > wallet.balance) {
+      setError(`You can withdraw up to your available balance of $${formatMoney(wallet.balance)}.`);
       return;
     }
     if (!onMutation) { setAction(null); setAmount(''); return; }
@@ -81,9 +89,37 @@ export function HostWalletPanel({ wallet, statement, onMutation, mutationPending
           </div>
         ) : <div className="ss-card p-8 text-center text-[var(--text-subtle)]">No transactions yet.</div>}
       </section>
-      <Modal open={Boolean(action)} title={`${action ?? ''}`} description={action === 'Top up' ? 'Mocked top-up — no real payment gateway is charged.' : 'Mocked withdrawal — no real payout rail.'} onClose={close} onConfirm={() => void confirm()} confirmLabel={action ?? 'Confirm'} confirmDisabled={busy}>
-        <label className="mt-4 block text-sm font-medium" htmlFor="wallet-amount">Amount (SGD)</label>
-        <input id="wallet-amount" aria-label="Amount" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" inputMode="decimal" onChange={(event) => setAmount(event.target.value)} placeholder="0.00" type="number" min="0.01" max="100000" step="0.01" value={amount} />
+      <Modal
+        open={Boolean(action)}
+        title={action === 'Top up' ? 'Top up wallet' : 'Withdraw funds'}
+        description={action === 'Top up'
+          ? `Current balance $${formatMoney(wallet.balance)} SGD`
+          : `Available to withdraw $${formatMoney(wallet.balance)} SGD — non-escrowed balance only`}
+        onClose={close}
+        onConfirm={() => void confirm()}
+        confirmLabel={action === 'Top up' ? 'Confirm top up' : 'Confirm withdraw'}
+        confirmTone={action === 'Top up' ? 'success' : 'primary'}
+        confirmDisabled={busy}
+      >
+        <label className="mt-4 block text-sm font-medium" htmlFor="wallet-amount">Amount</label>
+        <div className="mt-1 flex items-center rounded-lg border border-input bg-background px-3">
+          <span aria-hidden="true" className="mr-2 text-lg font-semibold">$</span>
+          <input id="wallet-amount" aria-label="Amount" className="h-11 w-full bg-transparent text-lg font-semibold outline-none" inputMode="decimal" onChange={(event) => setAmount(event.target.value)} placeholder="0.00" type="number" min="0.01" max={action === 'Withdraw' ? Math.min(wallet.balance, 100000) : 100000} step="0.01" value={amount} />
+        </div>
+        {action === 'Top up' ? (
+          <div aria-label="Top-up amount presets" className="mt-2 flex flex-wrap gap-2">
+            {[50, 100, 500, 1000].map((preset) => (
+              <button className="rounded-full border border-[var(--border-muted)] px-3 py-1 text-sm hover:bg-[var(--surface-inset)]" key={preset} onClick={() => { setAmount(String(preset)); setError(''); }} type="button">${preset.toLocaleString('en-US')}</button>
+            ))}
+          </div>
+        ) : (
+          <button className="mt-2 text-sm font-semibold text-[var(--primary)] underline underline-offset-2" onClick={() => { setAmount(wallet.balance.toFixed(2)); setError(''); }} type="button">Withdraw full available balance</button>
+        )}
+        <p className="mt-4 rounded-md bg-[var(--surface-inset)] px-3 py-2 text-xs leading-tight text-foreground">
+          {action === 'Top up'
+            ? 'Mocked top-up — no real payment gateway is charged. This records a TOP_UP wallet transaction and credits your balance immediately.'
+            : 'Mocked withdrawal — no real payout rail. You can only withdraw up to your available balance; funds held in escrow for pending bookings are not withdrawable.'}
+        </p>
         {error && <p className="mt-2 text-sm text-destructive" role="alert">{error}</p>}
       </Modal>
     </div>
