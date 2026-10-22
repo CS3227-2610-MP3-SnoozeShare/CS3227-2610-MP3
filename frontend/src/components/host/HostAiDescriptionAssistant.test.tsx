@@ -10,7 +10,7 @@ vi.mock('@/lib/hostAiApi', async (importOriginal) => ({
 }));
 
 const listing = { title: 'Cabin', propertyType: 'HOUSE', city: 'Reno', region: 'NV', maxGuests: 2, bedrooms: 1, bathrooms: 1, amenities: ['WIFI'], checkInTime: '15:00', checkOutTime: '11:00' };
-const response = { outcome: 'SUCCESS' as const, mode: 'GENERATE' as const, currentAnalysis: null, generatedDescription: 'A grounded suggested description.', generatedAnalysis: { clarity: { status: 'PASS' as const, feedback: 'Clear.' }, completeness: { status: 'PASS' as const, feedback: 'Complete.' }, accuracy: { status: 'PASS' as const, feedback: 'Accurate.' } }, gatewayCode: null, requestId: 'request-1' };
+const response = { outcome: 'SUCCESS' as const, mode: 'GENERATE' as const, currentAnalysis: { clarity: { status: 'PASS' as const, feedback: 'Clear.' }, completeness: { status: 'IMPROVE' as const, feedback: 'Add the verified amenities.' }, accuracy: { status: 'PASS' as const, feedback: 'Accurate.' } }, generatedDescription: 'A grounded suggested description.', generatedAnalysis: { clarity: { status: 'PASS' as const, feedback: 'Clear.' }, completeness: { status: 'IMPROVE' as const, feedback: 'Add the verified amenities.' }, accuracy: { status: 'PASS' as const, feedback: 'Accurate.' } }, gatewayCode: null, requestId: 'request-1' };
 const degradedResponse = { outcome: 'DEGRADED' as const, mode: 'GENERATE' as const, currentAnalysis: null, generatedDescription: null, generatedAnalysis: null, gatewayCode: 'DISABLED', requestId: 'request-2' };
 
 describe('HostAiDescriptionAssistant', () => {
@@ -38,6 +38,42 @@ describe('HostAiDescriptionAssistant', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Apply generated description' }));
     expect(onApply).toHaveBeenCalledWith(response.generatedDescription);
     expect(onClose).toHaveBeenCalledOnce();
+  });
+
+  it('closes from Escape, the backdrop, and the X button', () => {
+    const onClose = vi.fn();
+    const { rerender } = render(<HostAiDescriptionAssistant open listing={listing} description="Existing copy" onApply={vi.fn()} onClose={onClose} />);
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(onClose).toHaveBeenCalledOnce();
+
+    fireEvent.click(screen.getByRole('presentation'));
+    expect(onClose).toHaveBeenCalledTimes(2);
+
+    rerender(<HostAiDescriptionAssistant open listing={listing} description="Existing copy" onApply={vi.fn()} onClose={onClose} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Close AI Description Assistant' }));
+    expect(onClose).toHaveBeenCalledTimes(3);
+  });
+
+  it('places current analysis and errors below the current description and shows status icons', async () => {
+    postHostAiListingDescription.mockResolvedValue(response);
+    render(<HostAiDescriptionAssistant open listing={listing} description="Existing copy" onApply={vi.fn()} onClose={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Generate' }));
+    await waitFor(() => expect(screen.getByLabelText('Generated description')).toHaveValue(response.generatedDescription));
+
+    const currentDescription = screen.getByLabelText('Current description');
+    const currentAnalysis = screen.getByRole('heading', { name: 'Current analysis' });
+    const generateButton = screen.getByRole('button', { name: 'Generate' });
+    expect(currentDescription.compareDocumentPosition(currentAnalysis) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(currentAnalysis.compareDocumentPosition(generateButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getAllByTestId('analysis-pass-icon')).toHaveLength(4);
+    expect(screen.getAllByTestId('analysis-improve-icon')).toHaveLength(2);
+
+    postHostAiListingDescription.mockResolvedValue(degradedResponse);
+    fireEvent.click(generateButton);
+    const error = await screen.findByRole('alert');
+    expect(error.compareDocumentPosition(generateButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('disables every action while waiting for the response', async () => {
