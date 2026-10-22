@@ -42,6 +42,9 @@ public class GuestExceptionHandler {
             code = "VALIDATION_ERROR";
         } else if (msg.contains("End date must be")) {
             code = "INVALID_DATE_RANGE";
+        } else if (msg.contains("Insufficient")
+                || msg.contains("insufficient")) {
+            code = "INSUFFICIENT_BALANCE";
         }
         return error(status, code, msg);
     }
