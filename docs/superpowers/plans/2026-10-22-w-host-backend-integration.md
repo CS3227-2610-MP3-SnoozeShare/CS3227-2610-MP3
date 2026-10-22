@@ -35,7 +35,7 @@
 | T11 Return complete listing and booking-request collections | T2,T4 | T13 | 7 | Done |
 | T12 Return complete booking and ticket conversation collections | T5,T11 | T13 | 8 | Done |
 | T13 Return the complete wallet statement | T6 | T11,T12 | 7 | Done |
-| T14 Replace paged frontend API and provider types | T11,T12,T13 | - | 9 | Not started |
+| T14 Replace paged frontend API and provider types | T11,T12,T13 | - | 9 | Done |
 | T15 Remove listing and request pagination UI | T14 | T16 | 10 | Not started |
 | T16 Remove message-history and wallet load-more UI | T14 | T15 | 10 | Not started |
 | T17 Verify the pagination reversal | T15,T16 | - | 11 | Not started |
@@ -440,14 +440,15 @@
 | Modify | `frontend/src/lib/hostApi.ts` | Remove page/size arguments and query construction; parse complete arrays for listings, requests, booking/ticket summaries and histories, and wallet statement. Keep calendar year/month query and authenticated fetch behavior. |
 | Modify | `frontend/src/components/host/hostTypes.ts` | Replace page-envelope types with the documented arrays; preserve existing view-model and mutation types. |
 | Modify | `frontend/src/components/host/HostApiProvider.tsx` | Store complete result arrays, load each collection once, and simplify message/wallet history state without altering in-flight request coalescing; cache the complete wallet response so the navbar badge and Wallet page share one request and one statement array. |
-| Test | `frontend/src/lib/hostApi.test.ts`, `frontend/src/components/host/HostApiProvider.test.tsx` | Assert no page/size query or arguments, complete array mapping beyond 100 rows, legacy parameters absent from generated requests, one request per dataset under Strict Mode, Wallet reuses the navbar's complete statement response without a second GET, and auth/error/wallet retry semantics are unchanged. |
+| Modify | `frontend/src/app/host/listings/page.tsx`, `frontend/src/app/host/requests/page.tsx`, `frontend/src/app/host/messages/page.tsx`, `frontend/src/app/host/wallet/page.tsx` | Adapt current API-mode resource reads to complete arrays so this task remains buildable; pagination controls/handlers are removed in T15/T16. |
+| Test | `frontend/src/lib/hostApi.test.ts`, `frontend/src/components/host/HostApiProvider.test.tsx`, `frontend/src/app/host/listings/page.test.tsx`, `frontend/src/app/host/requests/page.test.tsx`, `frontend/src/app/host/messages/page.test.tsx`, `frontend/src/app/host/wallet/page.test.tsx` | Assert no page/size query or arguments, complete array mapping beyond 100 rows, legacy parameters absent from generated requests, one request per dataset under Strict Mode, Wallet reuses the navbar's complete statement response without a second GET, and auth/error/wallet retry semantics are unchanged. |
 
 **Checklist**
 
-- [ ] 1. Add failing adapter/provider tests using >100 records for each representative response type; assert one request per dataset and no page/size URL or provider arguments.
-- [ ] 2. Update API response types and provider data loading to arrays; preserve auth, error, caching, request coalescing, and ambiguous wallet recovery.
-- [ ] 3. Run `npm test -- src/lib/hostApi.test.ts src/components/host/HostApiProvider.test.tsx` and `npm run lint` from `frontend/`.
-- [ ] 4. Update branch-state Progress and Changes; commit `refactor: consume complete Host API collections`.
+- [x] 1. Add failing adapter/provider tests using 101 rows and update API-mode route fixtures to the complete-array contract; assertions confirm no page/size URL or arguments and one shared complete wallet response.
+- [x] 2. Update API response types and provider data loading to arrays; preserve auth, error, in-flight request coalescing, mutation recovery, and single-request wallet caching.
+- [x] 3. Run the focused adapter/provider tests (13 pass), full `npm test` (177 pass), `npm run lint` (passes), and production build (16 routes generated).
+- [x] 4. Update branch-state Progress and Changes; commit `refactor: consume complete Host API collections`.
 
 ### T15: Remove listing and request pagination UI
 

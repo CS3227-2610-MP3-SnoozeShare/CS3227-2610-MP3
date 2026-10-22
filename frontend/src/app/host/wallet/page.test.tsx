@@ -7,7 +7,7 @@ import { HostApiProvider } from '@/components/host/HostApiProvider';
 const { fetchHostWallet, topUpHostWallet, withdrawFromHostWallet } = vi.hoisted(() => ({ fetchHostWallet: vi.fn(), topUpHostWallet: vi.fn(), withdrawFromHostWallet: vi.fn() }));
 vi.mock('@/lib/hostApi', async (importOriginal) => ({ ...await importOriginal<typeof import('@/lib/hostApi')>(), fetchHostWallet, topUpHostWallet, withdrawFromHostWallet }));
 
-const walletDto = (balance: number) => ({ wallet: { id: 'wallet-1', userId: 'host-1', balance, currency: 'SGD', updatedAt: '2026-10-22T00:00:00Z' }, statement: { items: [{ id: 'tx-1', actionType: 'TOP_UP', walletAdjustment: 10, balanceAfter: balance, reason: 'Top-up', bookingId: null, ticketId: null, timestamp: '2026-10-22T00:00:00Z' }], page: 0, size: 50, hasMore: false } });
+const walletDto = (balance: number) => ({ wallet: { id: 'wallet-1', userId: 'host-1', balance, currency: 'SGD', updatedAt: '2026-10-22T00:00:00Z' }, statement: [{ id: 'tx-1', actionType: 'TOP_UP', walletAdjustment: 10, balanceAfter: balance, reason: 'Top-up', bookingId: null, ticketId: null, timestamp: '2026-10-22T00:00:00Z' }] });
 
 describe('Host wallet page', () => {
   beforeEach(() => { vi.clearAllMocks(); });
@@ -18,18 +18,18 @@ describe('Host wallet page', () => {
     expect(screen.queryByRole('heading', { name: 'Wallet', level: 1 })).not.toBeInTheDocument();
   });
 
-  it('uses the cached wallet summary and loads the statement page on the Wallet route', async () => {
+  it('uses the cached complete wallet response on the Wallet route', async () => {
     fetchHostWallet.mockResolvedValue(walletDto(75));
     render(<HostApiProvider><HostFixtureProvider><HostWalletPage /></HostFixtureProvider></HostApiProvider>);
     expect((await screen.findAllByText('$75.00')).length).toBeGreaterThan(0);
     expect(screen.getByText('+$10.00')).toBeInTheDocument();
-    expect(fetchHostWallet).toHaveBeenCalledWith(0, 1);
-    expect(fetchHostWallet).toHaveBeenCalledWith(0, 50);
+    expect(fetchHostWallet).toHaveBeenCalledTimes(1);
+    expect(fetchHostWallet).toHaveBeenCalledWith();
   });
 
   it('submits one explicit mocked top-up and updates the server wallet summary', async () => {
     fetchHostWallet.mockResolvedValue(walletDto(100));
-    topUpHostWallet.mockResolvedValue({ mocked: true, wallet: walletDto(125).wallet, transaction: walletDto(125).statement.items[0] });
+    topUpHostWallet.mockResolvedValue({ mocked: true, wallet: walletDto(125).wallet, transaction: walletDto(125).statement[0] });
     render(<HostApiProvider><HostFixtureProvider><HostWalletPage /></HostFixtureProvider></HostApiProvider>);
     await screen.findAllByText('$100.00');
     fireEvent.click(screen.getByRole('button', { name: 'Top up' }));

@@ -27,7 +27,6 @@ type HostApiContextValue = {
   walletMutationPending: boolean;
   walletRecoveryRequired: boolean;
   refreshWallet: () => Promise<void>;
-  refreshWalletStatement: (page?: number, size?: number) => Promise<void>;
   retryWalletRecovery: () => Promise<void>;
   mutateWallet: (operation: 'top-up' | 'withdraw', amount: number) => Promise<HostWalletMutationDto>;
 };
@@ -41,8 +40,7 @@ export function HostApiProvider({ children }: PropsWithChildren) {
   const [walletRecoveryRequired, setWalletRecoveryRequired] = useState(false);
   const walletMutationLock = useRef(false);
   const resourceLoads = useRef(new Map<string, Promise<unknown>>());
-  const walletLoads = useRef(new Map<string, Promise<void>>());
-  const walletStatementLoads = useRef(new Map<string, Promise<void>>());
+  const walletLoads = useRef<Promise<void> | null>(null);
 
   const loadResource = useCallback(<T,>(key: string, loader: () => Promise<T>) => {
     const existing = resourceLoads.current.get(key);
@@ -72,63 +70,34 @@ export function HostApiProvider({ children }: PropsWithChildren) {
   const getResource = useCallback(<T,>(key: string) => resources[key] as HostLoadable<T> | undefined, [resources]);
 
   const refreshWallet = useCallback(() => {
-    const key = '0:1';
-    const existing = walletLoads.current.get(key);
+    const existing = walletLoads.current;
     if (existing) return existing;
 
-    const request: Promise<void> = fetchHostWallet(0, 1).then(
+    const request: Promise<void> = fetchHostWallet().then(
       (data) => {
-        if (walletLoads.current.get(key) === request) walletLoads.current.delete(key);
+        if (walletLoads.current === request) walletLoads.current = null;
         setWallet({ status: 'ready', data });
       },
       () => {
-        if (walletLoads.current.get(key) === request) walletLoads.current.delete(key);
+        if (walletLoads.current === request) walletLoads.current = null;
         setWallet({ status: 'error', message: 'Unable to load wallet.' });
         return Promise.reject(new Error('Unable to load wallet.'));
       },
     );
-    walletLoads.current.set(key, request);
-    return request;
-  }, []);
-
-  const refreshWalletStatement = useCallback((page = 0, size = 50) => {
-    const key = `${page}:${size}`;
-    const existing = walletStatementLoads.current.get(key);
-    if (existing) return existing;
-
-    const request: Promise<void> = fetchHostWallet(page, size).then(
-      (data) => {
-        if (walletStatementLoads.current.get(key) === request) walletStatementLoads.current.delete(key);
-        setWallet((current) => {
-          if (page === 0 || current.status !== 'ready' || current.data.statement.page >= page) return { status: 'ready', data };
-          return { status: 'ready', data: {
-            ...data,
-            statement: { ...data.statement, items: [...current.data.statement.items, ...data.statement.items] },
-          } };
-        });
-      },
-      () => {
-        if (walletStatementLoads.current.get(key) === request) walletStatementLoads.current.delete(key);
-        setWallet((current) => current.status === 'ready'
-          ? { status: 'ready', data: current.data, refreshError: 'Unable to load wallet statement.' }
-          : { status: 'error', message: 'Unable to load wallet statement.' });
-        throw new Error('Unable to load wallet statement.');
-      },
-    );
-    walletStatementLoads.current.set(key, request);
+    walletLoads.current = request;
     return request;
   }, []);
 
   const retryWalletRecovery = useCallback(async () => {
     setWalletRecoveryRequired(true);
     try {
-      await Promise.all([refreshWallet(), refreshWalletStatement(0, 50)]);
+      await refreshWallet();
       setWalletRecoveryRequired(false);
     } catch (error) {
       setWalletRecoveryRequired(true);
       throw error;
     }
-  }, [refreshWallet, refreshWalletStatement]);
+  }, [refreshWallet]);
 
   const mutateWallet = useCallback(async (operation: 'top-up' | 'withdraw', amount: number) => {
     if (walletMutationLock.current) throw new Error('A wallet operation is already in progress.');
@@ -144,13 +113,10 @@ export function HostApiProvider({ children }: PropsWithChildren) {
           data: {
             ...current.data,
             wallet: result.wallet,
-            statement: {
-              ...current.data.statement,
-              items: [result.transaction, ...current.data.statement.items].slice(0, current.data.statement.size),
-            },
+            statement: [result.transaction, ...current.data.statement],
           },
         }
-        : { status: 'ready', data: { wallet: result.wallet, statement: { items: [], page: 0, size: 1, hasMore: false } } });
+        : { status: 'ready', data: { wallet: result.wallet, statement: [result.transaction] } });
       return result;
     } catch (error) {
       // The server may have committed before a network failure; refresh before allowing another explicit action.
@@ -180,10 +146,9 @@ export function HostApiProvider({ children }: PropsWithChildren) {
     walletMutationPending,
     walletRecoveryRequired,
     refreshWallet,
-    refreshWalletStatement,
     retryWalletRecovery,
     mutateWallet,
-  }), [resources, loadResource, getResource, wallet, walletMutationPending, walletRecoveryRequired, refreshWallet, refreshWalletStatement, retryWalletRecovery, mutateWallet]);
+  }), [resources, loadResource, getResource, wallet, walletMutationPending, walletRecoveryRequired, refreshWallet, retryWalletRecovery, mutateWallet]);
 
   return <HostApiContext.Provider value={value}>{children}</HostApiContext.Provider>;
 }

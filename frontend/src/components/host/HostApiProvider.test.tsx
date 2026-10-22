@@ -13,8 +13,9 @@ function WalletProbe() {
   const api = useHostApi();
   return <div>
     <span>{api.wallet.status === 'ready' ? api.wallet.data.wallet.balance : api.wallet.status}</span>
+    <span>{api.wallet.status === 'ready' ? api.wallet.data.statement.length : 0}</span>
     <button onClick={() => void api.mutateWallet('top-up', 25).catch(() => undefined)}>Top up</button>
-    <button onClick={() => void api.refreshWalletStatement()}>Load statement</button>
+    <button onClick={() => void api.refreshWallet()}>Reload wallet</button>
     <button onClick={() => void api.retryWalletRecovery().catch(() => undefined)}>Refresh wallet</button>
     <span>{api.walletMutationPending ? 'pending' : 'idle'}</span>
     <span>{api.walletRecoveryRequired ? 'recovery-required' : 'wallet-ready'}</span>
@@ -41,18 +42,12 @@ function ResourceEffectProbe({ loader }: { loader: () => Promise<string[]> }) {
   return null;
 }
 
-function WalletStatementEffectProbe() {
-  const api = useHostApi();
-  const refreshWalletStatement = api.refreshWalletStatement;
-  useEffect(() => {
-    void refreshWalletStatement(0, 50).catch(() => undefined);
-  }, [refreshWalletStatement]);
-  return null;
-}
-
 const walletPage = (balance: number) => ({
   wallet: { id: 'w-1', userId: 'host-1', balance, currency: 'SGD', updatedAt: '2026-10-22T00:00:00Z' },
-  statement: { items: [], page: 0, size: 1, hasMore: false },
+  statement: Array.from({ length: 101 }, (_, index) => ({
+    id: `tx-${index}`, actionType: 'TOP_UP', walletAdjustment: 1, balanceAfter: balance,
+    reason: 'seed', bookingId: null, ticketId: null, timestamp: '2026-10-22T00:00:00Z',
+  })),
 });
 
 describe('HostApiProvider', () => {
@@ -62,16 +57,17 @@ describe('HostApiProvider', () => {
     topUpHostWallet.mockResolvedValue({ mocked: true, wallet: walletPage(125).wallet, transaction: {} });
   });
 
-  it('loads and shares one cached wallet summary without loading the statement page', async () => {
+  it('loads and shares the complete wallet response with one request', async () => {
     render(<HostApiProvider><WalletProbe /><WalletProbe /></HostApiProvider>);
 
     expect(screen.getAllByText('loading')).toHaveLength(2);
     await waitFor(() => expect(screen.getAllByText('100').length).toBe(2));
+    expect(screen.getAllByText('101')).toHaveLength(2);
     await waitFor(() => expect(fetchHostWallet).toHaveBeenCalledTimes(1));
-    expect(fetchHostWallet).toHaveBeenCalledWith(0, 1);
+    expect(fetchHostWallet).toHaveBeenCalledWith();
   });
 
-  it('shares an in-flight wallet summary request across Strict Mode effect replay', async () => {
+  it('shares an in-flight complete wallet request across Strict Mode effect replay', async () => {
     let resolveWallet!: (value: ReturnType<typeof walletPage>) => void;
     fetchHostWallet.mockImplementation(() => new Promise((resolve) => { resolveWallet = resolve; }));
     render(<StrictMode><HostApiProvider><WalletProbe /></HostApiProvider></StrictMode>);
@@ -79,18 +75,6 @@ describe('HostApiProvider', () => {
     await waitFor(() => expect(fetchHostWallet).toHaveBeenCalledTimes(1));
     await act(async () => { resolveWallet(walletPage(100)); });
     await screen.findByText('100');
-  });
-
-  it('shares an in-flight wallet statement request across Strict Mode effect replay', async () => {
-    const resolvers: Array<(value: ReturnType<typeof walletPage>) => void> = [];
-    fetchHostWallet.mockImplementation(() => new Promise((resolve) => { resolvers.push(resolve); }));
-    render(<StrictMode><HostApiProvider><WalletStatementEffectProbe /></HostApiProvider></StrictMode>);
-
-    try {
-      expect(fetchHostWallet.mock.calls.filter(([, size]) => size === 50)).toHaveLength(1);
-    } finally {
-      await act(async () => { resolvers.forEach((resolve) => resolve(walletPage(100))); });
-    }
   });
 
   it('shares an in-flight page resource request across Strict Mode effect replay', async () => {
@@ -116,15 +100,14 @@ describe('HostApiProvider', () => {
     await waitFor(() => expect(screen.getByText('idle')).toBeInTheDocument());
     expect(screen.getByText('100')).toBeInTheDocument();
     expect(topUpHostWallet).toHaveBeenCalledTimes(1);
-    expect(fetchHostWallet).toHaveBeenCalledTimes(3);
-    expect(fetchHostWallet).toHaveBeenNthCalledWith(2, 0, 1);
-    expect(fetchHostWallet).toHaveBeenNthCalledWith(3, 0, 50);
+    expect(fetchHostWallet).toHaveBeenCalledTimes(2);
+    expect(fetchHostWallet).toHaveBeenNthCalledWith(2);
     expect(withdrawFromHostWallet).not.toHaveBeenCalled();
   });
 
   it('keeps wallet recovery locked when refresh fails, then unlocks only after an explicit successful refresh', async () => {
     topUpHostWallet.mockRejectedValueOnce(new Error('ambiguous network failure'));
-    fetchHostWallet.mockResolvedValueOnce(walletPage(100)).mockRejectedValueOnce(new Error('refresh failed')).mockRejectedValueOnce(new Error('refresh failed'));
+    fetchHostWallet.mockResolvedValueOnce(walletPage(100)).mockRejectedValueOnce(new Error('refresh failed'));
     render(<HostApiProvider><WalletProbe /></HostApiProvider>);
     await screen.findByText('100');
 
@@ -138,14 +121,14 @@ describe('HostApiProvider', () => {
     expect(topUpHostWallet).toHaveBeenCalledTimes(1);
   });
 
-  it('loads a bounded statement page on demand while retaining the cached wallet', async () => {
+  it('refreshes the complete wallet response without page parameters', async () => {
     const statement = vi.fn().mockResolvedValue(walletPage(100));
     fetchHostWallet.mockImplementation(statement);
     render(<HostApiProvider><WalletProbe /></HostApiProvider>);
     await screen.findByText('100');
-    screen.getByRole('button', { name: 'Load statement' }).click();
+    screen.getByRole('button', { name: 'Reload wallet' }).click();
 
-    await waitFor(() => expect(fetchHostWallet).toHaveBeenLastCalledWith(0, 50));
+    await waitFor(() => expect(fetchHostWallet).toHaveBeenLastCalledWith());
     expect(screen.getByText('100')).toBeInTheDocument();
   });
 

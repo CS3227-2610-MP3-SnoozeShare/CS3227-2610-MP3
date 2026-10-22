@@ -16,30 +16,28 @@ describe('Host messages page', () => {
   });
 
   it('loads booking and HOST ticket channels separately and reads the selected booking thread', async () => {
-    fetchBookingConversations.mockResolvedValue({ items: [{ bookingId: 'booking-1', listingTitle: 'API Cabin', startDate: '2026-10-25', endDate: '2026-10-27', counterpartName: 'Guest One', lastMessage: null, unreadCount: 1, open: true }], page: 0, size: 50, hasMore: false });
-    fetchTicketConversations.mockResolvedValue({ items: [{ ticketId: 'ticket-2', channel: 'HOST', ticketLabel: '1042', ticketTitle: 'Refund issue', listingTitle: 'API Cabin', counterpartName: 'Support Agent', lastMessage: null, unreadCount: 0, open: false }], page: 0, size: 50, hasMore: false });
-    fetchBookingMessages.mockResolvedValueOnce({ items: [{ id: 'm1', authorId: 'guest', authorRole: 'GUEST', body: 'Hello from API', sentAt: '2026-10-22T10:00:00Z' }], page: 0, size: 50, hasMore: true }).mockResolvedValueOnce({ items: [{ id: 'm0', authorId: 'guest', authorRole: 'GUEST', body: 'Older API message', sentAt: '2026-10-21T10:00:00Z' }], page: 1, size: 50, hasMore: false });
-    fetchTicketMessages.mockResolvedValue({ items: [], page: 0, size: 50, hasMore: false });
-    fetchHostWallet.mockResolvedValue({ wallet: { id: 'w', userId: 'h', balance: 10, currency: 'SGD', updatedAt: '' }, statement: { items: [], page: 0, size: 1, hasMore: false } });
+    fetchBookingConversations.mockResolvedValue([{ bookingId: 'booking-1', listingTitle: 'API Cabin', startDate: '2026-10-25', endDate: '2026-10-27', counterpartName: 'Guest One', lastMessage: null, unreadCount: 1, open: true }]);
+    fetchTicketConversations.mockResolvedValue([{ ticketId: 'ticket-2', channel: 'HOST', ticketLabel: '1042', ticketTitle: 'Refund issue', listingTitle: 'API Cabin', counterpartName: 'Support Agent', lastMessage: null, unreadCount: 0, open: false }]);
+    fetchBookingMessages.mockResolvedValue([{ id: 'm1', authorId: 'guest', authorRole: 'GUEST', body: 'Hello from API', sentAt: '2026-10-22T10:00:00Z' }, { id: 'm0', authorId: 'guest', authorRole: 'GUEST', body: 'Older API message', sentAt: '2026-10-21T10:00:00Z' }]);
+    fetchTicketMessages.mockResolvedValue([]);
+    fetchHostWallet.mockResolvedValue({ wallet: { id: 'w', userId: 'h', balance: 10, currency: 'SGD', updatedAt: '' }, statement: [] });
     render(<HostApiProvider><HostFixtureProvider><HostMessagesPage /></HostFixtureProvider></HostApiProvider>);
 
     expect(await screen.findByRole('button', { name: /Refund issue/ })).toBeInTheDocument();
-    expect(await screen.findByRole('group', { name: 'Message from Guest One' })).toHaveTextContent('Hello from API');
-    expect(fetchBookingConversations).toHaveBeenCalledWith(0, 50);
-    expect(fetchTicketConversations).toHaveBeenCalledWith(0, 50);
-    expect(fetchBookingMessages).toHaveBeenCalledWith('booking-1', 0, 50);
+    expect(await screen.findByText('Hello from API')).toBeInTheDocument();
+    expect(fetchBookingConversations).toHaveBeenCalledWith();
+    expect(fetchTicketConversations).toHaveBeenCalledWith();
+    expect(fetchBookingMessages).toHaveBeenCalledWith('booking-1');
     expect(markBookingConversationRead).toHaveBeenCalledWith('booking-1');
     expect(screen.queryByRole('button', { name: /New Ticket/i })).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Load older messages' }));
     expect(await screen.findByText('Older API message')).toBeInTheDocument();
-    expect(fetchBookingMessages).toHaveBeenCalledWith('booking-1', 1, 50);
   });
 
   it('posts messages through the booking-specific route and never creates a local success on failure', async () => {
-    fetchBookingConversations.mockResolvedValue({ items: [{ bookingId: 'booking-1', listingTitle: 'API Cabin', startDate: '2026-10-25', endDate: '2026-10-27', counterpartName: 'Guest One', lastMessage: null, unreadCount: 0, open: true }], page: 0, size: 50, hasMore: false });
-    fetchTicketConversations.mockResolvedValue({ items: [], page: 0, size: 50, hasMore: false });
-    fetchBookingMessages.mockResolvedValue({ items: [], page: 0, size: 50, hasMore: false });
-    fetchHostWallet.mockResolvedValue({ wallet: { id: 'w', userId: 'h', balance: 10, currency: 'SGD', updatedAt: '' }, statement: { items: [], page: 0, size: 1, hasMore: false } });
+    fetchBookingConversations.mockResolvedValue([{ bookingId: 'booking-1', listingTitle: 'API Cabin', startDate: '2026-10-25', endDate: '2026-10-27', counterpartName: 'Guest One', lastMessage: null, unreadCount: 0, open: true }]);
+    fetchTicketConversations.mockResolvedValue([]);
+    fetchBookingMessages.mockResolvedValue([]);
+    fetchHostWallet.mockResolvedValue({ wallet: { id: 'w', userId: 'h', balance: 10, currency: 'SGD', updatedAt: '' }, statement: [] });
     postBookingMessage.mockRejectedValue(new Error('private backend data'));
     render(<HostApiProvider><HostFixtureProvider><HostMessagesPage /></HostFixtureProvider></HostApiProvider>);
     await screen.findByPlaceholderText('Write a message…');
@@ -51,14 +49,14 @@ describe('Host messages page', () => {
   });
 
   it('loads a resolved ticket through the ticket route and keeps its composer read-only', async () => {
-    fetchBookingConversations.mockResolvedValue({ items: [], page: 0, size: 50, hasMore: false });
-    fetchTicketConversations.mockResolvedValue({ items: [{ ticketId: 'ticket-2', channel: 'HOST', ticketLabel: '1042', ticketTitle: 'Refund issue', listingTitle: 'API Cabin', counterpartName: 'Support Agent', lastMessage: null, unreadCount: 0, open: false }], page: 0, size: 50, hasMore: false });
-    fetchTicketMessages.mockResolvedValue({ items: [], page: 0, size: 50, hasMore: false });
-    fetchHostWallet.mockResolvedValue({ wallet: { id: 'w', userId: 'h', balance: 10, currency: 'SGD', updatedAt: '' }, statement: { items: [], page: 0, size: 1, hasMore: false } });
+    fetchBookingConversations.mockResolvedValue([]);
+    fetchTicketConversations.mockResolvedValue([{ ticketId: 'ticket-2', channel: 'HOST', ticketLabel: '1042', ticketTitle: 'Refund issue', listingTitle: 'API Cabin', counterpartName: 'Support Agent', lastMessage: null, unreadCount: 0, open: false }]);
+    fetchTicketMessages.mockResolvedValue([]);
+    fetchHostWallet.mockResolvedValue({ wallet: { id: 'w', userId: 'h', balance: 10, currency: 'SGD', updatedAt: '' }, statement: [] });
     render(<HostApiProvider><HostFixtureProvider><HostMessagesPage /></HostFixtureProvider></HostApiProvider>);
 
     expect(await screen.findByText('This conversation is resolved and read-only.')).toBeInTheDocument();
-    await waitFor(() => expect(fetchTicketMessages).toHaveBeenCalledWith('ticket-2', 0, 50));
+    await waitFor(() => expect(fetchTicketMessages).toHaveBeenCalledWith('ticket-2'));
     expect(markTicketConversationRead).toHaveBeenCalledWith('ticket-2');
     expect(screen.getByPlaceholderText('Write a message…')).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Send' })).toBeDisabled();

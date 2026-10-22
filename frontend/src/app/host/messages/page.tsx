@@ -5,7 +5,7 @@ import { useHostFixtures } from '@/components/host/HostFixtureProvider';
 import { useOptionalHostApi } from '@/components/host/HostApiProvider';
 import { HostMessagesPanel } from '@/components/host/HostMessagesPanel';
 import { HostPageFrame } from '@/components/host/HostPageFrame';
-import { mapBookingConversation, mapHostMessages, mapTicketConversation, type BookingConversationDto, type HostMessageDto, type HostPage, type TicketConversationDto } from '@/components/host/hostTypes';
+import { mapBookingConversation, mapHostMessages, mapTicketConversation, type BookingConversationDto, type HostMessageDto, type TicketConversationDto } from '@/components/host/hostTypes';
 
 export default function HostMessagesPage() {
   const fixtures = useHostFixtures();
@@ -16,15 +16,15 @@ export default function HostMessagesPage() {
   const loadResource = api?.loadResource;
   const fetchBookingConversations = api?.api.fetchBookingConversations;
   const fetchTicketConversations = api?.api.fetchTicketConversations;
-  const bookingKey = 'host:booking-conversations:0';
-  const ticketKey = 'host:ticket-conversations:0';
+  const bookingKey = 'host:booking-conversations';
+  const ticketKey = 'host:ticket-conversations';
   useEffect(() => {
     if (!loadResource || !fetchBookingConversations || !fetchTicketConversations) return;
-    void loadResource(bookingKey, () => fetchBookingConversations(0, 50)).catch(() => undefined);
-    void loadResource(ticketKey, () => fetchTicketConversations(0, 50)).catch(() => undefined);
+    void loadResource(bookingKey, () => fetchBookingConversations()).catch(() => undefined);
+    void loadResource(ticketKey, () => fetchTicketConversations()).catch(() => undefined);
   }, [fetchBookingConversations, fetchTicketConversations, loadResource]);
-  const bookingResource = api?.getResource<HostPage<BookingConversationDto>>(bookingKey);
-  const ticketResource = api?.getResource<HostPage<TicketConversationDto>>(ticketKey);
+  const bookingResource = api?.getResource<BookingConversationDto[]>(bookingKey);
+  const ticketResource = api?.getResource<TicketConversationDto[]>(ticketKey);
   const fixture = fixtures.getMessages();
   const loading = api
     ? !bookingResource || !ticketResource || bookingResource.status === 'loading' || ticketResource.status === 'loading'
@@ -34,60 +34,55 @@ export default function HostMessagesPage() {
     : fixture.state === 'error' ? fixture.error : '';
   const conversations = useMemo(() => apiAvailable
     ? [
-      ...(bookingResource?.status === 'ready' || bookingResource?.status === 'empty' ? bookingResource.data.items.map(mapBookingConversation) : []),
-      ...(ticketResource?.status === 'ready' || ticketResource?.status === 'empty' ? ticketResource.data.items.map(mapTicketConversation) : []),
+      ...(bookingResource?.status === 'ready' || bookingResource?.status === 'empty' ? bookingResource.data.map(mapBookingConversation) : []),
+      ...(ticketResource?.status === 'ready' || ticketResource?.status === 'empty' ? ticketResource.data.map(mapTicketConversation) : []),
     ]
     : fixture.data ?? [], [apiAvailable, bookingResource, ticketResource, fixture.data]);
   const loadThread = useCallback(async (conversation: (typeof conversations)[number]) => {
     if (!hostApi || !loadResource || !conversation.kind || !conversation.sourceId) return;
-    const key = `host:thread:${conversation.kind}:${conversation.sourceId}:0`;
+    const key = `host:thread:${conversation.kind}:${conversation.sourceId}`;
     if (conversation.kind === 'booking') {
       await Promise.all([
-        loadResource(key, () => hostApi.fetchBookingMessages(conversation.sourceId!, 0, 50)),
+        loadResource(key, () => hostApi.fetchBookingMessages(conversation.sourceId!)),
         hostApi.markBookingConversationRead(conversation.sourceId),
       ]);
     } else {
       await Promise.all([
-        loadResource(key, () => hostApi.fetchTicketMessages(conversation.sourceId!, 0, 50)),
+        loadResource(key, () => hostApi.fetchTicketMessages(conversation.sourceId!)),
         hostApi.markTicketConversationRead(conversation.sourceId),
       ]);
     }
   }, [hostApi, loadResource]);
   const sendMessage = useCallback(async (conversation: (typeof conversations)[number], body: string) => {
     if (!hostApi || !loadResource || !conversation.kind || !conversation.sourceId) return;
-    const key = `host:thread:${conversation.kind}:${conversation.sourceId}:0`;
+    const key = `host:thread:${conversation.kind}:${conversation.sourceId}`;
     if (conversation.kind === 'booking') await hostApi.postBookingMessage(conversation.sourceId, body);
     else await hostApi.postTicketMessage(conversation.sourceId, body);
     await loadResource(key, () => conversation.kind === 'booking'
-      ? hostApi.fetchBookingMessages(conversation.sourceId!, 0, 50)
-      : hostApi.fetchTicketMessages(conversation.sourceId!, 0, 50));
+      ? hostApi.fetchBookingMessages(conversation.sourceId!)
+      : hostApi.fetchTicketMessages(conversation.sourceId!));
   }, [hostApi, loadResource]);
   const loadOlderMessages = useCallback(async (conversation: (typeof conversations)[number]) => {
     if (!hostApi || !loadResource || !conversation.kind || !conversation.sourceId) return;
     const nextPage = (historyPages[conversation.id] ?? 0) + 1;
-    const key = `host:thread:${conversation.kind}:${conversation.sourceId}:${nextPage}`;
+    const key = `host:thread:${conversation.kind}:${conversation.sourceId}`;
     await loadResource(key, () => conversation.kind === 'booking'
-      ? hostApi.fetchBookingMessages(conversation.sourceId!, nextPage, 50)
-      : hostApi.fetchTicketMessages(conversation.sourceId!, nextPage, 50));
+      ? hostApi.fetchBookingMessages(conversation.sourceId!)
+      : hostApi.fetchTicketMessages(conversation.sourceId!));
     setHistoryPages((current) => ({ ...current, [conversation.id]: nextPage }));
   }, [hostApi, loadResource, historyPages]);
   const hasOlderMessages = useCallback((conversation: (typeof conversations)[number]) => {
     if (!api || !conversation.kind || !conversation.sourceId) return false;
-    const page = historyPages[conversation.id] ?? 0;
-    const resource = api.getResource<HostPage<HostMessageDto>>(`host:thread:${conversation.kind}:${conversation.sourceId}:${page}`);
-    return (resource?.status === 'ready' || resource?.status === 'empty') && resource.data.hasMore;
-  }, [api, historyPages]);
+    return false;
+  }, [api]);
   const messagesByConversation: Record<string, ReturnType<typeof mapHostMessages>> = {};
   if (api) {
     for (const conversation of conversations) {
       if (!conversation.kind || !conversation.sourceId) continue;
-      const pages = historyPages[conversation.id] ?? 0;
-      const pageItems: HostMessageDto[] = [];
-      for (let page = 0; page <= pages; page += 1) {
-        const resource = api.getResource<HostPage<HostMessageDto>>(`host:thread:${conversation.kind}:${conversation.sourceId}:${page}`);
-        if (resource?.status === 'ready' || resource?.status === 'empty') pageItems.push(...resource.data.items);
+      const resource = api.getResource<HostMessageDto[]>(`host:thread:${conversation.kind}:${conversation.sourceId}`);
+      if (resource?.status === 'ready' || resource?.status === 'empty') {
+        messagesByConversation[conversation.id] = mapHostMessages(resource.data, conversation.counterpartName ?? 'Guest');
       }
-      if (pageItems.length) messagesByConversation[conversation.id] = mapHostMessages(pageItems, conversation.counterpartName ?? 'Guest');
     }
   }
   return <HostPageFrame fillHeight title="Messages">

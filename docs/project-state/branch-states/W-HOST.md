@@ -9,7 +9,7 @@ in after the branch merges.
 - **Owner:** project owner
 - **Status:** Draft
 - **Approved:** —
-- **Last updated:** 2026-10-22 by GPT-5 — completed T13; moving to T14
+- **Last updated:** 2026-10-22 by GPT-5 — completed T14; moving to T15
 
 ---
 
@@ -32,7 +32,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| Current | 2026-10-22 | GPT-5 | W-HOST-API | Active | T14 replace paged frontend API and provider types | T14 step 1: add failing adapter/provider tests for complete arrays, >100 rows, no page/size URLs, and single wallet response caching | 2026-10-22 |
+| Current | 2026-10-22 | GPT-5 | W-HOST-API | Active | T15 remove listing and request pagination UI | T15 step 1: add failing >100 listing/pending/history rendering assertions and verify no controls or follow-up requests | 2026-10-22 |
 
 **Remaining**
 
@@ -46,13 +46,14 @@ No change.
 - [x] T10 backend/frontend acceptance, authenticated request captures, regression fixes, code review, and fresh build/test/lint gates complete; owner review remains (D~23/D~25/D~26/D~27).
 - [x] T12 return complete booking/ticket conversation arrays; 101-row collections, 1,001-message history, legacy parameter equivalence, privacy, Checkstyle, and backend build pass.
 - [x] T13 return the complete newest-first wallet statement; 101-row stable-order/owner-scope test, legacy parameter equivalence, Checkstyle, and backend build pass.
+- [x] T14 replace paged frontend API/provider types with complete arrays; 177 tests, lint, and production build pass; wallet response is shared between navbar and Wallet screen.
 
 ## 3. Workstreams
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
 | W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Listing route/load failures use a generic page and listings link; validation and mutation errors stay inline (C~18) | guide out of date: W-HOST Host UI pages and Fall Light details |
-| W-HOST-API | Replace Host fixtures with authenticated backend integration | Building | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T13 done: complete newest-first wallet statement with stable ID tie-break and owner-scope coverage; next T14 frontend arrays | — |
+| W-HOST-API | Replace Host fixtures with authenticated backend integration | Building | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T14 done: complete-array adapters/providers; 177 tests, lint, build pass; next T15 remove listing/request controls | — |
 
 ## 4. Architecture
 
@@ -146,6 +147,7 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | D~26 | 2026-10-22 | A clean Wallet route capture duplicated `GET /api/host/wallet?page=0&size=50` under Strict Mode even though the summary and keyed page resources were already coalesced | Added separate in-flight sharing for wallet statement pages and a Strict Mode regression test; the regression failed with two page reads before the fix, passed after it, and a fresh authenticated Wallet capture now shows one statement request and one wallet summary request |
 | D~27 | 2026-10-22 | Read-only T10 review found stale gate wording and a handoff that still said route captures remained | Reconciled the evidence and next-action records; review found no code findings, and the final frontend/backend gates and plan closeout lint now pass |
 | D~28 | 2026-10-22 | T11's approved file list omitted `PropertyRepositoryTest`, which directly asserted the listing page-query API that T11 removes | Resolved: add the repository test to T11 and replace paging assertions with complete stable-order and owner-scope coverage; no API scope change |
+| D~29 | 2026-10-22 | T14's original file list omitted the four API-mode Host pages, which still consumed page-envelope types and separate wallet summary/statement calls | Resolved: include those route adapters and their route tests in T14 so each commit remains type-safe and consumes the complete response; T15/T16 still remove the now-inert pagination controls and handlers |
 
 ## 10. Changes
 
@@ -236,3 +238,4 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | 2026-10-22 | Replaced paged Host listing and pending/history request reads with complete ordered owner-scoped arrays; legacy page/size params return identical results. 101-row integration coverage, repository ordering/scope tests, Checkstyle, and backend build pass | W-HOST-API | T11 |
 | 2026-10-22 | Replaced paged booking/ticket conversation summary and history APIs with complete stable-order arrays; retained host/channel scoping, read/post transactions, and after-commit events. Tests cover 101 summaries/messages, a 1,001-message thread, legacy parameter equivalence, privacy; Checkstyle and backend build pass | W-HOST-API | T12 |
 | 2026-10-22 | Replaced the paged wallet statement with a complete newest-first owner-scoped array and stable timestamp/ID ordering; 101-row plus foreign-owner integration coverage, legacy parameter equivalence, Checkstyle, and backend build pass | W-HOST-API | T13 |
+| 2026-10-22 | Replaced frontend page envelopes with complete arrays, removed page/size URL generation, and shared the complete wallet response across navbar and Wallet; 177 frontend tests, lint, and production build pass | W-HOST-API | T14 |

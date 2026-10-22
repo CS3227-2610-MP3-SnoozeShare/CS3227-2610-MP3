@@ -5,24 +5,24 @@ import { useHostFixtures } from '@/components/host/HostFixtureProvider';
 import { useOptionalHostApi } from '@/components/host/HostApiProvider';
 import { HostPageFrame } from '@/components/host/HostPageFrame';
 import { HostRequestsTable } from '@/components/host/HostRequestsTable';
-import { mapHostBooking, type HostBookingDto, type HostPage } from '@/components/host/hostTypes';
+import { mapHostBooking, type HostBookingDto } from '@/components/host/hostTypes';
 
 export default function HostRequestsPage() {
   const fixtures = useHostFixtures();
   const api = useOptionalHostApi();
   const [pendingPage, setPendingPage] = useState(0);
   const [historyPage, setHistoryPage] = useState(0);
-  const pendingKey = `host:requests:pending:${pendingPage}`;
-  const historyKey = `host:requests:history:${historyPage}`;
+  const pendingKey = 'host:requests:pending';
+  const historyKey = 'host:requests:history';
   const loadResource = api?.loadResource;
   const fetchRequests = api?.api.fetchHostRequests;
   useEffect(() => {
     if (!loadResource || !fetchRequests) return;
-    void loadResource(pendingKey, () => fetchRequests('pending', pendingPage, 50)).catch(() => undefined);
-    void loadResource(historyKey, () => fetchRequests('history', historyPage, 50)).catch(() => undefined);
+    void loadResource(pendingKey, () => fetchRequests('pending')).catch(() => undefined);
+    void loadResource(historyKey, () => fetchRequests('history')).catch(() => undefined);
   }, [fetchRequests, historyKey, historyPage, loadResource, pendingKey, pendingPage]);
-  const pendingResource = api?.getResource<HostPage<HostBookingDto>>(pendingKey);
-  const historyResource = api?.getResource<HostPage<HostBookingDto>>(historyKey);
+  const pendingResource = api?.getResource<HostBookingDto[]>(pendingKey);
+  const historyResource = api?.getResource<HostBookingDto[]>(historyKey);
   const fixture = fixtures.getRequests();
   const apiMode = Boolean(api);
   const loading = apiMode
@@ -33,17 +33,17 @@ export default function HostRequestsPage() {
     : fixture.state === 'error' ? fixture.error : '';
   const requests = apiMode
     ? {
-      pending: pendingResource?.status === 'ready' || pendingResource?.status === 'empty' ? pendingResource.data.items.map(mapHostBooking) : [],
-      past: historyResource?.status === 'ready' || historyResource?.status === 'empty' ? historyResource.data.items.map(mapHostBooking) : [],
+      pending: pendingResource?.status === 'ready' || pendingResource?.status === 'empty' ? pendingResource.data.map(mapHostBooking) : [],
+      past: historyResource?.status === 'ready' || historyResource?.status === 'empty' ? historyResource.data.map(mapHostBooking) : [],
     }
     : fixture.data ?? { pending: [], past: [] };
-  const pendingHasMore = apiMode && (pendingResource?.status === 'ready' || pendingResource?.status === 'empty') && pendingResource.data.hasMore;
-  const historyHasMore = apiMode && (historyResource?.status === 'ready' || historyResource?.status === 'empty') && historyResource.data.hasMore;
+  const pendingHasMore = false;
+  const historyHasMore = false;
   const refresh = useCallback(() => {
     if (!api || !loadResource || !fetchRequests) return;
-    void loadResource(pendingKey, () => fetchRequests('pending', pendingPage, 50)).catch(() => undefined);
-    void loadResource(historyKey, () => fetchRequests('history', historyPage, 50)).catch(() => undefined);
-  }, [api, fetchRequests, historyKey, historyPage, loadResource, pendingKey, pendingPage]);
+    void loadResource(pendingKey, () => fetchRequests('pending')).catch(() => undefined);
+    void loadResource(historyKey, () => fetchRequests('history')).catch(() => undefined);
+  }, [api, fetchRequests, historyKey, loadResource, pendingKey]);
   const decide = async (requestId: string, approve: boolean, message?: string) => {
     if (!api) return;
     await api.api.decideHostBooking(requestId, approve, message);

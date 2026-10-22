@@ -9,25 +9,11 @@ import type {
   HostListingDetailDto,
   HostListingDto,
   HostMessageDto,
-  HostPage,
   HostWalletDto,
   HostWalletMutationDto,
   TicketConversationDto,
   UpdateHostListingPayload,
 } from '@/components/host/hostTypes';
-
-export type Page<T> = HostPage<T>;
-
-export type HostApiPageQuery = { page?: number; size?: number };
-const MAX_PAGE_SIZE = 100;
-
-function pageQuery({ page = 0, size = 50 }: HostApiPageQuery = {}) {
-  if (!Number.isInteger(page) || page < 0) throw new Error('Page must be a non-negative integer');
-  if (!Number.isInteger(size) || size < 1 || size > MAX_PAGE_SIZE) {
-    throw new Error('Page size must be between 1 and 100');
-  }
-  return `page=${page}&size=${size}`;
-}
 
 async function getJson<T>(path: string): Promise<T> {
   const response = await request(path);
@@ -65,8 +51,8 @@ export function hostSafeErrorMessage(error: unknown) {
 
 const segment = (id: string) => encodeURIComponent(id);
 
-export function fetchHostListings(page = 0, size = 50) {
-  return getJson<Page<HostListingDto>>(`/api/host/listings?${pageQuery({ page, size })}`);
+export function fetchHostListings() {
+  return getJson<HostListingDto[]>('/api/host/listings');
 }
 
 export function fetchHostListing(listingId: string) {
@@ -99,22 +85,21 @@ export function deleteHostBlock(blockId: string) {
   return sendVoid(`/api/host/blocks/${segment(blockId)}`, 'DELETE');
 }
 
-export function fetchHostRequests(view: 'pending' | 'history', page = 0, size = 50) {
-  pageQuery({ page, size });
-  const query = new URLSearchParams({ view, page: String(page), size: String(size) });
-  return getJson<Page<HostBookingDto>>(`/api/host/requests?${query}`);
+export function fetchHostRequests(view: 'pending' | 'history') {
+  const query = new URLSearchParams({ view });
+  return getJson<HostBookingDto[]>(`/api/host/requests?${query}`);
 }
 
 export function decideHostBooking(bookingId: string, approve: boolean, message?: string) {
   return sendJson<unknown>(`/api/host/requests/${segment(bookingId)}/decision`, 'POST', { approve, message });
 }
 
-export function fetchBookingConversations(page = 0, size = 50) {
-  return getJson<Page<BookingConversationDto>>(`/api/host/messages/bookings?${pageQuery({ page, size })}`);
+export function fetchBookingConversations() {
+  return getJson<BookingConversationDto[]>('/api/host/messages/bookings');
 }
 
-export function fetchBookingMessages(bookingId: string, page = 0, size = 50) {
-  return getJson<Page<HostMessageDto>>(`/api/host/messages/bookings/${segment(bookingId)}?${pageQuery({ page, size })}`);
+export function fetchBookingMessages(bookingId: string) {
+  return getJson<HostMessageDto[]>(`/api/host/messages/bookings/${segment(bookingId)}`);
 }
 
 export function postBookingMessage(bookingId: string, body: string) {
@@ -125,12 +110,12 @@ export function markBookingConversationRead(bookingId: string) {
   return sendVoid(`/api/host/messages/bookings/${segment(bookingId)}/read`, 'POST');
 }
 
-export function fetchTicketConversations(page = 0, size = 50) {
-  return getJson<Page<TicketConversationDto>>(`/api/host/messages/tickets?${pageQuery({ page, size })}`);
+export function fetchTicketConversations() {
+  return getJson<TicketConversationDto[]>('/api/host/messages/tickets');
 }
 
-export function fetchTicketMessages(ticketId: string, page = 0, size = 50) {
-  return getJson<Page<HostMessageDto>>(`/api/host/messages/tickets/${segment(ticketId)}?${ticketQuery(page, size)}`);
+export function fetchTicketMessages(ticketId: string) {
+  return getJson<HostMessageDto[]>(`/api/host/messages/tickets/${segment(ticketId)}?channel=HOST`);
 }
 
 export function postTicketMessage(ticketId: string, body: string) {
@@ -141,8 +126,8 @@ export function markTicketConversationRead(ticketId: string) {
   return sendVoid(`/api/host/messages/tickets/${segment(ticketId)}/read?channel=HOST`, 'POST');
 }
 
-export function fetchHostWallet(page = 0, size = 50) {
-  return getJson<HostWalletDto>(`/api/host/wallet?${pageQuery({ page, size })}`);
+export function fetchHostWallet() {
+  return getJson<HostWalletDto>('/api/host/wallet');
 }
 
 export function topUpHostWallet(amount: number) {
@@ -151,8 +136,4 @@ export function topUpHostWallet(amount: number) {
 
 export function withdrawFromHostWallet(amount: number) {
   return sendJson<HostWalletMutationDto>('/api/host/wallet/withdraw', 'POST', { amount });
-}
-
-function ticketQuery(page: number, size: number) {
-  return `channel=HOST&${pageQuery({ page, size })}`;
 }

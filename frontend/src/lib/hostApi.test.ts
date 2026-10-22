@@ -15,25 +15,29 @@ describe('Host API adapter', () => {
     vi.clearAllMocks();
   });
 
-  it('requests bounded Host listing pages through authenticatedFetch without a host UUID', async () => {
-    authenticatedFetch.mockResolvedValue(new Response(JSON.stringify({
-      items: [{ id: 'listing-id', title: 'Cabin' }], page: 2, size: 25, hasMore: true,
-    }), { status: 200 }));
-    const { fetchHostListings } = await import('./hostApi');
+  it('loads complete Host collections without pagination query parameters', async () => {
+    const rows = Array.from({ length: 101 }, (_, index) => ({ id: `row-${index}` }));
+    authenticatedFetch.mockImplementation(async (path: string) => new Response(JSON.stringify(
+      path === '/api/host/wallet'
+        ? { wallet: { id: 'wallet-id', userId: 'host-id', balance: 10, currency: 'SGD', updatedAt: '2026-10-22T00:00:00Z' }, statement: rows }
+        : rows,
+    ), { status: 200 }));
+    const { fetchHostListings, fetchHostRequests, fetchBookingConversations, fetchBookingMessages,
+      fetchTicketConversations, fetchTicketMessages, fetchHostWallet } = await import('./hostApi');
 
-    await expect(fetchHostListings(2, 25)).resolves.toMatchObject({
-      items: [{ id: 'listing-id' }], page: 2, size: 25, hasMore: true,
-    });
-    expect(authenticatedFetch).toHaveBeenCalledWith('/api/host/listings?page=2&size=25');
-    expect(JSON.stringify(authenticatedFetch.mock.calls)).not.toContain('hostId');
-  });
-
-  it('rejects page sizes above the API limit instead of requesting an unbounded collection', async () => {
-    const { fetchHostListings, fetchHostRequests } = await import('./hostApi');
-
-    expect(() => fetchHostListings(0, 101)).toThrow('Page size must be between 1 and 100');
-    expect(() => fetchHostRequests('pending', 0, 101)).toThrow('Page size must be between 1 and 100');
-    expect(authenticatedFetch).not.toHaveBeenCalled();
+    await expect(fetchHostListings()).resolves.toHaveLength(101);
+    await expect(fetchHostRequests('pending')).resolves.toHaveLength(101);
+    await expect(fetchBookingConversations()).resolves.toHaveLength(101);
+    await expect(fetchBookingMessages('booking-id')).resolves.toHaveLength(101);
+    await expect(fetchTicketConversations()).resolves.toHaveLength(101);
+    await expect(fetchTicketMessages('ticket-id')).resolves.toHaveLength(101);
+    await expect(fetchHostWallet()).resolves.toMatchObject({ statement: rows });
+    expect(authenticatedFetch.mock.calls.map(([path]) => path)).toEqual([
+      '/api/host/listings', '/api/host/requests?view=pending', '/api/host/messages/bookings',
+      '/api/host/messages/bookings/booking-id', '/api/host/messages/tickets',
+      '/api/host/messages/tickets/ticket-id?channel=HOST', '/api/host/wallet',
+    ]);
+    expect(JSON.stringify(authenticatedFetch.mock.calls)).not.toMatch(/page=|size=|hostId/);
   });
 
   it('sends wallet mutations without host identity or automatic retry metadata', async () => {
@@ -83,6 +87,6 @@ describe('Host API adapter', () => {
     };
     expect(mapHostListing(listing)).toMatchObject({ type: 'Private Room', rate: 80, status: 'active' });
     expect(mapHostListingDetail({ listing, metrics: { bookingCount: 3, averageRating: 4.5, reviews: [{ guestName: 'Guest', rating: 5, comment: 'Great' }], occupancyPercentage: 60, earnings: 240 } })).toMatchObject({ bookings: 3, rating: 4.5, reviews: [{ author: 'Guest', text: 'Great' }] });
-    expect(mapHostWallet({ wallet: { id: 'w-1', userId: 'h-1', balance: 20, currency: 'SGD', updatedAt: '2026-10-22T00:00:00Z' }, statement: { items: [{ id: 'tx-1', actionType: 'TOP_UP', walletAdjustment: 20, balanceAfter: 20, reason: 'Top-up', bookingId: null, ticketId: null, timestamp: '2026-10-22T00:00:00Z' }], page: 0, size: 1, hasMore: false } })).toMatchObject({ wallet: { balance: 20 }, statement: [{ type: 'TOP_UP', amount: 20, relatedTo: '—' }] });
+    expect(mapHostWallet({ wallet: { id: 'w-1', userId: 'h-1', balance: 20, currency: 'SGD', updatedAt: '2026-10-22T00:00:00Z' }, statement: [{ id: 'tx-1', actionType: 'TOP_UP', walletAdjustment: 20, balanceAfter: 20, reason: 'Top-up', bookingId: null, ticketId: null, timestamp: '2026-10-22T00:00:00Z' }] })).toMatchObject({ wallet: { balance: 20 }, statement: [{ type: 'TOP_UP', amount: 20, relatedTo: '—' }] });
   });
 });
