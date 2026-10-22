@@ -28,7 +28,7 @@ export type Conversation = {
 };
 
 export type WalletSummary = { balance: number; escrowNote: string };
-export type StatementRow = { date: string; type: string; relatedTo: string; amount: number; balanceAfter: number };
+export type StatementRow = { id?: string; date: string; type: string; relatedTo: string; amount: number; balanceAfter: number };
 
 export type HostListingDto = {
   id: string; hostId: string; status: 'ACTIVE' | 'INACTIVE'; title: string; description: string;
@@ -158,6 +158,7 @@ export function mapHostWallet(dto: HostWalletDto): { wallet: WalletSummary; stat
   return {
     wallet: { balance: Number(dto.wallet.balance), escrowNote: 'Pending booking funds are held in escrow until the stay is complete.' },
     statement: dto.statement.map((transaction) => ({
+      id: transaction.id,
       date: new Date(transaction.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }),
       type: transaction.actionType,
       relatedTo: transaction.bookingId ? `Booking #${transaction.bookingId}` : transaction.ticketId ? `Ticket #${transaction.ticketId}` : '—',

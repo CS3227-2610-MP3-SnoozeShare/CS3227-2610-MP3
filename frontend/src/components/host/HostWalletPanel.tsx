@@ -73,8 +73,8 @@ export function HostWalletPanel({ wallet, statement, onMutation, mutationPending
                 <Tr><Th>DATE</Th><Th>TYPE</Th><Th>RELATED TO</Th><Th>AMOUNT</Th><Th>BALANCE AFTER</Th></Tr>
               </Thead>
               <Tbody>
-                {statement.map((row) => (
-                  <Tr key={`${row.date}-${row.type}`}>
+                {statement.map((row, index) => (
+                  <Tr key={row.id ?? `${row.date}-${row.type}-${index}`}>
                     <Td className="py-2.5">{row.date}</Td>
                     <Td className="py-2.5"><span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wide ${transactionTypeClass(row.type)}`}>{row.type}</span></Td>
                     <Td className="py-2.5">{row.relatedTo}</Td>

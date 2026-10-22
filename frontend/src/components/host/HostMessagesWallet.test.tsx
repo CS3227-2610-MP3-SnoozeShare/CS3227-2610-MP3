@@ -142,6 +142,21 @@ describe('Host messages and wallet', () => {
     expect(table.querySelectorAll('tbody tr')).toHaveLength(31);
   });
 
+  it('renders same-day transactions of the same type without duplicate React keys', () => {
+    const adapter = createHostFixtureAdapter();
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const sameDayTopUps = [
+      { date: 'Oct 22, 2026', type: 'TOP_UP', relatedTo: '—', amount: 50, balanceAfter: 50 },
+      { date: 'Oct 22, 2026', type: 'TOP_UP', relatedTo: '—', amount: 100, balanceAfter: 150 },
+    ];
+
+    render(<HostWalletPanel wallet={adapter.getWalletSummary().data!} statement={sameDayTopUps} />);
+
+    expect(consoleError.mock.calls.flat().join(' ')).not.toContain('same key');
+    expect(screen.getByRole('table').querySelectorAll('tbody tr')).toHaveLength(2);
+    consoleError.mockRestore();
+  });
+
   it('retains mocked local wallet controls', async () => {
     const adapter = createHostFixtureAdapter();
     render(<HostWalletPanel wallet={adapter.getWalletSummary().data!} statement={adapter.getStatement().data!} />);

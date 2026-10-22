@@ -8,7 +8,7 @@ in after the branch merges.
 - **Base:** `e185dc0`
 - **Owner:** project owner
 - **Status:** In review
-- **Last updated:** 2026-10-22 by GPT-5 — aligned distinct Host Wallet modal flows with the artifact; owner review needed
+- **Last updated:** 2026-10-22 by GPT-5 — fixed duplicate transaction keys; owner review remains
 
 ---
 
@@ -49,12 +49,13 @@ No change.
 - [x] T16 remove message-history and wallet load-more controls/state; 1,001-message and 101-row tests, 178 frontend tests, lint, and production build pass.
 - [x] T17 final verification: fresh backend full rerun, 178 frontend tests/lint/build, integration coverage, and authenticated read-only request capture complete; owner review remains.
 - [x] Merged `development` through `e185dc0`, adopted `@ConditionalOnDatabase`, and verified backend build plus frontend tests/lint/production build; W-HOST remains awaiting owner review.
+- [x] Preserved unique wallet transaction IDs in the UI model and eliminated same-day/same-type row-key collisions; 199 frontend tests, lint, and production build pass.
 
 ## 3. Workstreams
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [experience corrections spec](docs/superpowers/specs/2026-10-22-w-host-experience-corrections-design.md); [UI spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [UI plan](docs/superpowers/plans/2026-10-21-w-host-ui.md); [experience corrections plan](docs/superpowers/plans/2026-10-22-w-host-experience-corrections.md) | Wallet dialogs aligned with distinct artifact flows; 198 tests and lint/build pass; owner review pending | guide out of date: Host metrics, time display, and calendar behavior |
+| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [experience corrections spec](docs/superpowers/specs/2026-10-22-w-host-experience-corrections-design.md); [UI spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [UI plan](docs/superpowers/plans/2026-10-21-w-host-ui.md); [experience corrections plan](docs/superpowers/plans/2026-10-22-w-host-experience-corrections.md) | Wallet statement keys fixed; 199 tests, lint, and production build pass; owner review pending | guide out of date: Host metrics, time display, and calendar behavior |
 | W-HOST-API | Replace Host fixtures with authenticated backend integration | In review | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T17 complete: 101/1,001-row tests, full gates, and authenticated read-only captures; owner review pending | — |
 
 ## 4. Architecture
@@ -264,3 +265,4 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | 2026-10-22 | Added inline check-in/out required and ordering validation, corrected bedroom/bathroom errors, and moved safe request failures to the right of form actions; 191 tests, lint, and production build pass | W-HOST | C~23 |
 | 2026-10-22 | Formatted listing detail times as zero-padded 12-hour values; made Block these dates submit directly (including Enter), and mapped overlapping booking/block conflicts to a specific safe error; 196 frontend tests, lint/build, backend Checkstyle/build pass | W-HOST | C~24 |
 | 2026-10-22 | Matched top-up and withdrawal dialogs to distinct artifact flows, including balance display, top-up presets, full-balance withdrawal, escrow-aware copy, and available-balance validation; 198 frontend tests, lint, and production build pass | W-HOST | C~25 |
+| 2026-10-22 | Preserved transaction IDs through wallet DTO mapping and keyed statement rows by transaction identity, with unique fallback keys; same-day/same-type regression, 199 frontend tests, lint, and production build pass | W-HOST | Operator follow-up |
