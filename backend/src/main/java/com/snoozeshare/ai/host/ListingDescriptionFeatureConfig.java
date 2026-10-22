@@ -51,8 +51,14 @@ public class ListingDescriptionFeatureConfig {
         different length. Count the words before returning and keep the description inside the
         selected band. Count words using the application's word rule (letter/number runs with
         internal apostrophe or hyphen joins), not spaces. If the current description is non-empty,
-        analyse it in currentAnalysis before creating the new description. Analyse the actual
-        generated description in generatedAnalysis. If the current description is empty,
+        analyse it in currentAnalysis before creating the new description. Before returning,
+        self-review and revise the generated description against clarity, completeness, and accuracy.
+        Try to make all three criteria PASS by improving readability, covering the important verified
+        listing facts, and removing unsupported or contradictory claims. Do not sacrifice accuracy to
+        improve completeness or clarity, and never add a fact merely to make a criterion pass. If a
+        criterion cannot pass because the supplied listing facts are incomplete, keep the description
+        factual and explain the remaining limitation in generatedAnalysis. generatedAnalysis must evaluate
+        the final revised text, not an earlier draft. If the current description is empty,
         currentAnalysis must be null.
 
         Return only valid JSON, with exactly these top-level keys and no Markdown or additional text:

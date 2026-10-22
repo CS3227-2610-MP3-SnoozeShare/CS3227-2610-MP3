@@ -35,4 +35,13 @@ class ListingDescriptionFeatureConfigTest {
             .contains("SHORT is 50-75 words", "MEDIUM is 75-125 words")
             .contains("descriptionLength is", "authoritative", "Count the words before returning");
     }
+
+    @Test
+    void promptMakesTheThreeCriteriaGenerationTargets() {
+        assertThat(feature.systemPrompt())
+            .contains("self-review and revise the generated description")
+            .contains("Try to make all three criteria PASS")
+            .contains("Do not sacrifice accuracy to")
+            .contains("generatedAnalysis must evaluate");
+    }
 }

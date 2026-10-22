@@ -9,7 +9,7 @@ after the branch merges.
 - **Owner:** Xiao-Congchen
 - **Status:** In review
 - **Approved:** Spec and plan approved (Xiao-Congchen, 2026-10-22); Gate 3 review requested
-- **Last updated:** 2026-10-23 by GPT-5 — removed redundant visible AI loading text
+- **Last updated:** 2026-10-23 by GPT-5 — improved Generate prompt to self-review toward the analysis criteria
 
 ---
 
@@ -33,7 +33,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S2 | 2026-10-23 00:20 | GPT-5 (lead) | W~1 | In review | Preserved Host AI modal state and removed redundant visible loading text; frontend checks pass | Commit loading-text cleanup, then leave branch ready for Gate 3 review | 2026-10-23 02:35 |
+| S2 | 2026-10-23 00:20 | GPT-5 (lead) | W~1 | In review | Improved Generate prompt to self-review toward PASS criteria; backend checks pass | Commit prompt refinement, then leave branch ready for Gate 3 review | 2026-10-23 02:36 |
 
 **Remaining**
 
@@ -147,3 +147,4 @@ plain-text rendering conventions.
 | 2026-10-23 | Removed Host-specific gateway/validation diagnosis warnings and completed Long removal from the backend contract/prompt; added a no-diagnosis-log regression | W~1 | Operator-directed change |
 | 2026-10-23 | Removed PASS/IMPROVE prefixes from analysis feedback, preserved generated results across modal reopen, reset current analysis when the description refreshes, and reset results only after Apply; added regressions | W~1 | Operator-directed change |
 | 2026-10-23 | Removed the redundant visible `Loading…` status text while retaining pending button labels and disabled-state behavior; updated regression coverage | W~1 | Operator-directed change |
+| 2026-10-23 | Improved the Generate prompt to self-review and revise toward PASS on clarity, completeness, and accuracy while preserving factual accuracy; added prompt regression coverage | W~1 | Operator-directed change |
