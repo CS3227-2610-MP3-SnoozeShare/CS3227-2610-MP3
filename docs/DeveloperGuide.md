@@ -10,7 +10,7 @@ Handover brief for developers taking over this project. It describes **confirmed
 is updated at checkpoints, so it can lag behind the code. For current status, work in flight, and
 what to build next, read [`PROJECT_STATE.md`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/PROJECT_STATE.md) — that is the source of truth.
 
-**Last updated:** 2026-10-22 — covers W1 to W16, MP3-0, W-INFRA, W-AUTH, W-DOMAIN, W-AI-GATEWAY, W-HOST, W-HOST-API and W-GUEST; the desktop sections were checked against the built app on 2026-10-19, the web platform and deployment on 2026-10-20, auth on 2026-10-21, domain and AI gateway on 2026-10-22, Host API/pages against merged backend/frontend code and tests plus authenticated read-only browser captures on 2026-10-22, and Guest controllers/pages against merged code and tests on 2026-10-22
+**Last updated:** 2026-10-23 — covers W1 to W16, MP3-0, W-INFRA, W-AUTH, W-DOMAIN, W-AI-GATEWAY, W-HOST, W-HOST-API, W-GUEST and W-AGENT; the desktop sections were checked against the built app on 2026-10-19, the web platform and deployment on 2026-10-20, auth on 2026-10-21, domain and AI gateway on 2026-10-22, Host API/pages against merged backend/frontend code and tests plus authenticated read-only browser captures on 2026-10-22, and Guest controllers/pages against merged code and tests on 2026-10-22
 
 ## Contents
 
@@ -42,8 +42,9 @@ model, repositories and core services ported to Spring Data JPA
 gateway for future role AI features, off by default ([4.20](#420-ai-gateway-backendai)), authenticated
 Host REST APIs and API-backed Host pages ([4.21](#421-host-rest-api-backendapicontroller),
 [4.22](#422-host-web-pages-frontendsrcapphost)), Guest REST controllers and Next.js pages
-([4.23](#423-guest-rest-api-and-web-pages)), CI and a live dev deployment. The Agent feature
-controllers/pages remain unbuilt (see [3.2](#32-web-platform-and-deployment)).
+([4.23](#423-guest-rest-api-and-web-pages)), CI and a live dev deployment. The Agent REST API and
+pages, with the shared web API foundation they introduced ([4.24](#424-shared-web-api-foundation-backendapi),
+[4.25](#425-agent-rest-api-and-web-pages-backendapicontrolleragent-frontendsrcappagent)).
 
 **Target user:** the three roles the app serves — Guest (renter), Host (homeowner) and Support
 Agent (platform admin). This guide documents the role shells, Host operations, Support Agent
@@ -73,6 +74,7 @@ dispute-resolution tooling, messaging, wallets and the platform audit trail.
 | — (W-HOST) | **Web Host experience:** authenticated Next.js listings, listing detail/forms, calendar, requests, messages and wallet pages, preserving the approved Host presentation | [4.22](#422-host-web-pages-frontendsrcapphost) |
 | — (W-HOST-API) | **Host backend integration:** owner-scoped REST endpoints over existing services, complete collection/history responses, transactional booking/calendar/message/wallet operations | [4.21](#421-host-rest-api-backendapicontroller) |
 | — (W-GUEST) | **Guest web experience:** 5 REST controllers with 19 endpoints for search, bookings, wallet, messaging and reviews; 4 Next.js pages with typed API wrappers, components and integration tests | [4.23](#423-guest-rest-api-and-web-pages) |
+| — (W-AGENT) | **Agent web experience:** 5 REST controllers with 18 operations for the dispute queue and detail (assign, unassign, notes, two ticket threads, Accept / Reject / Manual resolution), account suspension and reactivation, the audit log and ticket categories; 5 Next.js pages with the desktop behaviour and the artifact look; a shared API foundation (one error body, token-derived actor, decoded-path checks, row locks, an architecture test) | [4.24](#424-shared-web-api-foundation-backendapi), [4.25](#425-agent-rest-api-and-web-pages-backendapicontrolleragent-frontendsrcappagent) |
 
 **Value proposition:** a support agent can take a dispute ticket, read both parties' evidence and
 chat, and settle the booking's held escrow between guest and host in one atomic, audited action.
@@ -202,6 +204,7 @@ required before merge is a repository branch-protection setting, not something t
 | `GOOGLE_APPLICATION_CREDENTIALS` | Path to the Firebase Admin service-account JSON (Application Default Credentials); keep it out of git | Firebase console > Project settings > Service accounts |
 | `SNOOZESHARE_HOST_REGISTRATION_CODE`, `SNOOZESHARE_AGENT_REGISTRATION_CODE` | The two secrets a person must enter to register as a Host or an Agent; required when auth is on; use long random values | Chosen by the operator; set on Render |
 | `SNOOZESHARE_TRUST_FORWARD_HEADERS` | `true` makes the backend take the client address for rate limits from `CF-Connecting-IP` (Render sits behind Cloudflare); `false` uses the direct peer. `dev` defaults to `false`; `prod` requires it | Render |
+| `SNOOZESHARE_AUDIT_ZONE` | Optional. The time zone whose midnight starts and ends the audit log's From and To days (property `snoozeshare.audit.zone`); defaults to `Asia/Singapore` (C149), not the server zone | Local and Render, usually unset |
 | `SNOOZESHARE_AI_ENABLED` | Turns the LLM gateway on. Defaults to `false` in `dev`; in `prod` it has no default and startup fails naming it when unset (`render.yaml` sets `"false"`) | Render |
 | `SOCLAAS_BASE_URL`, `SOCLAAS_API_KEY` | The NUS SoCLaaS base URL (ending `/v1`, `https` in `prod`) and your environment's own key. Needed only when the gateway is enabled and not in mock mode. Development and production use separate keys; never commit one | SoCLaaS portal (`soclaas-portal.comp.nus.edu.sg`) and the integration guide |
 | `SNOOZESHARE_AI_MOCK` | `true` answers AI calls from each feature's mock response instead of calling SoCLaaS; the `prod` profile rejects it | Local only |
@@ -414,7 +417,7 @@ change back. See [4.14](#414-audit-trail).
 
 ### 3.2 Web platform and deployment
 
-The web side has authentication and the ported domain layer: a Spring Boot API with Firebase auth, JPA entities, Spring Data repositories and service implementations; a Next.js app with sign-in, registration, authenticated Host pages backed by Host REST endpoints, and Guest pages backed by Guest REST controllers; a shared LLM gateway for future role AI features, off by default; and a hosted dev environment that tracks `development`. Agent feature controllers/pages remain to be built. Host and Guest pages use the same REST boundary locally and in the hosted environment.
+The web side has authentication and the ported domain layer: a Spring Boot API with Firebase auth, JPA entities, Spring Data repositories and service implementations; a Next.js app with sign-in, registration, authenticated Host pages backed by Host REST endpoints, Guest pages backed by Guest REST controllers, and Agent pages backed by Agent REST controllers; a shared LLM gateway for future role AI features, off by default; and a hosted dev environment that tracks `development`. Agent REST controllers and pages (with the shared API foundation in [4.24](#424-shared-web-api-foundation-backendapi)). Host and Guest pages use the same REST boundary locally and in the hosted environment.
 
 ```mermaid
 flowchart LR
@@ -495,6 +498,11 @@ Order: Render first, then Vercel, then Render again, because the frontend needs 
 | Priority 0 (staff-facing features) may use the last 5% of the global daily cap | Guest registration needs no code, so many accounts could otherwise starve Host and Agent features; the key is not shared with any other system, so a large reserve is not needed | A 20% reserve; no reserve | C109 |
 | `max-rpm` defaults to 25 | The development key allows 30 requests a minute | 55 | C110 |
 | `reasoning-effort` defaults to `none` | `qwen3.5:9b` and `gemma4:26b` spend `max_tokens` on reasoning and return empty content on small limits; all three models accept `none` | Other, costlier models; reasoning on with large `maxTokens` | C111 |
+| The Agent REST layer owns the shared API foundation (error body, `@CurrentUserId`, `ApiLayerTest`) | Guest and Host routes did not exist when it was built; one set of conventions beats three | A separate foundation workstream; agent-only copies | C145 |
+| Tickets are locked pessimistically (row lock, 5 s timeout) in assign, unassign, notes, resolve and settlement; suspend and reactivate lock the target user; the lock is the first read | Two agents could otherwise settle one escrow twice or refund one booking twice | `@Version` (turns a race into a retry), SERIALIZABLE, leaving the race | C146, C148 |
+| `agentNotes` lives only on the Agent detail response; the Agent API caps request bodies at 64 KB with a filter | The Guest and Host controllers reuse `TicketResponse` and must not be able to leak notes | A global Jackson string limit (it would also cap the AI gateway) | C147 |
+| The audit log's From and To days use `Asia/Singapore` by default | The operator chose it; the server zone is UTC on Render | The server default zone; changing the shared `Clock` | C149 |
+| The desktop screens are the source of truth for the agent pages; where the design artifact differs, ask the operator | The artifact is derived and can be stale | | C144, C154 |
 
 ---
 
@@ -1552,7 +1560,7 @@ sequenceDiagram
 | `POST /api/auth/register` | Bearer ID token; body `{role, registrationCode? (at most 128 characters), displayName? (at most 80 characters)}` | `201` with the new profile, `200` for a same-role retry; `400`, `403 INVALID_REGISTRATION_CODE` or `PROFILE_INACTIVE`, `409 ROLE_ALREADY_ASSIGNED`, `429` |
 | `GET /api/auth/me` | Bearer ID token | The profile `{id, email, role, displayName, walletId}`; `404 PROFILE_NOT_REGISTERED`, `403 PROFILE_INACTIVE` |
 | `/api/host/**` | Bearer ID token and an active HOST profile | Host endpoints are listed in [4.21](#421-host-rest-api-backendapicontroller); identity is derived and cross-checked server-side |
-| `/api/guest/**`, `/api/agent/**` | Bearer ID token and the matching active role | `403 ROLE_MISMATCH` otherwise; feature endpoints are not implemented yet |
+| `/api/guest/**`, `/api/agent/**` | Bearer ID token and the matching active role | `403 ROLE_MISMATCH` otherwise; the Guest endpoints are in [4.23](#423-guest-rest-api-and-web-pages) and the Agent endpoints in [4.25](#425-agent-rest-api-and-web-pages-backendapicontrolleragent-frontendsrcappagent) |
 
 At the security boundary a missing or invalid token is `401 INVALID_TOKEN` and an unreachable Firebase is `503 AUTH_PROVIDER_UNAVAILABLE`; an unexpected failure under `/api/auth` is `500 INTERNAL_ERROR`. Request bodies reject unknown fields, a code longer than 128 characters and a Guest request that carries a code.
 
@@ -1926,6 +1934,8 @@ sequenceDiagram
 
 **Tests.** `HostSecurityIntegrationTest`, `HostIdentityResolverTest`, `HostListingsControllerTest`, `HostCalendarIntegrationTest`, `HostRequestsIntegrationTest`, `HostBookingMessagesIntegrationTest`, `HostTicketMessagesIntegrationTest`, `HostWalletIntegrationTest`, `HostApiExceptionHandlerTest` and `DatabaseBeansTest` cover role/tenant boundaries, DTOs, transaction behavior, stable errors and database-bean activation. Calendar tests verify conflict code and precedence; they do not assert the complete error body or explicitly assert the absence of conflicting IDs/dates (accepted coverage gap D90).
 
+**Since W-AGENT.** The listing, calendar and wallet controllers delegate to `api/host/HostListingViews`, `HostCalendarViews` and `HostWalletViews` and return response DTOs only, so `ApiLayerTest` covers them (D107); `HostApiExceptionHandler` is scoped to the six Host controller classes and has the highest precedence (D106). Behaviour is unchanged. See [4.24](#424-shared-web-api-foundation-backendapi).
+
 ### 4.22 Host web pages (`frontend/src/app/host/`)
 
 **Purpose.** Provide the authenticated Host experience in Next.js, using the approved Fall Light presentation with backend-backed state in the running application and retained fixtures for deterministic presentation tests.
@@ -1950,6 +1960,8 @@ flowchart LR
 **Dependencies and fixtures.** `frontend/src/app/host/layout.tsx` composes `RouteGuard`, `HostApiProvider`, `HostFixtureProvider` and `HostRoleShell`. `HostFixtureProvider` supports fixture-based visual and interaction tests; authenticated production routes use the API provider. Guest pages use their own layout and API wrappers ([4.23](#423-guest-rest-api-and-web-pages)); Agent feature pages remain outside this component.
 
 **Tests.** `HostApiProvider.test.tsx`, `hostApi.test.ts`, `HostRoutes.test.tsx`, the listing/calendar/requests/messages/wallet route tests, and the Host component interaction/visual tests cover request coalescing, complete arrays, mutations, errors, date/time behavior and page states. The authenticated read-only browser acceptance checked all eight Host routes at desktop, tablet and mobile widths and confirmed one GET per collection dataset with no `page` or `size` parameters (T10, T17).
+
+**Since W-AGENT.** `RoleNavbar` is now fixed to the top of the page for every role, and the AGENT tabs link to their own routes (see [4.25](#425-agent-rest-api-and-web-pages-backendapicontrolleragent-frontendsrcappagent)).
 
 ### 4.23 Guest REST API and web pages
 
@@ -1986,6 +1998,143 @@ flowchart LR
 - Guest controllers carry `@ConditionalOnDatabase`, matching the convention established by D51/D91.
 
 **Tests.** Five backend integration test classes (`GuestSearchControllerTest`, `GuestBookingControllerTest`, `GuestWalletControllerTest`, `GuestMessageControllerTest`, `GuestReviewControllerTest`) extend `PostgresIntegrationTest` with `FakeTokenVerifier` for auth bypass. They cover search/filter, booking creation and cancellation, wallet operations, messaging (both ticket and booking threads), review submission, role rejection (HOST → 403), ownership violations and concurrent booking/withdrawal. Four frontend test files cover the search, trips, messages and wallet pages. D91 records that `@ConditionalOnBean(PropertyRepository.class)` was removed from 20 domain beans during T1; D92 records the fix for the JDBC unread-count SQL type mismatch; D93 records that wallet withdrawal lacks locking (a known gap).
+
+**Since W-AGENT.** `agentNotes` is no longer on the Guest ticket response (D109; `AgentCrossRoleContractTest` asserts the Guest API never carries agent notes), and `GuestExceptionHandler` has the highest advice precedence so the shared handler in [4.24](#424-shared-web-api-foundation-backendapi) never replaces its codes (D106).
+
+---
+
+### 4.24 Shared web API foundation (`backend/api/`)
+
+**Purpose.** The cross-cutting rules every REST controller of the web API follows: one error body, the acting user taken from the verified token, decoded-path role checks, row locks, and the architecture test that keeps controllers thin. It was built for the Agent API (C145) and the Guest and Host controllers reuse the parts that apply to them.
+
+**API.**
+
+| Piece | File | Role |
+|---|---|---|
+| Error body and mapping | `api/ApiErrorResponse.java`, `api/ApiExceptionHandler.java` | A global `@RestControllerAdvice` (lowest precedence) returns `{code, message, requestId}` for everything the Guest and Host advices do not handle. An `IllegalArgumentException` or `IllegalStateException` message reaches the client only when the exception was thrown from `com.snoozeshare.service` or `com.snoozeshare.domain`; any other exception gets fixed text. The request id is generated per error and logged with the status, code, path and acting user id; reasons, notes, message bodies and exception messages are never logged |
+| Unmatched agent routes | `api/ApiNoRouteExceptionResolver.java` | Gives a JSON `404 NOT_FOUND` to unmatched `/api/agent/**` requests; Spring's default left an empty body (D98) |
+| Acting user | `api/CurrentUserId.java`, `api/CurrentUserIdResolver.java`, `api/ApiWebConfig.java`, `api/MissingActorException.java` | `@CurrentUserId UUID` reads the id that `RoleAuthorizationFilter` stored in a request attribute after it resolved an ACTIVE user with the right role; a missing attribute fails closed with `401 INVALID_TOKEN`. `RoleAuthorizationFilter` also sets the older `snoozeshare.userId` attribute that `ResolvedUser` reads for the Guest controllers. The resolver is registered only when `snoozeshare.security.enabled=true` |
+| Decoded paths | `auth/security/ProtectedRequestPath.java` | Collapses repeated slashes, then uses `UrlPathHelper` so `FirebaseAuthFilter`, `RoleAuthorizationFilter` and the two API filters match `/api/guest/`, `/api/host/` and `/api/agent/` on the decoded servlet path, not the raw URI (D96). `SecurityConfig` also adds `hasRole` rules for the three namespaces |
+| Response and size filters | `api/filter/NoStoreFilter.java`, `api/filter/RequestSizeFilter.java` | For `/api/agent/**` only: `Cache-Control: no-store` on every response including auth errors, and a 64 KB cap (`413 PAYLOAD_TOO_LARGE`; `411 LENGTH_REQUIRED` for a chunked body). The check reads the declared length, so a body with neither `Content-Length` nor `Transfer-Encoding` is bounded only by the container |
+| Row locks | `repository/RowLocks.java` | `timeout()` runs `SET LOCAL lock_timeout = '5000ms'` inside the caller's transaction; a lock wait that times out returns `409 CONFLICT` |
+| Not found | `service/NotFoundException.java` | Extends `IllegalArgumentException`; maps to `404 NOT_FOUND` with the service's own message |
+
+**Error codes the handler produces.**
+
+| Status | Code | When |
+|---|---|---|
+| 400 | `VALIDATION_ERROR` | A malformed body, an unknown property, a failed bean-validation rule, a bad query parameter or enum value |
+| 400 | `INVALID_REQUEST` | The service refused the input and its message is end-user text (for example "Category label already exists") |
+| 401 | `INVALID_TOKEN` | A missing or invalid bearer token, or a missing actor |
+| 403 | `PROFILE_INACTIVE`, `PROFILE_NOT_REGISTERED`, `ROLE_MISMATCH` | Written by the security filters |
+| 404 | `NOT_FOUND` | An unknown id or route |
+| 405, 415 | `METHOD_NOT_ALLOWED`, `UNSUPPORTED_MEDIA_TYPE` | Framework rejections |
+| 409 | `CONFLICT` | A state conflict ("Ticket is not open"), or a lock wait that timed out ("Another change is in progress. Try again.") |
+| 500 | `INTERNAL_ERROR` | Anything else; the message is the fixed text "Something went wrong" |
+
+**Three advices, one order.** `GuestExceptionHandler` and `HostApiExceptionHandler` carry `@Order(HIGHEST_PRECEDENCE)` and are scoped to their own controllers (the Host advice to its six controller classes by type), so each role keeps its own codes; `ApiExceptionHandler` has the lowest precedence and handles the rest. The Host advice used to be scoped to the whole `api.controller` package, which would have caught the Agent controllers (D106).
+
+**Architecture test (`ApiLayerTest`, ArchUnit).** For every class under `api.controller..`: no field, parameter, return type or dependency from `repository..`, `domain.model..` or `jakarta.persistence..`; every `UUID` parameter of a public handler method carries `@PathVariable` or `@CurrentUserId`. For `api.controller.agent..` additionally: no dependency on `LedgerWriter`, `WalletService` or `AuditService` (audit reads go through `AuditQueryService`). The rules are proved by deliberately wrong classes in `api/layerfixtures/`. The Host controllers satisfy the entity rule because their listing, calendar and wallet logic sits in the `api.host` view classes `HostListingViews`, `HostCalendarViews` and `HostWalletViews`, which return response DTOs and keep the owner-scoped 404 (D107). `controller.guest` is outside the test.
+
+**Invariants.**
+
+- A controller never opens a transaction, writes an audit row or calls a repository; the service does.
+- A service that changes a ticket or suspends or reactivates a user calls `RowLocks.timeout()` and then loads that row with `findByIdForUpdate` (`@Lock(PESSIMISTIC_WRITE)` on an explicit `@Query`) before reading anything derived from it, because Hibernate does not refresh an entity that is already loaded in the transaction (C146, C148).
+- Request records reject unknown properties (`fail-on-unknown-properties: true`) and carry `@Size` limits.
+
+**Depends on:** [4.18](#418-authentication-and-role-authorization-backendauth-frontend-providers) for the token and role filters and [4.19](#419-domain-model-repositories-and-services-backend-domain-layer) for the services.
+
+**Deviations:** D94 (the Agent work edits W-DOMAIN services for the locks and not-found types), D96, D98, D106, D107.
+
+---
+
+### 4.25 Agent REST API and web pages (`backend/api/controller/agent/`, `frontend/src/app/agent/`)
+
+**Purpose.** The Support Agent's web tools: a dispute queue and detail view with both ticket threads, internal notes and Accept, Reject and Manual resolution; account suspension and reactivation; the audit log; and the ticket categories. Behaviour follows the desktop screens (C154) and the look follows the design artifact. Force complete and force cancel do not exist (C22).
+
+**Backend controllers.** Five controllers carry `@ConditionalOnProperty(snoozeshare.security.enabled=true)` and `@ConditionalOnDatabase`, so they exist only when authentication and a database do. They convert through `api/mapper` (`AccountMapper`, `CategoryMapper`, `MessageMapper`) and take the actor from `@CurrentUserId`. 18 operations:
+
+| Operation | Path | Result | Notable errors |
+|---|---|---|---|
+| Queue | `GET /api/agent/disputes?assignee=ALL\|UNASSIGNED\|MINE&status=` | `{items, unassignedCount}`, oldest first; `unassignedCount` is always the global count of OPEN unassigned tickets | 400 on a bad enum |
+| Detail | `GET /api/agent/disputes/{ticketId}` | `DisputeDetailResponse`: ticket, `ticketLabel`, listing, dates, party names, `escrowAmount`, `escrowHeld`, `phaseLabel`, `agentNotes` | 404 |
+| Assign, unassign | `PUT /api/agent/disputes/{ticketId}/assign`, `/unassign` | The refreshed detail | 409 "Ticket is not open"; "Ticket is not in review"; "Ticket is not assigned to this agent" |
+| Notes | `PUT /api/agent/disputes/{ticketId}/notes` `{notes}` (at most 4,000 characters) | The refreshed detail | 409 unless the ticket is IN_REVIEW and assigned to the caller |
+| Resolve | `PUT /api/agent/disputes/{ticketId}/resolve` `{mode: ACCEPT\|REJECT\|MANUAL, guestRefund, reason}` (reason at most 1,000 characters) | The refreshed detail; the whole escrow is settled two-sided (C20) | 400 for a refund outside the escrow; 409 if not in review |
+| Threads | `GET`, `POST /api/agent/disputes/{ticketId}/messages/{GUEST\|HOST}` `{body}` (at most 2,000 code points) | A list, **newest first**; the POST returns `201` | 409 "Ticket is resolved" |
+| Accounts | `GET /api/agent/accounts`; `PUT /api/agent/accounts/{userId}/suspend`, `/reactivate` `{reason}` | Guests and Hosts only, oldest first; the updated account | 400 for an Agent or System target; 409 "Account is already suspended" / "Account is not suspended" |
+| Audit | `GET /api/agent/audit?text&actions&from&to&limit&offset`; `GET /api/agent/audit/actions` | Newest first; `limit` 1 to 200 (default 200); `text` at most 100 characters; `actions` a comma list of at most 40; `from` and `to` whole days in `snoozeshare.audit.zone` (default `Asia/Singapore`, C149); the second route lists every `AuditAction` name | 400 for `from` after `to` |
+| Categories | `GET`, `POST /api/agent/categories`; `PUT /{id}`, `PUT /{id}/active`, `DELETE /{id}` | The category; `DELETE` returns `204` | 400 "Category label already exists" (case and surrounding spaces ignored); 409 "Category is in use by tickets; deactivate it instead" |
+
+`AuditEntryResponse` carries names, not user ids, and rounds `walletAdjustment` and `balanceAfter` to two decimals. `agentNotes` exists only on `DisputeDetailResponse`, never on the shared `TicketResponse` the Guest and Host controllers use (C147, D109). Search text is matched literally: `%`, `_` and `!` are escaped with `ESCAPE '!'`.
+
+**Locking and settlement.** Assign, unassign, notes, resolve and settlement take the ticket row lock first; suspend and reactivate lock the target user first. Two agents racing for one ticket or one account get one success and one `409`, proved by two-thread tests. Money moves only through `TicketService.resolve` (which derives the refund for ACCEPT) and `AccountGovernanceService`; the API layer writes no audit or ledger row. The dispute queue loads bookings, listings and users in batches; it took 5.2 s at 300 tickets before that (D102).
+
+```mermaid
+sequenceDiagram
+  participant UI as ResolutionDialog
+  participant SEC as Security filters
+  participant AC as AgentDisputeController
+  participant TS as TicketServiceImpl
+  participant RL as RowLocks and TicketRepository
+  participant DS as DisputeSettlementServiceImpl
+  participant DB as PostgreSQL
+  UI->>SEC: PUT /api/agent/disputes/{id}/resolve
+  SEC->>SEC: FirebaseAuthFilter, RoleAuthorizationFilter, RequestSizeFilter
+  SEC->>AC: actor id in the request attribute
+  AC->>TS: resolve(ticketId, ResolutionRequest, agentId)
+  TS->>RL: timeout() then findByIdForUpdate
+  RL->>DB: SET LOCAL lock_timeout, SELECT ... FOR UPDATE
+  TS->>DS: settle (lock already held)
+  DS->>DB: ledger rows, audit rows, ticket and booking status
+  AC->>DB: DisputeQueryService.detail
+  AC-->>UI: 200 DisputeDetailResponse
+```
+
+1. The dialog sends the request with the Firebase ID token; the filters check the token, the ACTIVE AGENT role and the body size.
+2. The controller validates the body (`@Valid`), calls the service and never touches a repository.
+3. `TicketServiceImpl.resolve` locks the ticket row first, so a second agent waits (up to 5 s, then `409`) and then sees the committed state.
+4. The settlement runs in the same transaction; any failure rolls back wallets, ledger, ticket and audit rows together.
+5. The controller reads the refreshed detail back and returns it, so the page replaces its view with one response.
+
+**Frontend pages (`frontend/src/app/agent/`).** `/agent` redirects to `/agent/disputes`. Pages are thin; the components live in `frontend/src/components/agent/` over the typed helpers in `frontend/src/lib/agent-api/` (`disputes.ts`, `accounts.ts`, `audit.ts`, `categories.ts`, `types.ts`, `format.ts`), which call `apiJson` in `lib/api.ts` (a 204 resolves to `undefined`).
+
+| Route | Component | What it does |
+|---|---|---|
+| `/agent/disputes` | `DisputeQueue` | Title with the unassigned count, All / Unassigned / Mine chips, a status drop-down (`SelectMenu`), the queue in an `AgentGrid`; whole rows link to the detail page; polls every 30 s |
+| `/agent/disputes/{ticketId}` | `DisputeDetail`, `ThreadPanel`, `ResolutionDialogs` | Summary card, two chat boxes (oldest first, scrolled to the newest, one shared height between 240 and 900 px, and an opening-ticket bubble in the thread of the party who raised it), internal notes (own height grip, 56 to 400 px), Assign or Unassign, and the Accept, Reject and Manual dialogs. Resolution buttons need IN_REVIEW, assigned to the signed-in agent and escrow held. Polls every 10 s; unsaved notes survive a poll; any failed resolve refetches the detail |
+| `/agent/accounts` | `AccountsTable` | Search box, status pills, a reason dialog for Suspend and Reactivate |
+| `/agent/audit` | `AuditLogView`, `MultiSelectMenu`, `DateField` | Search, a multi-select Action type, From and To date pickers and Clear. There is no Apply button: filters apply live (text after 300 ms) and a bad date range sends nothing; Load more appears after a full page of 200 |
+| `/agent/categories` | `CategoriesTable` | Add and edit dialogs, an active switch that reverts with an inline error on failure, and an inline delete confirmation |
+
+```mermaid
+flowchart LR
+  P["app/agent pages"] --> C["components/agent"]
+  C --> G["AgentGrid and AgentDialog"]
+  C --> H["usePolling and SessionNotice"]
+  C --> L["lib/agent-api helpers"]
+  L --> A["apiJson and authenticatedFetch"]
+  A --> B["/api/agent/** on the backend"]
+```
+
+1. A page renders a component; list screens load through `usePolling` (30 s queue, 10 s detail and threads, `0` meaning on demand only).
+2. The component calls a `lib/agent-api` helper, which calls `apiJson`, which attaches the Firebase ID token.
+3. A 401, or a 403 with `PROFILE_INACTIVE`, `PROFILE_NOT_REGISTERED` or `ROLE_MISMATCH`, is a session failure: `SessionNotice` replaces the page body with a stable message and a Sign out button.
+
+**Layout rules shared by the agent screens.** `AgentGrid` is a table that fills the page: each column has a minimum width and a share of the spare width, the table scrolls sideways only when the minimums exceed the page, and the header sits outside the scrolling rows so the slim vertical scroll bar starts below it (the `.agent-scroll` rule in `globals.css`). The navbar stays fixed to the top (`RoleNavbar`, every role). Dialogs are 500 px cards (`AgentDialog`) with a focus trap, Escape and Cancel to close, and focus returned to the opener. The money display is `SGD` plus two decimals and the browser does no money arithmetic or comparison: it checks only the decimal format and the server enforces the escrow limit.
+
+**Depends on:** [4.24](#424-shared-web-api-foundation-backendapi), [4.18](#418-authentication-and-role-authorization-backendauth-frontend-providers), the services in [4.19](#419-domain-model-repositories-and-services-backend-domain-layer), and `RoleNavbar`, `RoleShell` and `AuthProvider` on the frontend.
+
+**Invariants.**
+
+- The acting agent comes only from the token; no path, query or body field can name the actor.
+- Every mutating endpoint leaves the audit rows its service writes (NFR3).
+- There is no Force Cancel or Force Complete control or endpoint (C22).
+- A thread is returned newest first; clients sort it oldest first for display.
+
+**Deviations from the spec (code wins):** the queue status filter and Unassign were added because the desktop has them (D111, C154); audit filters apply live with no Apply button (D111); the opening-ticket bubble exists only in the artifact and is kept so an agent can read the ticket text (D112); tables are ARIA grids (`role="table"`), not `<table>` elements (D111); `actions` is a `List` and the audit controller has no class-level `@Validated` (D103); `usePolling` accepts an interval of 0 (D104).
+
+**Tests.** Backend (extend `AgentApiIntegrationTest`, which turns security on, resets the database before and after every test and shares one `AuditService` and one `LedgerWriter` spy so the classes reuse a Spring context): `AgentDisputeControllerTest`, `AgentMessageControllerTest`, `AgentAccountControllerTest`, `AgentAuditControllerTest`, `AgentCategoryControllerTest`, the two-thread `AgentDisputeConcurrencyTest` and `AgentAccountConcurrencyTest`, `AgentListPerformanceTest` (300 tickets, 300 accounts and 2,000 audit rows; fails above 5 s per call and logs the 95th percentile), `AgentCrossRoleContractTest` (agent replies reach the Guest and Host threads, notes never reach the Guest API, resolving closes the threads, a deactivated category leaves the filing form), plus `ApiLayerTest`, `ApiFoundationIntegrationTest` and `ApiErrorMappingIntegrationTest`. Frontend (Vitest and Testing Library): `DisputeQueue`, `DisputeDetail`, `ResolutionDialogs`, `AccountsTable`, `AuditLogView`, `CategoriesTable`, `AgentDialog`, `AgentGrid`, `SessionNotice`, `usePolling`, `RoleNavbar` and `format` tests.
 
 ---
 
@@ -2073,6 +2222,25 @@ they exist. It describes current behavior, including deliberate deferrals and co
 - **F7** The frontend sends the current Firebase token and never supplies a client-selected Host ID.
 - **F8** Collection and history reads return all matching rows without pagination parameters or a response-size cap.
 
+**Web Agent requirements (W-AGENT).** These IDs are scoped to the W-AGENT design spec; the code wins where they differ (D103, D111).
+
+- **F1** Every `/api/agent/**` operation takes the acting agent from the verified token (`@CurrentUserId`); no path, query or body field can name the actor, bodies reject unknown properties and a missing actor fails closed with `401`.
+- **F2** Every agent failure, including an unknown route, `405`, `411`, `413` and `415`, returns `{code, message, requestId}` with no stack trace, SQL or class name.
+- **F3** The agent lists disputes by assignee (All, Unassigned, Mine) and by status, oldest first, and sees the global unassigned count.
+- **F4** The agent opens a dispute and sees the booking, parties, escrow, phase label, requested remedy, assignment and internal notes; `TicketResponse` carries no notes.
+- **F5** The agent assigns an OPEN ticket to themselves, and the assigned agent can unassign it; two simultaneous assigns produce one winner.
+- **F6** The assigned agent saves internal notes (at most 4,000 characters) on an IN_REVIEW ticket; notes are never shown to a Guest or Host.
+- **F7** The assigned agent resolves an IN_REVIEW ticket with ACCEPT, REJECT or MANUAL and a reason; the whole escrow is settled two-sided (C20) and a second settlement is impossible.
+- **F8** The agent reads both ticket threads of any ticket and posts to either while the ticket is open (at most 2,000 code points).
+- **F9** The agent lists Guest and Host accounts with status and suspension reason; Agent and System accounts are not listed.
+- **F10** The agent suspends an ACTIVE Guest or Host or reactivates a SUSPENDED one with a required reason; suspension cascades as in F10.1.2 and is all-or-nothing.
+- **F11** The agent searches the audit log by text, a set of action types and a Singapore-day date range, newest first in pages of at most 200, and reads the list of action types.
+- **F12** The agent lists, creates, renames, activates, deactivates and deletes ticket categories; deleting one a ticket uses is refused.
+- **F13** `/agent` redirects to `/agent/disputes`; each tab has its own route and the current tab is marked.
+- **F14** The dispute pages offer the actions above; the Accept, Reject and Manual dialogs require a reason, and any failed resolve makes the page refetch the detail.
+- **F15** The Accounts, Audit Log and Categories pages follow the desktop controls; the audit filters apply live.
+- **F16** A `401` or a `403` with `PROFILE_INACTIVE`, `PROFILE_NOT_REGISTERED` or `ROLE_MISMATCH` replaces the page body with a stable message and a Sign out button.
+
 ### Non-Functional Requirements
 
 - **NFR1** Settlement is atomic: wallet balances, ledger rows, ticket, booking and audit rows commit together or not at all, and no event is published on failure.
@@ -2093,6 +2261,7 @@ they exist. It describes current behavior, including deliberate deferrals and co
 - **NFR16** The backend and its health endpoint are unaffected when the AI gateway is disabled or SoCLaaS is unreachable, and no test contacts SoCLaaS.
 - **W-HOST N1–N2** Listing metrics use at most two grouped owner-scoped queries for a complete collection; listing data and metrics never cross Host ownership.
 - **W-HOST-API N1–N6** Enforce active Host identity and ownership server-side; preserve booking/wallet transaction invariants; use response DTOs and safe error envelopes; keep sensitive payloads out of logs; issue one read per dataset with unbounded result size; and activate persistence-backed beans deterministically. See the W-HOST-API requirements and tests in [4.21](#421-host-rest-api-backendapicontroller).
+- **W-AGENT N1–N8** Agent routes need an authenticated, ACTIVE AGENT and are absent when security is off (N1); money moves only through `TicketService.resolve` and `AccountGovernanceService`, and the browser does no money arithmetic (N2); the API layer writes no audit row (N3); logs carry only request id, status, code, path and agent id (N4); the queue, accounts and one audit page answer within 5 s at 300 tickets, 300 accounts and 2,000 audit rows, measured at about 70 ms for the queue after batching (N5, D102); `ApiLayerTest` keeps controllers thin (N6); dialogs have dialog semantics, a focus trap, Escape and focus return (N7); lists refresh by polling while the tab is visible (queue 30 s, detail and threads 10 s) and the other pages on demand (N8).
 
 ### Known Limitations
 
@@ -2112,7 +2281,10 @@ they exist. It describes current behavior, including deliberate deferrals and co
 - **Steered model text can pass output validation** — prose that matches no leak or link pattern is accepted, and a bare-domain link (no scheme) is not detected; role features keep AI output a suggestion the user confirms and render it as plain text (C80).
 - **A daily AI cap counts calls, not upstream requests** — the worst case is `global-daily-cap × (max-retries + 1)` requests a day. While audit writes fail, sent calls are counted in memory only until 00:00 UTC.
 - **Reasoning is one global setting** — `reasoning-effort` (default `none`) applies to every feature and tier; a feature that needs reasoning needs a gateway change. The 429 behaviour of SoCLaaS (`Retry-After`, budget wording) is unobserved.
-- **Agent feature pages/endpoints are still landing shells** — the Host and Guest web experiences are implemented ([4.21](#421-host-rest-api-backendapicontroller), [4.22](#422-host-web-pages-frontendsrcapphost), [4.23](#423-guest-rest-api-and-web-pages)); W-AGENT remains future work.
+- **Agent lists are unpaginated** — the dispute queue and the accounts list return every row; the audit log pages by offset, so a row added between two pages can repeat or be skipped. There is no per-agent rate limit.
+- **One dispute with a missing booking or property fails the whole queue** — the service answers 400 for that ticket, so the page shows an error instead of the other rows.
+- **The agent request-size cap trusts the declared length** — a body with neither `Content-Length` nor `Transfer-Encoding` (HTTP/2) is bounded only by the container.
+- **The three roles answer the same conditions with different errors** — a closed ticket thread is `400 THREAD_CLOSED` for a Guest and `409` for a Host and an Agent; invalid input is `422 DOMAIN_RULE_VIOLATION` for a Host and `400` for a Guest and an Agent; a created message is `200` for a Guest and `201` for the others; Host messages are always generic and the Guest handler returns the raw service message. Each client works with its own codes. Converging them, and bringing `controller.guest` into `ApiLayerTest`, is handed over to W-GUEST and W-HOST (`PROJECT_STATE.md` § How to Resume).
 - **Wallet withdrawal lacks locking** — concurrent full-balance withdrawals can both succeed, resulting in a negative balance (D93). Recorded for a future wallet-locking workstream.
 - **Host collection responses are unbounded** — listing, booking-request, conversation, message-history and wallet-statement reads return every matching row with no response-size or concurrency cap (C131). Calendar reads remain month-bounded. Revisit the trade-off before substantially increasing dataset size or traffic.
 - **The hosted dev backend sleeps when idle** — Render's free plan stops the service after a pause; the first request is slow and the page shows `Backend: unreachable` until `Re-check` (C85; `PROJECT_STATE.md` § Known Gaps).
@@ -2136,15 +2308,19 @@ they exist. It describes current behavior, including deliberate deferrals and co
 
 ## 6. Glossary
 
+- **Actor id (`@CurrentUserId`):** the parameter annotation that injects the acting user's id, read from the request attribute `RoleAuthorizationFilter` sets after it resolves an ACTIVE user with the right role; controllers never take an actor id from the path, query or body.
+- **Audit zone:** the time zone (`snoozeshare.audit.zone`, default `Asia/Singapore`) whose midnights bound the audit log's From and To days.
 - **CF-Connecting-IP:** the request header Cloudflare sets to the real client address; with `SNOOZESHARE_TRUST_FORWARD_HEADERS=true` the backend uses it for rate limits and never reads `X-Forwarded-For`.
 - **Firebase ID token:** the signed token Firebase issues to a signed-in user; the frontend sends it as `Authorization: Bearer <token>` and the backend verifies it on each protected request.
 - **`@ConditionalOnDatabase`:** the annotation (`config/ConditionalOnDatabase`) on database-backed service, JDBC repository and AI gateway beans; it matches unless datasource auto-configuration is excluded, so no-database test contexts start without them. It replaced the ineffective repository-bean scan condition for these components (D51, C132).
 - **`ddl-auto: validate`:** the Hibernate setting that checks entity mappings against the Flyway-managed schema at startup without creating or altering tables.
 - **Flyway:** the database migration tool used by `backend/`; `V001__baseline.sql` through `V005__tighten_nightly_rate_constraint.sql` are its migrations (V001 baseline, V002 auth, V003 domain tables, V004 system-user seed, V005 nightly-rate constraint).
+- **Layering test (`ApiLayerTest`):** the ArchUnit test that keeps `api.controller..` classes free of repositories, entities and persistence types and requires every `UUID` handler parameter to say where it comes from.
 - **Neon:** the hosted PostgreSQL service; the hosted dev backend uses its `dev` branch.
 - **`open-in-view: false`:** disables Hibernate's Open Session in View pattern, so lazy loading outside a `@Transactional` boundary throws instead of silently issuing queries.
 - **Registration code:** the secret a person enters to register as a Host or an Agent, set by `SNOOZESHARE_HOST_REGISTRATION_CODE` and `SNOOZESHARE_AGENT_REGISTRATION_CODE`; a Guest needs none.
 - **Render:** the host for the backend's Docker image, configured by `render.yaml`.
+- **Row lock:** a `SELECT ... FOR UPDATE` taken through `findByIdForUpdate` after `RowLocks.timeout()` (5 s), so a second agent waits for the first and then sees the committed state.
 - **Role namespace:** a URL prefix reserved for one role: `/api/guest/**`, `/api/host/**` or `/api/agent/**`.
 - **Spring Data JPA:** the persistence framework used by `backend/` for the domain layer (C99); repository interfaces extend `JpaRepository` and Hibernate maps entity classes to the Flyway-managed schema.
 - **Testcontainers:** the library that starts a throwaway Postgres 17 container for the backend tests.
@@ -2243,6 +2419,10 @@ measured for this guide.
 | Frontend Host pages and API: `HostApiProvider.test.tsx`, `hostApi.test.ts`, `HostRoutes.test.tsx`, Host listing, calendar, request, message and wallet route/component tests | Typed authenticated requests, complete-array rendering, in-flight read sharing, listing metrics and in-place status changes, empty/loading/error/not-found states, form validation, exact time handling, calendar month transitions and empty initial date range, separate message channels, mocked wallet recovery, and no pagination/load-more controls. Firebase and backend requests are mocked. |
 | Backend Guest API integration: `GuestSearchControllerTest`, `GuestBookingControllerTest`, `GuestWalletControllerTest`, `GuestMessageControllerTest`, `GuestReviewControllerTest` | Authenticated Guest search/filter, booking creation and cancellation, wallet balance and transactions, ticket and booking messaging (file, read, post, mark read), review submission, role-rejection tests (HOST → 403 on all five controllers), ownership-violation tests and concurrent booking/withdrawal tests. Extends `PostgresIntegrationTest` with `FakeTokenVerifier`. |
 | Frontend Guest pages: `search/page.test.tsx`, `trips/page.test.tsx`, `messages/page.test.tsx`, `wallet/page.test.tsx` | Listing search and detail sheet, trip cards with cancel/review dialogs, conversation list with message threads and ticket filing, and wallet balance/transaction display. Firebase and backend requests are mocked. |
+| Backend Agent API integration: `AgentDisputeControllerTest`, `AgentMessageControllerTest`, `AgentAccountControllerTest`, `AgentAuditControllerTest`, `AgentCategoryControllerTest`, `AgentCrossRoleContractTest` | Every agent operation, its validation and error rows, the audit rows, the Singapore-day boundary, literal `%` and `_` in search, the cascade and its rollback, and the contract with the Guest and Host APIs. They extend `AgentApiIntegrationTest` (security on, database reset before and after each test, shared service spies). |
+| Backend Agent concurrency and performance: `AgentDisputeConcurrencyTest`, `AgentAccountConcurrencyTest`, `AgentListPerformanceTest` | Two real threads race for one ticket or one account and exactly one wins (the tests fail without the row lock); the queue, accounts and audit lists stay under 5 s at 300 tickets, 300 accounts and 2,000 audit rows, with the 95th percentile logged. |
+| Backend API foundation: `ApiLayerTest`, `ApiFoundationIntegrationTest`, `ApiErrorMappingIntegrationTest` | The layering rules and their fixtures, the actor and path filters, the size and no-store filters, and the error table. |
+| Frontend Agent pages: the `DisputeQueue`, `DisputeDetail`, `ResolutionDialogs`, `AccountsTable`, `AuditLogView`, `CategoriesTable`, `AgentDialog`, `AgentGrid`, `SessionNotice` and `usePolling` tests, `RoleNavbar.test.tsx`, `format.test.ts` | States, polling, the resolution dialogs' request bodies, double-click and 409 handling, live audit filters, thread order, grips, session failures and hostile text rendered as text. |
 | Architecture: `LayerDependencyTest`, `UiDependencyTest` | `domain` has no JavaFX or `java.sql` imports; `ui` has no `com.snoozeshare.repository` or `java.sql` imports. |
 | Layout: `AdminFxmlLayoutTest`, `AdminShellInitialsTest`, `ShellLayoutTest`, `AuthLayoutTest` | FXML and CSS content checks; these need no display. |
 | FX smoke and flow: `AdminUiSmokeTest`, `AgentModalTest`, `ResolutionDialogFlowTest`, `CategoryDialogFlowTest` | Real JavaFX toolkit: screens render, dialogs validate and return results, the scrim is added and removed. They skip (`assumeTrue`) when the toolkit cannot start, for example on a headless machine. |
