@@ -117,3 +117,22 @@ Setup problems met on the way, so they are not repeated:
 
 - **Render:** the first deploy failed with `Error processing condition on ...FirebaseConfig`. The cause is the last `Caused by:` line, `Could not resolve placeholder 'FIREBASE_ENABLED'`: `SNOOZESHARE_SECURITY_ENABLED`, `SNOOZESHARE_TRUST_FORWARD_HEADERS` and `FIREBASE_ENABLED` are set by `render.yaml` only when Render applies the Blueprint, which it did not do for the existing service. Add them by hand. A missing variable always shows as that wrapper, with the variable named at the bottom of the chain.
 - **Vercel:** Production Branch must be `development`. While it was `main`, `development` builds were Previews, which the backend's single allowed CORS origin cannot serve, and the stable URL stayed on the old build. **Redeploy** rebuilds the same commit as the deployment it is pressed on, so after changing the setting push a commit that touches `frontend/` rather than redeploying an old deployment.
+
+### AI gateway live checks (W-AI-GATEWAY T8), 2026-10-22
+
+Owner: Xiao-Congchen. Run from the owner's machine with the development key (never recorded here); commands and outputs were produced by the agent in the owner's terminal and read back. The key prefix and raw outputs are not reproduced.
+
+| Item | Observed |
+|---|---|
+| Base URL | `https://soclaas-api.comp.nus.edu.sg/v1` |
+| Models offered to the key (chat) | `llama3.1:8b`, `qwen3.5:9b`, `gemma4:26b` (our three), plus `qwen3.6:35b`, `qwen3.8:27b`, `ornith1.5:35b` and the aliases `default`, `coder`, `coding`; `bge-m3` is embeddings only |
+| `finish_reason` and `usage` | Returned on every call (`stop` or `length`, `prompt_tokens`, `completion_tokens`) |
+| `response_format` `json_object` | HTTP 200 on all three models |
+| `reasoning_effort` `none` | HTTP 200 on all three models; turns reasoning off on `qwen3.5:9b` and `gemma4:26b` |
+| `reasoning_effort` `low` | `llama3.1:8b`: HTTP 400, "does not support thinking". The other two accept it but still reason |
+| Reasoning models with no option set | `qwen3.5:9b` and `gemma4:26b` put their reasoning in a `reasoning` field and spend `max_tokens` on it. With `max_tokens` 20 (and 300 for `qwen3.5:9b` on a JSON prompt) `content` came back empty with `finish_reason` `length`. A one-word answer took 135 tokens on `qwen3.5:9b` and 60 on `gemma4:26b` |
+| 429 and concurrency | 100 tiny requests from 10 parallel jobs all returned HTTP 200: no 429, no `Retry-After`, no concurrency rejection. Budget-429 wording not observed |
+| Key policy (portal budget endpoint) | 30 requests a minute, daily allowance 50,000,000 micro-dollars, monthly 500,000,000, no spend cap; usage that day about 300 micro-dollars |
+| Reachability from Render | Not yet verified: the startup model check logged nothing on Render, which is expected on success before the success log existed; confirm with the "SoCLaaS reachable" log line after the next deploy with `SNOOZESHARE_AI_ENABLED=true` |
+
+Consequences recorded in the spec: `max-rpm` defaults to 25 (the development key allows 30), `reasoning-effort` defaults to `none`, and the startup check now logs one INFO line when it succeeds. A production key may have a different requests-a-minute limit; read it from the portal budget endpoint before setting `SNOOZESHARE_AI_MAX_RPM` for production.
