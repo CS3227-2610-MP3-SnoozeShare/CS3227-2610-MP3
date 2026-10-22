@@ -5,7 +5,8 @@ import { isSessionFailure } from '@/lib/api';
 import { createCategory, deleteCategory, fetchCategories, renameCategory, setCategoryActive } from '@/lib/agent-api/categories';
 import type { TicketCategory } from '@/lib/agent-api/types';
 import { AgentDialog, FieldLabel, confirmButton, dialogInput } from './AgentDialog';
-import { ErrorBanner, dangerOutlineButton, outlineButton, pageClass, primaryButton, rowClass, tableCardClass, tdClass, thClass, theadRowClass, titleClass } from './agentUi';
+import { AgentGrid, Cell, GridMessage, GridRow, type GridColumn } from './AgentGrid';
+import { ErrorBanner, dangerOutlineButton, outlineButton, pageClass, primaryButton, titleClass } from './agentUi';
 import { SessionNotice } from './SessionNotice';
 import { usePolling } from './usePolling';
 
@@ -83,6 +84,12 @@ function CategoryDialog({ editing, onClose, onDone, onSessionFailure }: {
   );
 }
 
+const COLUMNS: GridColumn[] = [
+  { label: 'Label', min: 200, fr: 2 },
+  { label: 'Active', min: 90, fr: 1 },
+  { label: 'Action', min: 100, fr: 1 },
+];
+
 export function CategoriesTable() {
   const { data, error, loading, reload } = usePolling(fetchCategories, 0);
   const [rows, setRows] = useState<TicketCategory[]>([]);
@@ -128,51 +135,37 @@ export function CategoriesTable() {
       {(error !== undefined || toggleError) && (
         <ErrorBanner message={toggleError ?? message(error, 'Could not load categories')} onRetry={error !== undefined ? reload : undefined} />
       )}
-      <div className={tableCardClass}>
-        <table className="w-full table-fixed border-collapse text-left">
-          <colgroup>
-            <col style={{ width: '50%' }} /><col style={{ width: '25%' }} /><col style={{ width: '25%' }} />
-          </colgroup>
-          <thead>
-            <tr className={theadRowClass}>
-              <th scope="col" className={thClass}>Label</th>
-              <th scope="col" className={thClass}>Active</th>
-              <th scope="col" className={thClass}>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading && !data ? (
-              <tr><td colSpan={3} className={`${tdClass} text-[var(--text-subtle)]`}>Loading categories...</td></tr>
-            ) : rows.length === 0 ? (
-              <tr><td colSpan={3} className={`${tdClass} text-[var(--text-subtle)]`}>No categories yet</td></tr>
-            ) : (
-              rows.map((category) => (
-                <tr key={category.id} className={rowClass}>
-                  <td className={`${tdClass} font-bold`}>{category.label}</td>
-                  <td className={tdClass}>
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={category.active}
-                      aria-label={`Toggle active: ${category.label}`}
-                      disabled={toggling === category.id}
-                      onClick={() => void toggle(category)}
-                      className={`relative h-[22px] w-10 rounded-full p-0 disabled:opacity-60 ${category.active ? 'bg-[var(--success)]' : 'bg-border'}`}
-                    >
-                      <span className={`absolute top-0.5 size-[18px] rounded-full bg-white ${category.active ? 'left-5' : 'left-0.5'}`} />
-                    </button>
-                  </td>
-                  <td className={tdClass}>
-                    <button type="button" className={`${outlineButton} px-3.5 py-1.5 text-[11px]`} onClick={() => setEditing({ category })}>
-                      Edit
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      <AgentGrid columns={COLUMNS} label="Ticket categories">
+        {loading && !data ? (
+          <GridMessage>Loading categories...</GridMessage>
+        ) : rows.length === 0 ? (
+          <GridMessage>No categories yet</GridMessage>
+        ) : (
+          rows.map((category) => (
+            <GridRow key={category.id}>
+              <Cell className="font-bold">{category.label}</Cell>
+              <Cell>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={category.active}
+                  aria-label={`Toggle active: ${category.label}`}
+                  disabled={toggling === category.id}
+                  onClick={() => void toggle(category)}
+                  className={`relative h-[22px] w-10 rounded-full p-0 disabled:opacity-60 ${category.active ? 'bg-[var(--success)]' : 'bg-border'}`}
+                >
+                  <span className={`absolute top-0.5 size-[18px] rounded-full bg-white ${category.active ? 'left-5' : 'left-0.5'}`} />
+                </button>
+              </Cell>
+              <Cell>
+                <button type="button" className={`${outlineButton} px-3.5 py-1.5 text-[11px]`} onClick={() => setEditing({ category })}>
+                  Edit
+                </button>
+              </Cell>
+            </GridRow>
+          ))
+        )}
+      </AgentGrid>
       {editing && (
         <CategoryDialog
           editing={editing}

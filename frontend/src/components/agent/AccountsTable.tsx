@@ -5,7 +5,8 @@ import { isSessionFailure } from '@/lib/api';
 import { fetchAccounts, setAccountSuspended } from '@/lib/agent-api/accounts';
 import type { AccountSummary } from '@/lib/agent-api/types';
 import { AgentDialog, FieldLabel, confirmButton, dialogArea } from './AgentDialog';
-import { ErrorBanner, Pill, outlineButton, dangerOutlineButton, pageClass, rowClass, tableCardClass, tdClass, thClass, theadRowClass, titleClass } from './agentUi';
+import { AgentGrid, Cell, GridMessage, GridRow, type GridColumn } from './AgentGrid';
+import { ErrorBanner, Pill, outlineButton, dangerOutlineButton, pageClass, titleClass } from './agentUi';
 import { SessionNotice } from './SessionNotice';
 import { usePolling } from './usePolling';
 
@@ -78,6 +79,15 @@ function ReasonDialog({ target, onClose, onDone, onSessionFailure }: {
   );
 }
 
+const COLUMNS: GridColumn[] = [
+  { label: 'Display name', min: 130, fr: 1.2 },
+  { label: 'Email', min: 190, fr: 1.7 },
+  { label: 'Role', min: 70, fr: 0.6 },
+  { label: 'Joined', min: 90, fr: 0.8 },
+  { label: 'Status', min: 150, fr: 1.4 },
+  { label: 'Action', min: 110, fr: 0.9 },
+];
+
 export function AccountsTable() {
   const { data, error, loading, reload } = usePolling(fetchAccounts, 0);
   const [query, setQuery] = useState('');
@@ -94,7 +104,7 @@ export function AccountsTable() {
 
   return (
     <section className={pageClass}>
-      <div className="flex items-center gap-2.5">
+      <div className="flex flex-wrap items-center gap-2.5">
         <div>
           <h1 className={titleClass}>Account governance</h1>
           <div className="mt-0.5 text-xs text-[var(--text-subtle)]">Suspend or reactivate Guest and Host accounts</div>
@@ -110,57 +120,39 @@ export function AccountsTable() {
       {error !== undefined && (
         <ErrorBanner message={error instanceof Error && error.message ? error.message : 'Could not load accounts'} onRetry={reload} />
       )}
-      <div className={tableCardClass}>
-        <table className="w-full table-fixed border-collapse text-left">
-          <colgroup>
-            <col style={{ width: '17%' }} /><col style={{ width: '24%' }} /><col style={{ width: '12%' }} />
-            <col style={{ width: '15%' }} /><col style={{ width: '20%' }} /><col style={{ width: '12%' }} />
-          </colgroup>
-          <thead>
-            <tr className={theadRowClass}>
-              <th scope="col" className={thClass}>Display name</th>
-              <th scope="col" className={thClass}>Email</th>
-              <th scope="col" className={thClass}>Role</th>
-              <th scope="col" className={thClass}>Joined</th>
-              <th scope="col" className={thClass}>Status</th>
-              <th scope="col" className={thClass}>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading && !data ? (
-              <tr><td colSpan={6} className={`${tdClass} text-[var(--text-subtle)]`}>Loading accounts...</td></tr>
-            ) : rows.length === 0 ? (
-              <tr><td colSpan={6} className={`${tdClass} text-[var(--text-subtle)]`}>No accounts match your search</td></tr>
-            ) : (
-              rows.map((account) => (
-                <tr key={account.userId} className={rowClass}>
-                  <td className={`${tdClass} font-bold`}>{account.displayName}</td>
-                  <td className={`${tdClass} text-[var(--text-muted)]`}>{account.email}</td>
-                  <td className={`${tdClass} text-[var(--text-muted)]`}>{account.role === 'HOST' ? 'Host' : 'Guest'}</td>
-                  <td className={`${tdClass} text-[var(--text-muted)]`}>{joined(account.createdAt)}</td>
-                  <td className={tdClass}>
-                    <Pill tone={account.status === 'ACTIVE' ? 'success' : 'danger'}>{account.status === 'ACTIVE' ? 'Active' : 'Suspended'}</Pill>
-                    {account.status === 'SUSPENDED' && account.suspensionReason && (
-                      <div className="mt-[3px] text-[11px] text-[var(--text-subtle)]">Reason: {account.suspensionReason}</div>
-                    )}
-                  </td>
-                  <td className={tdClass}>
-                    {account.status === 'ACTIVE' ? (
-                      <button type="button" className={`${dangerOutlineButton} px-3.5 py-1.5 text-[11px]`} onClick={() => setTarget({ account, suspend: true })}>
-                        Suspend
-                      </button>
-                    ) : (
-                      <button type="button" className={`${outlineButton} px-3.5 py-1.5 text-[11px] font-bold`} onClick={() => setTarget({ account, suspend: false })}>
-                        Reactivate
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      <AgentGrid columns={COLUMNS} label="Accounts">
+        {loading && !data ? (
+          <GridMessage>Loading accounts...</GridMessage>
+        ) : rows.length === 0 ? (
+          <GridMessage>No accounts match your search</GridMessage>
+        ) : (
+          rows.map((account) => (
+            <GridRow key={account.userId}>
+              <Cell className="font-bold">{account.displayName}</Cell>
+              <Cell className="break-all text-[var(--text-muted)]">{account.email}</Cell>
+              <Cell className="text-[var(--text-muted)]">{account.role === 'HOST' ? 'Host' : 'Guest'}</Cell>
+              <Cell className="text-[var(--text-muted)]">{joined(account.createdAt)}</Cell>
+              <Cell>
+                <Pill tone={account.status === 'ACTIVE' ? 'success' : 'danger'}>{account.status === 'ACTIVE' ? 'Active' : 'Suspended'}</Pill>
+                {account.status === 'SUSPENDED' && account.suspensionReason && (
+                  <div className="mt-[3px] text-[11px] text-[var(--text-subtle)]">Reason: {account.suspensionReason}</div>
+                )}
+              </Cell>
+              <Cell>
+                {account.status === 'ACTIVE' ? (
+                  <button type="button" className={`${dangerOutlineButton} px-3.5 py-1.5 text-[11px]`} onClick={() => setTarget({ account, suspend: true })}>
+                    Suspend
+                  </button>
+                ) : (
+                  <button type="button" className={`${outlineButton} px-3.5 py-1.5 text-[11px] font-bold`} onClick={() => setTarget({ account, suspend: false })}>
+                    Reactivate
+                  </button>
+                )}
+              </Cell>
+            </GridRow>
+          ))
+        )}
+      </AgentGrid>
       {target && (
         <ReasonDialog
           target={target}

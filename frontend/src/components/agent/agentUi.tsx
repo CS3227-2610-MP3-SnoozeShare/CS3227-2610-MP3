@@ -15,7 +15,7 @@ const TONES: Record<Tone, string> = {
 
 export function Pill({ tone, children, className }: { tone: Tone; children: ReactNode; className?: string }) {
   return (
-    <span className={cn('inline-block rounded-full px-[11px] py-[3px] text-[10px] font-bold uppercase', TONES[tone], className)}>
+    <span className={cn('inline-block whitespace-nowrap rounded-full px-[11px] py-[3px] text-[10px] font-bold uppercase', TONES[tone], className)}>
       {children}
     </span>
   );
@@ -24,11 +24,6 @@ export function Pill({ tone, children, className }: { tone: Tone; children: Reac
 /** Page body of every agent screen: 24px / 32px padding, 16px rhythm, full width. */
 export const pageClass = 'flex flex-col gap-4 px-8 py-6';
 export const titleClass = 'm-0 text-xl font-extrabold';
-export const tableCardClass = 'overflow-hidden rounded-xl border border-border bg-card';
-export const theadRowClass = 'bg-muted';
-export const thClass = 'px-[18px] py-2.5 text-left text-[11px] font-bold uppercase text-[var(--text-subtle)]';
-export const tdClass = 'px-[18px] py-3.5 text-[13px]';
-export const rowClass = 'border-t border-[var(--border-muted)]';
 export const inputClass = 'box-border w-full rounded-lg border border-border bg-background px-2.5 py-2 text-xs';
 export const primaryButton = 'rounded-lg bg-primary font-bold text-primary-foreground disabled:opacity-50';
 export const outlineButton = 'rounded-lg border border-border bg-transparent font-semibold text-[var(--text-muted)] disabled:opacity-50';

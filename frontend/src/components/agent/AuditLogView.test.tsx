@@ -1,5 +1,5 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { BackendApiError } from '@/lib/api';
 import type { AuditEntry } from '@/lib/agent-api/types';
 import { AuditLogView } from './AuditLogView';
@@ -35,43 +35,73 @@ function entry(n: number, overrides: Partial<AuditEntry> = {}): AuditEntry {
   };
 }
 
+const EMPTY = { text: '', actions: [], from: '', to: '' };
+
 describe('AuditLogView (F11, F15)', () => {
   const audit = vi.fn();
   beforeEach(() => {
     audit.mockReset();
     api.audit = audit;
-    api.actions = () => Promise.resolve(['TOP_UP', 'BOOKING_FORCE_CANCELLED']);
+    api.actions = () => Promise.resolve(['TOP_UP', 'BOOKING_FORCE_CANCELLED', 'TICKET_RESOLVED']);
   });
+  afterEach(() => vi.useRealTimers());
 
-  it('loads the action list from the backend and formats rows', async () => {
+  it('formats rows the way the desktop does', async () => {
     audit.mockResolvedValue([
-      entry(1, { walletAdjustment: 40, subjectName: 'Gina Guest', reason: '<img src=x onerror=alert(1)>' }),
-      entry(2, { beforeState: null, afterState: 'ACTIVE' }),
+      entry(1, { walletAdjustment: 40, subjectName: 'Gina Guest', entityType: 'WalletTransaction', reason: '<img src=x onerror=alert(1)>' }),
+      entry(2, { beforeState: null, afterState: 'ACTIVE', actorName: null }),
     ]);
     const { container } = render(<AuditLogView />);
 
     expect(await screen.findByText('Gina Guest')).toBeInTheDocument();
     expect(screen.getByText('+SGD 40.00')).toBeInTheDocument();
-    expect(screen.getByText('IN_REVIEW -> RESOLVED_APPROVED')).toBeInTheDocument();
-    expect(screen.getByText('Ticket 12345678')).toBeInTheDocument();
+    expect(screen.getByText('In review → Resolved approved')).toBeInTheDocument();
+    expect(screen.getByText('Ticket #90ab')).toBeInTheDocument();
+    expect(screen.getByText('Unknown user')).toBeInTheDocument();
     expect(screen.getByText('<img src=x onerror=alert(1)>')).toBeInTheDocument(); // E36
     expect(container.querySelector('img')).toBeNull();
-    expect(await screen.findByRole('option', { name: 'BOOKING_FORCE_CANCELLED' })).toBeInTheDocument();
+    expect(screen.getAllByText(/^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/).length).toBe(2);
   });
 
-  it('Apply reloads from offset 0 with the filters; Clear resets', async () => {
+  it('has no Apply button and filters live as the search text is typed', async () => {
     audit.mockResolvedValue([]);
     render(<AuditLogView />);
-    expect(await screen.findByText('No audit entries match')).toBeInTheDocument(); // E50
+    expect(await screen.findByText('No audit entries match these filters.')).toBeInTheDocument(); // E50
+    expect(screen.queryByRole('button', { name: /apply/i })).toBeNull();
+    vi.useFakeTimers({ shouldAdvanceTime: true });
 
-    fireEvent.change(screen.getByLabelText('Search'), { target: { value: 'gina' } });
+    fireEvent.change(screen.getByPlaceholderText(/User name/), { target: { value: 'gina' } });
+    expect(audit).toHaveBeenCalledTimes(1);
+    await act(async () => { await vi.advanceTimersByTimeAsync(350); });
+
+    expect(audit).toHaveBeenLastCalledWith({ ...EMPTY, text: 'gina' }, 0);
+  });
+
+  it('applies a date change at once and Clear resets every filter', async () => {
+    audit.mockResolvedValue([]);
+    render(<AuditLogView />);
+    await screen.findByText('No audit entries match these filters.');
+
     fireEvent.change(screen.getByLabelText('From'), { target: { value: '2026-10-01' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Apply filters' }));
-    await waitFor(() => expect(audit).toHaveBeenLastCalledWith({ text: 'gina', action: '', from: '2026-10-01', to: '' }, 0));
+    await waitFor(() => expect(audit).toHaveBeenLastCalledWith({ ...EMPTY, from: '2026-10-01' }, 0));
 
     fireEvent.click(screen.getByRole('button', { name: 'Clear' }));
-    await waitFor(() => expect(audit).toHaveBeenLastCalledWith({ text: '', action: '', from: '', to: '' }, 0));
-    expect((screen.getByLabelText('Search') as HTMLInputElement).value).toBe('');
+    await waitFor(() => expect(audit).toHaveBeenLastCalledWith(EMPTY, 0));
+    expect((screen.getByLabelText('From') as HTMLInputElement).value).toBe('');
+  });
+
+  it('takes several action types from the multi-select, listed from the backend', async () => {
+    audit.mockResolvedValue([]);
+    render(<AuditLogView />);
+    await screen.findByText('No audit entries match these filters.');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Action type' }));
+    expect(await screen.findByLabelText('BOOKING_FORCE_CANCELLED')).toBeInTheDocument();
+    fireEvent.click(screen.getByLabelText('TOP_UP'));
+    fireEvent.click(screen.getByLabelText('BOOKING_FORCE_CANCELLED'));
+
+    await waitFor(() => expect(audit).toHaveBeenLastCalledWith({ ...EMPTY, actions: ['TOP_UP', 'BOOKING_FORCE_CANCELLED'] }, 0));
+    expect(screen.getByRole('button', { name: 'Action type' })).toHaveTextContent('2 selected');
   });
 
   it('shows Load more only after a full page and appends the next one', async () => {
@@ -80,32 +110,35 @@ describe('AuditLogView (F11, F15)', () => {
     render(<AuditLogView />);
 
     fireEvent.click(await screen.findByRole('button', { name: 'Load more' }));
-    await waitFor(() => expect(audit).toHaveBeenLastCalledWith(expect.anything(), 200));
+    await waitFor(() => expect(audit).toHaveBeenLastCalledWith(EMPTY, 200));
     await waitFor(() => expect(screen.getAllByRole('row')).toHaveLength(202));
     expect(screen.queryByRole('button', { name: 'Load more' })).toBeNull();
   });
 
-  it('a new Apply replaces the list instead of appending (E49)', async () => {
-    audit.mockResolvedValueOnce([entry(1)]).mockResolvedValueOnce([entry(2, { subjectName: 'Only me' })]);
+  it('a changed filter replaces the list instead of appending (E49)', async () => {
+    audit.mockResolvedValueOnce([entry(1)]).mockResolvedValueOnce([entry(2, { subjectName: 'Only me', entityType: 'User' })]);
     render(<AuditLogView />);
     await screen.findAllByText('Ann Agent');
 
-    fireEvent.click(screen.getByRole('button', { name: 'Apply filters' }));
+    fireEvent.change(screen.getByLabelText('To'), { target: { value: '2026-12-01' } });
 
     expect(await screen.findByText('Only me')).toBeInTheDocument();
     expect(screen.getAllByRole('row')).toHaveLength(2);
   });
 
-  it('disables Apply when From is after To', async () => {
+  it('asks for nothing while From is after To', async () => {
     audit.mockResolvedValue([]);
     render(<AuditLogView />);
-    await screen.findByText('No audit entries match');
+    await screen.findByText('No audit entries match these filters.');
+    const calls = audit.mock.calls.length;
 
     fireEvent.change(screen.getByLabelText('From'), { target: { value: '2026-10-05' } });
+    await waitFor(() => expect(audit.mock.calls.length).toBe(calls + 1));
     fireEvent.change(screen.getByLabelText('To'), { target: { value: '2026-10-01' } });
 
-    expect(screen.getByRole('button', { name: 'Apply filters' })).toBeDisabled();
-    expect(screen.getByText('From must not be after To')).toBeInTheDocument();
+    expect(await screen.findByText('The From date must not be after the To date.')).toBeInTheDocument();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(audit.mock.calls.length).toBe(calls + 1);
   });
 
   it('replaces the page with the session notice on a 403 (E45)', async () => {

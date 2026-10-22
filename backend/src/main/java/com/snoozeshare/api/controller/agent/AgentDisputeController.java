@@ -19,6 +19,7 @@ import com.snoozeshare.api.response.DisputeQueueResponse;
 import com.snoozeshare.api.response.DisputeSummaryResponse;
 import com.snoozeshare.config.ConditionalOnDatabase;
 import com.snoozeshare.domain.enums.AssigneeFilter;
+import com.snoozeshare.domain.enums.TicketStatus;
 import com.snoozeshare.service.DisputeQueryService;
 import com.snoozeshare.service.TicketService;
 import com.snoozeshare.service.requests.ResolutionRequest;
@@ -43,8 +44,9 @@ public class AgentDisputeController {
     @GetMapping
     public DisputeQueueResponse queue(
             @RequestParam(defaultValue = "ALL") AssigneeFilter assignee,
+            @RequestParam(required = false) TicketStatus status,
             @CurrentUserId UUID agentId) {
-        var items = queries.queue(null, assignee, agentId).stream()
+        var items = queries.queue(status, assignee, agentId).stream()
                 .map(DisputeSummaryResponse::from).toList();
         return new DisputeQueueResponse(items, queries.unassignedCount());
     }
@@ -57,6 +59,12 @@ public class AgentDisputeController {
     @PutMapping("/{ticketId}/assign")
     public DisputeDetailResponse assign(@PathVariable UUID ticketId, @CurrentUserId UUID agentId) {
         tickets.assignToMe(ticketId, agentId);
+        return DisputeDetailResponse.from(queries.detail(ticketId));
+    }
+
+    @PutMapping("/{ticketId}/unassign")
+    public DisputeDetailResponse unassign(@PathVariable UUID ticketId, @CurrentUserId UUID agentId) {
+        tickets.unassign(ticketId, agentId);
         return DisputeDetailResponse.from(queries.detail(ticketId));
     }
 

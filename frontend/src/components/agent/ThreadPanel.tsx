@@ -1,19 +1,26 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { isSessionFailure } from '@/lib/api';
 import { fetchThread, postMessage } from '@/lib/agent-api/disputes';
-import { formatDateTime, shortName } from '@/lib/agent-api/format';
+import { formatDateTime } from '@/lib/agent-api/format';
 import type { DisputeDetail, ThreadChannel } from '@/lib/agent-api/types';
 import { primaryButton } from './agentUi';
+import { ResizeGrip } from './ResizeGrip';
 import { SessionNotice } from './SessionNotice';
 import { usePolling } from './usePolling';
+
+export const CHAT_MIN_HEIGHT = 240;
+export const CHAT_MAX_HEIGHT = 900;
 
 type Props = {
   detail: DisputeDetail;
   channel: ThreadChannel;
   canSend: boolean;
   resolved: boolean;
+  /** Both chat boxes share one height; either grip changes it (desktop behaviour). */
+  height: number;
+  onResize: (height: number) => void;
 };
 
 const REMEDY: Record<string, string> = {
@@ -23,18 +30,34 @@ const REMEDY: Record<string, string> = {
   OTHER: 'Other remedy',
 };
 
-const bubble = 'max-w-[85%] rounded-lg px-3 py-[9px]';
+const bubble = 'max-w-[85%] break-words rounded-lg px-3 py-[9px]';
 const stamp = 'mt-[3px] text-[9px] text-[var(--text-subtle)]';
 
-export function ThreadPanel({ detail, channel, canSend, resolved }: Props) {
+function firstName(fullName: string): string {
+  return fullName.trim().split(/\s+/)[0] ?? fullName;
+}
+
+export function ThreadPanel({ detail, channel, canSend, resolved, height, onResize }: Props) {
   const ticketId = detail.ticket.id;
   const { data, error, reload } = usePolling(() => fetchThread(ticketId, channel), 10000);
   const [body, setBody] = useState('');
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<unknown>(undefined);
+  const scroller = useRef<HTMLDivElement>(null);
   const isGuest = channel === 'GUEST';
   const name = isGuest ? detail.guestName : detail.hostName;
-  const placeholder = `Reply to ${isGuest ? 'guest' : 'host'}...`;
+  const placeholder = `Reply to ${firstName(name)}…`;
+
+  // The API returns a thread newest first; a chat reads oldest first with the newest at the bottom.
+  const messages = useMemo(
+    () => [...(data ?? [])].sort((a, b) => Date.parse(a.sentAt) - Date.parse(b.sentAt) || a.id.localeCompare(b.id)),
+    [data],
+  );
+
+  useEffect(() => {
+    const box = scroller.current;
+    if (box) box.scrollTop = box.scrollHeight;
+  }, [messages.length]);
 
   if (isSessionFailure(error) || isSessionFailure(sendError)) return <SessionNotice error={error ?? sendError} />;
 
@@ -58,13 +81,14 @@ export function ThreadPanel({ detail, channel, canSend, resolved }: Props) {
   return (
     <section
       aria-label={`${isGuest ? 'Guest' : 'Host'} messages`}
-      className="flex h-[460px] flex-1 flex-col overflow-hidden rounded-xl border border-border bg-card"
+      style={{ height }}
+      className="flex min-w-[320px] flex-1 flex-col overflow-hidden rounded-xl border border-border bg-card"
     >
-      <h2 className="m-0 flex items-center gap-2 bg-muted px-4 py-2.5 text-xs font-bold uppercase text-[var(--text-muted)]">
-        <span>{isGuest ? 'Guest' : 'Host'} messages · {shortName(name)}</span>
-        {raisedHere && <span className="rounded-full bg-primary px-2 py-0.5 text-[9px] font-bold text-primary-foreground">Opened ticket</span>}
+      <h2 className="m-0 flex min-h-[38px] items-center gap-2 bg-muted px-4 py-2.5 text-xs font-bold uppercase text-[var(--text-muted)]">
+        <span className="min-w-0 truncate">{isGuest ? 'Guest' : 'Host'} messages · {name}</span>
+        {raisedHere && <span className="shrink-0 rounded-full bg-primary px-2 py-0.5 text-[9px] font-bold text-primary-foreground">Opened ticket</span>}
       </h2>
-      <div className="flex flex-1 flex-col gap-2.5 overflow-y-auto px-4 py-3.5">
+      <div ref={scroller} className="agent-scroll flex flex-1 flex-col gap-2.5 overflow-y-auto px-4 py-3.5">
         {raisedHere && (
           <>
             <article className={`${bubble} self-start bg-muted`}>
@@ -80,7 +104,8 @@ export function ThreadPanel({ detail, channel, canSend, resolved }: Props) {
           </>
         )}
         {error !== undefined && <p role="alert" className="text-xs text-destructive">Could not load messages</p>}
-        {(data ?? []).map((message) => (
+        {data && messages.length === 0 && !raisedHere && <p className="m-0 text-xs text-[var(--text-subtle)]">No messages yet.</p>}
+        {messages.map((message) => (
           <article
             key={message.id}
             className={`${bubble} ${message.authorRole === 'AGENT' ? 'self-end bg-accent' : 'self-start bg-muted'}`}
@@ -105,7 +130,7 @@ export function ThreadPanel({ detail, channel, canSend, resolved }: Props) {
               onKeyDown={(event) => {
                 if (event.key === 'Enter') void send();
               }}
-              className="box-border flex-1 rounded-lg border border-border bg-background px-2.5 py-2 text-xs disabled:opacity-50"
+              className="box-border min-w-0 flex-1 rounded-lg border border-border bg-background px-2.5 py-2 text-xs disabled:opacity-50"
             />
             <button
               type="button"
@@ -123,6 +148,7 @@ export function ThreadPanel({ detail, channel, canSend, resolved }: Props) {
           </p>
         )}
       </div>
+      <ResizeGrip height={height} min={CHAT_MIN_HEIGHT} max={CHAT_MAX_HEIGHT} onChange={onResize} label={`Resize ${isGuest ? 'guest' : 'host'} messages`} />
     </section>
   );
 }

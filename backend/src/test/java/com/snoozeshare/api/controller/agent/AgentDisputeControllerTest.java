@@ -48,6 +48,34 @@ class AgentDisputeControllerTest extends AgentApiIntegrationTest {
     }
 
     @Test
+    void unassignReturnsTheTicketToTheQueue() throws Exception { // desktop parity: the assigned agent can let go
+        var dispute = scenarios.inReviewDispute(agent.id());
+        String path = "/api/agent/disputes/" + dispute.ticket().getId() + "/unassign";
+        var other = testUsers.create(com.snoozeshare.domain.enums.Role.AGENT);
+
+        var denied = putAs(path, other.token(), "").andExpect(status().isConflict()).andReturn();
+        com.snoozeshare.testsupport.ErrorAssertions.assertCleanMessage(denied, "Ticket is not assigned to this agent");
+        putAs(path, agent.token(), "").andExpect(status().isOk())
+                .andExpect(jsonPath("$.ticket.status").value("OPEN"))
+                .andExpect(jsonPath("$.ticket.assignedAgentId").value((Object) null));
+        assertThat(auditRows("TICKET_UNASSIGNED")).isEqualTo(1);
+        putAs(path, agent.token(), "").andExpect(status().isConflict());
+    }
+
+    @Test
+    void statusFilterNarrowsTheQueue() throws Exception { // desktop parity: the status drop-down
+        scenarios.openDispute(RemedyType.FULL_REFUND);
+        scenarios.inReviewDispute(agent.id());
+
+        getAs("/api/agent/disputes?status=OPEN", agent.token()).andExpect(status().isOk())
+                .andExpect(jsonPath("$.items", hasSize(1))).andExpect(jsonPath("$.items[0].status").value("OPEN"))
+                .andExpect(jsonPath("$.unassignedCount").value(1));
+        getAs("/api/agent/disputes?status=IN_REVIEW", agent.token()).andExpect(jsonPath("$.items", hasSize(1)));
+        getAs("/api/agent/disputes", agent.token()).andExpect(jsonPath("$.items", hasSize(2)));
+        getAs("/api/agent/disputes?status=NOPE", agent.token()).andExpect(status().isBadRequest());
+    }
+
+    @Test
     void notesBoundaryAndClearing() throws Exception { // F6, E13
         var dispute = scenarios.inReviewDispute(agent.id());
         String path = "/api/agent/disputes/" + dispute.ticket().getId() + "/notes";

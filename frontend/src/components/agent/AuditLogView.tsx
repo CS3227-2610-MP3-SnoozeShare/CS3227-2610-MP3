@@ -3,38 +3,78 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { isSessionFailure } from '@/lib/api';
 import { AUDIT_PAGE_SIZE, fetchAudit, fetchAuditActions, type AuditQuery } from '@/lib/agent-api/audit';
-import { formatDateTime, formatSgd } from '@/lib/agent-api/format';
 import type { AuditEntry } from '@/lib/agent-api/types';
-import { ErrorBanner, Pill, outlineButton, pageClass, primaryButton, rowClass, tableCardClass, tdClass, thClass, theadRowClass, titleClass, type Tone } from './agentUi';
+import { AgentGrid, Cell, GridMessage, GridRow, type GridColumn } from './AgentGrid';
+import { ErrorBanner, Pill, outlineButton, pageClass, titleClass, type Tone } from './agentUi';
+import { MultiSelectMenu } from './MultiSelectMenu';
 import { SessionNotice } from './SessionNotice';
 
+const DASH = '—';
+const SEARCH_DELAY_MS = 300;
+const EMPTY: AuditQuery = { text: '', actions: [], from: '', to: '' };
+
+const pad = (value: number) => String(value).padStart(2, '0');
+
+/** `23/10/2026 07:30`, the desktop format, in the browser's time zone. */
+function timeText(iso: string): string {
+  const date = new Date(iso);
+  return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+/** `IN_REVIEW` becomes `In review`. */
+function label(state: string | null): string | null {
+  if (!state || state.trim() === '') return null;
+  const spaced = state.toLowerCase().replaceAll('_', ' ');
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+}
+
+function statusText(entry: AuditEntry): string {
+  const before = label(entry.beforeState);
+  const after = label(entry.afterState);
+  if (before && after) return `${before} → ${after}`;
+  return after ?? before ?? DASH;
+}
+
+function amountText(entry: AuditEntry): string {
+  if (entry.walletAdjustment === null) return DASH;
+  const sign = entry.walletAdjustment < 0 ? '-' : '+';
+  return `${sign}SGD ${Math.abs(entry.walletAdjustment).toFixed(2)}`;
+}
+
+/** The one thing the action was done to: the entity itself, or for a wallet movement the user whose wallet moved. */
+function targetText(entry: AuditEntry): string {
+  const lastFour = entry.entityId.slice(-4);
+  if (entry.entityType === 'WalletTransaction' || entry.entityType === 'User') {
+    return entry.subjectName ?? `User #${lastFour}`;
+  }
+  const noun = entry.entityType === 'TicketCategory' ? 'Category' : entry.entityType;
+  return `${noun} #${lastFour}`;
+}
+
 function toneFor(action: string): Tone {
-  if (/OVERRIDE|RESOLVED|ASSIGNED/.test(action)) return 'accent';
-  if (/REFUND|PAYOUT|TOP_UP|CONFIRMED|REACTIVATED|CREATED/.test(action)) return 'success';
-  if (/SUSPEND|DEACTIVATED|WITHDRAW|CASCADE/.test(action)) return 'warning';
-  if (/CANCEL|REJECT|DELETED|FORCE/.test(action)) return 'danger';
+  if (['BOOKING_PAYOUT', 'PLATFORM_FEE', 'ESCROW_REFUND', 'TICKET_REMEDY', 'TOP_UP', 'BOOKING_COMPLETED'].includes(action)) return 'success';
+  if (['AGENT_OVERRIDE', 'TICKET_RESOLVED', 'TICKET_OPENED', 'TICKET_ASSIGNED', 'TICKET_UNASSIGNED', 'TICKET_NOTE_SAVED'].includes(action)) return 'accent';
+  if (['ACCOUNT_SUSPENDED', 'ACCOUNT_REACTIVATED', 'LISTING_STATUS_CASCADE', 'LISTING_STATUS_CHANGED', 'BOOKING_CANCELLED_BY_GUEST', 'BOOKING_CANCELLED_BY_HOST', 'ESCROW_HOLD', 'WITHDRAWAL'].includes(action)) return 'warning';
+  if (['BOOKING_REJECTED', 'BOOKING_FORCE_CANCELLED', 'TICKET_CATEGORY_DELETED'].includes(action)) return 'danger';
   return 'neutral';
 }
 
-const EMPTY: AuditQuery = { text: '', action: '', from: '', to: '' };
+const control = 'box-border h-9 w-full rounded-lg border border-border bg-background px-3 text-[13px] font-normal normal-case text-foreground';
+const fieldLabel = 'flex flex-col gap-1 text-[10px] font-bold uppercase text-[var(--text-muted)]';
 
-function target(entry: AuditEntry): string {
-  return entry.subjectName ?? `${entry.entityType} ${entry.entityId.slice(0, 8)}`;
-}
-
-function status(entry: AuditEntry): string {
-  if (entry.beforeState && entry.afterState) return `${entry.beforeState} -> ${entry.afterState}`;
-  return entry.afterState ?? entry.beforeState ?? '—';
-}
-
-function amount(entry: AuditEntry): string {
-  if (entry.walletAdjustment === null) return '—';
-  return `${entry.walletAdjustment > 0 ? '+' : ''}${formatSgd(entry.walletAdjustment)}`;
-}
+const COLUMNS: GridColumn[] = [
+  { label: 'Timestamp', min: 135, fr: 1.2 },
+  { label: 'Actor', min: 100, fr: 1 },
+  { label: 'Action type', min: 230, fr: 1.5 },
+  { label: 'Target', min: 130, fr: 1.5 },
+  { label: 'Status', min: 150, fr: 1.5 },
+  { label: 'Reason', min: 180, fr: 2.4 },
+  { label: 'Amount', min: 110, fr: 0.9 },
+];
 
 export function AuditLogView() {
-  const [draft, setDraft] = useState<AuditQuery>(EMPTY);
-  const [applied, setApplied] = useState<AuditQuery>(EMPTY);
+  const [filters, setFilters] = useState<AuditQuery>(EMPTY);
+  const [query, setQuery] = useState<AuditQuery>(EMPTY);
   const [rows, setRows] = useState<AuditEntry[]>([]);
   const [lastPage, setLastPage] = useState(0);
   const [actions, setActions] = useState<string[]>([]);
@@ -43,12 +83,14 @@ export function AuditLogView() {
   const [error, setError] = useState<unknown>(undefined);
   const request = useRef(0);
 
-  const load = useCallback(async (query: AuditQuery, offset: number) => {
+  const badRange = filters.from !== '' && filters.to !== '' && filters.from > filters.to;
+
+  const load = useCallback(async (next: AuditQuery, offset: number) => {
     const mine = ++request.current;
     setLoading(true);
     setError(undefined);
     try {
-      const page = await fetchAudit(query, offset);
+      const page = await fetchAudit(next, offset);
       if (mine !== request.current) return;
       setRows((current) => (offset === 0 ? page : [...current, ...page]));
       setLastPage(page.length);
@@ -67,104 +109,95 @@ export function AuditLogView() {
     });
   }, []);
 
+  useEffect(loadActions, [loadActions]);
+
+  // Live filtering: typing waits briefly, every other control applies at once. A bad date range applies nothing.
   useEffect(() => {
-    void load(EMPTY, 0);
-    loadActions();
-  }, [load, loadActions]);
+    if (badRange) return;
+    const timer = setTimeout(() => setQuery(filters), filters.text === query.text ? 0 : SEARCH_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [filters, badRange, query.text]);
+
+  useEffect(() => {
+    void load(query, 0);
+  }, [query, load]);
 
   if (error !== undefined && isSessionFailure(error)) return <SessionNotice error={error} />;
 
-  const badRange = draft.from !== '' && draft.to !== '' && draft.from > draft.to;
-
-  function apply() {
-    if (badRange) return;
-    setApplied(draft);
-    void load(draft, 0);
-  }
-
-  function clear() {
-    setDraft(EMPTY);
-    setApplied(EMPTY);
-    void load(EMPTY, 0);
-  }
-
-  const field = 'box-border w-full rounded-lg border border-border bg-background px-2.5 py-2 text-xs';
-  const label = 'flex flex-col text-[10px] font-bold uppercase text-[var(--text-muted)]';
   return (
     <section className={pageClass}>
       <h1 className={titleClass}>Audit log</h1>
       <div className="flex flex-wrap items-end gap-3 rounded-xl border border-border bg-card px-4 py-3.5">
-        <label className={`${label} w-[280px]`}>
-          <span className="mb-1">Search</span>
-          <input className={field} placeholder="User name, or booking / ticket / user id" maxLength={100} value={draft.text} onChange={(event) => setDraft({ ...draft, text: event.target.value })} />
+        <label className={`${fieldLabel} w-[280px] max-w-full`}>
+          Search
+          <input
+            type="search"
+            className={control}
+            placeholder="User name, or booking / ticket / user id"
+            maxLength={100}
+            value={filters.text}
+            onChange={(event) => setFilters({ ...filters, text: event.target.value })}
+          />
         </label>
-        <label className={`${label} w-[200px]`}>
-          <span className="mb-1">Action type</span>
-          <select className={field} value={draft.action} onChange={(event) => setDraft({ ...draft, action: event.target.value })}>
-            <option value="">All action types</option>
-            {actions.map((name) => <option key={name} value={name}>{name}</option>)}
-          </select>
+        <div className={`${fieldLabel} w-[200px] max-w-full`}>
+          Action type
+          <MultiSelectMenu
+            label="Action type"
+            allLabel="All action types"
+            options={actions}
+            selected={filters.actions}
+            onChange={(selected) => setFilters({ ...filters, actions: selected })}
+          />
           {actionsFailed && (
-            <span className="mt-1 normal-case text-destructive">
+            <span className="normal-case text-destructive">
               Could not load action types <button type="button" className="underline" onClick={loadActions}>Retry</button>
             </span>
           )}
+        </div>
+        <label className={`${fieldLabel} w-[150px] max-w-full`}>
+          From
+          <input type="date" className={control} value={filters.from} onChange={(event) => setFilters({ ...filters, from: event.target.value })} />
         </label>
-        <label className={`${label} w-[150px]`}>
-          <span className="mb-1">From</span>
-          <input type="date" className={field} value={draft.from} onChange={(event) => setDraft({ ...draft, from: event.target.value })} />
+        <label className={`${fieldLabel} w-[150px] max-w-full`}>
+          To
+          <input type="date" className={control} value={filters.to} onChange={(event) => setFilters({ ...filters, to: event.target.value })} />
         </label>
-        <label className={`${label} w-[150px]`}>
-          <span className="mb-1">To</span>
-          <input type="date" className={field} value={draft.to} onChange={(event) => setDraft({ ...draft, to: event.target.value })} />
-        </label>
-        <button type="button" disabled={badRange} onClick={apply} className={`${primaryButton} px-[18px] py-[9px] text-xs`}>
-          Apply filters
-        </button>
-        <button type="button" onClick={clear} className="rounded-lg border border-[#f07878] bg-transparent px-[18px] py-[9px] text-xs font-semibold text-destructive">
+        <button
+          type="button"
+          onClick={() => {
+            setFilters(EMPTY);
+            setQuery(EMPTY);
+          }}
+          className="h-9 rounded-lg border border-[#f07878] bg-transparent px-[18px] text-xs font-semibold text-destructive"
+        >
           Clear
         </button>
-        {badRange && <p role="alert" className="m-0 w-full text-xs text-destructive">From must not be after To</p>}
       </div>
+      {badRange && <p role="alert" className="m-0 text-[13px] text-destructive">The From date must not be after the To date.</p>}
       {error !== undefined && (
-        <ErrorBanner message={error instanceof Error && error.message ? error.message : 'Could not load the audit log'} onRetry={() => void load(applied, 0)} />
+        <ErrorBanner message={error instanceof Error && error.message ? error.message : 'Could not load the audit log'} onRetry={() => void load(query, 0)} />
       )}
-      <div className={tableCardClass}>
-        <table className="w-full table-fixed border-collapse text-left">
-          <colgroup>
-            <col style={{ width: '13%' }} /><col style={{ width: '11%' }} /><col style={{ width: '15%' }} /><col style={{ width: '13%' }} />
-            <col style={{ width: '14%' }} /><col style={{ width: '22%' }} /><col style={{ width: '12%' }} />
-          </colgroup>
-          <thead>
-            <tr className={theadRowClass}>
-              {['Timestamp', 'Actor', 'Action type', 'Target', 'Status', 'Reason', 'Amount'].map((name) => (
-                <th key={name} scope="col" className={thClass}>{name}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {loading && rows.length === 0 ? (
-              <tr><td colSpan={7} className={`${tdClass} text-[var(--text-subtle)]`}>Loading audit log...</td></tr>
-            ) : rows.length === 0 ? (
-              <tr><td colSpan={7} className={`${tdClass} text-[var(--text-subtle)]`}>No audit entries match</td></tr>
-            ) : (
-              rows.map((entry) => (
-                <tr key={entry.id} className={`${rowClass} align-top text-xs`}>
-                  <td className="px-[18px] py-3 text-[var(--text-subtle)]">{formatDateTime(entry.timestamp)}</td>
-                  <td className="px-[18px] py-3 font-bold">{entry.actorName ?? '—'}</td>
-                  <td className="px-[18px] py-3"><Pill tone={toneFor(entry.actionType)} className="px-[9px] py-0.5">{entry.actionType}</Pill></td>
-                  <td className="px-[18px] py-3 text-[var(--text-muted)]">{target(entry)}</td>
-                  <td className="px-[18px] py-3 text-[var(--text-muted)]">{status(entry)}</td>
-                  <td className="px-[18px] py-3 text-[var(--text-muted)]">{entry.reason ?? '—'}</td>
-                  <td className="px-[18px] py-3 font-bold">{amount(entry)}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      <AgentGrid columns={COLUMNS} label="Audit log">
+        {loading && rows.length === 0 ? (
+          <GridMessage>Loading audit log...</GridMessage>
+        ) : rows.length === 0 ? (
+          <GridMessage>No audit entries match these filters.</GridMessage>
+        ) : (
+          rows.map((entry) => (
+            <GridRow key={entry.id} className="items-start">
+              <Cell className="whitespace-nowrap text-xs text-[var(--text-muted)]">{timeText(entry.timestamp)}</Cell>
+              <Cell className="text-xs font-bold">{entry.actorName ?? 'Unknown user'}</Cell>
+              <Cell className="text-xs"><Pill tone={toneFor(entry.actionType)} className="px-[9px] py-0.5">{entry.actionType}</Pill></Cell>
+              <Cell className="text-xs font-bold">{targetText(entry)}</Cell>
+              <Cell className="text-xs text-[var(--text-muted)]">{statusText(entry)}</Cell>
+              <Cell className="text-xs text-[var(--text-muted)]">{entry.reason ?? DASH}</Cell>
+              <Cell className="whitespace-nowrap text-xs font-bold">{amountText(entry)}</Cell>
+            </GridRow>
+          ))
+        )}
+      </AgentGrid>
       {lastPage === AUDIT_PAGE_SIZE && (
-        <button type="button" disabled={loading} onClick={() => void load(applied, rows.length)} className={`${outlineButton} self-start px-[18px] py-[9px] text-xs`}>
+        <button type="button" disabled={loading} onClick={() => void load(query, rows.length)} className={`${outlineButton} self-start px-[18px] py-[9px] text-xs`}>
           Load more
         </button>
       )}

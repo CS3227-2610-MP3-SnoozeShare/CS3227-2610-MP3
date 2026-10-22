@@ -1,5 +1,5 @@
 import { apiJson } from '@/lib/api';
-import type { AssigneeFilter, DisputeDetail, DisputeQueue, ResolveRequest, ThreadChannel, ThreadMessage } from './types';
+import type { AssigneeFilter, DisputeDetail, DisputeQueue, ResolveRequest, ThreadChannel, ThreadMessage, TicketStatus } from './types';
 
 const BASE = '/api/agent/disputes';
 
@@ -7,8 +7,8 @@ function put<T>(path: string, body?: unknown): Promise<T> {
   return apiJson<T>(path, { method: 'PUT', body: body === undefined ? undefined : JSON.stringify(body) });
 }
 
-export function fetchQueue(assignee: AssigneeFilter): Promise<DisputeQueue> {
-  return apiJson<DisputeQueue>(`${BASE}?assignee=${assignee}`);
+export function fetchQueue(assignee: AssigneeFilter, status?: TicketStatus): Promise<DisputeQueue> {
+  return apiJson<DisputeQueue>(`${BASE}?assignee=${assignee}${status ? `&status=${status}` : ''}`);
 }
 
 export function fetchDispute(ticketId: string): Promise<DisputeDetail> {
@@ -17,6 +17,10 @@ export function fetchDispute(ticketId: string): Promise<DisputeDetail> {
 
 export function assignDispute(ticketId: string): Promise<DisputeDetail> {
   return put<DisputeDetail>(`${BASE}/${ticketId}/assign`);
+}
+
+export function unassignDispute(ticketId: string): Promise<DisputeDetail> {
+  return put<DisputeDetail>(`${BASE}/${ticketId}/unassign`);
 }
 
 export function saveNotes(ticketId: string, notes: string): Promise<DisputeDetail> {
