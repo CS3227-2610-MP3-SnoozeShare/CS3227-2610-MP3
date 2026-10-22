@@ -8,8 +8,8 @@ after the branch merges.
 - **Base:** `de137c6`
 - **Owner:** Xiao-Congchen
 - **Status:** Planned
-- **Approved:** Gate 1 spec approval recorded (Xiao-Congchen, 2026-10-23); amended plan awaits Gate 2
-- **Last updated:** 2026-10-23 by GPT-5 — amended implementation plan for fixed guidance and focus control
+- **Approved:** Gate 1 spec and amended plan approved (Xiao-Congchen, 2026-10-23); implementation beginning
+- **Last updated:** 2026-10-23 by GPT-5 — Gate 2 approved; starting T5 implementation
 
 ---
 
@@ -33,13 +33,13 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S2 | 2026-10-23 00:20 | GPT-5 (lead) | W~1 | Planned | Amended plan linted; implementation remains gated on Gate 2 | Ask operator to approve the amended plan before code changes | 2026-10-23 03:25 |
+| S2 | 2026-10-23 00:20 | GPT-5 (lead) | W~1 | Building | Gate 2 approved; starting T5 test-first implementation | Set T5 In progress, add failing focus/length tests | 2026-10-23 03:35 |
 
 **Remaining**
 
 - [ ] Operator/browser session checks at desktop/tablet/390px.
 - [ ] Resolve or separately accept the pre-existing Next.js prerender route-module failure.
-- [ ] Gate 2 approval for the amended plan, then implement T5.
+- [ ] Implement and verify T5 fixed guidance/focus changes.
 - [ ] Gate 3 approval, then separately ask whether to push/open a PR.
 
 ---
@@ -48,7 +48,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W~1 | W-AI-HOST: Host AI Listing Optimisation Assistant | Planned | [design](../../superpowers/specs/2026-10-22-w-ai-host-design.md) | [plan](../../superpowers/plans/2026-10-22-w-ai-host.md) | Amended plan linted; implementation is gated on Gate 2 approval | — |
+| W~1 | W-AI-HOST: Host AI Listing Optimisation Assistant | Building | [design](../../superpowers/specs/2026-10-22-w-ai-host-design.md) | [plan](../../superpowers/plans/2026-10-22-w-ai-host.md) | T5 in flight: focus contract, fixed prompt guidance, and UI controls | — |
 
 ---
 
@@ -155,3 +155,4 @@ plain-text rendering conventions.
 | 2026-10-23 | Preserved line breaks in the Host listing detail description and expanded the AI modal subtitle to explain that listing details ground generation; added UI regressions | W~1 | Operator-directed change |
 | 2026-10-23 | Amended the approved Host AI spec for fixed 50–150-word guidance, description focus semantics, and audience ordering; lint passed and implementation is awaiting Gate 1 approval | W~1 | Operator-directed change |
 | 2026-10-23 | Recorded Gate 1 approval and amended the implementation plan with T5 guidance/focus work and T6 close-out; plan lint passed | W~1 | C~6, Gate 2 pending |
+| 2026-10-23 | Gate 2 approved; T5 implementation started | W~1 | Operator approval |
