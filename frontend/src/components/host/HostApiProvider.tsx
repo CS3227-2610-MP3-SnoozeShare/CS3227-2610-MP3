@@ -23,6 +23,7 @@ type HostApiContextValue = {
   resources: Record<string, HostLoadable<unknown>>;
   loadResource: <T>(key: string, loader: () => Promise<T>) => Promise<T>;
   getResource: <T>(key: string) => HostLoadable<T> | undefined;
+  updateResource: <T>(key: string, update: (current: T) => T) => void;
   wallet: HostLoadable<HostWalletDto>;
   walletMutationPending: boolean;
   walletRecoveryRequired: boolean;
@@ -68,6 +69,15 @@ export function HostApiProvider({ children }: PropsWithChildren) {
   }, []);
 
   const getResource = useCallback(<T,>(key: string) => resources[key] as HostLoadable<T> | undefined, [resources]);
+  const updateResource = useCallback(<T,>(key: string, update: (current: T) => T) => {
+    setResources((current) => {
+      const resource = current[key] as HostLoadable<T> | undefined;
+      if (!resource || (resource.status !== 'ready' && resource.status !== 'empty')) return current;
+      const data = update(resource.data);
+      const status = Array.isArray(data) && data.length === 0 ? 'empty' : 'ready';
+      return { ...current, [key]: { ...resource, status, data } };
+    });
+  }, []);
 
   const refreshWallet = useCallback(() => {
     const existing = walletLoads.current;
@@ -142,13 +152,14 @@ export function HostApiProvider({ children }: PropsWithChildren) {
     resources,
     loadResource,
     getResource,
+    updateResource,
     wallet,
     walletMutationPending,
     walletRecoveryRequired,
     refreshWallet,
     retryWalletRecovery,
     mutateWallet,
-  }), [resources, loadResource, getResource, wallet, walletMutationPending, walletRecoveryRequired, refreshWallet, retryWalletRecovery, mutateWallet]);
+  }), [resources, loadResource, getResource, updateResource, wallet, walletMutationPending, walletRecoveryRequired, refreshWallet, retryWalletRecovery, mutateWallet]);
 
   return <HostApiContext.Provider value={value}>{children}</HostApiContext.Provider>;
 }

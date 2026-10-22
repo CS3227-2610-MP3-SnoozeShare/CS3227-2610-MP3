@@ -16,7 +16,7 @@
 | Task | Depends on | Can run concurrently with | Wave | Status |
 |---|---|---|---|---|
 | T1 Add batched owner-scoped listing summary metrics | - | T3, T4 | 1 | Done |
-| T2 Consume metrics and update listing status in place | T1 | T4 | 2 | Not started |
+| T2 Consume metrics and update listing status in place | T1 | T4 | 2 | Done |
 | T3 Correct listing detail time and occupancy formatting | - | T1, T4 | 1 | Done |
 | T4 Keep calendar mounted during month loads and clear initial range | - | T1, T2, T3 | 1 | Done |
 
@@ -94,11 +94,11 @@ Tasks T2 and T3 both edit `frontend/src/components/host/hostTypes.ts`; perform t
 
 **Checklist**
 
-- [ ] 1. Add failing UI tests for E3 and metric mapping: successful toggle returns a `PropertyResponse`, updates only its card, preserves counts/ratings, and makes no second collection GET; failure leaves status unchanged and shows the generic inline error. Run `npm test -- src/app/host/listings/page.test.tsx src/lib/hostApi.test.ts` in `frontend/`; expect FAIL.
-- [ ] 2. Add a collection-only summary DTO and type `fetchHostListings` with it; leave the property DTO used by the detail endpoint unchanged. Map server metrics from collection rows.
-- [ ] 3. Add the smallest typed provider resource-patch operation needed to update the listing array. The status mutation response has no metrics: copy only its `status` field into the matching existing DTO row; never remap it as a complete summary row.
-- [ ] 4. Run focused tests; expect PASS. Run `npm test`, `npm run lint`, and `npm run build` from `frontend/`.
-- [ ] 5. Update branch state Progress and Changes; commit `fix: update Host listing status in place`.
+- [x] 1. Add failing UI tests for E3 and metric mapping: successful toggle returns a `PropertyResponse`, updates only its card, preserves counts/ratings, and makes no second collection GET; failure leaves status unchanged and shows the generic inline error. Run `npm test -- src/app/host/listings/page.test.tsx src/lib/hostApi.test.ts` in `frontend/`; observed expected failures for zero metrics and stale status after refetch.
+- [x] 2. Add a collection-only summary DTO and type `fetchHostListings` with it; leave the property DTO used by the detail endpoint unchanged. Map server metrics from collection rows.
+- [x] 3. Add the smallest typed provider resource-patch operation needed to update the listing array. The status mutation response has no metrics: copy only its `status` field into the matching existing DTO row; never remap it as a complete summary row.
+- [x] 4. Run focused tests; expect PASS. Run `npm test`, `npm run lint`, and `npm run build` from `frontend/`.
+- [x] 5. Update branch state Progress and Changes; commit `fix: update Host listing status in place`.
 
 ### T3: Correct listing detail time and occupancy formatting
 

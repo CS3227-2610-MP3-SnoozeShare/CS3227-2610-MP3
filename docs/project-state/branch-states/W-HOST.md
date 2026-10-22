@@ -31,7 +31,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| GPT-5 | 2026-10-22 | — | W-HOST follow-up | Active | T4 complete; 187 frontend tests, lint, and production build pass | T2 step 1: add listing metric and in-place status-toggle regression tests | 2026-10-22 |
+| GPT-5 | 2026-10-22 | — | W-HOST follow-up | Active | T2 code complete; 188 tests, frontend lint, and production build pass | Closeout: backend Checkstyle/build, plan closeout lint, and code review | 2026-10-22 |
 
 **Remaining**
 
@@ -55,7 +55,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | Building | [experience corrections spec](docs/superpowers/specs/2026-10-22-w-host-experience-corrections-design.md); [UI spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [UI plan](docs/superpowers/plans/2026-10-21-w-host-ui.md); [experience corrections plan](docs/superpowers/plans/2026-10-22-w-host-experience-corrections.md) | T1/T3/T4 done; 187 frontend tests/lint/build green; T2 status update remains | guide out of date: Host metrics, time display, and calendar behavior |
+| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | Building | [experience corrections spec](docs/superpowers/specs/2026-10-22-w-host-experience-corrections-design.md); [UI spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [UI plan](docs/superpowers/plans/2026-10-21-w-host-ui.md); [experience corrections plan](docs/superpowers/plans/2026-10-22-w-host-experience-corrections.md) | T1–T4 implementation done; closeout gates and code review in progress | guide out of date: Host metrics, time display, and calendar behavior |
 | W-HOST-API | Replace Host fixtures with authenticated backend integration | In review | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T17 complete: 101/1,001-row tests, full gates, and authenticated read-only captures; owner review pending | — |
 
 ## 4. Architecture
@@ -256,3 +256,4 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | 2026-10-22 | Added complete Host listing rows with booking counts and average ratings using two owner-scoped aggregate queries; empty collections skip metrics; integration tests, Checkstyle, and backend build pass | W-HOST | T1 |
 | 2026-10-22 | Corrected exact HH:mm detail/edit values and two-decimal occupancy; updated the stale fixture assertion; 184 frontend tests, lint, and production build pass | W-HOST | T3, D~30 |
 | 2026-10-22 | Kept the calendar frame and block form mounted during month reads, showed loading only in the grid, synchronized the picker to the visible month, and cleared the initial range in API/fixture modes; 187 tests, lint, and production build pass | W-HOST | T4, D~31 |
+| 2026-10-22 | Mapped server listing summaries into card metrics and patched only the updated row's status from the mutation response; no collection reload; 188 frontend tests, lint, and production build pass | W-HOST | T2 |

@@ -36,6 +36,7 @@ export type HostListingDto = {
   maxGuests: number; bedrooms: number; bathrooms: number; baseNightlyRate: number;
   checkInTime: string; checkOutTime: string; amenities: string[]; createdAt: string;
 };
+export type HostListingSummaryDto = HostListingDto & { bookingCount: number; averageRating: number };
 export type HostListingDetailDto = { listing: HostListingDto; metrics: { bookingCount: number; averageRating: number; reviews: { guestName: string; rating: number; comment: string }[]; occupancyPercentage: number; earnings: number } };
 export type CreateHostListingPayload = Omit<HostListingDto, 'id' | 'hostId' | 'createdAt'>;
 export type UpdateHostListingPayload = Omit<CreateHostListingPayload, 'status'>;
@@ -49,8 +50,7 @@ export type HostTransactionDto = { id: string; actionType: string; walletAdjustm
 export type HostWalletDto = { wallet: { id: string; userId: string; balance: number; currency: string; updatedAt: string }; statement: HostTransactionDto[] };
 export type HostWalletMutationDto = { mocked: true; wallet: HostWalletDto['wallet']; transaction: HostTransactionDto };
 
-/** Converts the backend PropertyResponse into the stable presentation model. */
-export function mapHostListing(dto: HostListingDto): HostListing {
+function mapHostListingFields(dto: HostListingDto): HostListing {
   return {
     id: dto.id,
     title: dto.title,
@@ -64,8 +64,13 @@ export function mapHostListing(dto: HostListingDto): HostListing {
   };
 }
 
+/** Converts a collection summary row into the stable listing-card presentation model. */
+export function mapHostListing(dto: HostListingSummaryDto): HostListing {
+  return { ...mapHostListingFields(dto), bookings: dto.bookingCount, rating: dto.averageRating };
+}
+
 export function mapHostListingDetail(dto: HostListingDetailDto): ListingDetail {
-  const listing = mapHostListing(dto.listing);
+  const listing = mapHostListingFields(dto.listing);
   return {
     ...listing,
     description: dto.listing.description,

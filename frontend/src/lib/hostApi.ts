@@ -8,6 +8,7 @@ import type {
   HostCalendarDto,
   HostListingDetailDto,
   HostListingDto,
+  HostListingSummaryDto,
   HostMessageDto,
   HostWalletDto,
   HostWalletMutationDto,
@@ -52,7 +53,7 @@ export function hostSafeErrorMessage(error: unknown) {
 const segment = (id: string) => encodeURIComponent(id);
 
 export function fetchHostListings() {
-  return getJson<HostListingDto[]>('/api/host/listings');
+  return getJson<HostListingSummaryDto[]>('/api/host/listings');
 }
 
 export function fetchHostListing(listingId: string) {

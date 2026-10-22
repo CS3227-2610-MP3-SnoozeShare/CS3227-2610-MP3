@@ -8,7 +8,7 @@ import { HostListingCard } from '@/components/host/HostListingCard';
 import { HostPageFrame } from '@/components/host/HostPageFrame';
 import { HostListingRouteError } from '@/components/host/HostListingRouteError';
 import { hostSafeErrorMessage } from '@/lib/hostApi';
-import { mapHostListing, type HostListingDto } from '@/components/host/hostTypes';
+import { mapHostListing, type HostListingSummaryDto } from '@/components/host/hostTypes';
 
 export default function HostListingsPage() {
   const fixtures = useHostFixtures();
@@ -22,7 +22,7 @@ export default function HostListingsPage() {
   useEffect(() => {
     if (loadResource && fetchListings) void loadResource(resourceKey, () => fetchListings()).catch(() => undefined);
   }, [fetchListings, loadResource, resourceKey]);
-  const apiResult = api?.getResource<HostListingDto[]>(resourceKey);
+  const apiResult = api?.getResource<HostListingSummaryDto[]>(resourceKey);
   const fixtureResult = fixtures.getListings();
   const apiMode = Boolean(api);
   const loading = apiMode ? !apiResult || apiResult.status === 'loading' : fixtureResult.state === 'loading';
@@ -38,8 +38,8 @@ export default function HostListingsPage() {
     setUpdating(id);
     setMutationError('');
     try {
-      await api.api.updateHostListingStatus(id, current === 'active' ? 'INACTIVE' : 'ACTIVE');
-      await api.loadResource(resourceKey, () => api.api.fetchHostListings());
+      const updated = await api.api.updateHostListingStatus(id, current === 'active' ? 'INACTIVE' : 'ACTIVE');
+      api.updateResource<HostListingSummaryDto[]>(resourceKey, (rows) => rows.map((row) => row.id === id ? { ...row, status: updated.status } : row));
     } catch (caught) {
       setMutationError(hostSafeErrorMessage(caught));
     } finally {
