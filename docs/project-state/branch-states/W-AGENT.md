@@ -31,14 +31,14 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-22 | Claude Sonnet 5.5 | W-AGENT | Paused | Gate 2: plan written and reviewed once | After the operator's yes: write `Status: Approved (<name>, <date>)` under the plan title, run `lint.mjs plan <plan> --approved`, set the workstream to `Planned`, commit, then start `executing-plans-lite` at T1 | 2026-10-22 |
+| S1 | 2026-10-22 | Codex | W-AGENT | Active | T1 step 1: Slice A test support | Establish backend baseline, then implement Slice A per the plan; run focused auth regression test and commit the slice | 2026-10-22 |
 
 **Remaining**
 
 - [x] Confirm scope with the operator (done 2026-10-22)
 - [x] Gate 1: spec reviewed in two rounds, approved by Xiao-Congchen 2026-10-22 (Q~1 answered: Asia/Singapore)
-- [ ] Gate 2: plan written, linted and reviewed (done); operator approval pending
-- [ ] Execute the plan (`executing-plans-lite`)
+- [x] Gate 2: plan approved by Xiao-Congchen 2026-10-22
+- [ ] Execute the plan (`executing-plans-lite`); T1 in progress
 - [ ] **Handover:** the W-AI-GATEWAY branch state is still in `branch-states/` on `development`: its fold (gate 4) is pending and is not this branch's work
 - [ ] **Handover:** audit reasons, notes and messages typed by agents will become LLM input in W-AI-AGENT; treat them as untrusted (prompt injection) in that spec
 
@@ -48,7 +48,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AGENT | Agent features: disputes, accounts, audit, categories — REST controllers and Next.js pages | Spec'd | [spec](docs/superpowers/specs/2026-10-22-w-agent-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-agent.md) | Plan written and linted; gate 2 pending | — |
+| W-AGENT | Agent features: disputes, accounts, audit, categories — REST controllers and Next.js pages | Building | [spec](docs/superpowers/specs/2026-10-22-w-agent-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-agent.md) | T1/12 in flight: REST foundation | — |
 
 ---
 
@@ -107,4 +107,5 @@ No change: Q~1 (audit zone) was answered on 2026-10-22 (C~7); nothing is open.
 | 2026-10-22 | Branch W-AGENT cut from `development` and its branch state created | W-AGENT | `7823c4b` |
 | 2026-10-22 | Spec for the agent REST API and pages drafted, linted, reviewed in two rounds and approved | W-AGENT | `ecfc451` |
 | 2026-10-22 | Plan for the agent REST API and pages written, linted and reviewed once; spec text amended for plan refinements (C~8, C~9) | W-AGENT | next commit |
+| 2026-10-22 | Plan approved by Xiao-Congchen; T1 started | W-AGENT | this commit |
 | 2026-10-22 | `development` merged into the branch (W-AI-GATEWAY folded; no conflict with the spec) | W-AGENT | merge commit |
