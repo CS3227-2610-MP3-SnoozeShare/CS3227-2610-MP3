@@ -51,7 +51,7 @@ import jakarta.validation.Validation;
 /** The pipeline of {@code LlmGateway.run} with a faked audit writer, real limit classes and a stub server. */
 class LlmGatewayTest {
 
-    private static final String KEY = "clsk_abcdefgh_0123456789abcdef0123";
+    private static final String KEY = "clsk_abcdefgh_fakekey";
 
     private StubSoclaasServer stub;
     private AiAuditWriter writer;

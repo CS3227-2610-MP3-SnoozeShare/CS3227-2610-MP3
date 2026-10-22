@@ -26,7 +26,7 @@
 | T4 Limits and resilience | T1 | T2, T3, T5 | 2 | Done |
 | T5 SoCLaaS client | T1 | T2, T3, T4 | 2 | Done |
 | T6 Gateway facade | T2, T3, T4, T5 | - | 3 | Done |
-| T7 Integration tests, boundary test and docs | T6 | - | 4 | Not started |
+| T7 Integration tests, boundary test and docs | T6 | - | 4 | Done |
 | T8 Live verification | T7 | - | 5 | Post-merge |
 
 ## Traceability
@@ -407,16 +407,16 @@ public <T> LlmResult<T> run(AiFeature<T> feature, LlmCall call) {
 | Modify | `docs/runbooks/dev-environment.md` (`## Variables`) | add the AI variables and an "AI gateway" section: variables, the dev and prod key split, how to run with mock, the rules role authors must follow (E45) |
 
 **Checklist**
-- [ ] 1. Write `AiBoundaryTest` (reads each file with `Files.readString`, splits on any line break) and confirm it passes on the current tree; add a deliberately violating temporary file in the test to prove it fails, then remove it.
-- [ ] 2. Write `SecretScanTest`; confirm it passes and that a planted key-shaped string in a temp file makes the matcher report it.
-- [ ] 3. Write `AiHealthTest` and `AiDatasourceFreeContextTest`; expect PASS.
-- [ ] 4. Write `AiLogLeakTest` with a log appender attached to the `com.snoozeshare.ai` logger across the failure scenarios; expect PASS.
-- [ ] 5. Update the runbook; keep the E45 rules (principal-sourced role, server-stored assistant turns, plain-text rendering, `flagged` handling, no calls inside transactions) as a numbered list.
-- [ ] 6. Run the whole test suite with no `SOCLAAS_*` variable set; expect PASS.
-- [ ] 7. Run Checkstyle separately; expect no violations.
-- [ ] 8. Run `.\gradlew build`; expect green.
-- [ ] 9. Update the branch state: Progress, a Changes line.
-- [ ] 10. Commit: `test: add AI gateway integration, boundary and secret-scan tests and runbook section (W-AI-GATEWAY)`.
+- [x] 1. Write `AiBoundaryTest` (reads each file with `Files.readString`, splits on any line break) and confirm it passes on the current tree; add a deliberately violating temporary file in the test to prove it fails, then remove it.
+- [x] 2. Write `SecretScanTest`; confirm it passes and that a planted key-shaped string in a temp file makes the matcher report it.
+- [x] 3. Write `AiHealthTest` and `AiDatasourceFreeContextTest`; expect PASS.
+- [x] 4. Write `AiLogLeakTest` with a log appender attached to the `com.snoozeshare.ai` logger across the failure scenarios; expect PASS.
+- [x] 5. Update the runbook; keep the E45 rules (principal-sourced role, server-stored assistant turns, plain-text rendering, `flagged` handling, no calls inside transactions) as a numbered list.
+- [x] 6. Run the whole test suite with no `SOCLAAS_*` variable set; expect PASS.
+- [x] 7. Run Checkstyle separately; expect no violations.
+- [x] 8. Run `.\gradlew build`; expect green.
+- [x] 9. Update the branch state: Progress, a Changes line.
+- [x] 10. Commit: `test: add AI gateway integration, boundary and secret-scan tests and runbook section (W-AI-GATEWAY)`.
 
 ### T8: Live verification
 **Delivers:** the observed behaviour of the real SoCLaaS service recorded | **Satisfies:** E27 | **Depends on:** T7 | **Wave:** 5

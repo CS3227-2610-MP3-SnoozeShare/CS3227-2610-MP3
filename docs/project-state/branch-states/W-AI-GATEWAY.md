@@ -31,7 +31,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-22 | Claude Sonnet 5.5 | W~1 | Active | T6 done, build green | T7 step 1 of `docs/superpowers/plans/2026-10-22-w-ai-gateway.md` | 2026-10-22 |
+| S1 | 2026-10-22 | Claude Sonnet 5.5 | W~1 | Active | T7 done, build green | Close-out of `docs/superpowers/plans/2026-10-22-w-ai-gateway.md` (code review, then gate 3) | 2026-10-22 |
 
 **Remaining**
 
@@ -47,7 +47,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W~1 | W-AI-GATEWAY: shared SoCLaaS LLM gateway | Building | [spec](docs/superpowers/specs/2026-10-22-w-ai-gateway-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-ai-gateway.md) | Tasks 1-6/8 done; T7 integration, boundary tests and docs next | — |
+| W~1 | W-AI-GATEWAY: shared SoCLaaS LLM gateway | Building | [spec](docs/superpowers/specs/2026-10-22-w-ai-gateway-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-ai-gateway.md) | Tasks 1-7/8 done; T8 is Post-merge; close-out and gate 3 next | — |
 
 ---
 
@@ -128,6 +128,7 @@ No change. Resolves, on fold, the SoCLaaS-contract half of `PROJECT_STATE.md` Q6
 - **W-DOMAIN's `@ConditionalOnBean(PropertyRepository.class)` never matched in the running app (found in T6, fixed in `d049995`).** The condition is evaluated during component scanning, before Spring Data registers repositories, so all 15 W-DOMAIN service impls, the JDBC repositories and `LedgerWriter` were silently absent from the application. The operator chose to fix it on this branch: all 20 classes now use `@ConditionalOnDatabase`, and `DatabaseBeansTest` proves the beans exist. This makes those beans live in the app for the first time, so W-DOMAIN's wiring is exercised by the full build; fold this into W-DOMAIN's description of how beans register.
 - **T6:** `ModelCheck` creates its own single-thread daemon executor (a second constructor takes an `Executor` for tests) instead of an `Executor` bean in `AiConfig`, because any `Executor` bean switches off Spring Boot's auto-configured task executor. `OutputValidator` is a `@Lazy` bean so slice tests without an `ObjectMapper` still start. Tests of `LlmGatewayTest` use a mocked `AiAuditWriter`; real audit rows are covered by `LlmGatewayIntegrationTest`.
 - **T6 test coverage gaps against the plan list:** `pipelineOrder` (the six pairs of E49), `floodDoesNotStarveOthers`, `obedientModel` and `deadlineDuringBackoff` are not separate tests; the fixed check order is covered by the individual tests above, and these are carried to the branch review as a known gap in test depth.
+- **T7:** `ProdEnvironmentGuard` no longer imports `ai.config` (it keeps its own blank/placeholder check) so the boundary test holds; key-shaped strings in earlier AI tests were shortened to `clsk_..._fakekey` because `SecretScanTest` scans every tracked file.
 - **T2:** tests build `LlmProperties` with `enabled=false` (enabled demands a URL and key).
 
 ---
@@ -148,3 +149,4 @@ No change. Resolves, on fold, the SoCLaaS-contract half of `PROJECT_STATE.md` Q6
 | 2026-10-22 | T5 done: `SoclaasClient` and `AttemptResult` | W~1 | — |
 | 2026-10-22 | Fix: W-DOMAIN services and JDBC repositories were never registered in the app (`@ConditionalOnBean` evaluated too early); replaced by `@ConditionalOnDatabase` on 20 classes plus `DatabaseBeansTest` | W~1 | — |
 | 2026-10-22 | T6 done: `LlmGateway.run` pipeline and attempt loop, `ModelCheck`, `AiConfig` beans, `LlmGatewayTest`, `LlmGatewayIntegrationTest`, `ModelCheckTest` | W~1 | — |
+| 2026-10-22 | T7 done: `AiBoundaryTest`, `SecretScanTest`, `AiHealthTest`, `AiDatasourceFreeContextTest`, `AiLogLeakTest`, runbook variables and AI gateway section | W~1 | — |

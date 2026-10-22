@@ -44,7 +44,7 @@ class ModelCheckTest {
     }
 
     private ModelCheck check(boolean enabled) {
-        LlmProperties p = new LlmProperties(enabled, false, stub.baseUrl(), "clsk_abcdefgh_0123456789abcdef0123",
+        LlmProperties p = new LlmProperties(enabled, false, stub.baseUrl(), "clsk_abcdefgh_fakekey",
             "fast-m", "std-m", "strong-m", 55, 4, 20, 10_000, 30_000, 45_000, 2, 5, 30_000, 900_000, 2, 200, 3_000,
             20, 40_000, false, "");
         Clock clock = Clock.systemUTC();

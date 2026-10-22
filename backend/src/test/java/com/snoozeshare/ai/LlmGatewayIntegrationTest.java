@@ -60,7 +60,7 @@ class LlmGatewayIntegrationTest extends PostgresIntegrationTest {
         }
         registry.add("snoozeshare.ai.enabled", () -> "true");
         registry.add("snoozeshare.ai.base-url", () -> stub.baseUrl());
-        registry.add("snoozeshare.ai.api-key", () -> "clsk_abcdefgh_0123456789abcdef0123");
+        registry.add("snoozeshare.ai.api-key", () -> "clsk_abcdefgh_fakekey");
     }
 
     @BeforeEach

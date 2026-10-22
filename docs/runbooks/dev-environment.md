@@ -32,6 +32,10 @@ Render first, then Vercel, then Render again: the frontend needs the backend URL
 | `SNOOZESHARE_HOST_REGISTRATION_CODE` | Render | Privileged registration code, never committed |
 | `SNOOZESHARE_AGENT_REGISTRATION_CODE` | Render | Privileged registration code, never committed |
 | `GOOGLE_APPLICATION_CREDENTIALS` | Render | Path to the provisioned Firebase Admin service-account JSON |
+| `SNOOZESHARE_AI_ENABLED` | Render | `false` until the SoCLaaS values are verified (W-AI-GATEWAY T8); the `prod` profile refuses to start if it is unset |
+| `SOCLAAS_BASE_URL` | Render | SoCLaaS base URL ending `/v1`, `https://` only; needed only when AI is enabled |
+| `SOCLAAS_API_KEY` | Render | The environment's own SoCLaaS key (development and production keys are separate); set in the dashboard, never committed |
+| `SNOOZESHARE_AI_MOCK` | local only | `true` answers AI calls from each feature's mock response; the `prod` profile rejects it |
 | `NEXT_PUBLIC_API_BASE_URL` | Vercel | Render public URL |
 | `NEXT_PUBLIC_FIREBASE_API_KEY` | Vercel | Firebase browser app configuration |
 | `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | Vercel | Firebase browser app configuration |
@@ -41,6 +45,21 @@ Render first, then Vercel, then Render again: the frontend needs the backend URL
 | `NEXT_PUBLIC_FIREBASE_APP_ID` | Vercel | Firebase browser app configuration |
 
 With `prod` active, the backend refuses to start if a datasource, CORS, security, Firebase, registration-code, or Admin credential setting is missing, and the error names the property. Without `SPRING_PROFILES_ACTIVE` the `dev` profile applies and startup fails on the missing local database rather than serving.
+
+## AI gateway
+
+Every LLM call in the backend goes through `LlmGateway.run` (package `com.snoozeshare.ai`); role features register an `AiFeature` bean and call it. The gateway adds no endpoint and no table.
+
+- **Variables:** `SNOOZESHARE_AI_ENABLED`, `SOCLAAS_BASE_URL`, `SOCLAAS_API_KEY`, `SNOOZESHARE_AI_MOCK` (table above). The model names and limits have defaults and can be overridden with `SNOOZESHARE_AI_MODEL_FAST`, `_STANDARD`, `_STRONG` and the other `snoozeshare.ai.*` keys.
+- **Keys:** development and production use separate SoCLaaS keys. A key goes in the Render dashboard or a gitignored `application-local.yml`; a test (`SecretScanTest`) fails the build if a key-shaped string is committed.
+- **Run without SoCLaaS:** locally set `SNOOZESHARE_AI_ENABLED=true` and `SNOOZESHARE_AI_MOCK=true`; each feature answers with its `mockResponse`. With AI disabled every call returns the feature's fallback with code `DISABLED`. The health endpoint is unaffected either way.
+- **Rules for role authors:**
+  1. Take `userId` and `role` from the authorized principal, never from a request body.
+  2. Build ASSISTANT turns only from server-stored history, and put only server-built text in `trustedContext`.
+  3. Call `run` outside any transaction; it throws `IllegalStateException` inside one.
+  4. Act on `flagged` (the input matched an injection pattern) and on `truncated`.
+  5. Render `LlmResult.value` as plain text, never as HTML or Markdown, and return it through a response DTO.
+  6. Treat a degraded result as final: do not loop on it.
 
 ## Neon connection string
 

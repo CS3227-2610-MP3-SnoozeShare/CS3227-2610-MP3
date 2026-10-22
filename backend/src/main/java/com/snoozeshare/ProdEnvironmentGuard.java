@@ -9,8 +9,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 
-import com.snoozeshare.ai.config.LlmProperties;
-
 /**
  * Fails startup under the {@code prod} profile when a required variable is unset, naming it.
  *
@@ -70,7 +68,7 @@ public class ProdEnvironmentGuard implements BeanFactoryPostProcessor, Environme
 
     private void requireNotBlank(String key) {
         String value = environment.getProperty(key);
-        if (LlmProperties.isBlankOrPlaceholder(value)) {
+        if (value == null || value.isBlank() || value.contains("${")) {
             throw new IllegalStateException(
                 key + " must be set in the prod profile when snoozeshare.ai.enabled is true");
         }

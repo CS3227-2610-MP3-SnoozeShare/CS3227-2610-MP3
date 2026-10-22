@@ -34,7 +34,7 @@ import ch.qos.logback.core.read.ListAppender;
 /** E21, E22 (client side), E23, E37, E46, E60 and the 429 rules of E18 and E19, against an in-process stub. */
 class SoclaasClientTest {
 
-    private static final String KEY = "clsk_abcd1234_0123456789abcdefghij";
+    private static final String KEY = "clsk_abcd1234_fakekey";
     private static final Duration TIMEOUT = Duration.ofSeconds(5);
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
