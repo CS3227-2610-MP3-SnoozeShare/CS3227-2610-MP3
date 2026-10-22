@@ -40,33 +40,54 @@ export function HostApiProvider({ children }: PropsWithChildren) {
   const [walletMutationPending, setWalletMutationPending] = useState(false);
   const [walletRecoveryRequired, setWalletRecoveryRequired] = useState(false);
   const walletMutationLock = useRef(false);
+  const resourceLoads = useRef(new Map<string, Promise<unknown>>());
+  const walletLoads = useRef(new Map<string, Promise<void>>());
 
-  const loadResource = useCallback(async <T,>(key: string, loader: () => Promise<T>) => {
+  const loadResource = useCallback(<T,>(key: string, loader: () => Promise<T>) => {
+    const existing = resourceLoads.current.get(key);
+    if (existing) return existing as Promise<T>;
+
     setResources((current) => ({ ...current, [key]: { status: 'loading' } }));
-    try {
-      const data = await loader();
-      const empty = Array.isArray(data) && data.length === 0;
-      setResources((current) => ({ ...current, [key]: { status: empty ? 'empty' : 'ready', data } }));
-      return data;
-    } catch (error) {
-      const notFound = error instanceof BackendApiError && error.status === 404;
-      setResources((current) => ({ ...current, [key]: {
-        status: notFound ? 'not-found' : 'error', message: notFound ? 'This item is no longer available.' : hostSafeErrorMessage(error),
-      } }));
-      throw error;
-    }
+    const request: Promise<T> = loader().then(
+      (data) => {
+        if (resourceLoads.current.get(key) === request) resourceLoads.current.delete(key);
+        const empty = Array.isArray(data) && data.length === 0;
+        setResources((current) => ({ ...current, [key]: { status: empty ? 'empty' : 'ready', data } }));
+        return data;
+      },
+      (error: unknown) => {
+        if (resourceLoads.current.get(key) === request) resourceLoads.current.delete(key);
+        const notFound = error instanceof BackendApiError && error.status === 404;
+        setResources((current) => ({ ...current, [key]: {
+          status: notFound ? 'not-found' : 'error', message: notFound ? 'This item is no longer available.' : hostSafeErrorMessage(error),
+        } }));
+        return Promise.reject(error);
+      },
+    );
+    resourceLoads.current.set(key, request);
+    return request;
   }, []);
 
   const getResource = useCallback(<T,>(key: string) => resources[key] as HostLoadable<T> | undefined, [resources]);
 
-  const refreshWallet = useCallback(async () => {
-    try {
-      const data = await fetchHostWallet(0, 1);
-      setWallet({ status: 'ready', data });
-    } catch {
-      setWallet({ status: 'error', message: 'Unable to load wallet.' });
-      throw new Error('Unable to load wallet.');
-    }
+  const refreshWallet = useCallback(() => {
+    const key = '0:1';
+    const existing = walletLoads.current.get(key);
+    if (existing) return existing;
+
+    const request: Promise<void> = fetchHostWallet(0, 1).then(
+      (data) => {
+        if (walletLoads.current.get(key) === request) walletLoads.current.delete(key);
+        setWallet({ status: 'ready', data });
+      },
+      () => {
+        if (walletLoads.current.get(key) === request) walletLoads.current.delete(key);
+        setWallet({ status: 'error', message: 'Unable to load wallet.' });
+        return Promise.reject(new Error('Unable to load wallet.'));
+      },
+    );
+    walletLoads.current.set(key, request);
+    return request;
   }, []);
 
   const refreshWalletStatement = useCallback(async (page = 0, size = 50) => {

@@ -1,4 +1,5 @@
 import { act, render, screen, waitFor } from '@testing-library/react';
+import { StrictMode, useEffect } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { HostApiProvider, useHostApi } from './HostApiProvider';
 import { BackendApiError } from '@/lib/api';
@@ -31,6 +32,15 @@ function ResourceProbe() {
   </div>;
 }
 
+function ResourceEffectProbe({ loader }: { loader: () => Promise<string[]> }) {
+  const api = useHostApi();
+  const loadResource = api.loadResource;
+  useEffect(() => {
+    void loadResource('strict-mode-items', loader).catch(() => undefined);
+  }, [loadResource, loader]);
+  return null;
+}
+
 const walletPage = (balance: number) => ({
   wallet: { id: 'w-1', userId: 'host-1', balance, currency: 'SGD', updatedAt: '2026-10-22T00:00:00Z' },
   statement: { items: [], page: 0, size: 1, hasMore: false },
@@ -48,8 +58,27 @@ describe('HostApiProvider', () => {
 
     expect(screen.getAllByText('loading')).toHaveLength(2);
     await waitFor(() => expect(screen.getAllByText('100').length).toBe(2));
-    expect(fetchHostWallet).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(fetchHostWallet).toHaveBeenCalledTimes(1));
     expect(fetchHostWallet).toHaveBeenCalledWith(0, 1);
+  });
+
+  it('shares an in-flight wallet summary request across Strict Mode effect replay', async () => {
+    let resolveWallet!: (value: ReturnType<typeof walletPage>) => void;
+    fetchHostWallet.mockImplementation(() => new Promise((resolve) => { resolveWallet = resolve; }));
+    render(<StrictMode><HostApiProvider><WalletProbe /></HostApiProvider></StrictMode>);
+
+    await waitFor(() => expect(fetchHostWallet).toHaveBeenCalledTimes(1));
+    await act(async () => { resolveWallet(walletPage(100)); });
+    await screen.findByText('100');
+  });
+
+  it('shares an in-flight page resource request across Strict Mode effect replay', async () => {
+    let resolveResource!: (value: string[]) => void;
+    const loader = vi.fn(() => new Promise<string[]>((resolve) => { resolveResource = resolve; }));
+    render(<StrictMode><HostApiProvider><ResourceEffectProbe loader={loader} /></HostApiProvider></StrictMode>);
+
+    await waitFor(() => expect(loader).toHaveBeenCalledTimes(1));
+    await act(async () => { resolveResource(['listing']); });
   });
 
   it('does not retry a failed wallet mutation and refreshes the wallet before unlocking', async () => {

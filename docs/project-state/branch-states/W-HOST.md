@@ -9,7 +9,7 @@ in after the branch merges.
 - **Owner:** project owner
 - **Status:** Draft
 - **Approved:** —
-- **Last updated:** 2026-10-22 by GPT-5 — T10 found/fixed calendar 404 and mobile navbar overflow; final authenticated route sweep remains
+- **Last updated:** 2026-10-22 by GPT-5 — T10 dedup fix and build gates pass; listings request counts confirmed; remaining route capture paused because Chrome focus returned to the user's Canvas tab
 
 ---
 
@@ -32,7 +32,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| 2026-10-22 backend phase | 2026-10-22 | GPT-5 | W-HOST-API | Active | T10: all-route, three-viewport browser UI sweep complete | Resolve or explicitly carry N5's remaining live browser-network verification; do not claim the phase complete until every Traceability row is verified | 2026-10-22 |
+| 2026-10-22 backend phase | 2026-10-22 | GPT-5 | W-HOST-API | Blocked — needs human | T10 N5: capture remaining seven authenticated Host routes; Chrome focus returned to the user's Canvas tab | When Chrome is available for this acceptance, capture initial request URLs/query/counts for the remaining seven routes without mutations, then complete review and closeout | 2026-10-22 |
 
 **Remaining**
 
@@ -43,14 +43,14 @@ No change.
 - [x] T7 authenticated frontend Host API adapter and provider; 154 tests, lint and production build pass.
 - [x] T8 wire listing, calendar, and request screens to the API provider; 166 frontend tests, lint and production build pass.
 - [x] T9 wire Host messages and wallet screens to the API provider; 172 frontend tests, lint, and production build pass.
-- [ ] T10 verify full backend/frontend acceptance and close the phase; all-route responsive and request/mutation acceptance remains incomplete (D~20).
+- [ ] T10 verify full backend/frontend acceptance and close the phase; authenticated capture found duplicate listings/wallet reads on a fresh dev load, fixed with in-flight deduplication; remaining routes need network capture (D~23/D~25).
 
 ## 3. Workstreams
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
 | W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Listings, requests, and wallet scroll within viewport; 143 tests, lint and build pass | guide out of date: W-HOST Host UI pages and Fall Light details |
-| W-HOST-API | Replace Host fixtures with authenticated backend integration | Building | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T9 done; T10: 173 frontend tests, lint/build pass; browser found/fixed 404 and mobile overflow; full route sweep pending | — |
+| W-HOST-API | Replace Host fixtures with authenticated backend integration | Building | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T10 dedup fix/builds pass; listings request counts confirmed; seven route captures remain (D~23,D~25) | — |
 
 ## 4. Architecture
 
@@ -84,7 +84,7 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 
 | ID | What is needed | What it blocks | Raised |
 |---|---|---|---|
-No open questions.
+| Q~2 | Project owner signs in to the local SnoozeShare Host app in Chrome and tells the agent to resume; the current session returns 401 from `/api/auth/me` | Authenticated N5 browser network capture required to verify initial request set/counts without mutations | 2026-10-22 |
 
 ## 8. Decisions
 
@@ -135,6 +135,8 @@ No open questions.
 | D~21 | 2026-10-22 | Live calendar route with a valid but nonexistent listing ID returned 404 for its listing/calendar requests, but the page rendered only breadcrumbs with no unavailable message | Regression test now confirms the safe unavailable message is rendered; calendar route and test updated |
 | D~22 | 2026-10-22 | Live 390px viewport showed the shared navbar top row extended the document by 15px on New/Edit listing routes | Allow the navbar top row to wrap; targeted regression passes, and all eight routes now render within a 390px document width |
 | D~23 | 2026-10-22 | The live browser route sweep verified rendered route states and viewport bounds but did not capture exact Host HTTP request URLs, query parameters, or request counts required by N5 | API adapter tests cover authenticated paths and payloads; backend bounded-query tests cover paging. N5's live browser network capture remains unverified and must be resolved or explicitly carried before T10 closeout |
+| D~24 | 2026-10-22 | On a later T10 resume, the owner had signed in; a fresh read-only capture showed `/api/auth/me` returning `200` and the Host listing route rendering API-backed state | Authenticated acceptance can continue without credentials being handled by the agent; no mutations were performed |
+| D~25 | 2026-10-22 | A clean authenticated development reload duplicated the initial listings and shared wallet reads; React Strict Mode replayed mount effects and the provider did not coalesce same-key in-flight reads | Added provider-level in-flight request sharing for keyed page resources and wallet summary reads; both Strict Mode regression tests pass, all 175 frontend tests/lint/build and the backend build pass; a fresh `/host/listings` capture showed one request each for `/api/auth/me`, `/api/host/listings?page=0&size=50`, and `/api/host/wallet?page=0&size=1`; Chrome focus then returned to the user's Canvas tab before the remaining seven route counts could be captured |
 
 ## 10. Changes
 
@@ -217,3 +219,4 @@ No open questions.
 | 2026-10-22 | Connected separate booking/ticket messages and paged history, plus wallet statement and mocked mutations with ambiguous-failure recovery lock; 172 frontend tests, lint and production build pass | W-HOST-API | T9 |
 | 2026-10-22 | T10 fresh backend Checkstyle/build and frontend 172-test/lint/production-build gates pass; authenticated browser/network acceptance remains open per D~20 | W-HOST-API | T10 |
 | 2026-10-22 | Added calendar 404 unavailable-state regression/fix and responsive navbar wrapping; all eight routes fit at desktop/tablet/mobile, 173 frontend tests and lint pass, production build passes on rerun; N5 live network capture remains unverified | W-HOST-API | T10 |
+| 2026-10-22 | Coalesced same-key in-flight page and wallet-summary reads to prevent duplicate Host API calls during React Strict Mode effect replay; 175 frontend tests, lint, production build, and backend build pass | W-HOST-API | T10 / D~25 |
