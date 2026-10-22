@@ -24,7 +24,7 @@
 | E20 | N5 | Model returns a description containing a bare domain without a scheme | Gateway's known limitation remains; UI renders accepted output as plain text and never turns it into a link | Records the inherited gap without adding unsafe rendering | Unit |
 | E21 | N1, N7 | Current description contains configured PII or a generated response contains unsupported personal data | Gateway applies its existing sanitizer/validator behavior; the feature does not promise detection beyond that contract and does not include address/postal fields in context | Records the inherited gateway limitation without silently expanding scope | Integration |
 | E22 | F4, N5 | Generated description is outside the 50–150-word guidance range | The successful response remains usable and is not degraded solely for the mismatch; the UI may display and Apply the gateway-accepted plain text | Preserves the operator's explicit no-degradation decision | Unit/UI |
-| E23 | F9 | New/Edit draft is missing one or more of title, property type, max guests, bedrooms, bathrooms, check-in time, or check-out time | The AI trigger is disabled and its hover hint explains that all seven minimum details are required; no modal or gateway request can start | Prevents low-context generation | UI |
+| E23 | F9 | New/Edit draft is missing one or more of title, property type, max guests, bedrooms, bathrooms, check-in time, or check-out time | The AI trigger is disabled and its hover/focus helper popover explains that all seven minimum details are required; no modal or gateway request can start | Prevents low-context generation | UI |
 
 ## What could corrupt data
 

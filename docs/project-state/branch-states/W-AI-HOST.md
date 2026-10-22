@@ -8,8 +8,8 @@ after the branch merges.
 - **Base:** `de137c6`
 - **Owner:** Xiao-Congchen
 - **Status:** In review
-- **Approved:** Eligibility-amended spec and plan approved (Xiao-Congchen, 2026-10-23); Gate 3 review requested
-- **Last updated:** 2026-10-23 by GPT-5 — T6/T7 checks complete
+- **Approved:** Eligibility-amended spec and plan approved (Xiao-Congchen, 2026-10-23); Gate 3 review remains requested
+- **Last updated:** 2026-10-23 by GPT-5 — custom hover helper verified
 
 ---
 
@@ -33,7 +33,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S2 | 2026-10-23 00:20 | GPT-5 (lead) | W~1 | In review | T7 checks complete; awaiting Gate 3 operator review | — | 2026-10-23 05:10 |
+| S2 | 2026-10-23 00:20 | GPT-5 (lead) | W~1 | In review | Custom hover helper implemented; full frontend verification passes | — | 2026-10-23 05:40 |
 
 **Remaining**
 
@@ -46,7 +46,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W~1 | W-AI-HOST: Host AI Listing Optimisation Assistant | In review | [design](../../superpowers/specs/2026-10-22-w-ai-host-design.md) | [plan](../../superpowers/plans/2026-10-22-w-ai-host.md) | T6/T7 checks pass; browser checks remain handover | — |
+| W~1 | W-AI-HOST: Host AI Listing Optimisation Assistant | In review | [design](../../superpowers/specs/2026-10-22-w-ai-host-design.md) | [plan](../../superpowers/plans/2026-10-22-w-ai-host.md) | Custom hover helper verified; awaiting Gate 3 review | — |
 
 ---
 
@@ -162,3 +162,5 @@ plain-text rendering conventions.
 | 2026-10-23 | Gate 2 approved; T6 implementation started | W~1 | Operator approval |
 | 2026-10-23 | T6 disabled the AI trigger until title, property type, max guests, bedrooms, bathrooms, check-in, and check-out are present; added hover-hint and New/Edit regressions | W~1 | T6 |
 | 2026-10-23 | T7 verification passed: backend Checkstyle/tests, frontend 227 tests/lint/build, diff audit, and implementation review; browser checks remain handover | W~1 | T7 |
+| 2026-10-23 | Replaced the native disabled-button title with a styled, focusable helper popover using the website's popover colors, info icon, hover/focus behavior, and accessible tooltip semantics | W~1 | Operator-directed UI refinement |
+| 2026-10-23 | Full frontend verification passed: 227 tests, lint, and production build (first build hit a transient favicon entry error; rerun passed) | W~1 | UI refinement verification |

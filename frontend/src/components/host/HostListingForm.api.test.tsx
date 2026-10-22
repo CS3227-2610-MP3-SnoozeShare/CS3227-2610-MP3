@@ -94,7 +94,7 @@ describe('HostListingForm with the API provider', () => {
     const assistantButton = screen.getByRole('button', { name: 'Open AI assistant' });
 
     expect(assistantButton).toBeDisabled();
-    expect(assistantButton).toHaveAttribute('title', 'Add title, property type, max guests, bedrooms, bathrooms, check-in time, and check-out time to use AI assistance.');
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Add title, property type, max guests, bedrooms, bathrooms, check-in time, and check-out time to use AI assistance.');
 
     fireEvent.change(screen.getByLabelText('Title'), { target: { value: 'New Cabin' } });
     fireEvent.change(screen.getByLabelText('Max guests'), { target: { value: '2' } });
