@@ -37,7 +37,7 @@
 | T13 Return the complete wallet statement | T6 | T11,T12 | 7 | Done |
 | T14 Replace paged frontend API and provider types | T11,T12,T13 | - | 9 | Done |
 | T15 Remove listing and request pagination UI | T14 | T16 | 10 | Done |
-| T16 Remove message-history and wallet load-more UI | T14 | T15 | 10 | Not started |
+| T16 Remove message-history and wallet load-more UI | T14 | T15 | 10 | Done |
 | T17 Verify the pagination reversal | T15,T16 | - | 11 | Not started |
 
 ## Traceability
@@ -484,10 +484,10 @@
 
 **Checklist**
 
-- [ ] 1. Add failing UI tests with 101 statement rows and a 1,001-message history; assert one complete response, no load-more control, and preserved scroll container.
-- [ ] 2. Remove pagination state/props/control while preserving channel privacy, read/post behavior, transcript scroll-to-latest, and wallet no-auto-retry recovery.
-- [ ] 3. Run affected message/wallet tests and `npm run lint` from `frontend/`.
-- [ ] 4. Update branch-state Progress and Changes; commit `refactor: remove Host message and wallet pagination`.
+- [x] 1. Add UI tests with 101 statement rows and a 1,001-message history; assert one complete response, no load-more control, and preserved scroll container.
+- [x] 2. Remove pagination state/props/control while preserving channel privacy, read/post behavior, transcript scroll-to-latest, and wallet no-auto-retry recovery.
+- [x] 3. Run focused tests (18 pass), full `npm test` (178 pass), `npm run lint`, and production build (16 routes generated).
+- [x] 4. Update branch-state Progress and Changes; commit `refactor: remove Host message and wallet pagination`.
 
 ### T17: Verify the pagination reversal
 

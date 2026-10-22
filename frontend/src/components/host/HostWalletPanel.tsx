@@ -15,12 +15,11 @@ function transactionTypeClass(type: string) {
   return 'bg-[var(--success-subtle)] text-[var(--success)]';
 }
 
-type Props = { wallet: WalletSummary; statement: StatementRow[]; onMutation?: (operation: 'top-up' | 'withdraw', amount: number) => Promise<unknown>; mutationPending?: boolean; recoveryRequired?: boolean; onRetryRecovery?: () => Promise<void>; hasMore?: boolean; onLoadMore?: () => Promise<void> };
-export function HostWalletPanel({ wallet, statement, onMutation, mutationPending = false, recoveryRequired = false, onRetryRecovery, hasMore = false, onLoadMore }: Props) {
+type Props = { wallet: WalletSummary; statement: StatementRow[]; onMutation?: (operation: 'top-up' | 'withdraw', amount: number) => Promise<unknown>; mutationPending?: boolean; recoveryRequired?: boolean; onRetryRecovery?: () => Promise<void> };
+export function HostWalletPanel({ wallet, statement, onMutation, mutationPending = false, recoveryRequired = false, onRetryRecovery }: Props) {
   const [action, setAction] = useState<'Top up' | 'Withdraw' | null>(null);
   const [amount, setAmount] = useState('');
   const [error, setError] = useState('');
-  const [loadingMore, setLoadingMore] = useState(false);
   const [recovering, setRecovering] = useState(false);
   const busy = mutationPending || recoveryRequired || recovering;
   const close = () => { if (mutationPending) return; setAction(null); setAmount(''); setError(''); };
@@ -81,7 +80,6 @@ export function HostWalletPanel({ wallet, statement, onMutation, mutationPending
             </Table>
           </div>
         ) : <div className="ss-card p-8 text-center text-[var(--text-subtle)]">No transactions yet.</div>}
-        {hasMore && <button className="mt-3 self-center rounded-md border px-3 py-2 text-sm disabled:opacity-50" disabled={loadingMore} onClick={() => { setLoadingMore(true); void onLoadMore?.().finally(() => setLoadingMore(false)); }} type="button">{loadingMore ? 'Loading…' : 'Load older transactions'}</button>}
       </section>
       <Modal open={Boolean(action)} title={`${action ?? ''}`} description={action === 'Top up' ? 'Mocked top-up — no real payment gateway is charged.' : 'Mocked withdrawal — no real payout rail.'} onClose={close} onConfirm={() => void confirm()} confirmLabel={action ?? 'Confirm'} confirmDisabled={busy}>
         <label className="mt-4 block text-sm font-medium" htmlFor="wallet-amount">Amount (SGD)</label>

@@ -18,19 +18,21 @@ describe('Host messages page', () => {
   it('loads booking and HOST ticket channels separately and reads the selected booking thread', async () => {
     fetchBookingConversations.mockResolvedValue([{ bookingId: 'booking-1', listingTitle: 'API Cabin', startDate: '2026-10-25', endDate: '2026-10-27', counterpartName: 'Guest One', lastMessage: null, unreadCount: 1, open: true }]);
     fetchTicketConversations.mockResolvedValue([{ ticketId: 'ticket-2', channel: 'HOST', ticketLabel: '1042', ticketTitle: 'Refund issue', listingTitle: 'API Cabin', counterpartName: 'Support Agent', lastMessage: null, unreadCount: 0, open: false }]);
-    fetchBookingMessages.mockResolvedValue([{ id: 'm1', authorId: 'guest', authorRole: 'GUEST', body: 'Hello from API', sentAt: '2026-10-22T10:00:00Z' }, { id: 'm0', authorId: 'guest', authorRole: 'GUEST', body: 'Older API message', sentAt: '2026-10-21T10:00:00Z' }]);
+    fetchBookingMessages.mockResolvedValue(Array.from({ length: 1001 }, (_, index) => ({ id: `m${index}`, authorId: 'guest', authorRole: 'GUEST', body: `Complete API message ${index}`, sentAt: new Date(Date.UTC(2026, 9, 22, 10, 0, index)).toISOString() })));
     fetchTicketMessages.mockResolvedValue([]);
     fetchHostWallet.mockResolvedValue({ wallet: { id: 'w', userId: 'h', balance: 10, currency: 'SGD', updatedAt: '' }, statement: [] });
     render(<HostApiProvider><HostFixtureProvider><HostMessagesPage /></HostFixtureProvider></HostApiProvider>);
 
     expect(await screen.findByRole('button', { name: /Refund issue/ })).toBeInTheDocument();
-    expect(await screen.findByText('Hello from API')).toBeInTheDocument();
+    expect(await screen.findByText('Complete API message 0')).toBeInTheDocument();
+    expect(screen.getByText('Complete API message 1000')).toBeInTheDocument();
     expect(fetchBookingConversations).toHaveBeenCalledWith();
     expect(fetchTicketConversations).toHaveBeenCalledWith();
     expect(fetchBookingMessages).toHaveBeenCalledWith('booking-1');
     expect(markBookingConversationRead).toHaveBeenCalledWith('booking-1');
     expect(screen.queryByRole('button', { name: /New Ticket/i })).not.toBeInTheDocument();
-    expect(await screen.findByText('Older API message')).toBeInTheDocument();
+    expect(fetchBookingMessages).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('button', { name: /Load older messages/i })).not.toBeInTheDocument();
   });
 
   it('posts messages through the booking-specific route and never creates a local success on failure', async () => {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useHostFixtures } from '@/components/host/HostFixtureProvider';
 import { useOptionalHostApi } from '@/components/host/HostApiProvider';
 import { HostMessagesPanel } from '@/components/host/HostMessagesPanel';
@@ -11,7 +11,6 @@ export default function HostMessagesPage() {
   const fixtures = useHostFixtures();
   const api = useOptionalHostApi();
   const apiAvailable = api !== null;
-  const [historyPages, setHistoryPages] = useState<Record<string, number>>({});
   const hostApi = api?.api;
   const loadResource = api?.loadResource;
   const fetchBookingConversations = api?.api.fetchBookingConversations;
@@ -62,19 +61,6 @@ export default function HostMessagesPage() {
       ? hostApi.fetchBookingMessages(conversation.sourceId!)
       : hostApi.fetchTicketMessages(conversation.sourceId!));
   }, [hostApi, loadResource]);
-  const loadOlderMessages = useCallback(async (conversation: (typeof conversations)[number]) => {
-    if (!hostApi || !loadResource || !conversation.kind || !conversation.sourceId) return;
-    const nextPage = (historyPages[conversation.id] ?? 0) + 1;
-    const key = `host:thread:${conversation.kind}:${conversation.sourceId}`;
-    await loadResource(key, () => conversation.kind === 'booking'
-      ? hostApi.fetchBookingMessages(conversation.sourceId!)
-      : hostApi.fetchTicketMessages(conversation.sourceId!));
-    setHistoryPages((current) => ({ ...current, [conversation.id]: nextPage }));
-  }, [hostApi, loadResource, historyPages]);
-  const hasOlderMessages = useCallback((conversation: (typeof conversations)[number]) => {
-    if (!api || !conversation.kind || !conversation.sourceId) return false;
-    return false;
-  }, [api]);
   const messagesByConversation: Record<string, ReturnType<typeof mapHostMessages>> = {};
   if (api) {
     for (const conversation of conversations) {
@@ -91,8 +77,6 @@ export default function HostMessagesPage() {
       messagesByConversation={messagesByConversation}
       onSelect={api ? loadThread : undefined}
       onSend={api ? sendMessage : undefined}
-      historyHasMore={api ? hasOlderMessages : undefined}
-      onLoadOlder={api ? loadOlderMessages : undefined}
     />}
   </HostPageFrame>;
 }

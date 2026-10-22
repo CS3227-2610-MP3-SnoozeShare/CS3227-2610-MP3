@@ -56,6 +56,26 @@ describe('Host messages and wallet', () => {
     expect(screen.getByLabelText('Message history')).toHaveClass('min-h-0', 'overflow-y-auto');
   });
 
+  it('renders complete 1,001-message histories and 101-row statements without load-more controls', () => {
+    const conversation = createHostFixtureAdapter().getMessages().data![0];
+    const messages = Array.from({ length: 1001 }, (_, index) => ({
+      sender: 'Guest', body: `Complete message ${index}`, timestamp: new Date(Date.UTC(2026, 0, 1, 0, 0, index)).toISOString(),
+    }));
+    const statement = Array.from({ length: 101 }, (_, index) => ({
+      date: `Jan ${index + 1}`, type: 'TOP_UP', relatedTo: '—', amount: 1, balanceAfter: index + 1,
+    }));
+    const adapter = createHostFixtureAdapter();
+    const { rerender } = render(<HostMessagesPanel conversations={[conversation]} messagesByConversation={{ [conversation.id]: messages }} />);
+
+    expect(screen.getByText('Complete message 0')).toBeInTheDocument();
+    expect(screen.getByText('Complete message 1000')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Load older messages/i })).not.toBeInTheDocument();
+
+    rerender(<HostWalletPanel wallet={adapter.getWalletSummary().data!} statement={statement} />);
+    expect(screen.getByRole('table').querySelectorAll('tbody tr')).toHaveLength(101);
+    expect(screen.queryByRole('button', { name: /Load older transactions/i })).not.toBeInTheDocument();
+  });
+
   it('uses the artifact’s compact list, chat surface, bubbles, and composer footer', () => {
     render(<HostMessagesPanel conversations={createHostFixtureAdapter().getMessages().data!} />);
     const conversationList = screen.getByLabelText('Conversation list');

@@ -4,15 +4,14 @@ import { useEffect, useRef, useState } from 'react';
 import type { Conversation, Message } from './hostTypes';
 import { hostSafeErrorMessage } from '@/lib/hostApi';
 
-type Props = { conversations: Conversation[]; messagesByConversation?: Record<string, Message[]>; onSelect?: (conversation: Conversation) => Promise<void>; onSend?: (conversation: Conversation, body: string) => Promise<void>; onLoadOlder?: (conversation: Conversation) => Promise<void>; historyHasMore?: (conversation: Conversation) => boolean; mutationPending?: boolean; historyErrors?: Record<string, string> };
-export function HostMessagesPanel({ conversations, messagesByConversation, onSelect, onSend, onLoadOlder, historyHasMore, mutationPending = false, historyErrors = {} }: Props) {
+type Props = { conversations: Conversation[]; messagesByConversation?: Record<string, Message[]>; onSelect?: (conversation: Conversation) => Promise<void>; onSend?: (conversation: Conversation, body: string) => Promise<void>; mutationPending?: boolean; historyErrors?: Record<string, string> };
+export function HostMessagesPanel({ conversations, messagesByConversation, onSelect, onSend, mutationPending = false, historyErrors = {} }: Props) {
   const [selectedId, setSelectedId] = useState(conversations[0]?.id);
   const [draft, setDraft] = useState('');
   const [localMessages, setLocalMessages] = useState<Record<string, string[]>>({});
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState('');
   const [sending, setSending] = useState(false);
-  const [loadingOlder, setLoadingOlder] = useState(false);
   const messageHistoryRef = useRef<HTMLDivElement>(null);
   const selected = conversations.find((conversation) => conversation.id === selectedId) ?? conversations[0];
   const selectedMessages = selected ? messagesByConversation?.[selected.id] ?? selected.messages : [];
@@ -66,7 +65,6 @@ export function HostMessagesPanel({ conversations, messagesByConversation, onSel
           <p className="mt-0.5 text-xs text-[var(--text-subtle)]">{selected.subtitle}</p>
         </div>
         <div aria-label="Message history" className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4" ref={messageHistoryRef}>
-          {historyHasMore?.(selected) && <button className="mx-auto block rounded-md border px-3 py-1.5 text-xs disabled:opacity-50" disabled={loadingOlder} onClick={() => { setLoadingOlder(true); void onLoadOlder?.(selected).catch((caught) => setHistoryError(hostSafeErrorMessage(caught))).finally(() => setLoadingOlder(false)); }} type="button">{loadingOlder ? 'Loading…' : 'Load older messages'}</button>}
           {historyLoading ? <p className="text-center text-sm text-[var(--text-subtle)]">Loading messages…</p> : selectedMessages.length === 0 && !localMessages[selected.id]?.length ? <p className="text-center text-sm text-[var(--text-subtle)]">No messages yet.</p> : [...selectedMessages, ...(localMessages[selected.id] ?? []).map((body) => ({ sender: 'You', body }))].map((message, index) => {
             const outgoing = message.sender === 'You';
             return (

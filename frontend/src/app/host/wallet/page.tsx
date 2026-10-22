@@ -22,7 +22,6 @@ export default function HostWalletPage() {
       mutationPending={api?.walletMutationPending}
       recoveryRequired={api?.walletRecoveryRequired}
       onRetryRecovery={api ? api.retryWalletRecovery : undefined}
-      hasMore={false}
     />}
   </HostPageFrame>;
 }
