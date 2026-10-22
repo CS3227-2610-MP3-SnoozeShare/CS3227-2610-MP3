@@ -9,7 +9,7 @@ after the branch merges.
 - **Owner:** Xiao-Congchen
 - **Status:** In review
 - **Approved:** Spec and plan approved (Xiao-Congchen, 2026-10-22); Gate 3 review requested
-- **Last updated:** 2026-10-23 by GPT-5 — added midpoint Generate word targets
+- **Last updated:** 2026-10-23 by GPT-5 — made Generate word targets explicit in request context and prompt
 
 ---
 
@@ -33,7 +33,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S2 | 2026-10-23 00:20 | GPT-5 (lead) | W~1 | In review | Corrected live 400/time-field, response-lifecycle, prompt-contract, and Generate band issues; added diagnostics and midpoint targets | Commit midpoint prompt fix, then leave branch ready for Gate 3 review | 2026-10-23 01:16 |
+| S2 | 2026-10-23 00:20 | GPT-5 (lead) | W~1 | In review | Corrected live 400/time-field, response-lifecycle, prompt-contract, and Generate band issues; made numeric targets authoritative | Commit explicit target fix, then leave branch ready for Gate 3 review | 2026-10-23 01:26 |
 
 **Remaining**
 
@@ -47,7 +47,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W~1 | W-AI-HOST: Host AI Listing Optimisation Assistant | In review | [design](../../superpowers/specs/2026-10-22-w-ai-host-design.md) | [plan](../../superpowers/plans/2026-10-22-w-ai-host.md) | T1–T4 plus live 400, response-lifecycle, prompt-contract, Generate band, diagnostics, and midpoint targets complete; backend checks pass | — |
+| W~1 | W-AI-HOST: Host AI Listing Optimisation Assistant | In review | [design](../../superpowers/specs/2026-10-22-w-ai-host-design.md) | [plan](../../superpowers/plans/2026-10-22-w-ai-host.md) | T1–T4 plus live 400, response-lifecycle, prompt-contract, Generate band, diagnostics, and explicit numeric targets complete; backend checks pass | — |
 
 ---
 
@@ -139,3 +139,4 @@ plain-text rendering conventions.
 | 2026-10-23 | Corrected Generate word-band validation to accept the requested inclusive 50–75, 75–125, and 125–200 ranges; added boundary tests | W~1 | Post-review fix |
 | 2026-10-23 | Added safe logs distinguishing gateway degradation from Host-side output validation, correlated by HTTP request ID without logging AI content | W~1 | Post-review diagnostic |
 | 2026-10-23 | Added safe midpoint targets of 60/100/160 words and explicit pre-return counting instructions to reduce Generate band failures; added prompt regression coverage | W~1 | Post-review fix |
+| 2026-10-23 | Added server-derived `targetWordCount` values to the serialized context and made the prompt require the selected numeric target using the application's word-count rule; added contract regression coverage | W~1 | Post-review fix |

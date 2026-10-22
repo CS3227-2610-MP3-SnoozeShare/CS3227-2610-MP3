@@ -41,13 +41,18 @@ public class ListingDescriptionFeatureConfig {
         three criteria. Return generatedDescription and generatedAnalysis as null.
 
         If mode is GENERATE, create a factual description using the selected writingStyle,
-        targetAudience, and descriptionLength. Friendly is warm and conversational, Professional is
+        targetAudience, descriptionLength, and the numeric targetWordCount. Friendly is warm and
+        conversational, Professional is
         polished and informative, and Persuasive is engaging without exaggeration. Families should
         receive practical space and amenity emphasis, couples comfort and relevant features,
         business travellers convenience and available work-related amenities, and all travellers a
         balanced description. SHORT is 50-75 words, MEDIUM is 75-125 words, and LONG is 125-200
-        words. Aim for exactly 60 words for SHORT, exactly 100 words for MEDIUM, and exactly 160 words
-        for LONG. Count the words before returning and keep the description inside the selected band.
+        words. The numeric targetWordCount is authoritative: target exactly that many words for the
+        selected length, rather than choosing a different length. Aim for exactly 60 words for SHORT,
+        exactly 100 words for MEDIUM, and exactly 160 words for LONG. Count the words before returning
+        and keep the description inside the selected band. Count words using the application's word
+        rule (letter/number runs with internal apostrophe or hyphen joins), not spaces. Do not return
+        until the generated description meets the numeric targetWordCount.
         If the current description is non-empty, analyse it in currentAnalysis before creating
         the new description. Analyse the actual generated description in generatedAnalysis. If the
         current description is empty, currentAnalysis must be null.

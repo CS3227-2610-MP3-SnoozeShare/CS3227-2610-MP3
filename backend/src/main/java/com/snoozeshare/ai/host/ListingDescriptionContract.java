@@ -45,16 +45,18 @@ public final class ListingDescriptionContract {
     }
 
     public enum DescriptionLength {
-        SHORT(50, 75),
-        MEDIUM(75, 125),
-        LONG(125, 200);
+        SHORT(50, 75, 60),
+        MEDIUM(75, 125, 100),
+        LONG(125, 200, 160);
 
         private final int minimum;
         private final int maximum;
+        private final int targetWordCount;
 
-        DescriptionLength(int minimum, int maximum) {
+        DescriptionLength(int minimum, int maximum, int targetWordCount) {
             this.minimum = minimum;
             this.maximum = maximum;
+            this.targetWordCount = targetWordCount;
         }
 
         public int minimum() {
@@ -63,6 +65,10 @@ public final class ListingDescriptionContract {
 
         public int maximum() {
             return maximum;
+        }
+
+        public int targetWordCount() {
+            return targetWordCount;
         }
 
         public String range() {
@@ -127,6 +133,7 @@ public final class ListingDescriptionContract {
         root.put("writingStyle", style);
         root.put("targetAudience", audience);
         root.put("descriptionLength", length);
+        root.put("targetWordCount", DescriptionLength.valueOf(length).targetWordCount());
         root.put("currentDescription", currentDescription == null ? "" : currentDescription);
         root.put("listing", facts);
         try {

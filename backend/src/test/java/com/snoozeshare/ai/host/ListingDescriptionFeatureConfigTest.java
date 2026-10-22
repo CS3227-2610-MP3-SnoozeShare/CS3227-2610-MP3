@@ -33,6 +33,7 @@ class ListingDescriptionFeatureConfigTest {
     void promptTargetsSafeWordCountsInsideEachRequestedBand() {
         assertThat(feature.systemPrompt())
             .contains("exactly 60 words", "exactly 100 words", "exactly 160 words")
-            .contains("Count the words before returning");
+            .contains("Count the words before returning")
+            .contains("targetWordCount", "numeric targetWordCount");
     }
 }
