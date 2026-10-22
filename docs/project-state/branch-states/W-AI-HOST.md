@@ -7,9 +7,9 @@ after the branch merges.
 - **Branch:** W-AI-HOST (from `development` at `f6cad04`)
 - **Base:** `de137c6`
 - **Owner:** Xiao-Congchen
-- **Status:** Planned
-- **Approved:** Gate 1 spec and amended plan approved (Xiao-Congchen, 2026-10-23); implementation beginning
-- **Last updated:** 2026-10-23 by GPT-5 — T5 implemented and verified; T6 close-out remains
+- **Status:** In review
+- **Approved:** Gate 1 spec and amended plan approved (Xiao-Congchen, 2026-10-23); Gate 3 review requested
+- **Last updated:** 2026-10-23 by GPT-5 — T5 implemented; close-out checks complete
 
 ---
 
@@ -33,13 +33,12 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S2 | 2026-10-23 00:20 | GPT-5 (lead) | W~1 | Building | T5 done: fixed guidance/focus controls verified; T6 close-out next | Run close-out verification, review diff, then prepare Gate 3 | 2026-10-23 03:55 |
+| S2 | 2026-10-23 00:20 | GPT-5 (lead) | W~1 | In review | Close-out checks complete; awaiting Gate 3 operator review | — | 2026-10-23 04:10 |
 
 **Remaining**
 
 - [ ] Operator/browser session checks at desktop/tablet/390px.
 - [ ] Resolve or separately accept the pre-existing Next.js prerender route-module failure.
-- [ ] Implement and verify T5 fixed guidance/focus changes.
 - [ ] Gate 3 approval, then separately ask whether to push/open a PR.
 
 ---
@@ -48,7 +47,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W~1 | W-AI-HOST: Host AI Listing Optimisation Assistant | Building | [design](../../superpowers/specs/2026-10-22-w-ai-host-design.md) | [plan](../../superpowers/plans/2026-10-22-w-ai-host.md) | T5 done; T6 close-out verification and review preparation remain | — |
+| W~1 | W-AI-HOST: Host AI Listing Optimisation Assistant | In review | [design](../../superpowers/specs/2026-10-22-w-ai-host-design.md) | [plan](../../superpowers/plans/2026-10-22-w-ai-host.md) | T5 done; T6 checks pass; awaiting Gate 3 review | — |
 
 ---
 
@@ -157,3 +156,4 @@ plain-text rendering conventions.
 | 2026-10-23 | Recorded Gate 1 approval and amended the implementation plan with T5 guidance/focus work and T6 close-out; plan lint passed | W~1 | C~6, Gate 2 pending |
 | 2026-10-23 | Gate 2 approved; T5 implementation started | W~1 | Operator approval |
 | 2026-10-23 | T5 replaced Host-selected length with fixed 50–150 guidance, added description focus semantics/default, reordered audiences, and updated backend/frontend tests | W~1 | T5 |
+| 2026-10-23 | T6 close-out checks passed: backend Checkstyle/tests, frontend tests/lint/build, diff audit, and implementation review; browser checks remain handover | W~1 | T6 |
