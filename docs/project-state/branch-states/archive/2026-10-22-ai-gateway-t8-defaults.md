@@ -7,7 +7,7 @@ after the branch merges.
 - **Branch:** ai-gateway-t8-defaults (from `development` at `7eef36a`)
 - **Base:** `7eef36a` (development tip when the branch was cut)
 - **Owner:** CongChen
-- **Status:** Approved
+- **Status:** Folded
 - **Approved:** Xiao-Congchen 2026-10-22 (recorded after the merge, PR #18)
 - **Last updated:** 2026-10-22 by Claude Sonnet 5.5 - approval, Render check and key rotation recorded
 
@@ -102,3 +102,18 @@ No change.
 | 2026-10-22 | `ModelCheck` logs an INFO line on success | W~1 | C~3 |
 | 2026-10-22 | Pull request merged (PR #18) before the approval was recorded; the owner confirmed the approval afterwards in chat and it was written then | W~1 | — |
 | 2026-10-22 | Owner reported that Render is reachable with AI enabled, and that the development key was rotated; the runbook Evidence row was updated | W~1 | — |
+
+---
+
+## Fold record
+Folded 2026-10-22 by Claude Sonnet 5.5 on development · merge commit `be1d8694c08edbc1008471e01e3f17af869b8246` · base `7eef36a`
+
+| Provisional | Permanent |
+|---|---|
+| C~1 | C110 |
+| C~2 | C111 |
+| C~3 | C112 |
+
+Workstream W~1 is the existing W-AI-GATEWAY row (no W number allocated).
+
+Sessions discarded at fold: none

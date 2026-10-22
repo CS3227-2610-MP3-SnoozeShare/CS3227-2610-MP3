@@ -12,7 +12,7 @@ the branch state instead.
 - **Stack (target, not yet built):** REST controllers per role and the role AI features, on top of the ported domain and services and the LLM gateway (§ 4.11). Source: [docs/Webapp-architecture-design.md](docs/Webapp-architecture-design.md)
 - **Branch:** `development` — this file describes `development` (the integration and default branch); `main` is the release branch and receives it by pull request. Branches record their changes in `docs/project-state/branch-states/` and `sync-project-state` folds them in after the merge into `development`
 - **Method:** TDD-first vertical slices; spec then plan for big changes (`AGENTS.md` § 3); small commits (`AGENTS.md` § 6)
-- **Last updated:** 2026-10-22 by Claude Sonnet 5.5 — folded W-AI-GATEWAY
+- **Last updated:** 2026-10-22 by Claude Sonnet 5.5 — folded ai-gateway-t8-defaults
 - **Last verified against repo:** 2026-10-22
 - **Developer guide:** `docs/DeveloperGuide.md` documents W1–W16 and the MP3-0 fixes (last full update 2026-10-19) and, since 2026-10-20, the W-INFRA web skeletons and dev deployment (§ 3.2, § 4.17), since 2026-10-21, the W-AUTH web authentication (§ 4.18, with the auth parts of § 2, § 3.2, § 5–§ 7), and since 2026-10-22, the W-DOMAIN ported domain layer (§ 4.19, with updates to § 1, § 3.2, § 4.17, § 5–§ 7). Residual limitations stay in the guide's Known Limitations and § Known Gaps.
 
@@ -73,6 +73,8 @@ its own resume point in `docs/project-state/branch-states/`.
 | W-GUEST, W-HOST, W-AGENT | Workstream | The three role feature sets and their Next.js pages. Can run in parallel after W-DOMAIN | Webapp design § 9 | 2026-10-20 |
 | W-AI-GUEST, W-AI-HOST, W-AI-AGENT | Workstream | AI features (C80), parallel after their role workstream and on top of the W-AI-GATEWAY gateway (§ 4.11, done). The SoCLaaS contract is confirmed (runbook Evidence). The Host feature is undecided (Q6); the Agent feature is decided (W-AI-AGENT) | Webapp design § 9 | 2026-10-20 |
 | W-AI-AGENT scoping decisions | Todo | The report goes in a separate AI draft field; the assistant posts as the SYSTEM user with a new `AI` author role in the GUEST channel only; Guest-raised tickets only; it asks at submission, then on each guest reply up to a fixed round cap; it depends on the AI gateway. They belong in that branch's state and spec | handed over from W-AI-GATEWAY | 2026-10-22 |
+| Production SoCLaaS key limit | Todo | Before a production key is configured, read its requests-a-minute limit from the portal budget endpoint and set `SNOOZESHARE_AI_MAX_RPM` to a value below it (the development key allows 30; the default is now 25) | handed over from ai-gateway-t8-defaults | 2026-10-22 |
+| Role AI specs and reasoning | Todo | Role AI specs (W-AI-GUEST, W-AI-HOST, W-AI-AGENT) can start now that the Render reachability check is recorded (2026-10-22). They must set `maxTokens` with room to spare if a feature ever turns reasoning back on; with the default `none` the models answer in a few tokens. | handed over from ai-gateway-t8-defaults | 2026-10-22 |
 | W-SECURITY, W-DEPLOY | Workstream | AI security hardening, then production deployment. After all of the above | Webapp design § 9 | 2026-10-20 |
 | Revise the lite skills from the W-INFRA trial | Todo | The first web-app spec, plan and execution used them. Revise `lint.mjs` (done 2026-10-20: Modify rows on files an earlier task creates, rows of Done tasks, a `Post-merge` task status, `GATE:` warnings; still open: close-out heading must carry no `T` number; no check that the index goal matches `requirements.md` IDs) and the templates (review-lens caps done 2026-10-20: two lenses for Low and Medium, three for High, Attacker added dynamically). Findings are in the [W-INFRA archive](docs/project-state/branch-states/archive/2026-10-20-W-INFRA.md) § Lite-skills trial | handed over from W-INFRA | 2026-10-20 |
 
@@ -89,7 +91,7 @@ rows are in the [iteration 1 archive](docs/project-history/iteration-1/PROJECT_S
 | W-INFRA | Mono-repo skeletons (`desktop/`, `backend/`, `frontend/`), local Postgres, CI for all three, Render/Vercel/Neon dev deployment | Done | [spec](docs/superpowers/specs/2026-10-20-w-infra-design.md) | [plan](docs/superpowers/plans/2026-10-20-w-infra.md) | Merged (PRs #11, #12); dev live on Render + Vercel + Neon; guide confirmed 2026-10-20 | Documented 2026-10-20 |
 | W-AUTH | Firebase authentication and role authorization | Done | [spec](docs/superpowers/specs/2026-10-20-w-auth-design.md); [registration pre-validation spec](docs/superpowers/specs/2026-10-21-w-auth-registration-prevalidation-design.md) | [plan](docs/superpowers/plans/2026-10-20-w-auth.md); [registration pre-validation plan](docs/superpowers/plans/2026-10-21-w-auth-registration-prevalidation.md) | Merged (PR #14); owner approval recorded 2026-10-21, after the merge; confirmed 2026-10-21 | Documented 2026-10-21 |
 | W-DOMAIN | Port domain model, repositories and core services to Spring Boot with Spring Data JPA | Done | — | [plan](docs/superpowers/plans/2026-10-21-w-domain.md) | Merged (PR #15); approved 2026-10-21 (re-approved after PR bugfixes); guide confirmed 2026-10-22 | Documented 2026-10-22 |
-| W-AI-GATEWAY | Shared SoCLaaS LLM gateway (`com.snoozeshare.ai`) for the role AI features | Done | [spec](docs/superpowers/specs/2026-10-22-w-ai-gateway-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-ai-gateway.md) | Merged (PR #17); approved 2026-10-22 (re-approved after C109); T8 recorded; Render reachable (owner) | Awaiting confirmation |
+| W-AI-GATEWAY | Shared SoCLaaS LLM gateway (`com.snoozeshare.ai`) for the role AI features | Done | [spec](docs/superpowers/specs/2026-10-22-w-ai-gateway-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-ai-gateway.md) | Merged (PRs #17, #18); approved 2026-10-22 (re-approved after C109; PR #18 approved after its merge); T8 recorded; Render reachable (owner) | Awaiting confirmation |
 
 Status vocabulary, used verbatim: `Not started` · `Spec'd` · `Planned` · `Building` ·
 `Blocked — needs human` · `In review` · `Done` · `Abandoned`. Guide vocabulary (owned by
@@ -279,7 +281,7 @@ Decision rows below carry only the standing decisions; the full text of each is 
 
 ## 5. Conventions
 
-Highest IDs used before this iteration: **W16, C59, D38, Q3** (this iteration so far: C109, D56, Q6). Numbering continues; never reuse. `C11, C28–C31, C37, C39–C41` each have two meanings in the archive; cite the archive section when it matters.
+Highest IDs used before this iteration: **W16, C59, D38, Q3** (this iteration so far: C112, D56, Q6). Numbering continues; never reuse. `C11, C28–C31, C37, C39–C41` each have two meanings in the archive; cite the archive section when it matters.
 
 - `ui.*` never imports `repository.*` or `infra.db.*` — only `service.*`. Only `repository.jdbc.*` imports `java.sql.*`.
 - `BookingService`/`TicketService` are the only callers of `TransactionService`; UI never calls it, and never calls `WalletService.topUp/withdraw` inside a booking/ticket flow.
@@ -341,7 +343,8 @@ Highest IDs used before this iteration: **W16, C59, D38, Q3** (this iteration so
 - **Many accounts can still exhaust the non-reserved 95 percent of the global AI cap and the queue** (guest registration needs no code, C87); priority-0 features keep a reserved share and displace lower-priority jobs.
 - **While audit writes fail, sent calls are counted in memory only until 00:00 UTC**, so a restart loses that floor.
 - **Bare-domain links (no scheme) in model output are not detected**; role UIs render AI output as plain text.
-- **Until T8 records the live results, `response_format` and `reasoning_effort` stay off and the SoCLaaS reachability from Render is unverified.**
+- **Reasoning cannot be chosen per feature or tier.** `reasoning-effort` is one global setting (default `none`). `llama3.1:8b` rejects `low` with HTTP 400, and `low` does not stop `qwen3.5:9b` or `gemma4:26b` from reasoning, so a feature that needs reasoning would need a gateway amendment (a per-feature option and `maxTokens` headroom).
+- **429 behaviour is unobserved.** 100 requests in a burst returned no 429 although the development key's policy says 30 requests a minute; whether a 429 carries `Retry-After` and what a budget 429 says are still unknown, so those paths rely on the spec's assumptions.
 
 **Explicitly out of scope:** microservices, message brokers, horizontal scaling, JPMS module boundaries, agent Force Cancel/Complete (C22).
 
@@ -405,6 +408,9 @@ Standing process decisions. Architecture-shaping ones sit with their area in § 
 | C103 to C107 | 2026-10-22 | See § 4 (4.11 AI gateway) | Operator and review rounds | spec |
 | C108 | 2026-10-22 | Spec risk tier is High with Implementer, Tester, Maintainer and Attacker lenses | Operator chose High over Medium | spec SD3 |
 | C109 | 2026-10-22 | Default `priority-zero-reserve-percent` lowered from 20 to 5 (spec SD21, api.md, F7, E55 amended; still configurable 0 to 50) | Operator: the SoCLaaS key is not used by any other system, so only our own roles compete for the cap and a large staff reserve is not needed. Rejected: removing the reserve (a flood of guest accounts could still starve Agent and Host features) | Operator conversation |
+| C110 | 2026-10-22 | `snoozeshare.ai.max-rpm` defaults to 25 (was 55) | Operator: the development key allows 30 requests a minute (portal budget endpoint). Rejected: leaving 55 and setting an environment variable on Render, because a forgotten variable means 429s | spec SD9 |
+| C111 | 2026-10-22 | `snoozeshare.ai.reasoning-effort` defaults to `none` (was empty, field omitted) | Operator: `qwen3.5:9b` and `gemma4:26b` spend `max_tokens` on reasoning and returned empty content at 20 and 300 tokens; all three models accept `none`. Rejected: switching to other chat models (most larger ones also reason and cost 4 to 20 times as much per output token), and keeping reasoning on with large `maxTokens` | spec SD10 |
+| C112 | 2026-10-22 | The startup model check logs one INFO line when it succeeds | Operator: silence on success is indistinguishable from "AI is off" in Render logs | `ModelCheck` |
 
 ---
 
@@ -448,4 +454,4 @@ Live traps only; resolved ones are in the archive. Each is what, the consequence
 The Done ledger lives in **[`docs/project-state/done-ledger.md`](docs/project-state/done-ledger.md)** — every change, big or small, newest first.
 
 - **Latest entry:** 2026-10-22
-- **Entries:** 106 (iteration 2 started; earlier entries in the archive)
+- **Entries:** 113 (iteration 2 started; earlier entries in the archive)

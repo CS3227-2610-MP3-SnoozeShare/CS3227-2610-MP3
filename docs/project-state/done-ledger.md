@@ -7,6 +7,13 @@ Iteration 2 started; earlier entries: [docs/project-history/iteration-1/done-led
 
 | Date | What changed | Workstream | Ref |
 |---|---|---|---|
+| 2026-10-22 | Folded the ai-gateway-t8-defaults branch state into `PROJECT_STATE.md` (decisions C110–C112): T8 results, `max-rpm` 25, `reasoning-effort` `none`, startup success log; the Known Gap that waited for T8 is retired; the owner approved after the merge and confirmed Render reachable and the key rotated | W-AI-GATEWAY | [archive](branch-states/archive/2026-10-22-ai-gateway-t8-defaults.md) |
+| 2026-10-22 | Owner reported that Render is reachable with AI enabled, and that the development key was rotated; the runbook Evidence row was updated | W-AI-GATEWAY | — |
+| 2026-10-22 | Pull request merged (PR #18) before the approval was recorded; the owner confirmed the approval afterwards in chat and it was written then | W-AI-GATEWAY | — |
+| 2026-10-22 | `ModelCheck` logs an INFO line on success | W-AI-GATEWAY | — |
+| 2026-10-22 | Defaults: `max-rpm` 25, `reasoning-effort` `none`; spec SD9, SD10, api.md, F8, E27, E37 amended; tests updated | W-AI-GATEWAY | — |
+| 2026-10-22 | T8 live-check results recorded in the runbook Evidence block | W-AI-GATEWAY | — |
+| 2026-10-22 | Branch cut from `development` after PR #17 merged | W-AI-GATEWAY | — |
 | 2026-10-22 | Folded the W-AI-GATEWAY branch state into `PROJECT_STATE.md` (decisions C101–C109, deviations D47–D56, new § 4.11); W-AI-GATEWAY is `Done`, awaiting guide confirmation; the second branch state, `ai-gateway-t8-defaults`, is folded next | W-AI-GATEWAY | [archive](branch-states/archive/2026-10-22-W-AI-GATEWAY.md) |
 | 2026-10-22 | Branch re-approved by Xiao-Congchen (gate 3) after C109 | W-AI-GATEWAY | — |
 | 2026-10-22 | Amendment C109: default staff reserve 20 to 5 percent; branch returned from Approved to In review | W-AI-GATEWAY | — |
