@@ -9,7 +9,7 @@ after the branch merges.
 - **Owner:** Nathan
 - **Status:** Draft   (`Draft` · `In review` · `Approved` · `Folded`)
 - **Approved:** — (project owner only: <name> YYYY-MM-DD)
-- **Last updated:** 2026-10-22 by Claude Opus 4.6 — spec approved, starting plan
+- **Last updated:** 2026-10-22 by Claude Opus 4.6 — plan written, awaiting Gate 2 approval
 
 ---
 
@@ -31,13 +31,13 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-22 20:00 | Claude Opus 4.6 | W-GUEST | Active | Spec approved; starting plan | Write the W-GUEST plan with `writing-plans-lite` | 2026-10-22 22:00 |
+| S1 | 2026-10-22 20:00 | Claude Opus 4.6 | W-GUEST | Done | Plan written, awaiting approval | New session: approve plan (Gate 2), then execute | 2026-10-22 |
 
 **Remaining**
 
 - [x] Write spec (`writing-specs-lite`)
 - [x] Get spec approved (Gate 1)
-- [ ] Write plan (`writing-plans-lite`)
+- [x] Write plan (`writing-plans-lite`)
 - [ ] Get plan approved (Gate 2)
 - [ ] Execute plan (`executing-plans-lite`)
 - [ ] Code review and approval (Gate 3)
@@ -48,7 +48,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-GUEST | Guest role controllers and frontend pages | Spec'd | [spec](docs/superpowers/specs/2026-10-22-w-guest-design.md) | — | Spec approved; starting plan | — |
+| W-GUEST | Guest role controllers and frontend pages | Planned | [spec](docs/superpowers/specs/2026-10-22-w-guest-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-guest.md) | Plan written; awaiting Gate 2 | — |
 
 ---
 
@@ -94,3 +94,4 @@ No change.
 |---|---|---|---|
 | 2026-10-22 | Created branch state for W-GUEST | W-GUEST | — |
 | 2026-10-22 | W-GUEST spec written and approved: 5 controllers, 19 endpoints, 4 pages, 4 dialogs, 46 edge cases. Decisions SD1-SD11 | W-GUEST | `spec commit` |
+| 2026-10-22 | W-GUEST plan written: 10 tasks + close-out, 3 waves. Reviewed by lite-reviewer (Implementer+Tester+Maintainer). Key additions: ForbiddenException for 403 ownership, complete GuestExceptionHandler error mapping, @ConditionalOnBean on all controllers, Clock/DisputeWindowPolicy injection | W-GUEST | `plan commit` |
