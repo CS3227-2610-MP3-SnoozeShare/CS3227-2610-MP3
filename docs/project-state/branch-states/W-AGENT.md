@@ -31,13 +31,13 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-22 | Claude Sonnet 5.5 | W-AGENT | Active | Gate 2: writing the plan | Write `docs/superpowers/plans/2026-10-22-w-agent.md` with `writing-plans-lite` (T1-T12 mirroring the spec), run `lint.mjs plan`, run the reviewer round, then ask the operator for gate 2 | 2026-10-22 |
+| S1 | 2026-10-22 | Claude Sonnet 5.5 | W-AGENT | Paused | Gate 2: plan written and reviewed once | After the operator's yes: write `Status: Approved (<name>, <date>)` under the plan title, run `lint.mjs plan <plan> --approved`, set the workstream to `Planned`, commit, then start `executing-plans-lite` at T1 | 2026-10-22 |
 
 **Remaining**
 
 - [x] Confirm scope with the operator (done 2026-10-22)
 - [x] Gate 1: spec reviewed in two rounds, approved by Xiao-Congchen 2026-10-22 (Q~1 answered: Asia/Singapore)
-- [ ] Gate 2: plan written (`writing-plans-lite`), linted, reviewed, approval
+- [ ] Gate 2: plan written, linted and reviewed (done); operator approval pending
 - [ ] Execute the plan (`executing-plans-lite`)
 - [ ] **Handover:** the W-AI-GATEWAY branch state is still in `branch-states/` on `development`: its fold (gate 4) is pending and is not this branch's work
 - [ ] **Handover:** audit reasons, notes and messages typed by agents will become LLM input in W-AI-AGENT; treat them as untrusted (prompt injection) in that spec
@@ -48,7 +48,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AGENT | Agent features: disputes, accounts, audit, categories — REST controllers and Next.js pages | Spec'd | [spec](docs/superpowers/specs/2026-10-22-w-agent-design.md) | — | Spec approved; plan not written | — |
+| W-AGENT | Agent features: disputes, accounts, audit, categories — REST controllers and Next.js pages | Spec'd | [spec](docs/superpowers/specs/2026-10-22-w-agent-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-agent.md) | Plan written and linted; gate 2 pending | — |
 
 ---
 
@@ -86,6 +86,8 @@ No change: Q~1 (audit zone) was answered on 2026-10-22 (C~7); nothing is open.
 | C~4 | 2026-10-22 | Tickets are locked pessimistically in assign, notes, unassign and settlement so an escrow cannot be settled twice. Rejected: `@Version`, SERIALIZABLE, leaving the race | Review (Tester, Attacker, Maintainer) found no lock in the ported services | Spec SD10 |
 | C~6 | 2026-10-22 | Round 2 review: the ticket lock is the first read of resolve; suspend and reactivate lock the target user; audit reads use `AuditQueryService`; the error handler passes on messages only from service and domain code; request size is checked after authentication | Review (Attacker, Implementer, Tester) found stale-read, cascade-race, layering and message-leak gaps | Spec SD10, SD19, SD20, SD21 |
 | C~7 | 2026-10-22 | The audit-log date range uses a fixed `Asia/Singapore` zone by default (`snoozeshare.audit.zone`), not the server zone. Rejected: server default (UTC on Render) | Operator: "Use Singapore timezone as default"; resolves Q~1 | Spec SD16 |
+| C~8 | 2026-10-22 | Spec amended while writing the plan: T5 also edits `AuditLogSearchRepositoryImpl` so `%` and `_` in the audit text search are literal (E82 needs it). No behaviour or task boundary changes | Plan writing found the LIKE patterns unescaped | Spec api.md, implementation-order.md |
+| C~9 | 2026-10-22 | Plan-level refinements recorded as spec amendments: filters use `UrlPathHelper.getPathWithinApplication` (works under MockMvc, unlike `getServletPath`); the 5 s lock timeout is `SET LOCAL lock_timeout` in a `RowLocks` helper (the PostgreSQL dialect ignores the JPA hint); the audit `LIKE` escape character is `!` (a backslash is risky in HQL); `AuditServiceImpl` keeps its three-argument constructor | Plan review and code reading; no behaviour or task boundary changes | Spec SD10, SD11, conventions.md |
 | C~5 | 2026-10-22 | `agentNotes` moves from the shared `TicketResponse` to the agent-only `DisputeDetailResponse`; request size is capped by a filter on `/api/agent/**` rather than a global Jackson limit | Review (Implementer, Attacker) | Spec SD13, SD14 |
 
 ---
@@ -104,4 +106,5 @@ No change: Q~1 (audit zone) was answered on 2026-10-22 (C~7); nothing is open.
 |---|---|---|---|
 | 2026-10-22 | Branch W-AGENT cut from `development` and its branch state created | W-AGENT | `7823c4b` |
 | 2026-10-22 | Spec for the agent REST API and pages drafted, linted, reviewed in two rounds and approved | W-AGENT | `ecfc451` |
+| 2026-10-22 | Plan for the agent REST API and pages written, linted and reviewed once; spec text amended for plan refinements (C~8, C~9) | W-AGENT | next commit |
 | 2026-10-22 | `development` merged into the branch (W-AI-GATEWAY folded; no conflict with the spec) | W-AGENT | merge commit |

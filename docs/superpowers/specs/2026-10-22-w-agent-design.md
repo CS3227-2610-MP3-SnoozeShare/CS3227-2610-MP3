@@ -1,6 +1,7 @@
 # W-AGENT Design
 
 - **Status:** Approved (Xiao-Congchen, 2026-10-22)
+- **Amended 2026-10-22:** see branch state C~8 (T5 also edits `AuditLogSearchRepositoryImpl`) and C~9 (path helper, lock timeout mechanism, escape character)
 - **Risk tier:** High - agent-only endpoints settle disputes (moves escrow money), suspend and reactivate accounts (cascades cancellations and refunds) and expose the audit log; they sit behind role authorization.
 - **Workstream:** W-AGENT | **Plan:** not yet written
 - **Constraints consulted:** C20 (full escrow settled two-sided), C22 (no Force Cancel/Complete), C23, C70, C73 (DTO layer), C78 (polling, no WebSocket), C79, C86, C92 (UID from the verified token, client-side guards), C95, C96, C99 and C100 (JPA, NUMERIC scales); § Known Gaps (client-side route guards, process-local rate limiting, Firebase revocation check per request, single instance, SERIALIZABLE only for bookings); Explicitly out of scope: agent Force Cancel/Complete.
