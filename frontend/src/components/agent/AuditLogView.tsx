@@ -29,6 +29,7 @@ export function AuditLogView() {
   const [rows, setRows] = useState<AuditEntry[]>([]);
   const [lastPage, setLastPage] = useState(0);
   const [actions, setActions] = useState<string[]>([]);
+  const [actionsFailed, setActionsFailed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<unknown>(undefined);
   const request = useRef(0);
@@ -49,12 +50,18 @@ export function AuditLogView() {
     }
   }, []);
 
-  useEffect(() => {
-    void load(EMPTY, 0);
+  const loadActions = useCallback(() => {
+    setActionsFailed(false);
     fetchAuditActions().then(setActions, (caught: unknown) => {
       if (isSessionFailure(caught)) setError(caught);
+      else setActionsFailed(true);
     });
-  }, [load]);
+  }, []);
+
+  useEffect(() => {
+    void load(EMPTY, 0);
+    loadActions();
+  }, [load, loadActions]);
 
   if (error !== undefined && isSessionFailure(error)) return <SessionNotice error={error} />;
 
@@ -87,6 +94,11 @@ export function AuditLogView() {
             <option value="">All action types</option>
             {actions.map((name) => <option key={name} value={name}>{name}</option>)}
           </select>
+          {actionsFailed && (
+            <span className="text-red-700">
+              Could not load action types <button type="button" className="underline" onClick={loadActions}>Retry</button>
+            </span>
+          )}
         </label>
         <label className="flex flex-col gap-1 text-xs font-semibold">
           From

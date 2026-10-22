@@ -37,9 +37,13 @@ export function DisputeDetail({ ticketId }: { ticketId: string }) {
   const [actionError, setActionError] = useState<unknown>(undefined);
   const [busy, setBusy] = useState(false);
 
-  // A response from an action or a failed-resolve refetch wins until the next poll replaces it.
-  const detail = data ?? fresh;
+  // An action response or a failed-resolve refetch wins until the reload that follows it lands (it clears `fresh`).
+  const detail = fresh ?? data;
   const serverNotes = detail?.agentNotes ?? '';
+
+  useEffect(() => {
+    setFresh(undefined);
+  }, [data]);
 
   useEffect(() => {
     if (!dirty) setNotes(serverNotes);
@@ -117,6 +121,12 @@ export function DisputeDetail({ ticketId }: { ticketId: string }) {
   const button = 'rounded-md px-3 py-2 text-xs font-bold disabled:opacity-50';
   return (
     <section className="mx-auto max-w-6xl p-6">
+      {error !== undefined && (
+        <div role="alert" className="mb-3 flex items-center justify-between rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-800">
+          <span>Could not refresh this dispute. What you see may be out of date.</span>
+          <button type="button" onClick={reload}>Retry</button>
+        </div>
+      )}
       <nav aria-label="Breadcrumb" className="mb-3 text-xs">
         <Link href="/agent/disputes" className="underline">Disputes</Link> &gt; {detail.ticketLabel} {detail.ticket.title}
         <span className="ml-3 rounded-full border border-[var(--border)] px-2 py-0.5">{STATUS_LABEL[status]}</span>

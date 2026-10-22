@@ -80,6 +80,7 @@ export function CategoriesTable() {
   const { data, error, loading, reload } = usePolling(fetchCategories, 0);
   const [rows, setRows] = useState<TicketCategory[]>([]);
   const [editing, setEditing] = useState<Editing | undefined>(undefined);
+  const [toggling, setToggling] = useState<string | undefined>(undefined);
   const [toggleError, setToggleError] = useState<string | undefined>(undefined);
   const [sessionError, setSessionError] = useState<unknown>(undefined);
 
@@ -93,6 +94,7 @@ export function CategoriesTable() {
   async function toggle(category: TicketCategory) {
     const next = !category.active;
     setToggleError(undefined);
+    setToggling(category.id);
     setRows((current) => current.map((row) => (row.id === category.id ? { ...row, active: next } : row)));
     try {
       await setCategoryActive(category.id, next);
@@ -100,6 +102,8 @@ export function CategoriesTable() {
       setRows((current) => current.map((row) => (row.id === category.id ? { ...row, active: category.active } : row)));
       if (isSessionFailure(caught)) setSessionError(caught);
       setToggleError(message(caught, 'Could not update the category'));
+    } finally {
+      setToggling(undefined);
     }
   }
 
@@ -140,7 +144,7 @@ export function CategoriesTable() {
               <tr key={category.id} className="border-b border-[var(--border)]">
                 <td className="p-2 font-semibold">{category.label}</td>
                 <td className="p-2">
-                  <input type="checkbox" role="switch" aria-label={`Toggle active: ${category.label}`} checked={category.active} onChange={() => void toggle(category)} />
+                  <input type="checkbox" role="switch" aria-label={`Toggle active: ${category.label}`} checked={category.active} disabled={toggling === category.id} onChange={() => void toggle(category)} />
                 </td>
                 <td className="p-2">
                   <button type="button" className="rounded-md border border-[var(--border)] px-3 py-1 text-xs font-semibold" onClick={() => setEditing({ category })}>

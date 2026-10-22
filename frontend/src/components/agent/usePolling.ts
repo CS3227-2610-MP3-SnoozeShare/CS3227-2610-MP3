@@ -49,6 +49,7 @@ export function usePolling<T>(load: () => Promise<T>, intervalMs: number): Polli
       if (intervalMs > 0) timer = setInterval(run, intervalMs);
     };
     const onVisibility = () => {
+      if (intervalMs <= 0) return;
       if (document.visibilityState === 'visible') {
         run();
         start();
