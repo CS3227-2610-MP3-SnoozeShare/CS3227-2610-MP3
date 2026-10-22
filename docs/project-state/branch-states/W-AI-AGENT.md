@@ -5,11 +5,11 @@ read it for context and write here instead of editing it. `sync-project-state` f
 after the branch merges.
 
 - **Branch:** W-AI-AGENT (from `development` at `4f87cfa`)
-- **Base:** `4f87cfa` (development tip after the W-AGENT fold commit)
+- **Base:** `42128e6` (development tip after the W-AGENT fold and guide update; merged into this branch 2026-10-23, diff of `PROJECT_STATE.md` checked: only the Guide cell and the guide rows changed, nothing this branch edits)
 - **Owner:** Xiao-Congchen
 - **Status:** Draft
 - **Approved:** —
-- **Last updated:** 2026-10-23 by Claude Sonnet 5.5 — branch opened, spec drafting
+- **Last updated:** 2026-10-23 by Claude Sonnet 5.5 — spec revised after review round 1
 
 ---
 
@@ -31,7 +31,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-23 | Claude Sonnet 5.5 | W-AI-AGENT | Active | Spec drafting | Finish `docs/superpowers/specs/2026-10-23-w-ai-agent-design.md` and its folder, run `lint.mjs spec`, then the review lenses, then ask the operator for gate 1 | 2026-10-23 |
+| S1 | 2026-10-23 | Claude Sonnet 5.5 (lead) + four `lite-reviewer` subagents | W-AI-AGENT | Active | Spec review round 1 fixed; round 2 next | Run review round 2 (Implementer, Tester, Maintainer, Attacker) on `docs/superpowers/specs/2026-10-23-w-ai-agent-design.md`; done when no blocking finding remains and `lint.mjs spec` is clean; then ask the operator gate 1 (Q~1 first) | 2026-10-23 |
 
 **Remaining**
 
@@ -47,7 +47,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AI-AGENT | Ticket clarification assistant and draft report for the Support Agent | Not started | [spec](docs/superpowers/specs/2026-10-23-w-ai-agent-design.md) | — | Spec drafting; Q~1 open | — |
+| W-AI-AGENT | Ticket clarification assistant and draft report for the Support Agent | Not started | [spec](docs/superpowers/specs/2026-10-23-w-ai-agent-design.md) | — | Spec drafted, round 1 fixes in; round 2 next; Q~1 open | — |
 
 ---
 
@@ -73,7 +73,7 @@ No change: nothing is built yet.
 
 | ID | What is needed | What it blocks | Raised |
 |---|---|---|---|
-| Q~1 | Whether the assistant's messages use the existing `SYSTEM` author role (recommended) or a new `AI` value. Your earlier decision said "a new `AI` author role"; the backend `Role` enum already has `SYSTEM`, and a new `AI` value would ripple through every switch on `Role` | Spec approval (gate 1) | 2026-10-23 |
+| Q~1 | Keep or reverse a recorded decision (`AGENTS.md` § 4): `PROJECT_STATE.md` § Upcoming records "a new `AI` author role"; the spec uses the existing `SYSTEM` role (recommended: `Role.SYSTEM` exists and a new `Role` value would ripple through every switch on `Role`). Keep = add `AI`; reverse = use `SYSTEM` | Spec approval (gate 1) | 2026-10-23 |
 
 ---
 
@@ -100,3 +100,6 @@ No change.
 
 | Date | What changed | Workstream | Ref |
 |---|---|---|---|
+| 2026-10-23 | Open the branch state with the operator's scoping decisions (C~1 to C~6) | W-AI-AGENT | `ec5a98e` |
+| 2026-10-23 | Draft the ticket clarification assistant spec (index plus seven component files, High risk) | W-AI-AGENT | `78a517b` |
+| 2026-10-23 | Revise the spec after review round 1: row inserted at submission, `REQUIRES_NEW` listener writes, Agent and Host text moved to the untrusted slot, draft and question screens, closing message on failure, test harness rules | W-AI-AGENT | `9921059` |
