@@ -24,6 +24,7 @@ describe('Host messages page', () => {
     render(<HostApiProvider><HostFixtureProvider><HostMessagesPage /></HostFixtureProvider></HostApiProvider>);
 
     expect(await screen.findByRole('button', { name: /Refund issue/ })).toBeInTheDocument();
+    expect(await screen.findAllByText('Booking #booking-1 · Direct message with Guest One (Guest)')).toHaveLength(2);
     expect(await screen.findByText('Complete API message 0')).toBeInTheDocument();
     expect(screen.getByText('Complete API message 1000')).toBeInTheDocument();
     expect(fetchBookingConversations).toHaveBeenCalledWith();

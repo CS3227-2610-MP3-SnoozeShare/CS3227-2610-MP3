@@ -29,6 +29,16 @@ describe('Host wallet page', () => {
     expect(fetchHostWallet).toHaveBeenCalledWith();
   });
 
+  it('shows the canonical booking ID in a related wallet transaction', async () => {
+    fetchHostWallet.mockResolvedValue({
+      wallet: { id: 'wallet-1', userId: 'host-1', balance: 20, currency: 'SGD', updatedAt: '2026-10-22T00:00:00Z' },
+      statement: [{ id: 'tx-booking', actionType: 'BOOKING_PAYOUT', walletAdjustment: 20, balanceAfter: 20, reason: 'Payout', bookingId: 'booking-1', ticketId: null, timestamp: '2026-10-22T00:00:00Z' }],
+    });
+    render(<HostApiProvider><HostFixtureProvider><HostWalletPage /></HostFixtureProvider></HostApiProvider>);
+
+    expect(await screen.findByText('Booking #booking-1')).toBeInTheDocument();
+  });
+
   it('submits one explicit mocked top-up and updates the server wallet summary', async () => {
     fetchHostWallet.mockResolvedValue(walletDto(100));
     topUpHostWallet.mockResolvedValue({ mocked: true, wallet: walletDto(125).wallet, transaction: walletDto(125).statement[0] });

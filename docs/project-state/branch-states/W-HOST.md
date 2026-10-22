@@ -8,7 +8,7 @@ in after the branch merges.
 - **Base:** `e185dc0`
 - **Owner:** project owner
 - **Status:** In review
-- **Last updated:** 2026-10-22 by GPT-5 — normalized booking/ticket number prefixes across live Host UI mappings
+- **Last updated:** 2026-10-22 by GPT-5 — displayed the canonical booking ID in Messages and Wallet
 
 ---
 
@@ -51,12 +51,13 @@ No change.
 - [x] Merged `development` through `e185dc0`, adopted `@ConditionalOnDatabase`, and verified backend build plus frontend tests/lint/production build; W-HOST remains awaiting owner review.
 - [x] Preserved unique wallet transaction IDs in the UI model and eliminated same-day/same-type row-key collisions; 199 frontend tests, lint, and production build pass.
 - [x] Normalized frontend booking/ticket references to display exactly one `#`; 201 frontend tests, lint, and production build pass.
+- [x] Displayed the canonical booking ID in Messages and Wallet; 202 frontend tests and lint pass; isolated production build passes (shared `.next` race recurred, D~2).
 
 ## 3. Workstreams
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [experience corrections spec](docs/superpowers/specs/2026-10-22-w-host-experience-corrections-design.md); [UI spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [UI plan](docs/superpowers/plans/2026-10-21-w-host-ui.md); [experience corrections plan](docs/superpowers/plans/2026-10-22-w-host-experience-corrections.md) | Booking/ticket references show one `#`; 201 tests, lint/build pass; owner review pending | guide out of date: Host metrics, time display, and calendar behavior |
+| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [experience corrections spec](docs/superpowers/specs/2026-10-22-w-host-experience-corrections-design.md); [UI spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [UI plan](docs/superpowers/plans/2026-10-21-w-host-ui.md); [experience corrections plan](docs/superpowers/plans/2026-10-22-w-host-experience-corrections.md) | Canonical booking ID visible in Messages and Wallet; 202 tests, lint, isolated build pass; owner review pending | guide out of date: Host metrics, time display, and calendar behavior |
 | W-HOST-API | Replace Host fixtures with authenticated backend integration | In review | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T17 complete: 101/1,001-row tests, full gates, and authenticated read-only captures; owner review pending | — |
 
 ## 4. Architecture
@@ -125,13 +126,14 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | C~23 | 2026-10-22 | New/Edit listing forms validate check-in and check-out, require check-out strictly earlier than check-in, use required/non-negative copy for bedroom and bathroom errors, and show request failures to the right of the form actions | The project owner requested these form validation and error-placement behaviors after reviewing the listing pages | Operator conversation |
 | C~24 | 2026-10-22 | Listing detail check-in/out display uses zero-padded `hh:mm AM/PM`; calendar block submission has no confirmation modal, submits by button or Enter, and reports booking/blocked-period overlap distinctly | The project owner requested these listing-detail and calendar interaction/error behaviors | Operator conversation |
 | C~25 | 2026-10-22 | Top-up and withdrawal dialogs follow their distinct approved artifact flows: top-up shows balance and $50/$100/$500/$1,000 presets; withdrawal shows available balance, supports filling the full amount, and cannot exceed available non-escrowed funds; each has its specific explanatory copy and confirm label | The project owner asked to resolve the identified differences from the Host UI artifact | Operator conversation |
+| C~26 | 2026-10-22 | Display the full canonical booking UUID with one `#` in booking Messages and Wallet references; do not derive a short booking number absent from the API contract | The project owner asked for the booking number in both views; the backend supplies only the UUID, so a derived short number would be synthetic and could collide | Operator conversation |
 
 ## 9. Deviations
 
 | ID | Date | Deviation | Consequence / action |
 |---|---|---|---|
 | D~1 | 2026-10-21 | Initial T8 comparison was blocked by missing Host authentication; operator subsequently logged in and enabled a live route comparison | Resolved. Authenticated artifact comparison completed; all eight Host content routes were checked at 1680×945, 1280×800, and 768×1024 with no horizontal overflow |
-| D~2 | 2026-10-21 | Next.js production build intermittently failed during page-data collection with `Invariant: no direct app page entry found for /_not-found` after the breadcrumb implementation | Build passed from an isolated frontend copy while the local dev server remained active; shared `.next` state may explain the earlier failure, but cause is not proven. Recheck from a clean isolated build if it recurs |
+| D~2 | 2026-10-21 | Next.js production build intermittently fails during page-data collection with missing page-entry errors while the local dev server is active; recurred 2026-10-22 with missing `/favicon.ico/route`, `/login/page`, and other page modules | Shared `.next` state is the likely cause but is not proven. The full frontend build passed from an isolated frontend copy on both occurrences; isolate production builds if this recurs |
 | D~3 | 2026-10-22 | Initial frontend dependency restore failed in the restricted environment: `ENOTFOUND` for `registry.npmjs.org`; the default npm cache also rejected log writes | Resolved by restoring lockfile-pinned dependencies with approved network access and a `/private/tmp` npm cache. Baselines pass: backend build; frontend 143 tests, lint, and production build using local placeholder public config |
 | D~4 | 2026-10-22 | The plan's `./gradlew checkstyle` shorthand is ambiguous because Gradle exposes `checkstyleMain` and `checkstyleTest`; the first invocation stopped before checks | Resolved: plan invokes both tasks explicitly; T1 Checkstyle and the full backend build pass |
 | D~5 | 2026-10-22 | T2's file list omitted `CreateListingRequest` and `UpdateListingRequest`, which need the approved title/description length constraints | Plan-only correction added both DTOs to T2; the 120-character title and 5,000-character description limits are unchanged |
@@ -268,3 +270,4 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | 2026-10-22 | Matched top-up and withdrawal dialogs to distinct artifact flows, including balance display, top-up presets, full-balance withdrawal, escrow-aware copy, and available-balance validation; 198 frontend tests, lint, and production build pass | W-HOST | C~25 |
 | 2026-10-22 | Preserved transaction IDs through wallet DTO mapping and keyed statement rows by transaction identity, with unique fallback keys; same-day/same-type regression, 199 frontend tests, lint, and production build pass | W-HOST | Operator follow-up |
 | 2026-10-22 | Normalized incoming leading hash markers for ticket conversation labels and booking/ticket Wallet references; duplicate-prefix regressions, 201 frontend tests, lint, and production build pass | W-HOST | Operator follow-up |
+| 2026-10-22 | Added the canonical booking ID to live Messages subtitles; Wallet shows the same ID for related transactions. Route-level regression, 202 frontend tests, lint, and isolated production build pass | W-HOST | C~26 |

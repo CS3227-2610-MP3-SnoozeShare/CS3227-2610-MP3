@@ -129,7 +129,7 @@ export function mapBookingConversation(dto: BookingConversationDto): Conversatio
     sourceId: dto.bookingId,
     kind: 'booking',
     title: `${dto.listingTitle} · ${date(dto.startDate)}–${date(dto.endDate)}`,
-    subtitle: `Booking · Direct message with ${dto.counterpartName} (Guest)`,
+    subtitle: `${numberedReference('Booking', dto.bookingId)} · Direct message with ${dto.counterpartName} (Guest)`,
     status: dto.open ? 'open' : 'resolved',
     unreadCount: dto.unreadCount,
     counterpartName: dto.counterpartName,
