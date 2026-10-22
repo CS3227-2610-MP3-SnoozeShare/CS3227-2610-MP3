@@ -7,9 +7,9 @@ in after the branch merges.
 - **Branch:** W-HOST (from `development` at `8702e88`)
 - **Base:** `e185dc0`
 - **Owner:** project owner
-- **Status:** In review
-- **Approved:** —
-- **Last updated:** 2026-10-22 by GPT-5 — merged development through `e185dc0`; backend/frontend verification passed
+- **Status:** Approved
+- **Approved:** Trevor 2026-10-22
+- **Last updated:** 2026-10-22 by GPT-5 — owner approved W-HOST at Gate 3
 
 ---
 
