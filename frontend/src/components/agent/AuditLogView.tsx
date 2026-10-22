@@ -60,7 +60,7 @@ function toneFor(action: string): Tone {
   return 'neutral';
 }
 
-const control = 'box-border h-9 w-full rounded-lg border border-border bg-background px-3 text-[13px] font-normal normal-case text-foreground';
+const control = 'box-border h-[34px] w-full rounded-lg border border-border bg-card px-3 text-xs font-normal normal-case text-foreground';
 const fieldLabel = 'flex flex-col gap-1 text-[10px] font-bold uppercase text-[var(--text-muted)]';
 
 const COLUMNS: GridColumn[] = [
@@ -169,7 +169,7 @@ export function AuditLogView() {
             setFilters(EMPTY);
             setQuery(EMPTY);
           }}
-          className="h-9 rounded-lg border border-[#f07878] bg-transparent px-[18px] text-xs font-semibold text-destructive"
+          className="h-[34px] rounded-lg border border-[#f07878] bg-transparent px-[18px] text-xs font-semibold text-destructive"
         >
           Clear
         </button>

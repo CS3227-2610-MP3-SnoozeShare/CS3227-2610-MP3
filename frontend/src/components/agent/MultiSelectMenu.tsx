@@ -52,7 +52,7 @@ export function MultiSelectMenu({ options, selected, onChange, allLabel, label }
         aria-expanded={open}
         aria-controls={listId}
         onClick={() => setOpen((value) => !value)}
-        className="box-border flex h-9 w-full items-center justify-between gap-2 rounded-lg border border-border bg-background px-3 text-left text-[13px] font-normal normal-case text-foreground"
+        className="box-border flex h-[34px] w-full items-center justify-between gap-2 rounded-lg border border-border bg-card px-3 text-left text-xs font-normal normal-case text-foreground"
       >
         <span className="truncate">{text}</span>
         <span aria-hidden className="text-[10px] text-[var(--text-subtle)]">▾</span>
