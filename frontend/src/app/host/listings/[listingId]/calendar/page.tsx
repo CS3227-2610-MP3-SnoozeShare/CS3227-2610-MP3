@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { useHostFixtures } from '@/components/host/HostFixtureProvider';
@@ -8,6 +7,7 @@ import { useOptionalHostApi } from '@/components/host/HostApiProvider';
 import { HostCalendarPanel } from '@/components/host/HostCalendarPanel';
 import { HostBreadcrumbs } from '@/components/host/HostBreadcrumbs';
 import { HostPageFrame } from '@/components/host/HostPageFrame';
+import { HostListingRouteError } from '@/components/host/HostListingRouteError';
 import { mapHostCalendar, mapHostListingDetail, type HostCalendarDto, type HostListingDetailDto } from '@/components/host/hostTypes';
 
 export default function HostCalendarPage() {
@@ -35,11 +35,11 @@ export default function HostCalendarPage() {
     : fixtureCalendar.state === 'loading';
   if (loading) return <HostPageFrame title=""><div className="ss-card h-64 animate-pulse bg-[var(--surface-inset)]" /></HostPageFrame>;
   const notFound = api && (calendarResource?.status === 'not-found' || listingResource?.status === 'not-found');
-  if (notFound) return <HostPageFrame title=""><div className="ss-card p-8 text-center"><p>This item is no longer available.</p><Link className="mt-4 inline-block text-primary underline" href="/host/listings">Back to Listings</Link></div></HostPageFrame>;
+  if (notFound) return <HostListingRouteError />;
   const error = api
     ? calendarResource?.status === 'error' ? calendarResource.message : listingResource?.status === 'error' ? listingResource.message : ''
     : fixtureCalendar.state === 'error' ? fixtureCalendar.error : '';
-  if (error) return <HostPageFrame title=""><div className="ss-card p-8 text-center">{error}</div></HostPageFrame>;
+  if (error) return <HostListingRouteError />;
   const calendar = api
     ? mappedCalendar
     : fixtureCalendar.data ?? null;

@@ -7,6 +7,7 @@ import { useOptionalHostApi } from '@/components/host/HostApiProvider';
 import { HostListingDetail } from '@/components/host/HostListingDetail';
 import { HostBreadcrumbs } from '@/components/host/HostBreadcrumbs';
 import { HostPageFrame } from '@/components/host/HostPageFrame';
+import { HostListingRouteError } from '@/components/host/HostListingRouteError';
 import { mapHostListingDetail, type HostListingDetailDto } from '@/components/host/hostTypes';
 import { useEffect } from 'react';
 
@@ -27,9 +28,8 @@ export default function HostListingPage() {
   const notFound = api ? resource?.status === 'not-found' : fixtureResult.state === 'not-found';
   const loading = api ? !resource || resource.status === 'loading' : fixtureResult.state === 'loading';
   const error = api ? resource?.status === 'error' ? resource.message : '' : fixtureResult.state === 'error' ? fixtureResult.error : '';
-  if (notFound) return <HostPageFrame title="Listing not found"><div className="ss-card p-8 text-center"><p>Listing not found</p><Link className="mt-4 inline-block text-primary underline" href="/host/listings">Back to Listings</Link></div></HostPageFrame>;
+  if (notFound || error) return <HostListingRouteError />;
   if (loading) return <HostPageFrame title="Loading…"><div className="ss-card h-56 animate-pulse bg-[var(--surface-inset)]" /></HostPageFrame>;
-  if (error) return <HostPageFrame title="Listing error"><div className="ss-card p-8 text-center">{error}<button className="ml-3 underline" onClick={() => { if (api && loadResource && fetchListing) void loadResource(key, () => fetchListing(id)).catch(() => undefined); }} type="button">Retry</button></div></HostPageFrame>;
   if (!data) return null;
   return <HostPageFrame title="" breadcrumbs={<HostBreadcrumbs items={[{ label: 'Listings', href: '/host/listings' }, { label: data.title }]} />} breadcrumbActions={<><Link className="rounded-lg border border-border px-3 py-2 text-xs" href={`/host/listings/${data.id}/calendar`}>Open Booking Calendar</Link><Link className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground" href={`/host/listings/${data.id}/edit`}>Edit listing</Link></>}><HostListingDetail listing={data} /></HostPageFrame>;
 }

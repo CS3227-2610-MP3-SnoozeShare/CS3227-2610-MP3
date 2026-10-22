@@ -9,7 +9,7 @@ in after the branch merges.
 - **Owner:** project owner
 - **Status:** In review
 - **Approved:** —
-- **Last updated:** 2026-10-22 by GPT-5 — T10 closeout complete; W-HOST-API handed off for owner review
+- **Last updated:** 2026-10-22 by GPT-5 — completed generic listing route/load error handling; returned W-HOST to review
 
 ---
 
@@ -48,7 +48,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Listings, requests, and wallet scroll within viewport; 143 tests, lint and build pass | guide out of date: W-HOST Host UI pages and Fall Light details |
+| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Listing route/load failures use a generic page and listings link; validation and mutation errors stay inline (C~18) | guide out of date: W-HOST Host UI pages and Fall Light details |
 | W-HOST-API | Replace Host fixtures with authenticated backend integration | In review | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T10 acceptance and gates complete; awaiting owner review and approval (D~23,D~25,D~26,D~27) | — |
 
 ## 4. Architecture
@@ -105,6 +105,7 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | C~15 | 2026-10-22 | W-HOST-API uses the operator-approved composite responses, inclusive month calendar, distinct message routes, stable errors, Firebase/domain identity check, booking row locking, transactional availability/message behavior, and bounded database pagination; it does not add wallet request idempotency after C~16 | Project owner approved the recommended defaults to proceed; second-round review required exact bounded query semantics. In-memory slicing was rejected. Wallet idempotency was later explicitly reversed | Operator conversation and second-round spec review |
 | C~16 | 2026-10-22 | Remove wallet request idempotency from W-HOST-API: no key header, durable key table, hash, replay response, or request deduplication; each accepted mocked wallet mutation is a separate operation, with no automatic client retry and wallet refresh after ambiguous failure | Project owner said it was unnecessary, then explicitly directed removal after the existing decision C~15 / spec SD7 and SD10 was surfaced. Existing wallet transaction, row lock, ledger, and audit behavior remain | Operator conversation |
 | C~17 | 2026-10-22 | Amend W-HOST-API to include deterministic activation of existing W-DOMAIN services and JDBC adapters through `snoozeshare.persistence.enabled` (`true` by default; `false` in DB-free contexts), without changing service/domain behavior | Project owner approved amending and continuing after T2 exposed that `@ConditionalOnBean(PropertyRepository.class)` runs before JPA repository registration. Deferring the prerequisite to separate work was rejected because all Host API endpoints depend on those services | Operator conversation |
+| C~18 | 2026-10-22 | All Host listing route/load failures use one generic error page with a link to `/host/listings`; form validation and mutation failures remain inline | Project owner clarified scope as route/load failures only and approved the shared error-page design; the listings index additionally offers retry on its own load failure | Operator conversation |
 
 ## 9. Deviations
 
@@ -222,3 +223,4 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | 2026-10-22 | Coalesced same-key in-flight page and wallet-summary reads to prevent duplicate Host API calls during React Strict Mode effect replay; 175 frontend tests, lint, production build, and backend build pass | W-HOST-API | T10 / D~25 |
 | 2026-10-22 | Coalesced in-flight wallet statement page reads after live Wallet acceptance exposed a Strict Mode duplicate; the regression failed before the fix and the clean Wallet recapture shows one statement fetch | W-HOST-API | T10 / D~26 |
 | 2026-10-22 | Closed T10 with eight-route authenticated request capture, 176 frontend tests, lint/build, backend build, read-only review, and plan closeout lint | W-HOST-API | T10 |
+| 2026-10-22 | Unified listing collection/detail/edit/calendar route-load failures behind a generic error page with a return link; collection errors retain retry. Validation and mutation errors remain inline; 179 frontend tests, lint, and production build pass | W-HOST | C~18 |

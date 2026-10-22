@@ -63,7 +63,8 @@ describe('Host calendar page', () => {
     fetchHostWallet.mockResolvedValue({ wallet: { id: 'w', userId: 'h', balance: 10, currency: 'SGD', updatedAt: '' }, statement: { items: [], page: 0, size: 1, hasMore: false } });
     render(<HostApiProvider><HostFixtureProvider><HostCalendarPage /></HostFixtureProvider></HostApiProvider>);
 
-    expect(await screen.findByText('This item is no longer available.')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Something went wrong' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Back to Listings' })).toHaveAttribute('href', '/host/listings');
     expect(screen.queryByText('private backend details')).not.toBeInTheDocument();
   });
 });
