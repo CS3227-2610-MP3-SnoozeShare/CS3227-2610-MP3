@@ -1,0 +1,70 @@
+# W-AI-AGENT Ticket Clarification Assistant Design
+
+- **Status:** Draft
+- **Risk tier:** High - guest-written text goes to an LLM, the model's text is shown to a Guest and to the Support Agent who decides money, and the feature stores personal-data-bearing text (C67)
+- **Workstream:** W-AI-AGENT | **Plan:** not written yet
+- **Constraints consulted:** C80 (AI outputs are suggestions; server-side prompts; every AI interaction audited), C101 and C103 to C107, C109 to C111 (the gateway and its defaults), C69 (single instance), C99 (Spring Data JPA), C73 (DTO layer at the API boundary), C37 and C38 (ticket threads), C40 (Hosts cannot file tickets), C20 and C22 (only an Agent settles money; no Force actions), C28 (one audit row per change, typed columns), C104 (audit holds metadata only); § Known Gaps on AI (process-local limiter state, steered prose passes validation, many accounts can exhaust the cap, reasoning is a global setting, 429 behaviour is unobserved); § Conventions on role AI code (call outside a transaction, server-built trusted context, ASSISTANT turns from stored history only, plain-text rendering); Upcoming row "Agent-typed text is untrusted LLM input"
+- **Reviewed by lenses:** none yet
+
+## 1. Problem
+
+**Current behaviour.** A Guest files a ticket with `TicketServiceImpl.fileTicket` from a form: booking, category, title, description, requested remedy and optional supporting text. The ticket is saved `OPEN`, one `TICKET_OPENED` audit row is written and a `TicketOpenedEvent` is published; nothing listens to it. The Support Agent sees whatever the Guest typed. If the Guest was vague (no dates, no description of what was wrong, no evidence), the Agent has to ask in the GUEST thread (`MessageService`), wait, and only then contact the Host. The Agent keeps private findings in `tickets.agent_notes`, saved with `PUT /api/agent/disputes/{ticketId}/notes` while the ticket is `IN_REVIEW` and assigned to them.
+
+**Desired behaviour.** Right after a Guest files a ticket, an automated assistant reads it. If key facts are missing it posts up to three short questions in the ticket's GUEST thread, labelled as an automated assistant. It answers each Guest reply the same way, up to a fixed round cap, and after every turn it refreshes a structured draft report that only the Agent can see. The Agent reads the draft on the dispute page and can insert it into their notes with one click; the system never writes into `agent_notes` itself. The assistant never decides, promises or settles anything, and a ticket works exactly as today when the assistant is off or fails.
+
+## 2. Goals
+
+Eleven functional and six non-functional goals, with acceptance criteria, are in [requirements.md](2026-10-23-w-ai-agent-design/requirements.md). In short:
+
+**Functional**
+- F1 to F4: the assistant starts after a Guest files a ticket, asks at most three questions per round for at most the round cap, and answers each Guest reply.
+- F5 to F6: it keeps a draft report in its own record; the Agent reads it and may insert it into their notes.
+- F7 to F8: the Guest sees labelled assistant messages; it stops when an Agent posts in the thread or the ticket is resolved.
+- F9 to F11: it degrades silently to today's flow, stops on a suspicious Guest, and every step is audited.
+
+**Non-functional**
+- N1 to N6: filing is never slowed or failed by the assistant; at most four gateway calls per ticket; model text reaches users only through validation and plain-text rendering; no names or contact details in the prompt; restart and outage behaviour is bounded; tests run without the live service.
+
+## 3. Non-goals
+
+- Host-raised tickets and any Host-facing assistant - Hosts cannot file tickets (C40), and the HOST thread is the Agent's channel to the Host; the operator chose Guest tickets only.
+- Agent-requested follow-ups, a "re-run the assistant" button or a "stop the assistant" button - the operator chose submission plus Guest replies only.
+- The assistant recommending, scoring or predicting a resolution, or contacting the Host - only an Agent settles (C20, C22).
+- Writing into `tickets.agent_notes` automatically - the operator chose a separate draft field.
+- Agent-typed text in any prompt - the Upcoming row "Agent-typed text is untrusted LLM input" is met by excluding it entirely.
+- A queue badge or filter for assistant state, and assistant analytics - not asked for.
+- Changing the gateway, its limits or its model settings - the gateway is done (C101); reasoning stays the global `none` (§ Known Gaps).
+- Pagination or retention changes for threads and audit rows - unchanged accepted gaps.
+
+## 4. Components
+
+- [Requirements](2026-10-23-w-ai-agent-design/requirements.md) - F1 to F11 and N1 to N6 with acceptance criteria
+- [Data model](2026-10-23-w-ai-agent-design/data-model.md) - the `ticket_assistants` table, the message author-role change, the state machine, migration V006
+- [API](2026-10-23-w-ai-agent-design/api.md) - the feature registration, the model output contract, the triggers, the job, and the changed Agent read
+- [UI](2026-10-23-w-ai-agent-design/ui.md) - the Agent's draft panel, the Guest and Agent thread labels, fixed copy
+- [Conventions](2026-10-23-w-ai-agent-design/conventions.md) - package placement, properties, audit rows, rendering and test rules
+- [Edge cases](2026-10-23-w-ai-agent-design/edge-cases.md) - input, state, concurrency, failure, permission, volume and migration cases, with the Attacker threat list
+- [Implementation order](2026-10-23-w-ai-agent-design/implementation-order.md) - tasks T1 to T10 with dependencies and waves
+
+## 5. Open questions
+
+| ID | Question | Blocks | Owner |
+|---|---|---|---|
+| Q1 | Do the assistant's messages use the existing `SYSTEM` author role (recommended) or a new `AI` value? This spec is written for `SYSTEM`. The operator earlier said "a new `AI` author role"; `Role` already has `SYSTEM`, which the platform user already carries, and a new `Role` constant would ripple through every `switch` on `Role` and the `users.role` column rules. With `SYSTEM`, the only meaning of a `SYSTEM` message in a ticket thread is "the automated assistant" | Approval of the spec (gate 1) | Operator |
+
+## 6. Decisions made in this spec
+
+| ID | Decision | Why / rejected alternative | Asked by |
+|---|---|---|---|
+| SD1 | The feature is `ticket.clarify`, registered with `ModelTier.STANDARD`, priority 1, `allowedRoles` = {GUEST}, JSON output, links not allowed | The call is made on behalf of the Guest who triggered it, so the gateway's per-user limits apply to that Guest. Priority 0 is for staff-facing calls and keeps a reserved cap share (C107); this call is Guest-driven. Rejected: FAST tier (the report needs summarising several turns); priority 0 | Spec author |
+| SD2 | One gateway call per turn returns both the next questions and the current report snapshot | Costs one request per Guest message and keeps questions and report consistent. Rejected: two calls per turn (doubles the request use against a shared 25 requests-a-minute ceiling, C110) | Spec author |
+| SD3 | Assistant state lives in a new table `ticket_assistants`, one row per ticket, not in new columns on `tickets` | `Ticket` has a fifteen-argument constructor used across services and tests; new columns would change every call site and the W-AGENT mapping. A table also keeps AI data removable. Rejected: columns on `tickets` | Spec author |
+| SD4 | The assistant runs on a dedicated bounded executor, started by `TicketOpenedEvent` (after commit) and `MessagePostedEvent` | The gateway refuses to run inside a transaction and can block for its whole deadline (§ 4.11), so it must not run on the request thread. Rejected: running it in the request thread; the shared Spring task executor | Spec author |
+| SD5 | The round cap is 3 question rounds by default (`snoozeshare.assistant.max-rounds`, 1 to 5); after the Guest answers the last round, one final call refreshes the report and no further question is posted | Bounds cost to at most four calls per ticket (N2) and stops an endless exchange | Operator (cap exists), spec author (value) |
+| SD6 | Model-written questions are shown to the Guest only after a deterministic screen drops any question that promises or predicts an outcome (conventions.md rule R4) | A steered or confused model must not promise a refund; prose that matches no leak pattern otherwise passes output validation (§ Known Gaps). Rejected: trusting the prompt alone | Spec author |
+| SD7 | The draft report is rendered by the backend from the validated JSON into a fixed plain-text template of at most 4,000 characters; model text is never stored or shown as free-form markup | A fixed template with labelled sections keeps Guest claims visibly unverified and removes any formatting channel | Spec author |
+| SD8 | The assistant stops when an Agent posts in the GUEST thread or the ticket is resolved; assignment alone does not stop it | A human taking over the conversation ends the automation; an Agent who only assigns the ticket still benefits from the gathered facts | Spec author |
+| SD9 | If the Guest text matches an injection pattern (`LlmResult.flagged`), the assistant posts no further questions, marks the draft flagged and shows the Agent a warning | A hostile Guest should not get more model turns; the Agent decides what to do | Spec author |
+| SD10 | The Agent inserts the draft into notes in the browser (the textarea is filled, the Agent saves with the existing notes endpoint); there is no new write endpoint | The existing save rules (ticket `IN_REVIEW`, assigned to the caller) already protect the notes. Rejected: a server-side "apply draft" endpoint | Spec author |
+| SD11 | The assistant is a new package `com.snoozeshare.service.assistant`; it imports only the public types of `com.snoozeshare.ai` | Keeps the rule that nothing outside `ai` imports `ai.config`, `ai.guard`, `ai.limit`, `ai.client` or `ai.audit` meaningful | Spec author |
+| SD12 | `snoozeshare.assistant.enabled` defaults to true; the assistant is effectively off whenever the gateway reports `DISABLED` | The gateway's own switch (`snoozeshare.ai.enabled`, off in production until switched on) stays the single production control | Spec author |
