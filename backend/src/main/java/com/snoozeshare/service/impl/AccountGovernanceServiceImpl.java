@@ -33,6 +33,7 @@ import com.snoozeshare.service.AccountGovernanceService;
 import com.snoozeshare.service.AccountSummary;
 import com.snoozeshare.service.AuditRecord;
 import com.snoozeshare.service.AuditService;
+import com.snoozeshare.service.NotFoundException;
 
 @Service
 @ConditionalOnDatabase
@@ -204,7 +205,7 @@ public class AccountGovernanceServiceImpl implements AccountGovernanceService {
 
     private User requireGovernable(UUID userId) {
         User target = users.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User does not exist"));
+                .orElseThrow(() -> new NotFoundException("User does not exist"));
         if (target.getRole() == Role.AGENT || target.getRole() == Role.SYSTEM) {
             throw new IllegalArgumentException(
                     "Support agent accounts cannot be suspended or reactivated");

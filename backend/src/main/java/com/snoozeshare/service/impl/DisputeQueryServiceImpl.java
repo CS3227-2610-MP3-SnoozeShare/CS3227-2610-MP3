@@ -24,6 +24,7 @@ import com.snoozeshare.repository.UserRepository;
 import com.snoozeshare.service.DisputeDetail;
 import com.snoozeshare.service.DisputeQueryService;
 import com.snoozeshare.service.DisputeSummary;
+import com.snoozeshare.service.NotFoundException;
 
 @Service
 @ConditionalOnDatabase
@@ -57,7 +58,7 @@ public class DisputeQueryServiceImpl implements DisputeQueryService {
     @Override
     public DisputeDetail detail(UUID ticketId) {
         Ticket ticket = tickets.findById(ticketId)
-                .orElseThrow(() -> new IllegalArgumentException("Ticket does not exist"));
+                .orElseThrow(() -> new NotFoundException("Ticket does not exist"));
         Booking booking = booking(ticket);
         Property property = property(booking);
         boolean held = EscrowPolicy.isHeld(ledgerEntries.entriesForBooking(booking.getId()));

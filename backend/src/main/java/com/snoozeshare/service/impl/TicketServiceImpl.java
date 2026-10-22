@@ -30,6 +30,7 @@ import com.snoozeshare.repository.UserRepository;
 import com.snoozeshare.service.AuditRecord;
 import com.snoozeshare.service.AuditService;
 import com.snoozeshare.service.DisputeSettlementService;
+import com.snoozeshare.service.NotFoundException;
 import com.snoozeshare.service.TicketService;
 import com.snoozeshare.service.requests.NewTicketRequest;
 import com.snoozeshare.service.requests.ResolutionRequest;
@@ -310,11 +311,11 @@ public class TicketServiceImpl implements TicketService {
 
     private Ticket loadTicket(UUID ticketId) {
         return tickets.findById(ticketId)
-                .orElseThrow(() -> new IllegalArgumentException("Ticket does not exist"));
+                .orElseThrow(() -> new NotFoundException("Ticket does not exist"));
     }
 
     private TicketCategory loadCategory(UUID categoryId) {
         return categories.findById(categoryId)
-                .orElseThrow(() -> new IllegalArgumentException("Category does not exist"));
+                .orElseThrow(() -> new NotFoundException("Category does not exist"));
     }
 }
