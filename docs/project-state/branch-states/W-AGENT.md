@@ -129,3 +129,4 @@ No change: Q~1 (audit zone) was answered on 2026-10-22 (C~7); nothing is open.
 | 2026-10-22 | Rebuilt T1 part 16/20: cover role authentication and inactive agent profiles | W-AGENT | small-commit reconstruction |
 | 2026-10-22 | Rebuilt T1 part 17/20: cover protected path variants and agent request limits | W-AGENT | small-commit reconstruction |
 | 2026-10-22 | Rebuilt T1 part 18/20: verify token actor resolution and strict JSON properties | W-AGENT | small-commit reconstruction |
+| 2026-10-22 | Rebuilt T1 part 19/20: pin safe API errors and correlated logs | W-AGENT | small-commit reconstruction |
