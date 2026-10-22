@@ -81,6 +81,7 @@ No change: Q~1 (audit zone) was answered on 2026-10-22 (C~7); nothing is open.
 | ID | Date | Decision | Why / who asked | Source |
 |---|---|---|---|---|
 | C~10 | 2026-10-22 | Keep every commit under 150 changed lines; split the local T1 history and retain the final implementation | Operator found the T1 commits too large to review | Operator conversation |
+| C~11 | 2026-10-22 | Skip repeated per-commit build and test runs for this history-only split; verify changed-line budgets and final implementation parity | Operator: "skip the per commit checks since we are just splitting them"; the completed T1 backend suite was already green | Operator conversation |
 | C~1 | 2026-10-22 | W-AGENT covers all four agent areas (disputes with threads and notes, accounts, audit, categories), API and pages in one workstream, no AI | Operator confirmed the proposed scope | Operator conversation |
 | C~2 | 2026-10-22 | Where the desktop screens and the design artifact differ, the desktop behaviour wins: keep C22 (no force actions), Manual adjustment is one guest refund, audit filters are Search / Action / From / To / Load more, Accounts lists Guests and Hosts only, categories keep Delete, amounts in SGD | Operator answered each difference, 2026-10-22 | Spec SD2 to SD5 |
 | C~3 | 2026-10-22 | W-AGENT builds the shared REST foundation (global error handler, `@CurrentUserId`, ArchUnit layering test, typed frontend helpers) because no controllers or backend exist elsewhere | `origin/W-HOST` is fixture-only frontend and has no open pull request | Spec SD1, SD12 |
@@ -112,3 +113,4 @@ No change: Q~1 (audit zone) was answered on 2026-10-22 (C~7); nothing is open.
 | 2026-10-22 | `development` merged into the branch (W-AI-GATEWAY folded; no conflict with the spec) | W-AGENT | merge commit |
 | 2026-10-22 | Rebuilt T1 part 1/20: distinguish missing agent resources from invalid requests | W-AGENT | small-commit reconstruction |
 | 2026-10-22 | Rebuilt T1 part 2/20: normalize protected API paths and disable agent response caching | W-AGENT | small-commit reconstruction |
+| 2026-10-22 | Rebuilt T1 part 3/20: resolve actor UUIDs from authenticated request attributes | W-AGENT | small-commit reconstruction |
