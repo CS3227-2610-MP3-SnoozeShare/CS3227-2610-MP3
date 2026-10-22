@@ -1,3 +1,7 @@
+snoozeshare:
+  audit:
+    # Audit From/To dates are whole days in this zone
+    zone: Asia/Singapore
 spring:
   profiles:
     default: dev
