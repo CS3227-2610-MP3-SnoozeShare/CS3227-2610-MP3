@@ -8,8 +8,8 @@ after the branch merges.
 - **Base:** `de137c6`
 - **Owner:** Xiao-Congchen
 - **Status:** In review
-- **Approved:** Eligibility-amended spec and plan approved (Xiao-Congchen, 2026-10-23); Gate 3 review requested after Apply-reset refinement
-- **Last updated:** 2026-10-23 by GPT-5 — Apply-reset refinement verified
+- **Approved:** Eligibility-amended spec and plan approved (Xiao-Congchen, 2026-10-23); Gate 3 review requested after responsive footer refinement
+- **Last updated:** 2026-10-23 by GPT-5 — responsive footer refinement verified
 
 ---
 
@@ -33,7 +33,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S2 | 2026-10-23 00:20 | GPT-5 (lead) | W~1 | In review | Apply-reset refinement verified: 227 tests, lint, build, and diff check pass | Operator review for Gate 3 | 2026-10-23 06:15 |
+| S2 | 2026-10-23 00:20 | GPT-5 (lead) | W~1 | In review | Responsive footer refinement verified: 227 tests, lint, build, and diff check pass | Operator review for Gate 3 | 2026-10-23 06:25 |
 
 **Remaining**
 
@@ -47,7 +47,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W~1 | W-AI-HOST: Host AI Listing Optimisation Assistant | In review | [design](../../superpowers/specs/2026-10-22-w-ai-host-design.md) | [plan](../../superpowers/plans/2026-10-22-w-ai-host.md) | Apply-reset refinement verified; awaiting Gate 3 review | — |
+| W~1 | W-AI-HOST: Host AI Listing Optimisation Assistant | In review | [design](../../superpowers/specs/2026-10-22-w-ai-host-design.md) | [plan](../../superpowers/plans/2026-10-22-w-ai-host.md) | Responsive footer refinement verified; awaiting Gate 3 review | — |
 
 ---
 
@@ -171,3 +171,5 @@ plain-text rendering conventions.
 | 2026-10-23 | Completed modal styling refinement; frontend 227 tests, lint, production build, and diff check pass | W~1 | UI refinement verification |
 | 2026-10-23 | Started Apply-reset refinement after confirming style, audience, and focus state currently persisted across Apply | W~1 | Operator-directed UI refinement |
 | 2026-10-23 | Apply now resets writing style to Friendly, audience to All travellers, and focus to Balanced; regression and full frontend verification pass | W~1 | Operator-directed UI refinement |
+| 2026-10-23 | Started responsive footer refinement after live-page inspection identified wrapping sticky actions inside the modal scroll container | W~1 | Operator-directed UI refinement |
+| 2026-10-23 | Moved scrolling to the modal body and made actions a bottom-aligned responsive footer; added layout regression and full frontend verification passed | W~1 | Operator-directed UI refinement |

@@ -89,12 +89,13 @@ export function HostAiDescriptionAssistant({ open, listingId, listing, descripti
   const disabled = pending !== null;
   return (
     <div className="fixed inset-0 z-50 flex min-h-dvh w-screen items-center justify-center bg-black/30 p-4" onClick={(event) => { if (!disabled && event.target === event.currentTarget) onClose(); }} role="presentation">
-      <div aria-describedby="host-ai-description" aria-labelledby="host-ai-title" aria-modal="true" className="ss-card max-h-[calc(100dvh-2rem)] w-full max-w-5xl overflow-y-auto p-5" role="dialog">
+      <div aria-describedby="host-ai-description" aria-labelledby="host-ai-title" aria-modal="true" className="ss-card flex max-h-[calc(100dvh-2rem)] w-full max-w-5xl flex-col overflow-hidden p-5" role="dialog">
         <div className="flex items-start justify-between gap-4">
           <div><h2 className="text-lg font-semibold" id="host-ai-title">AI Description Assistant ✨</h2><p className="mt-1 text-sm text-[var(--text-subtle)]" id="host-ai-description">Your listing details help the assistant create a grounded description based on the property information you provide.</p></div>
           <button aria-label="Close AI Description Assistant" className="rounded-md p-1 text-[var(--text-subtle)] hover:bg-muted hover:text-foreground" disabled={disabled} onClick={onClose} title="Close" type="button"><X aria-hidden="true" className="size-5" /></button>
         </div>
-        <div className="mt-5 space-y-5">
+        <div className="mt-5 min-h-0 flex-1 overflow-y-auto pr-1">
+          <div className="space-y-5">
           <section aria-label="Writing preferences" className="rounded-lg border border-border bg-[var(--surface-inset)] p-4">
             <h3 className="text-sm font-semibold">Writing preferences</h3>
             <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -114,10 +115,11 @@ export function HostAiDescriptionAssistant({ open, listingId, listing, descripti
             </section>
           </div>
           {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
-          <div className="sticky bottom-0 -mx-5 -mb-5 flex flex-wrap items-center justify-end gap-2 bg-card/95 px-5 py-4 backdrop-blur"><button className="rounded-lg border border-border px-4 py-2 text-sm font-semibold" disabled={disabled || !draft.trim()} onClick={() => void run('EVALUATE')} type="button">{pending === 'EVALUATE' ? 'Evaluating…' : 'Evaluate'}</button><button className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground" disabled={disabled} onClick={() => void run('GENERATE')} type="button">{pending === 'GENERATE' ? 'Generating…' : 'Generate description'}</button><button className="rounded-lg bg-[var(--success)] px-4 py-2 text-sm font-semibold text-white" disabled={disabled || !response?.generatedDescription} onClick={applyGeneratedDescription} type="button">Apply generated description</button></div>
+          </div>
+        </div>
+        <div aria-label="AI assistant actions" className="-mx-5 -mb-5 mt-4 flex shrink-0 flex-col gap-2 bg-card/95 px-5 pb-5 pt-4 backdrop-blur sm:flex-row sm:items-center sm:justify-end" role="group"><button className="w-full rounded-lg border border-border px-4 py-2 text-sm font-semibold sm:w-auto" disabled={disabled || !draft.trim()} onClick={() => void run('EVALUATE')} type="button">{pending === 'EVALUATE' ? 'Evaluating…' : 'Evaluate'}</button><button className="w-full rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground sm:w-auto" disabled={disabled} onClick={() => void run('GENERATE')} type="button">{pending === 'GENERATE' ? 'Generating…' : 'Generate description'}</button><button className="w-full rounded-lg bg-[var(--success)] px-4 py-2 text-sm font-semibold text-white sm:w-auto" disabled={disabled || !response?.generatedDescription} onClick={applyGeneratedDescription} type="button">Apply generated description</button></div>
         </div>
       </div>
-    </div>
   );
 }
 

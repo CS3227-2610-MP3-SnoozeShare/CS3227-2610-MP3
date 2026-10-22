@@ -25,6 +25,8 @@ describe('HostAiDescriptionAssistant', () => {
     expect(screen.getByLabelText('Description focus')).toHaveTextContent('Balanced');
     expect(screen.getByLabelText('Target audience')).toHaveTextContent('All travellers');
     expect(screen.queryByText('Description length')).not.toBeInTheDocument();
+    expect(screen.getByRole('dialog')).toHaveClass('flex', 'flex-col', 'overflow-hidden');
+    expect(screen.getByRole('group', { name: 'AI assistant actions' })).toHaveClass('shrink-0', 'flex-col', 'sm:flex-row');
     fireEvent.change(screen.getByLabelText('Current description'), { target: { value: '' } });
     expect(screen.getByRole('button', { name: 'Evaluate' })).toBeDisabled();
     fireEvent.click(screen.getByRole('button', { name: /^Generate/ }));
