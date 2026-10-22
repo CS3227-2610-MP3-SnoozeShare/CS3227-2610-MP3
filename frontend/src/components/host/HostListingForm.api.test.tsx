@@ -55,7 +55,11 @@ describe('HostListingForm with the API provider', () => {
     fillRequiredFields();
     fireEvent.click(screen.getByRole('button', { name: 'Save listing' }));
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Unable to complete this request. Please try again.');
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent('Unable to complete this request. Please try again.');
+    expect(alert).toHaveClass('ml-auto');
+    expect(alert.parentElement?.lastElementChild).toBe(alert);
+    expect(alert.parentElement?.firstElementChild).toContainElement(screen.getByRole('button', { name: 'Save listing' }));
     expect(push).not.toHaveBeenCalled();
   });
 });

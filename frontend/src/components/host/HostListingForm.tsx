@@ -123,10 +123,12 @@ export function HostListingForm({ listing }: { listing?: ListingDetail }) {
           </Card>
         </div>
       </div>
-      <div className="flex justify-start gap-2">
-        {requestError && <p className="self-center text-sm text-destructive" role="alert">{requestError}</p>}
-        <button className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground" disabled={saving} type="submit">{saving ? 'Saving…' : 'Save listing'}</button>
-        <button className="rounded-lg border border-border px-4 py-2 text-sm" onClick={() => router.push(listing ? `/host/listings/${listing.id}` : '/host/listings')} type="button">Cancel</button>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex gap-2">
+          <button className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground" disabled={saving} type="submit">{saving ? 'Saving…' : 'Save listing'}</button>
+          <button className="rounded-lg border border-border px-4 py-2 text-sm" onClick={() => router.push(listing ? `/host/listings/${listing.id}` : '/host/listings')} type="button">Cancel</button>
+        </div>
+        {requestError && <p className="ml-auto self-center text-right text-sm text-destructive" role="alert">{requestError}</p>}
       </div>
     </form>
   );

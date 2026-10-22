@@ -168,6 +168,37 @@ describe('Host listing components', () => {
     expect(screen.getByText('Rate / night must be positive with at most 2 decimal places')).toBeInTheDocument();
   });
 
+  it('validates check-in and check-out and reports bedroom and bathroom requirements inline', async () => {
+    render(<HostFixtureProvider adapter={createHostFixtureAdapter('empty')}><HostListingForm /></HostFixtureProvider>);
+    fireEvent.click(screen.getByRole('button', { name: 'Save listing' }));
+
+    await waitFor(() => expect(screen.getByLabelText('Check-in time')).toHaveAttribute('aria-invalid', 'true'));
+    expect(screen.getByLabelText('Check-out time')).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.getByText('Check-in time is required')).toBeInTheDocument();
+    expect(screen.getByText('Check-out time is required')).toBeInTheDocument();
+    expect(screen.getByText('Bedrooms is required and cannot be negative')).toBeInTheDocument();
+    expect(screen.getByText('Bathrooms is required and cannot be negative')).toBeInTheDocument();
+  });
+
+  it('requires check-out to be strictly earlier than check-in', async () => {
+    render(<HostFixtureProvider><HostListingForm listing={createHostFixtureAdapter().getListing('lakeside-cabin').data!} /></HostFixtureProvider>);
+    fireEvent.change(screen.getByLabelText('Check-in time'), { target: { value: '11:00' } });
+    fireEvent.change(screen.getByLabelText('Check-out time'), { target: { value: '11:00' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save listing' }));
+
+    expect(await screen.findByText('Check-out must be before check-in')).toBeInTheDocument();
+    expect(screen.getByLabelText('Check-out time')).toHaveAttribute('aria-invalid', 'true');
+  });
+
+  it('rejects a check-out time later than check-in', async () => {
+    render(<HostFixtureProvider><HostListingForm listing={createHostFixtureAdapter().getListing('lakeside-cabin').data!} /></HostFixtureProvider>);
+    fireEvent.change(screen.getByLabelText('Check-in time'), { target: { value: '09:00' } });
+    fireEvent.change(screen.getByLabelText('Check-out time'), { target: { value: '10:00' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save listing' }));
+
+    expect(await screen.findByText('Check-out must be before check-in')).toBeInTheDocument();
+  });
+
   it('loads saved amenities and presents selected status with normal-weight values', () => {
     const listing = createHostFixtureAdapter().getListing('lakeside-cabin').data!;
     render(<HostFixtureProvider><HostListingForm listing={listing} /></HostFixtureProvider>);
@@ -264,7 +295,7 @@ describe('Host listing components', () => {
     }
     const form = screen.getByRole('button', { name: 'Save listing' }).closest('form')!;
     const actions = form.lastElementChild!;
-    expect(actions).toHaveClass('justify-start');
+    expect(actions).toHaveClass('justify-between');
     expect(within(actions).getAllByRole('button').map((button) => button.textContent)).toEqual(['Save listing', 'Cancel']);
     expect(within(actions).getByRole('button', { name: 'Save listing' })).toHaveClass('bg-primary');
     expect(within(actions).getByRole('button', { name: 'Cancel' })).toHaveClass('border');
