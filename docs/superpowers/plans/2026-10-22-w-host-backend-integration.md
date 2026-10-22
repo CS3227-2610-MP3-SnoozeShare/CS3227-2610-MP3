@@ -2,6 +2,8 @@
 
 - **Status:** Approved (teleifo, 2026-10-22)
 - **Amended 2026-10-22:** Added prerequisite T0 with operator approval C~17; all service-dependent API tasks now depend on T0.
+- **Amended and approved 2026-10-22:** Added T11-T17 to reverse collection/history pagination per approved spec amendment C~19.
+- **Execution note:** T0-T10 record the original completed paging contract; their checked historical evidence is superseded for collection reads by T11-T17. Final acceptance uses the current F8/E26-E28 traceability rows.
 
 > **For agents:** tick `- [ ]` to `- [x]` as each step is completed, in the same commit as the work. Keep the W-HOST branch state's Progress cell current. Spec: [W-HOST Backend Integration Design](../specs/2026-10-22-w-host-backend-integration-design.md).
 
@@ -9,7 +11,7 @@
 
 **Goal:** Replace Host production fixtures with an authenticated `/api/host/**` API and API-backed pages, preserving the approved UI.
 
-**In scope:** F1-F7; N1-N6. This includes deterministic activation of existing persistence-backed services, active Host identity/ownership, bounded reads, listing/calendar/booking/message/wallet endpoints, and authenticated frontend state/mutations.
+**In scope:** F1-F8; N1-N6. This includes deterministic activation of existing persistence-backed services, active Host identity/ownership, complete owner-scoped collection reads, listing/calendar/booking/message/wallet endpoints, and authenticated frontend state/mutations.
 
 **Non-goals:** Payment-provider integration (C75); AI features (Q6); polling/WebSockets (C78); visual redesign; wallet request idempotency (C~16 / SD12).
 
@@ -30,6 +32,13 @@
 | T8 Wire listing, calendar, and request screens | T2,T3,T4,T7 | - | 4 | Done |
 | T9 Wire messages and wallet screens | T5,T6,T7,T8 | - | 5 | Done |
 | T10 Verify integration and close the phase | T9 | - | 6 | Done |
+| T11 Return complete listing and booking-request collections | T2,T4 | T13 | 7 | Not started |
+| T12 Return complete booking and ticket conversation collections | T5,T11 | T13 | 8 | Not started |
+| T13 Return the complete wallet statement | T6 | T11,T12 | 7 | Not started |
+| T14 Replace paged frontend API and provider types | T11,T12,T13 | - | 9 | Not started |
+| T15 Remove listing and request pagination UI | T14 | T16 | 10 | Not started |
+| T16 Remove message-history and wallet load-more UI | T14 | T15 | 10 | Not started |
+| T17 Verify the pagination reversal | T15,T16 | - | 11 | Not started |
 
 ## Traceability
 
@@ -46,7 +55,7 @@
 | N2 | T3,T4,T6 | availability/booking concurrency and wallet transaction tests |
 | N3 | T1-T9 | controller contract tests and frontend API tests |
 | N4 | T1,T5,T6 | safe-error/log capture tests |
-| N5 | T2-T10 | bounded-query tests and browser network verification |
+| N5 | T2-T10,T11-T17 | One request per dataset, large-result integration tests, and browser network verification |
 | N6 | T0,T2 | `DomainServiceActivationTest`, `HostListingsControllerTest`, `ServerPortDefaultTest` |
 | E1,E2,E4,E5,E15,E22 | T1,T2 | `HostSecurityIntegrationTest`, `HostListingsControllerTest` |
 | E3 | T2-T6 | Host listing, calendar, booking, message, and wallet integration tests |
@@ -55,17 +64,21 @@
 | E8,E16,E20 | T5 | booking/ticket message integration tests |
 | E9,E10,E12 | T6,T9 | `HostWalletIntegrationTest`, wallet page tests |
 | E11,E13 | T7-T10 | API client tests and auth recovery route tests |
-| E17 | T2-T6 | paged repository/controller integration tests |
 | E21 | T8,T9 | Host text-rendering tests |
 | E23 | T7-T9 | Host mutation failure/recovery tests |
 | E24 | T0,T2 | `DomainServiceActivationTest`, `HostListingsControllerTest` |
 | E25 | T0 | `ServerPortDefaultTest`, `ServerPortOverrideTest` |
+| F8 | T11-T17 | Complete arrays in Host integration/API/provider/route tests; E26-E28 cases |
+| E26 | T11-T17 | Each response type independently returns all 101 rows; 1,001-message history in the booking or ticket integration test |
+| E27 | T11-T14 | Legacy `page`/`size` parameters do not alter results or add pagination fields |
+| E28 | T12,T17 | 1,001 authorized messages returned in `sentAt DESC, id DESC` order |
 
 ## Verification gates
 
 - Backend task tests: from `backend/`, run `./gradlew test --tests '<named test class>'`; run `./gradlew checkstyleMain checkstyleTest` after Java changes.
 - Frontend task tests: from `frontend/`, run `npm test -- <test-file>`; also run `npm run lint` after TS/TSX changes.
 - Before finishing: `cd backend && ./gradlew build`, then `cd frontend && npm test && npm run lint && npm run build` (with the configured `NEXT_PUBLIC_API_BASE_URL`); every F/N acceptance criterion has a passing test or recorded manual check.
+- For the pagination-removal amendment, run the named backend integration tests and focused frontend tests after each task; before T17 closeout run the same complete backend and frontend gates. Browser/network acceptance is read-only and verifies each dataset is fetched once without `page`/`size`; no mutation or production data is involved.
 
 ---
 
@@ -347,10 +360,167 @@
 
 **Verification evidence (2026-10-22):** Backend `./gradlew build --rerun-tasks` completed with `BUILD SUCCESSFUL`. After the wallet-statement dedup regression fix, the frontend suite passed 176 tests across 32 files, `npm run lint` passed, and the production build generated all 16 routes. The live browser rendered all eight Host routes at 1680px, 1280px, and 390px with document width equal to viewport width. Authenticated clean-route Network captures are recorded in checklist step 3; the post-fix `/host/wallet` capture shows exactly one each for auth/me, statement page, and wallet summary. No wallet/booking/message write or message-read operation or token invalidation occurred. N5 capture is complete. Read-only code review found two stale-record issues, which were reconciled; plan closeout lint reports 0 errors and 0 warnings. T10 is complete and awaits owner review (D~23/D~25/D~26/D~27).
 
-### Close-out
+### T11: Return complete listing and booking-request collections
+
+**Delivers:** Complete, owner-scoped, deterministically ordered listing, pending-request, and history arrays, ignoring legacy pagination query parameters | **Satisfies:** F1,F3,F8,N1,N3,N5,E26,E27 | **Depends on:** T2,T4 | **Wave:** 7
+
+**Files**
+
+| Action | Path | What changes |
+|---|---|---|
+| Modify | `backend/src/main/java/com/snoozeshare/api/controller/HostListingController.java` (`GET /api/host/listings`) | Remove `page`/`size` inputs and `PageResponse`; return the complete service result as an ordered array. Unknown legacy query parameters are ignored by Spring. |
+| Modify | `backend/src/main/java/com/snoozeshare/repository/PropertyRepository.java` | Replace the bounded Host query with an owner-scoped, stable-order complete query. |
+| Modify | `backend/src/main/java/com/snoozeshare/service/ListingService.java`, `backend/src/main/java/com/snoozeshare/service/impl/ListingServiceImpl.java` (`listForHost`) | Remove paging arguments and pass through every result from the Host-scoped repository query; preserve projection/DTO mapping. |
+| Modify | `backend/src/main/java/com/snoozeshare/api/controller/HostRequestsController.java` (`GET /api/host/requests`) | Keep the `view` selector; remove page/size inputs and return a complete array for pending/history. |
+| Modify | `backend/src/main/java/com/snoozeshare/repository/BookingRepository.java` | Add complete owner-scoped pending/history queries in their existing deterministic order; retain the row-lock query used by decisions. |
+| Modify | `backend/src/main/java/com/snoozeshare/service/BookingService.java`, `backend/src/main/java/com/snoozeshare/service/impl/BookingServiceImpl.java` (`pendingRequestRowsFor`, `historyRowsFor`) | Remove page/size arguments and map all matching rows while leaving decision transactions unchanged. |
+| Test | `backend/src/test/java/com/snoozeshare/api/host/HostListingsControllerTest.java`, `backend/src/test/java/com/snoozeshare/api/host/HostRequestsIntegrationTest.java` | Assert all 101 independently seeded listings, pending bookings, and history bookings are returned; verify order, owner exclusion, array shape, and identical results when legacy `page`/`size` params are supplied (E26,E27). |
+
+**Checklist**
+
+- [ ] 1. Add failing integration assertions for 101 owned listings, pending bookings, and history bookings; include another Host's records and legacy page/size query values.
+- [ ] 2. Remove pagination inputs and envelope from the two GET controller contracts; implement complete owner-scoped repository/service reads with stable ordering.
+- [ ] 3. Run `./gradlew test --tests 'com.snoozeshare.api.host.HostListingsControllerTest' --tests 'com.snoozeshare.api.host.HostRequestsIntegrationTest'`; verify all rows, scope, order, and unchanged decision behavior.
+- [ ] 4. Run `./gradlew checkstyleMain checkstyleTest` and `./gradlew build` from `backend/`.
+- [ ] 5. Update branch-state Progress and Changes; commit `feat: return complete Host listing and request collections`.
+
+### T12: Return complete booking and ticket conversation collections
+
+**Delivers:** Complete owner/participant-scoped summary and message arrays, preserving privacy, ordering, read/post transactions, and after-commit events | **Satisfies:** F4,F8,N1,N3,N4,N5,E3,E8,E16,E20,E26,E27,E28 | **Depends on:** T5,T11 | **Wave:** 8
+
+**Files**
+
+| Action | Path | What changes |
+|---|---|---|
+| Modify | `backend/src/main/java/com/snoozeshare/api/controller/HostBookingMessagesController.java` | Remove page/size from booking summary/history GETs and return complete arrays; preserve message post/read endpoints. |
+| Modify | `backend/src/main/java/com/snoozeshare/api/controller/HostTicketMessagesController.java` | Remove page/size from ticket summary/history GETs and return complete arrays; preserve HOST-channel authorization and post/read endpoints. |
+| Modify | `backend/src/main/java/com/snoozeshare/repository/BookingRepository.java`, `backend/src/main/java/com/snoozeshare/repository/TicketRepository.java` | Add complete Host-scoped summary queries with the existing stable ordering. |
+| Modify | `backend/src/main/java/com/snoozeshare/repository/BookingMessageRepository.java`, `backend/src/main/java/com/snoozeshare/repository/MessageRepository.java` | Add complete participant/channel-scoped history queries; use `sentAt DESC, id DESC` for each message collection. |
+| Modify | `backend/src/main/java/com/snoozeshare/service/BookingConversationService.java`, `backend/src/main/java/com/snoozeshare/service/impl/BookingConversationServiceImpl.java`, `backend/src/main/java/com/snoozeshare/service/MessageService.java`, `backend/src/main/java/com/snoozeshare/service/impl/MessageServiceImpl.java` | Remove pagination arguments and return complete authorized projections; do not change read/post transaction or after-commit event semantics. |
+| Test | `backend/src/test/java/com/snoozeshare/api/host/HostBookingMessagesIntegrationTest.java`, `backend/src/test/java/com/snoozeshare/api/host/HostTicketMessagesIntegrationTest.java` | Independently seed 101 booking summaries, booking messages, ticket summaries, and ticket messages; seed a 1,001-message thread; assert complete deterministic arrays, legacy parameter equivalence, owner/privacy filtering, and unchanged mutation/event behavior (E26-E28). |
+
+**Checklist**
+
+- [ ] 1. Add failing integration tests for all four 101-row response types, a 1,001-message history, legacy page/size values, and cross-tenant/private-thread exclusion.
+- [ ] 2. Remove paging from both controllers, service interfaces/implementations, and repository reads; preserve `sentAt DESC, id DESC`, channel scope, and existing transactional writes.
+- [ ] 3. Run `./gradlew test --tests 'com.snoozeshare.api.host.HostBookingMessagesIntegrationTest' --tests 'com.snoozeshare.api.host.HostTicketMessagesIntegrationTest'`; assert no truncation and no event/read/write regressions.
+- [ ] 4. Run `./gradlew checkstyleMain checkstyleTest` and `./gradlew build` from `backend/`.
+- [ ] 5. Update branch-state Progress and Changes; commit `feat: return complete Host conversation collections`.
+
+### T13: Return the complete wallet statement
+
+**Delivers:** A complete owner-scoped newest-first wallet statement array in the existing wallet response, preserving the balance and transaction shape | **Satisfies:** F5,F8,N1-N5,E9,E10,E12,E26,E27 | **Depends on:** T6 | **Wave:** 7
+
+**Files**
+
+| Action | Path | What changes |
+|---|---|---|
+| Modify | `backend/src/main/java/com/snoozeshare/api/controller/HostWalletController.java` | Remove page/size from the wallet GET and return the full statement with the wallet summary; ignore legacy page/size query params. |
+| Modify | `backend/src/main/java/com/snoozeshare/api/response/HostWalletResponse.java` | Replace the page envelope with the complete statement list; preserve wallet and transaction DTO field names. |
+| Modify | `backend/src/main/java/com/snoozeshare/repository/LedgerRepository.java`, `backend/src/main/java/com/snoozeshare/repository/JdbcLedgerRepository.java` | Replace bounded statement query with complete Host-wallet-scoped rows ordered `timestamp DESC, id DESC`. |
+| Modify | `backend/src/main/java/com/snoozeshare/service/WalletService.java`, `backend/src/main/java/com/snoozeshare/service/impl/WalletServiceImpl.java` (`statementFor`) | Remove page/size arguments and map the full statement; preserve wallet mutation locking, ledger/audit transaction, and event dispatch. |
+| Test | `backend/src/test/java/com/snoozeshare/api/host/HostWalletIntegrationTest.java` | Assert 101 owner rows are all returned in order, another Host is excluded, legacy params do not change results, and wallet balance/mutation invariants remain intact (E26,E27). |
+
+**Checklist**
+
+- [ ] 1. Add failing wallet integration assertions for 101 ledger rows, newest-first tie-breaking, owner exclusion, and legacy query parameters.
+- [ ] 2. Remove paging from the wallet GET/response/service/repository path without changing mocked operations, row locking, ledger/audit, or after-commit behavior.
+- [ ] 3. Run `./gradlew test --tests 'com.snoozeshare.api.host.HostWalletIntegrationTest'`; assert full response and existing mutation atomicity.
+- [ ] 4. Run `./gradlew checkstyleMain checkstyleTest` and `./gradlew build` from `backend/`.
+- [ ] 5. Update branch-state Progress and Changes; commit `feat: return complete Host wallet statement`.
+
+### T14: Replace paged frontend API and provider types
+
+**Delivers:** Typed complete-array requests/responses and one request per collection dataset | **Satisfies:** F6-F8,N3-N5,E11,E13,E26,E27 | **Depends on:** T11,T12,T13 | **Wave:** 9
+
+**Files**
+
+| Action | Path | What changes |
+|---|---|---|
+| Modify | `frontend/src/lib/hostApi.ts` | Remove page/size arguments and query construction; parse complete arrays for listings, requests, booking/ticket summaries and histories, and wallet statement. Keep calendar year/month query and authenticated fetch behavior. |
+| Modify | `frontend/src/components/host/hostTypes.ts` | Replace page-envelope types with the documented arrays; preserve existing view-model and mutation types. |
+| Modify | `frontend/src/components/host/HostApiProvider.tsx` | Store complete result arrays, load each collection once, and simplify message/wallet history state without altering in-flight request coalescing; cache the complete wallet response so the navbar badge and Wallet page share one request and one statement array. |
+| Test | `frontend/src/lib/hostApi.test.ts`, `frontend/src/components/host/HostApiProvider.test.tsx` | Assert no page/size query or arguments, complete array mapping beyond 100 rows, legacy parameters absent from generated requests, one request per dataset under Strict Mode, Wallet reuses the navbar's complete statement response without a second GET, and auth/error/wallet retry semantics are unchanged. |
+
+**Checklist**
+
+- [ ] 1. Add failing adapter/provider tests using >100 records for each representative response type; assert one request per dataset and no page/size URL or provider arguments.
+- [ ] 2. Update API response types and provider data loading to arrays; preserve auth, error, caching, request coalescing, and ambiguous wallet recovery.
+- [ ] 3. Run `npm test -- src/lib/hostApi.test.ts src/components/host/HostApiProvider.test.tsx` and `npm run lint` from `frontend/`.
+- [ ] 4. Update branch-state Progress and Changes; commit `refactor: consume complete Host API collections`.
+
+### T15: Remove listing and request pagination UI
+
+**Delivers:** Complete listings and pending/history request data rendered in existing bounded scroll regions without page controls | **Satisfies:** F6,F8,N5,E26-E27 | **Depends on:** T14 | **Wave:** 10
+
+**Files**
+
+| Action | Path | What changes |
+|---|---|---|
+| Modify | `frontend/src/app/host/listings/page.tsx`, `frontend/src/app/host/requests/page.tsx` | Remove page state, incremental fetch handlers, and pagination props; render complete provider arrays. |
+| Modify | `frontend/src/components/host/HostRequestsTable.tsx` | Remove any pagination/load-more affordance while retaining pending/history table structure and existing internal scrolling. |
+| Test | `frontend/src/app/host/listings/page.test.tsx`, `frontend/src/app/host/requests/page.test.tsx`, `frontend/src/components/host/HostCalendarRequests.test.tsx` | Verify >100 listings and each request view render from one complete result, no page controls or extra fetches appear, and empty/loading/error states remain. |
+
+**Checklist**
+
+- [ ] 1. Add failing route/component tests for >100 listings, pending rows, and history rows; assert complete rendering and absence of pagination controls or follow-up requests.
+- [ ] 2. Remove page counters and handlers; keep the existing scroll containers, sticky table headers, and route/error behavior unchanged.
+- [ ] 3. Run affected listing/request tests and `npm run lint` from `frontend/`.
+- [ ] 4. Update branch-state Progress and Changes; commit `refactor: remove Host listing and request pagination`.
+
+### T16: Remove message-history and wallet load-more UI
+
+**Delivers:** Selected complete conversation history and complete wallet statement, with existing scroll regions and no load-more state/control | **Satisfies:** F5,F6,F8,N2-N5,E12,E16,E26-E28 | **Depends on:** T14 | **Wave:** 10
+
+**Files**
+
+| Action | Path | What changes |
+|---|---|---|
+| Modify | `frontend/src/app/host/messages/page.tsx`, `frontend/src/app/host/wallet/page.tsx` | Consume complete summary and statement arrays; remove older-page/load-more state and handlers. |
+| Modify | `frontend/src/components/host/HostMessagesPanel.tsx` | Remove history pagination props, loading state, and “Load older messages”; keep authorized thread selection, scroll-to-latest, read/post behavior, and internal transcript scrolling. |
+| Modify | `frontend/src/components/host/HostWalletPanel.tsx` | Remove load-more props/state/control; retain the bounded internal statement scroll region and wallet mutation recovery lock. |
+| Test | `frontend/src/app/host/messages/page.test.tsx`, `frontend/src/app/host/wallet/page.test.tsx`, `frontend/src/components/host/HostMessagesWallet.test.tsx` | Verify the complete 1,001-message history and 101-row statement render without follow-up requests; preserve resolved/private messaging and ambiguous wallet failure behavior. |
+
+**Checklist**
+
+- [ ] 1. Add failing UI tests with 101 statement rows and a 1,001-message history; assert one complete response, no load-more control, and preserved scroll container.
+- [ ] 2. Remove pagination state/props/control while preserving channel privacy, read/post behavior, transcript scroll-to-latest, and wallet no-auto-retry recovery.
+- [ ] 3. Run affected message/wallet tests and `npm run lint` from `frontend/`.
+- [ ] 4. Update branch-state Progress and Changes; commit `refactor: remove Host message and wallet pagination`.
+
+### T17: Verify the pagination reversal
+
+**Delivers:** Backend/frontend contract, build, and authenticated read-only acceptance evidence for complete collections | **Satisfies:** F1-F8,N1-N6,E1-E28 | **Depends on:** T15,T16 | **Wave:** 11
+
+**Files**
+
+| Action | Path | What changes |
+|---|---|---|
+| Modify | `docs/superpowers/plans/2026-10-22-w-host-backend-integration.md` | Record T11-T17 evidence and tick amendment checklists/status only after each task passes. |
+| Verify | Backend and frontend Host API in local environment | Confirm all relevant endpoints return complete owner-scoped arrays, no pagination JSON or request parameters, stable ordering, one fetch per dataset, and calendar remains month-bounded. Use read-only browser/network inspection; do not invoke mutations. |
+
+**Checklist**
+
+- [ ] 1. Run `cd backend && ./gradlew build --rerun-tasks` and `cd frontend && npm test && npm run lint && NEXT_PUBLIC_API_BASE_URL=http://localhost:8080 npm run build`.
+- [ ] 2. Verify each E26 collection independently returns 101 rows and E28 returns 1,001 authorized messages in `sentAt DESC, id DESC`; verify E27 legacy query parameters do not truncate.
+- [ ] 3. Run authenticated read-only browser/network acceptance for listings, requests, messages, and wallet; verify each dataset is requested once without page/size and no writes occur.
+- [ ] 4. Review N1/N3/N4 contract, ownership, error/logging, wallet ledger/lock behavior; record evidence and any deviation in the branch state.
+- [ ] 5. Update branch-state Progress and Changes; commit `test: verify complete Host collection contracts`.
+
+### Original T0-T10 close-out (historical)
+
+The checked items below document the original approved implementation and verification through T10. They do not close the pagination-removal amendment; T11-T17 remain the current acceptance work.
 
 - [x] Every Traceability row is verified; all backend and frontend builds are green.
 - [x] Spec status and plan task statuses reflect the delivered behavior; record any deviation in the branch state.
 - [x] Update `docs/project-state/branch-states/W-HOST.md`: W-HOST-API In review, concise Progress, Changes/Deviations complete, guide out-of-date note, and no completed session rows. Do not edit `PROJECT_STATE.md` or `docs/DeveloperGuide.md` on this feature branch.
 - [x] Commit the close-out record with the final implementation task's documentation changes.
 - [x] GATE: Hand off for operator branch review; do not push, open a PR, or merge until the operator approves.
+
+### Pagination-removal amendment close-out
+
+- [ ] Every current Traceability row is verified against the complete-collection contract; T11-T17 checklists and task statuses reflect reality.
+- [ ] Backend Checkstyle/build and frontend tests/lint/production build pass after T17; record authenticated read-only acceptance and any deviation in the branch state.
+- [ ] Update the branch state: W-HOST-API In review, concise Progress, Changes/Deviations complete, guide out-of-date note if applicable, and no completed session rows. Do not edit `PROJECT_STATE.md` or `docs/DeveloperGuide.md` on this feature branch.
+- [ ] Commit the final amendment closeout record with the final implementation task's documentation changes.
+- [ ] GATE: Hand off for operator branch review; do not push, open a PR, or merge until the operator approves.
