@@ -7,9 +7,9 @@ after the branch merges.
 - **Branch:** W-GUEST (from `development` at `6b242b2`)
 - **Base:** 6b242b2
 - **Owner:** Nathan
-- **Status:** Draft   (`Draft` · `In review` · `Approved` · `Folded`)
+- **Status:** In review   (`Draft` · `In review` · `Approved` · `Folded`)
 - **Approved:** — (project owner only: <name> YYYY-MM-DD)
-- **Last updated:** 2026-10-22 by Claude Opus 4.6 — plan written, awaiting Gate 2 approval
+- **Last updated:** 2026-10-22 by Claude Opus 4.6 — all tasks done, awaiting Gate 3 review
 
 ---
 
@@ -31,9 +31,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-22 20:00 | Claude Opus 4.6 | W-GUEST | Done | Plan written, approved | — | 2026-10-22 |
-| S2 | 2026-10-22 | Claude Opus 4.6 | W-GUEST | Done | T1 partially coded, not committed | — | 2026-10-22 |
-| S3 | 2026-10-22 | Claude Opus 4.6 | W-GUEST | Active | T10 done; Wave 2 complete | Close-out | 2026-10-22 |
+| *(empty — all sessions complete)* | | | | | | | |
 
 **Remaining**
 
@@ -50,7 +48,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-GUEST | Guest role controllers and frontend pages | Building | [spec](docs/superpowers/specs/2026-10-22-w-guest-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-guest.md) | T1-T10 Done; close-out next | — |
+| W-GUEST | Guest role controllers and frontend pages | In review | [spec](docs/superpowers/specs/2026-10-22-w-guest-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-guest.md) | T1-T10 Done; guide out of date: W-GUEST controllers and pages | — |
 
 ---
 
