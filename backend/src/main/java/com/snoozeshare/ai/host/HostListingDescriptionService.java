@@ -3,6 +3,8 @@ package com.snoozeshare.ai.host;
 import java.util.List;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -34,6 +36,7 @@ import com.snoozeshare.service.ListingService;
 @ConditionalOnProperty(name = "snoozeshare.security.enabled", havingValue = "true")
 public class HostListingDescriptionService {
 
+    private static final Logger LOG = LoggerFactory.getLogger(HostListingDescriptionService.class);
     private static final String USER_TASK =
         "Perform the requested listing-description task using the structured data in untrusted context.";
     private final HostIdentityResolver identityResolver;
@@ -69,12 +72,16 @@ public class HostListingDescriptionService {
             List.of(new Turn(TurnRole.USER, USER_TASK)), null, context, AuditContext.NONE);
         LlmResult<ListingDescriptionModelResponse> result = gateway.run(feature, call);
         if (!result.ok()) {
+            LOG.warn("Host AI gateway degraded: requestId={} mode={} code={}", requestId, request.mode(),
+                code(result.code()));
             return HostAiListingDescriptionResponse.degraded(request.mode(), code(result.code()), requestId);
         }
         try {
             validateModel(result.value(), request);
             return HostAiListingDescriptionResponse.from(result.value(), null, requestId);
         } catch (IllegalArgumentException invalidOutput) {
+            LOG.warn("Host AI response rejected after gateway validation: requestId={} mode={} reason={}",
+                requestId, request.mode(), invalidOutput.getMessage());
             return HostAiListingDescriptionResponse.degraded(
                 request.mode(), LlmErrorCode.INVALID_OUTPUT.name(), requestId);
         }

@@ -9,7 +9,7 @@ after the branch merges.
 - **Owner:** Xiao-Congchen
 - **Status:** In review
 - **Approved:** Spec and plan approved (Xiao-Congchen, 2026-10-22); Gate 3 review requested
-- **Last updated:** 2026-10-23 by GPT-5 — aligned Generate word-band boundaries
+- **Last updated:** 2026-10-23 by GPT-5 — added safe Host AI rejection diagnostics
 
 ---
 
@@ -33,7 +33,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S2 | 2026-10-23 00:20 | GPT-5 (lead) | W~1 | In review | Corrected live 400/time-field, response-lifecycle, prompt-contract, and Generate band issues | Commit Generate band fix, then leave branch ready for Gate 3 review | 2026-10-23 01:08 |
+| S2 | 2026-10-23 00:20 | GPT-5 (lead) | W~1 | In review | Corrected live 400/time-field, response-lifecycle, prompt-contract, and Generate band issues; added rejection diagnostics | Commit diagnostics, then leave branch ready for Gate 3 review | 2026-10-23 01:12 |
 
 **Remaining**
 
@@ -47,7 +47,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W~1 | W-AI-HOST: Host AI Listing Optimisation Assistant | In review | [design](../../superpowers/specs/2026-10-22-w-ai-host-design.md) | [plan](../../superpowers/plans/2026-10-22-w-ai-host.md) | T1–T4 plus live 400, response-lifecycle, prompt-contract, and Generate band fixes complete; backend checks pass | — |
+| W~1 | W-AI-HOST: Host AI Listing Optimisation Assistant | In review | [design](../../superpowers/specs/2026-10-22-w-ai-host-design.md) | [plan](../../superpowers/plans/2026-10-22-w-ai-host.md) | T1–T4 plus live 400, response-lifecycle, prompt-contract, Generate band, and safe diagnostics complete; backend checks pass | — |
 
 ---
 
@@ -137,3 +137,4 @@ plain-text rendering conventions.
 | 2026-10-23 | Fixed React Strict Mode mounted-ref handling so degraded and error responses display safely and all controls unlock after completion; added regression coverage | W~1 | Post-review fix |
 | 2026-10-23 | Added the missing server-side Host AI mode instructions and exact JSON response contract; added prompt regression coverage | W~1 | Post-review fix |
 | 2026-10-23 | Corrected Generate word-band validation to accept the requested inclusive 50–75, 75–125, and 125–200 ranges; added boundary tests | W~1 | Post-review fix |
+| 2026-10-23 | Added safe logs distinguishing gateway degradation from Host-side output validation, correlated by HTTP request ID without logging AI content | W~1 | Post-review diagnostic |
