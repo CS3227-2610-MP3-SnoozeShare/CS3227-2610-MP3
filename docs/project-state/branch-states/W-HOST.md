@@ -7,9 +7,9 @@ in after the branch merges.
 - **Branch:** W-HOST (from `development` at `8702e88`)
 - **Base:** `6b242b2`
 - **Owner:** project owner
-- **Status:** Draft
+- **Status:** In review
 - **Approved:** —
-- **Last updated:** 2026-10-22 by GPT-5 — completed T16; moving to T17
+- **Last updated:** 2026-10-22 by GPT-5 — completed T17; handing off W-HOST for owner review
 
 ---
 
@@ -32,7 +32,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| Current | 2026-10-22 | GPT-5 | W-HOST-API | Active | T17 verify the pagination reversal | T17 step 1: rerun backend full build and frontend tests/lint/production build, then perform authenticated read-only browser/network acceptance | 2026-10-22 |
+| — | — | — | — | — | — | — | — |
 
 **Remaining**
 
@@ -49,13 +49,14 @@ No change.
 - [x] T14 replace paged frontend API/provider types with complete arrays; 177 tests, lint, and production build pass; wallet response is shared between navbar and Wallet screen.
 - [x] T15 remove listing/request pagination controls and state; tests render 101 listings, pending rows, and history rows, all 177 frontend tests, lint, and production build pass.
 - [x] T16 remove message-history and wallet load-more controls/state; 1,001-message and 101-row tests, 178 frontend tests, lint, and production build pass.
+- [x] T17 final verification: fresh backend full rerun, 178 frontend tests/lint/build, integration coverage, and authenticated read-only request capture complete; owner review remains.
 
 ## 3. Workstreams
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
 | W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Listing route/load failures use a generic page and listings link; validation and mutation errors stay inline (C~18) | guide out of date: W-HOST Host UI pages and Fall Light details |
-| W-HOST-API | Replace Host fixtures with authenticated backend integration | Building | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T16 done: complete message/wallet histories without load-more; 178 tests, lint, build pass; next T17 acceptance | — |
+| W-HOST-API | Replace Host fixtures with authenticated backend integration | In review | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T17 complete: 101/1,001-row tests, full gates, and authenticated read-only captures; owner review pending | — |
 
 ## 4. Architecture
 
@@ -243,3 +244,4 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | 2026-10-22 | Replaced frontend page envelopes with complete arrays, removed page/size URL generation, and shared the complete wallet response across navbar and Wallet; 177 frontend tests, lint, and production build pass | W-HOST-API | T14 |
 | 2026-10-22 | Removed listing and request page state, handlers, and controls; 101-row listing/pending/history coverage passes with 177 frontend tests, lint, and production build | W-HOST-API | T15 |
 | 2026-10-22 | Removed message-history and wallet load-more state/controls; 1,001 messages and 101 statement rows render with 178 frontend tests, lint, production build pass; full wallet recovery behavior retained | W-HOST-API | T16 |
+| 2026-10-22 | Verified complete Host collections: backend full rerun, 178 frontend tests/lint/production build, 101/1,001-row integration evidence, and authenticated GET-only browser captures with no page/size parameters; no N1/N3/N4 findings | W-HOST-API | T17 |

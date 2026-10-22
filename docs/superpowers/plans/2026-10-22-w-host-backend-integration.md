@@ -38,7 +38,7 @@
 | T14 Replace paged frontend API and provider types | T11,T12,T13 | - | 9 | Done |
 | T15 Remove listing and request pagination UI | T14 | T16 | 10 | Done |
 | T16 Remove message-history and wallet load-more UI | T14 | T15 | 10 | Done |
-| T17 Verify the pagination reversal | T15,T16 | - | 11 | Not started |
+| T17 Verify the pagination reversal | T15,T16 | - | 11 | Done |
 
 ## Traceability
 
@@ -502,11 +502,11 @@
 
 **Checklist**
 
-- [ ] 1. Run `cd backend && ./gradlew build --rerun-tasks` and `cd frontend && npm test && npm run lint && NEXT_PUBLIC_API_BASE_URL=http://localhost:8080 npm run build`.
-- [ ] 2. Verify each E26 collection independently returns 101 rows and E28 returns 1,001 authorized messages in `sentAt DESC, id DESC`; verify E27 legacy query parameters do not truncate.
-- [ ] 3. Run authenticated read-only browser/network acceptance for listings, requests, messages, and wallet; verify each dataset is requested once without page/size and no writes occur.
-- [ ] 4. Review N1/N3/N4 contract, ownership, error/logging, wallet ledger/lock behavior; record evidence and any deviation in the branch state.
-- [ ] 5. Update branch-state Progress and Changes; commit `test: verify complete Host collection contracts`.
+- [x] 1. `./gradlew build --rerun-tasks` succeeded; frontend: 178 tests across 33 files, lint, and production build succeeded (16 routes generated).
+- [x] 2. T11-T13 integration tests cover 101 rows independently for listings, pending/history requests, conversation summaries/messages, and wallet statements; booking-message history covers 1,001 rows in `sentAt DESC, id DESC`; legacy `page`/`size` equivalence is asserted.
+- [x] 3. Authenticated Chrome Network capture: listings once; pending/history once each; booking/ticket conversation lists once each; wallet once and shared with Wallet view. Host GET URLs contain no `page`/`size`; only reads were performed. Local collections are empty, so large-result behavior is verified by tests.
+- [x] 4. Reviewed Host identity/ownership and error boundaries, complete ordered collection queries, and wallet ledger transaction/row-lock path; no new N1/N3/N4 findings.
+- [x] 5. Updated branch-state Progress and Changes; committed `test: verify complete Host collection contracts`.
 
 ### Original T0-T10 close-out (historical)
 
@@ -520,8 +520,8 @@ The checked items below document the original approved implementation and verifi
 
 ### Pagination-removal amendment close-out
 
-- [ ] Every current Traceability row is verified against the complete-collection contract; T11-T17 checklists and task statuses reflect reality.
-- [ ] Backend Checkstyle/build and frontend tests/lint/production build pass after T17; record authenticated read-only acceptance and any deviation in the branch state.
-- [ ] Update the branch state: W-HOST-API In review, concise Progress, Changes/Deviations complete, guide out-of-date note if applicable, and no completed session rows. Do not edit `PROJECT_STATE.md` or `docs/DeveloperGuide.md` on this feature branch.
-- [ ] Commit the final amendment closeout record with the final implementation task's documentation changes.
-- [ ] GATE: Hand off for operator branch review; do not push, open a PR, or merge until the operator approves.
+- [x] Every current Traceability row is verified against the complete-collection contract; T11-T17 checklists and task statuses reflect reality.
+- [x] Backend Checkstyle/build and frontend tests/lint/production build pass after T17; authenticated read-only acceptance is recorded in the branch state.
+- [x] Updated the branch state: W-HOST-API In review, concise Progress, Changes complete, guide out-of-date note, and no active sessions. `PROJECT_STATE.md` and `docs/DeveloperGuide.md` were not edited on this feature branch.
+- [x] Committed the final amendment closeout record with the final verification task.
+- [x] GATE: Hand off for operator branch review; no push, PR, or merge performed.
