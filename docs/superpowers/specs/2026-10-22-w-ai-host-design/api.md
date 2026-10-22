@@ -19,8 +19,8 @@
   "listingId": "null or UUID",
   "mode": "EVALUATE | GENERATE",
   "writingStyle": "FRIENDLY | PROFESSIONAL | PERSUASIVE",
-  "targetAudience": "FAMILIES | COUPLES | BUSINESS_TRAVELLERS | ALL_TRAVELLERS",
-  "length": "SHORT | MEDIUM | LONG",
+  "targetAudience": "ALL_TRAVELLERS | FAMILIES | COUPLES | BUSINESS_TRAVELLERS",
+  "descriptionFocus": "BALANCED | COMFORT | PRACTICALITY",
   "currentDescription": "required non-null string, 0 to 5000 characters",
   "listing": {
     "title": "required non-null string, 0 to 120 characters",
@@ -67,7 +67,7 @@ being treated as a separate error.
     "completeness": { "status": "PASS | IMPROVE", "feedback": "1 to 240 characters" },
     "accuracy": { "status": "PASS | IMPROVE", "feedback": "1 to 240 characters" }
   },
-  "generatedDescription": "null for EVALUATE or DEGRADED; selected word band and gateway-accepted JSON output for successful GENERATE",
+  "generatedDescription": "null for EVALUATE or DEGRADED; 50–150-word guidance and gateway-accepted JSON output for successful GENERATE",
   "generatedAnalysis": "null for EVALUATE or DEGRADED; same three analysis rows for successful GENERATE",
   "gatewayCode": "null on SUCCESS; stable gateway code on DEGRADED",
   "requestId": "standard HTTP request id"

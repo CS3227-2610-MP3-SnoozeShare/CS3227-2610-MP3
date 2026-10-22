@@ -1,6 +1,7 @@
 # W-AI-HOST Design
 
-- **Status:** Approved (Xiao-Congchen, 2026-10-22)
+- **Status:** In review
+- **Amended 2026-10-23:** Host guidance now uses fixed 50–150-word generation, adds description focus, and places All travellers first; see SD10.
 - **Risk tier:** High — Host-authored text and listing data cross the backend-to-LLM boundary, and the feature must prevent cross-Host access and fabricated property claims.
 - **Workstream:** W-AI-HOST | **Plan:** —
 - **Constraints consulted:** C80, C86, C101–C111, C131; § Known Gaps (single backend instance, process-local AI limits, plain-text AI rendering); § Conventions (server-owned prompts, Host identity resolution, safe errors, gateway boundary). This workstream does not amend W-AI-GATEWAY.
@@ -14,9 +15,10 @@ without leaving the form or changing the existing layout. The shared W-AI-GATEWA
 but no Host feature, endpoint, prompt contract, or frontend flow consumes it.
 
 The desired feature is an inline **AI Description Assistant** trigger beside the existing
-description field. It opens a modal where a Host chooses style, audience, and length, evaluates the
-current text, or generates and evaluates a new suggestion. Applying a suggestion changes only the
-unsaved form value; the ordinary listing Save action remains the only persistence path.
+description field. It opens a modal where a Host chooses style, audience, and description focus,
+evaluates the current text, or generates and evaluates a new suggestion of 50–150 words. Applying a
+suggestion changes only the unsaved form value; the ordinary listing Save action remains the only
+persistence path.
 
 ## 2. Goals
 
@@ -56,11 +58,12 @@ None.
 | ID | Decision | Why / rejected alternative | Asked by |
 |---|---|---|---|
 | SD1 | Use one `POST /api/host/ai/listing-description` operation with `EVALUATE` and `GENERATE` modes, accepting an optional persisted listing id and a validated draft context | One contract supports both New and Edit forms; two endpoints would duplicate authorization and response mapping | Operator |
-| SD2 | Use fixed options: styles FRIENDLY, PROFESSIONAL, PERSUASIVE; audiences FAMILIES, COUPLES, BUSINESS_TRAVELLERS, ALL_TRAVELLERS; lengths SHORT 50–74, MEDIUM 75–124, LONG 125–200 words | Matches the supplied prompt examples while making the inclusive word-count bands non-overlapping; rejected arbitrary style/audience text | Operator requirements |
+| SD2 | Use fixed options: styles FRIENDLY, PROFESSIONAL, PERSUASIVE; audiences ALL_TRAVELLERS, FAMILIES, COUPLES, BUSINESS_TRAVELLERS; no Host-selected length | Matches the supplied prompt examples and makes the general audience the first option; rejected arbitrary style/audience text and length customization | Superseded by SD10; operator requirements |
 | SD3 | Put the trigger inline beside the existing Description label and put all interaction in a modal; Apply updates only the controlled form draft | Preserves the current New/Edit layout and keeps persistence under the existing Save action; rejected an always-visible second editor or auto-save | Operator requirements |
 | SD4 | Send only non-address listing context to the model: title, property type, city, region, capacity, rooms, amenities, check-in/out, and current description; street address and postal code are excluded | The feature does not need precise address data to write a description; reduces unnecessary personal/location data exposure | Spec author |
 | SD5 | Use one structured JSON output for both modes with three criteria (`clarity`, `completeness`, `accuracy`), each `PASS` or `IMPROVE` plus one concise feedback sentence | Makes the two-column analysis stable and validates generated text against the actual listing context; rejected free-form prose | Operator requirements |
 | SD6 | Treat model accuracy analysis and factual grounding as advisory; reject only gateway-invalid, unsafe, malformed, or clearly over-limit output | The existing gateway contract does not provide a complete claim-grounding engine. A stronger allowlist would expand this workstream into a new validation subsystem; Hosts review the suggestion before applying it | Operator decision after review |
-| SD7 | Do not add an additional free-text instruction control in this iteration; style, audience, length, listing context, and current description are the complete Host guidance surface | The operator's detailed modal requirements specify the complete input surface; a free-text instruction box would change the requested layout and expand the prompt-injection surface | Operator requirements and Maintainer review |
+| SD7 | Do not add an additional free-text instruction control in this iteration; style, audience, focus, fixed generation guidance, listing context, and current description are the complete Host guidance surface | The operator's detailed modal requirements specify the complete input surface; a free-text instruction box would change the requested layout and expand the prompt-injection surface | Operator requirements and Maintainer review |
 | SD8 | A gateway-degraded result is HTTP 200 with `outcome: DEGRADED`, all analysis/generated fields null, and a stable `gatewayCode`; only `outcome: SUCCESS` can populate or apply a generated description | Makes fallback behavior unambiguous and prevents degraded content from entering the form | Implementer and Tester review |
 | SD9 | Stay within the existing gateway contract: reject serialized context above 8,000 characters, use existing validation/error conventions, use token-bounded JSON validation, and treat gateway flags and grounding feedback as advisory unless the gateway already rejects the result | Avoids changing the completed shared gateway; larger context support, global moderation, stronger correlation, and new output-size semantics are out of scope for W-AI-HOST | Operator decision |
+| SD10 | Remove Host-selected description length customization; every Generate request asks for 50–150 words as prompt guidance, without degrading solely for a length mismatch. Add fixed description focus options: BALANCED means highlight main selling points equally; COMFORT means emphasise living space, comfort, and available facilities; PRACTICALITY means emphasise functional features and suitability for everyday needs. BALANCED is the default. Order target audiences with ALL_TRAVELLERS first. | The operator requested a single generation range, a new focus control with exact meanings, and a general audience default; retaining the length control was rejected as unnecessary customization | Operator, 2026-10-23 |

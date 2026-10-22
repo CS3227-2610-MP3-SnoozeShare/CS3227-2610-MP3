@@ -9,7 +9,7 @@ after the branch merges.
 - **Owner:** Xiao-Congchen
 - **Status:** In review
 - **Approved:** Spec and plan approved (Xiao-Congchen, 2026-10-22); Gate 3 review requested
-- **Last updated:** 2026-10-23 by GPT-5 — preserved listing-detail line breaks and clarified AI data usage
+- **Last updated:** 2026-10-23 by GPT-5 — amended Host AI guidance controls and fixed generation range
 
 ---
 
@@ -33,7 +33,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S2 | 2026-10-23 00:20 | GPT-5 (lead) | W~1 | In review | Preserved listing-detail line breaks and clarified AI data usage; frontend checks pass | Commit frontend presentation refinement, then leave branch ready for Gate 3 review | 2026-10-23 02:53 |
+| S2 | 2026-10-23 00:20 | GPT-5 (lead) | W~1 | Spec'd | Amended approved Host AI spec for fixed 50–150 guidance, focus control, and audience ordering | Ask Gate 1 approval for the amended spec; then update the implementation plan | 2026-10-23 03:05 |
 
 **Remaining**
 
@@ -47,7 +47,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W~1 | W-AI-HOST: Host AI Listing Optimisation Assistant | In review | [design](../../superpowers/specs/2026-10-22-w-ai-host-design.md) | [plan](../../superpowers/plans/2026-10-22-w-ai-host.md) | T1–T4 plus live fixes, modal refinement, logging cleanup, and state persistence complete; checks pass | — |
+| W~1 | W-AI-HOST: Host AI Listing Optimisation Assistant | Spec'd | [design](../../superpowers/specs/2026-10-22-w-ai-host-design.md) | [plan](../../superpowers/plans/2026-10-22-w-ai-host.md) | Amendment drafted and linted; implementation is paused pending Gate 1 approval | — |
 
 ---
 
@@ -101,6 +101,7 @@ plain-text rendering conventions.
 | C~2 | 2026-10-22 | Superseded by C~3: reject gateway-invalid or clearly over-limit results, while factual grounding and broader PII detection remain advisory/inherited | The operator chose the narrower gateway-compatible scope after review; the earlier stronger rejection rule required new shared-gateway or validation behavior | Operator decision |
 | C~3 | 2026-10-22 | Do not amend W-AI-GATEWAY in this workstream; constrain Host AI to the existing 8,000-character input cap, gateway token/output validation, current error conventions, advisory flagging, and advisory factual analysis | The operator chose the narrower implementation after reviewing the gateway constraints; broader moderation, correlation, and grounding changes are deferred rather than silently added | Operator conversation |
 | C~4 | 2026-10-23 | Do not degrade a successful Host Generate response solely because its generated description falls outside the selected word band; keep length selection in the request and prompt, but remove numeric range labels from the UI | The operator intentionally chose to stop the post-response word-band check because it caused otherwise usable LLM responses to degrade, while retaining Short/Medium/Long host guidance | Operator request |
+| C~5 | 2026-10-23 | Amend the approved Host AI contract to remove length customization, request fixed 50–150-word generation guidance, add BALANCED/COMFORT/PRACTICALITY focus with exact meanings and BALANCED default, and order ALL_TRAVELLERS first | The operator requested less length customization and a new content-focus control; the previous Short/Medium contract is superseded | Operator request |
 
 ---
 
@@ -150,3 +151,4 @@ plain-text rendering conventions.
 | 2026-10-23 | Improved the Generate prompt to self-review and revise toward PASS on clarity, completeness, and accuracy while preserving factual accuracy; added prompt regression coverage | W~1 | Operator-directed change |
 | 2026-10-23 | Made Generate length adherence explicit: count with the application word rule, revise when outside the selected band, recount, and avoid filler; added prompt regression coverage | W~1 | Operator-directed change |
 | 2026-10-23 | Preserved line breaks in the Host listing detail description and expanded the AI modal subtitle to explain that listing details ground generation; added UI regressions | W~1 | Operator-directed change |
+| 2026-10-23 | Amended the approved Host AI spec for fixed 50–150-word guidance, description focus semantics, and audience ordering; lint passed and implementation is awaiting Gate 1 approval | W~1 | Operator-directed change |

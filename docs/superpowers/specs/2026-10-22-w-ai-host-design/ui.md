@@ -15,10 +15,10 @@ control, and two columns at desktop/tablet widths.
 
 ### Left column
 
-- Top row: Writing style select (`Friendly`, `Professional`, `Persuasive`) and Target audience
-  select (`Families`, `Couples`, `Business travellers`, `All travellers`).
-- Second row: Description length radios (`Short`, `Medium`, `Long`) with visible ranges `50–74`,
-  `75–124`, and `125–200` words.
+- Top row: Writing style select (`Friendly`, `Professional`, `Persuasive`), Target audience select
+  (`All travellers`, `Families`, `Couples`, `Business travellers`), and Description focus select
+  (`Balanced`, `Comfort`, `Practicality`).
+- Generation uses a fixed 50–150-word target; no description-length control is shown.
 - Existing description textarea, initialized from the form's current controlled value each time the
   modal opens. Edits here do not change the form until Apply.
 - `Evaluate` and `Generate` buttons. Evaluate requires non-blank text; Generate permits blank text.
@@ -35,7 +35,7 @@ control, and two columns at desktop/tablet widths.
 
 | State | UI behavior |
 |---|---|
-| Initial | Current text is copied; defaults are Friendly, All travellers, Medium; analysis and generated text are empty; Evaluate/Generate are enabled according to validation. |
+| Initial | Current text is copied; defaults are Friendly, All travellers, Balanced; analysis and generated text are empty; Evaluate/Generate are enabled according to validation. |
 | Waiting | All selects, radios, textareas, Evaluate, Generate, Apply, and modal close are disabled; a visible spinner and `Evaluating…` or `Generating…` label are shown. |
 | Evaluate success | Current analysis is populated; generated text and Generated analysis remain empty; Evaluate and Generate are available again. |
 | Generate success | Current analysis is populated when current text was non-empty; generated text and Generated analysis are populated; Apply becomes enabled. |
