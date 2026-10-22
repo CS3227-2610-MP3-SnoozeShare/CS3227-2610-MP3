@@ -7,9 +7,9 @@ in after the branch merges.
 - **Branch:** W-HOST (from `development` at `8702e88`)
 - **Base:** `6b242b2`
 - **Owner:** project owner
-- **Status:** Draft
+- **Status:** In review
 - **Approved:** —
-- **Last updated:** 2026-10-22 by GPT-5 — T10 dedup fix and build gates pass; listings request counts confirmed; remaining route capture paused because Chrome focus returned to the user's Canvas tab
+- **Last updated:** 2026-10-22 by GPT-5 — T10 closeout complete; W-HOST-API handed off for owner review
 
 ---
 
@@ -32,25 +32,24 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| 2026-10-22 backend phase | 2026-10-22 | GPT-5 | W-HOST-API | Blocked — needs human | T10 N5: capture remaining seven authenticated Host routes; Chrome focus returned to the user's Canvas tab | When Chrome is available for this acceptance, capture initial request URLs/query/counts for the remaining seven routes without mutations, then complete review and closeout | 2026-10-22 |
 
 **Remaining**
 
-- [ ] Owner review and approval remain for the completed fixture-backed UI phase.
+- [ ] Owner review and approval remain for W-HOST and W-HOST-API.
 - [x] T4 booking decisions: owner-scoped database paging, authenticated API, row-lock decision and concurrency tests are complete.
 - [x] T5 Host booking/ticket message APIs: distinct authenticated routes, database-bounded summaries/history, after-commit events and rollback coverage complete.
 - [x] T6 Host wallet API: authenticated balance, paged statement and mocked mutation routes; five PostgreSQL integration tests pass.
 - [x] T7 authenticated frontend Host API adapter and provider; 154 tests, lint and production build pass.
 - [x] T8 wire listing, calendar, and request screens to the API provider; 166 frontend tests, lint and production build pass.
 - [x] T9 wire Host messages and wallet screens to the API provider; 172 frontend tests, lint, and production build pass.
-- [ ] T10 verify full backend/frontend acceptance and close the phase; authenticated capture found duplicate listings/wallet reads on a fresh dev load, fixed with in-flight deduplication; remaining routes need network capture (D~23/D~25).
+- [x] T10 backend/frontend acceptance, authenticated request captures, regression fixes, code review, and fresh build/test/lint gates complete; owner review remains (D~23/D~25/D~26/D~27).
 
 ## 3. Workstreams
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
 | W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Listings, requests, and wallet scroll within viewport; 143 tests, lint and build pass | guide out of date: W-HOST Host UI pages and Fall Light details |
-| W-HOST-API | Replace Host fixtures with authenticated backend integration | Building | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T10 dedup fix/builds pass; listings request counts confirmed; seven route captures remain (D~23,D~25) | — |
+| W-HOST-API | Replace Host fixtures with authenticated backend integration | In review | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T10 acceptance and gates complete; awaiting owner review and approval (D~23,D~25,D~26,D~27) | — |
 
 ## 4. Architecture
 
@@ -84,7 +83,6 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 
 | ID | What is needed | What it blocks | Raised |
 |---|---|---|---|
-| Q~2 | Project owner signs in to the local SnoozeShare Host app in Chrome and tells the agent to resume; the current session returns 401 from `/api/auth/me` | Authenticated N5 browser network capture required to verify initial request set/counts without mutations | 2026-10-22 |
 
 ## 8. Decisions
 
@@ -134,9 +132,11 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | D~20 | 2026-10-22 | Initial T10 browser attempts showed Host routes loading, and normal shell HTTP probes could not reach the host listener | Resolved for browser verification: an approved local health probe confirmed the backend is healthy; authenticated Host routes loaded with API-backed empty states. A transient browser navigation block cleared after the Next build completed; all eight routes were subsequently checked at desktop, tablet, and mobile widths |
 | D~21 | 2026-10-22 | Live calendar route with a valid but nonexistent listing ID returned 404 for its listing/calendar requests, but the page rendered only breadcrumbs with no unavailable message | Regression test now confirms the safe unavailable message is rendered; calendar route and test updated |
 | D~22 | 2026-10-22 | Live 390px viewport showed the shared navbar top row extended the document by 15px on New/Edit listing routes | Allow the navbar top row to wrap; targeted regression passes, and all eight routes now render within a 390px document width |
-| D~23 | 2026-10-22 | The live browser route sweep verified rendered route states and viewport bounds but did not capture exact Host HTTP request URLs, query parameters, or request counts required by N5 | API adapter tests cover authenticated paths and payloads; backend bounded-query tests cover paging. N5's live browser network capture remains unverified and must be resolved or explicitly carried before T10 closeout |
+| D~23 | 2026-10-22 | The initial live browser route sweep verified rendered route states and viewport bounds but did not capture exact Host HTTP request URLs, query parameters, or request counts required by N5 | Resolved in T10: authenticated Network captures recorded all eight route request sets, status codes, and actual GET counts in the implementation plan; browser OPTIONS preflights were excluded |
 | D~24 | 2026-10-22 | On a later T10 resume, the owner had signed in; a fresh read-only capture showed `/api/auth/me` returning `200` and the Host listing route rendering API-backed state | Authenticated acceptance can continue without credentials being handled by the agent; no mutations were performed |
-| D~25 | 2026-10-22 | A clean authenticated development reload duplicated the initial listings and shared wallet reads; React Strict Mode replayed mount effects and the provider did not coalesce same-key in-flight reads | Added provider-level in-flight request sharing for keyed page resources and wallet summary reads; both Strict Mode regression tests pass, all 175 frontend tests/lint/build and the backend build pass; a fresh `/host/listings` capture showed one request each for `/api/auth/me`, `/api/host/listings?page=0&size=50`, and `/api/host/wallet?page=0&size=1`; Chrome focus then returned to the user's Canvas tab before the remaining seven route counts could be captured |
+| D~25 | 2026-10-22 | A clean authenticated development reload duplicated the initial listings and shared wallet reads; React Strict Mode replayed mount effects and the provider did not coalesce same-key in-flight reads | Added provider-level in-flight request sharing for keyed page resources and wallet summary reads; the Strict Mode regressions pass, all 176 frontend tests/lint/build and backend build pass, and a fresh `/host/listings` capture showed one request each for `/api/auth/me`, `/api/host/listings?page=0&size=50`, and `/api/host/wallet?page=0&size=1`; the remaining route requests were later captured during T10 (D~23) |
+| D~26 | 2026-10-22 | A clean Wallet route capture duplicated `GET /api/host/wallet?page=0&size=50` under Strict Mode even though the summary and keyed page resources were already coalesced | Added separate in-flight sharing for wallet statement pages and a Strict Mode regression test; the regression failed with two page reads before the fix, passed after it, and a fresh authenticated Wallet capture now shows one statement request and one wallet summary request |
+| D~27 | 2026-10-22 | Read-only T10 review found stale gate wording and a handoff that still said route captures remained | Reconciled the evidence and next-action records; review found no code findings, and the final frontend/backend gates and plan closeout lint now pass |
 
 ## 10. Changes
 
@@ -220,3 +220,5 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | 2026-10-22 | T10 fresh backend Checkstyle/build and frontend 172-test/lint/production-build gates pass; authenticated browser/network acceptance remains open per D~20 | W-HOST-API | T10 |
 | 2026-10-22 | Added calendar 404 unavailable-state regression/fix and responsive navbar wrapping; all eight routes fit at desktop/tablet/mobile, 173 frontend tests and lint pass, production build passes on rerun; N5 live network capture remains unverified | W-HOST-API | T10 |
 | 2026-10-22 | Coalesced same-key in-flight page and wallet-summary reads to prevent duplicate Host API calls during React Strict Mode effect replay; 175 frontend tests, lint, production build, and backend build pass | W-HOST-API | T10 / D~25 |
+| 2026-10-22 | Coalesced in-flight wallet statement page reads after live Wallet acceptance exposed a Strict Mode duplicate; the regression failed before the fix and the clean Wallet recapture shows one statement fetch | W-HOST-API | T10 / D~26 |
+| 2026-10-22 | Closed T10 with eight-route authenticated request capture, 176 frontend tests, lint/build, backend build, read-only review, and plan closeout lint | W-HOST-API | T10 |

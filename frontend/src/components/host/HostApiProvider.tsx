@@ -42,6 +42,7 @@ export function HostApiProvider({ children }: PropsWithChildren) {
   const walletMutationLock = useRef(false);
   const resourceLoads = useRef(new Map<string, Promise<unknown>>());
   const walletLoads = useRef(new Map<string, Promise<void>>());
+  const walletStatementLoads = useRef(new Map<string, Promise<void>>());
 
   const loadResource = useCallback(<T,>(key: string, loader: () => Promise<T>) => {
     const existing = resourceLoads.current.get(key);
@@ -90,22 +91,32 @@ export function HostApiProvider({ children }: PropsWithChildren) {
     return request;
   }, []);
 
-  const refreshWalletStatement = useCallback(async (page = 0, size = 50) => {
-    try {
-      const data = await fetchHostWallet(page, size);
-      setWallet((current) => {
-        if (page === 0 || current.status !== 'ready' || current.data.statement.page >= page) return { status: 'ready', data };
-        return { status: 'ready', data: {
-          ...data,
-          statement: { ...data.statement, items: [...current.data.statement.items, ...data.statement.items] },
-        } };
-      });
-    } catch {
-      setWallet((current) => current.status === 'ready'
-        ? { status: 'ready', data: current.data, refreshError: 'Unable to load wallet statement.' }
-        : { status: 'error', message: 'Unable to load wallet statement.' });
-      throw new Error('Unable to load wallet statement.');
-    }
+  const refreshWalletStatement = useCallback((page = 0, size = 50) => {
+    const key = `${page}:${size}`;
+    const existing = walletStatementLoads.current.get(key);
+    if (existing) return existing;
+
+    const request: Promise<void> = fetchHostWallet(page, size).then(
+      (data) => {
+        if (walletStatementLoads.current.get(key) === request) walletStatementLoads.current.delete(key);
+        setWallet((current) => {
+          if (page === 0 || current.status !== 'ready' || current.data.statement.page >= page) return { status: 'ready', data };
+          return { status: 'ready', data: {
+            ...data,
+            statement: { ...data.statement, items: [...current.data.statement.items, ...data.statement.items] },
+          } };
+        });
+      },
+      () => {
+        if (walletStatementLoads.current.get(key) === request) walletStatementLoads.current.delete(key);
+        setWallet((current) => current.status === 'ready'
+          ? { status: 'ready', data: current.data, refreshError: 'Unable to load wallet statement.' }
+          : { status: 'error', message: 'Unable to load wallet statement.' });
+        throw new Error('Unable to load wallet statement.');
+      },
+    );
+    walletStatementLoads.current.set(key, request);
+    return request;
   }, []);
 
   const retryWalletRecovery = useCallback(async () => {

@@ -41,6 +41,15 @@ function ResourceEffectProbe({ loader }: { loader: () => Promise<string[]> }) {
   return null;
 }
 
+function WalletStatementEffectProbe() {
+  const api = useHostApi();
+  const refreshWalletStatement = api.refreshWalletStatement;
+  useEffect(() => {
+    void refreshWalletStatement(0, 50).catch(() => undefined);
+  }, [refreshWalletStatement]);
+  return null;
+}
+
 const walletPage = (balance: number) => ({
   wallet: { id: 'w-1', userId: 'host-1', balance, currency: 'SGD', updatedAt: '2026-10-22T00:00:00Z' },
   statement: { items: [], page: 0, size: 1, hasMore: false },
@@ -70,6 +79,18 @@ describe('HostApiProvider', () => {
     await waitFor(() => expect(fetchHostWallet).toHaveBeenCalledTimes(1));
     await act(async () => { resolveWallet(walletPage(100)); });
     await screen.findByText('100');
+  });
+
+  it('shares an in-flight wallet statement request across Strict Mode effect replay', async () => {
+    const resolvers: Array<(value: ReturnType<typeof walletPage>) => void> = [];
+    fetchHostWallet.mockImplementation(() => new Promise((resolve) => { resolvers.push(resolve); }));
+    render(<StrictMode><HostApiProvider><WalletStatementEffectProbe /></HostApiProvider></StrictMode>);
+
+    try {
+      expect(fetchHostWallet.mock.calls.filter(([, size]) => size === 50)).toHaveLength(1);
+    } finally {
+      await act(async () => { resolvers.forEach((resolve) => resolve(walletPage(100))); });
+    }
   });
 
   it('shares an in-flight page resource request across Strict Mode effect replay', async () => {

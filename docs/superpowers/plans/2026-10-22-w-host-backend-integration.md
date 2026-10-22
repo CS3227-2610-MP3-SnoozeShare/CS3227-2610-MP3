@@ -29,7 +29,7 @@
 | T7 Add authenticated frontend Host API adapter | T0,T1,T2,T3,T4,T5,T6 | - | 3 | Done |
 | T8 Wire listing, calendar, and request screens | T2,T3,T4,T7 | - | 4 | Done |
 | T9 Wire messages and wallet screens | T5,T6,T7,T8 | - | 5 | Done |
-| T10 Verify integration and close the phase | T9 | - | 6 | In progress |
+| T10 Verify integration and close the phase | T9 | - | 6 | Done |
 
 ## Traceability
 
@@ -340,17 +340,17 @@
 **Checklist**
 
 - [x] 1. Run `cd backend && ./gradlew build --rerun-tasks` and `cd frontend && npm test && npm run lint && NEXT_PUBLIC_API_BASE_URL=http://localhost:8080 npm run build`.
-- [x] 2. Add a failing regression for calendar 404, render a safe unavailable state, fix the live-discovered 390px navbar overflow with a wrapping-row regression, and coalesce same-key in-flight page/wallet reads with two Strict Mode regression tests.
-- [ ] 3. Verify every Traceability row; all eight routes render within the viewport at desktop/tablet/mobile. Record exact live browser request/query/count captures for each route. A fresh authenticated `/host/listings` capture showed one `/api/auth/me`, one `/api/host/listings?page=0&size=50`, and one shared `/api/host/wallet?page=0&size=1`; in-flight deduplication and Strict Mode regression tests address the duplicate calls initially observed (D~23/D~25). Capture the other seven routes before marking N5 verified.
+- [x] 2. Add a failing regression for calendar 404, render a safe unavailable state, fix the live-discovered 390px navbar overflow with a wrapping-row regression, and coalesce same-key in-flight page, wallet-summary, and wallet-statement reads with three Strict Mode regression tests.
+- [x] 3. Verify every Traceability row; all eight routes render within the viewport at desktop/tablet/mobile. Fresh authenticated Network captures (one actual GET per listed data set; browser OPTIONS preflights excluded) showed: `/host/listings` — `/api/auth/me`, `/api/host/listings?page=0&size=50`, `/api/host/wallet?page=0&size=1` (all 200); `/host/listings/new` — auth/me and wallet summary (200; no listing read before form submission); `/host/listings/{550e8400-e29b-41d4-a716-446655440000}` and `/edit` — auth/me and wallet summary (200), listing detail (404; UI not-found); `/calendar` — auth/me and wallet summary (200), `/api/host/listings/{id}/calendar?year=2026&month=10` and listing detail (404; safe unavailable state); `/host/requests` — auth/me, `/api/host/requests?view=pending&page=0&size=50`, `/api/host/requests?view=history&page=0&size=50`, wallet summary (200); `/host/messages` — auth/me, `/api/host/messages/bookings?page=0&size=50`, `/api/host/messages/tickets?page=0&size=50`, wallet summary (200; empty state, no read/write operation); `/host/wallet` — auth/me, `/api/host/wallet?page=0&size=50`, wallet summary (200). No duplicate GET or polling loop was observed after the in-flight fixes; the Wallet statement capture initially showed two reads and now shows one (D~23/D~25/D~26).
 - [x] 4. Inspect the API error logger and request adapter; logs include only request ID/status/code/path, and adapter tests verify no client-supplied host ID or wallet retry metadata.
-- [x] 5. Record verification evidence: backend fresh Checkstyle/build passed; frontend 175 tests across 32 files, lint, and production build passed.
+- [x] 5. Record verification evidence: backend fresh Checkstyle/build passed; frontend 176 tests across 32 files, lint, and production build passed.
 
-**Verification evidence (2026-10-22):** `./gradlew build --rerun-tasks` completed with `BUILD SUCCESSFUL`; frontend `npm test` passed 175 tests in 32 files, lint passed, and `NEXT_PUBLIC_API_BASE_URL=http://localhost:8080 npm run build` generated all 16 routes. The live browser rendered all eight Host routes at 1680px, 1280px, and 390px with document width equal to viewport width. A fresh authenticated `/host/listings` capture showed exactly one successful request each for `/api/auth/me`, `/api/host/listings?page=0&size=50`, and `/api/host/wallet?page=0&size=1`; the other seven route request sets remain uncaptured after Chrome focus returned to the user's Canvas tab. No live wallet/message/booking mutations or token invalidation were performed. N5 and T10 closeout remain open (D~23/D~25).
+**Verification evidence (2026-10-22):** Backend `./gradlew build --rerun-tasks` completed with `BUILD SUCCESSFUL`. After the wallet-statement dedup regression fix, the frontend suite passed 176 tests across 32 files, `npm run lint` passed, and the production build generated all 16 routes. The live browser rendered all eight Host routes at 1680px, 1280px, and 390px with document width equal to viewport width. Authenticated clean-route Network captures are recorded in checklist step 3; the post-fix `/host/wallet` capture shows exactly one each for auth/me, statement page, and wallet summary. No wallet/booking/message write or message-read operation or token invalidation occurred. N5 capture is complete. Read-only code review found two stale-record issues, which were reconciled; plan closeout lint reports 0 errors and 0 warnings. T10 is complete and awaits owner review (D~23/D~25/D~26/D~27).
 
 ### Close-out
 
-- [ ] Every Traceability row is verified; all backend and frontend builds are green.
-- [ ] Spec status and plan task statuses reflect the delivered behavior; record any deviation in the branch state.
-- [ ] Update `docs/project-state/branch-states/W-HOST.md`: W-HOST-API In review, concise Progress, Changes/Deviations complete, guide out-of-date note, and no completed session rows. Do not edit `PROJECT_STATE.md` or `docs/DeveloperGuide.md` on this feature branch.
-- [ ] Commit the close-out record with the final implementation task's documentation changes.
-- [ ] GATE: Ask the operator for branch review; do not push, open a PR, or merge until the operator approves.
+- [x] Every Traceability row is verified; all backend and frontend builds are green.
+- [x] Spec status and plan task statuses reflect the delivered behavior; record any deviation in the branch state.
+- [x] Update `docs/project-state/branch-states/W-HOST.md`: W-HOST-API In review, concise Progress, Changes/Deviations complete, guide out-of-date note, and no completed session rows. Do not edit `PROJECT_STATE.md` or `docs/DeveloperGuide.md` on this feature branch.
+- [x] Commit the close-out record with the final implementation task's documentation changes.
+- [x] GATE: Hand off for operator branch review; do not push, open a PR, or merge until the operator approves.
