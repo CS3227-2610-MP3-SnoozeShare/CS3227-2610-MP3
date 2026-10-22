@@ -21,7 +21,7 @@ const audiences: { value: AiTargetAudience; label: string }[] = [
   { value: 'FAMILIES', label: 'Families' }, { value: 'COUPLES', label: 'Couples' }, { value: 'BUSINESS_TRAVELLERS', label: 'Business travellers' }, { value: 'ALL_TRAVELLERS', label: 'All travellers' },
 ];
 const lengths: { value: AiDescriptionLength; label: string }[] = [
-  { value: 'SHORT', label: 'Short' }, { value: 'MEDIUM', label: 'Medium' }, { value: 'LONG', label: 'Long' },
+  { value: 'SHORT', label: 'Short' }, { value: 'MEDIUM', label: 'Medium' },
 ];
 
 export function HostAiDescriptionAssistant({ open, listingId, listing, description, onApply, onClose }: Props) {
@@ -84,23 +84,27 @@ export function HostAiDescriptionAssistant({ open, listingId, listing, descripti
           <div><h2 className="text-lg font-semibold" id="host-ai-title">AI Description Assistant ✨</h2><p className="mt-1 text-sm text-[var(--text-subtle)]" id="host-ai-description">Review the current description or generate a grounded suggestion.</p></div>
           <button aria-label="Close AI Description Assistant" className="rounded-md p-1 text-[var(--text-subtle)] hover:bg-muted hover:text-foreground" disabled={disabled} onClick={onClose} title="Close" type="button"><X aria-hidden="true" className="size-5" /></button>
         </div>
-        <div className="mt-5 grid gap-5 lg:grid-cols-2">
-          <section aria-label="AI input" className="space-y-4">
-            <div className="grid gap-3 sm:grid-cols-2">
+        <div className="mt-5 space-y-5">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <label className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--text-muted)]"><span>Writing style</span><SelectField aria-label="Writing style" disabled={disabled} name="ai-writing-style" options={styles} value={style} onValueChange={(value) => setStyle(value as AiWritingStyle)} /></label>
               <label className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--text-muted)]"><span>Target audience</span><SelectField aria-label="Target audience" disabled={disabled} name="ai-target-audience" options={audiences} value={audience} onValueChange={(value) => setAudience(value as AiTargetAudience)} /></label>
-            </div>
             <fieldset className="space-y-2" disabled={disabled}><legend className="text-xs font-semibold text-[var(--text-muted)]">Description length</legend><div className="flex flex-wrap gap-4">{lengths.map((option) => <label className="flex items-center gap-2 text-sm" key={option.value}><input checked={length === option.value} name="ai-description-length" onChange={() => setLength(option.value)} type="radio" />{option.label}</label>)}</div></fieldset>
+          </div>
+          <div className="grid gap-5 lg:grid-cols-2">
             <label className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--text-muted)]"><span>Current description</span><textarea aria-label="Current description" className="min-h-44 rounded-lg border border-input bg-background p-3 text-sm font-normal outline-none focus:border-ring focus:ring-3 focus:ring-ring/20" disabled={disabled} value={draft} onChange={(event) => setDraft(event.target.value)} /></label>
-            <AnalysisPanel heading="Current analysis" analysis={response?.currentAnalysis ?? null} />
-            {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
-            <div className="flex flex-wrap items-center gap-2"><button className="rounded-lg border border-border px-4 py-2 text-sm font-semibold" disabled={disabled || !draft.trim()} onClick={() => void run('EVALUATE')} type="button">{pending === 'EVALUATE' ? 'Evaluating…' : 'Evaluate'}</button><button className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground" disabled={disabled} onClick={() => void run('GENERATE')} type="button">{pending === 'GENERATE' ? 'Generating…' : 'Generate'}</button>{pending && <span aria-label="AI request loading" className="text-sm text-[var(--text-subtle)]" role="status">Loading…</span>}</div>
-          </section>
-          <section aria-label="AI output" className="space-y-4">
             <label className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--text-muted)]">Generated description<textarea aria-label="Generated description" className="min-h-44 rounded-lg border border-input bg-[var(--surface-inset)] p-3 text-sm font-normal" readOnly value={response?.generatedDescription ?? ''} /></label>
+          </div>
+          <div className="grid gap-5 lg:grid-cols-2">
+            <section aria-label="AI input" className="space-y-4">
+              <AnalysisPanel heading="Current analysis" analysis={response?.currentAnalysis ?? null} />
+              {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
+              <div className="flex flex-wrap items-center gap-2"><button className="rounded-lg border border-border px-4 py-2 text-sm font-semibold" disabled={disabled || !draft.trim()} onClick={() => void run('EVALUATE')} type="button">{pending === 'EVALUATE' ? 'Evaluating…' : 'Evaluate'}</button><button className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground" disabled={disabled} onClick={() => void run('GENERATE')} type="button">{pending === 'GENERATE' ? 'Generating…' : 'Generate'}</button>{pending && <span aria-label="AI request loading" className="text-sm text-[var(--text-subtle)]" role="status">Loading…</span>}</div>
+            </section>
+            <section aria-label="AI output" className="space-y-4">
             <AnalysisPanel heading="Generated analysis" analysis={response?.generatedAnalysis ?? null} />
             <button className="rounded-lg bg-[var(--success)] px-4 py-2 text-sm font-semibold text-white" disabled={disabled || !response?.generatedDescription} onClick={() => { if (response?.generatedDescription) { onApply(response.generatedDescription); onClose(); } }} type="button">Apply generated description</button>
-          </section>
+            </section>
+          </div>
         </div>
       </div>
     </div>

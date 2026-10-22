@@ -23,7 +23,7 @@ describe('HostAiDescriptionAssistant', () => {
     expect(screen.getByLabelText('Current description')).toHaveValue('Existing copy');
     expect(screen.getByText('Short')).toBeInTheDocument();
     expect(screen.getByText('Medium')).toBeInTheDocument();
-    expect(screen.getByText('Long')).toBeInTheDocument();
+    expect(screen.queryByText('Long')).not.toBeInTheDocument();
     expect(screen.queryByText('50–75 words')).not.toBeInTheDocument();
     expect(screen.queryByText('75–125 words')).not.toBeInTheDocument();
     expect(screen.queryByText('125–200 words')).not.toBeInTheDocument();
@@ -74,6 +74,21 @@ describe('HostAiDescriptionAssistant', () => {
     fireEvent.click(generateButton);
     const error = await screen.findByRole('alert');
     expect(error.compareDocumentPosition(generateButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('keeps matching descriptions and analyses in source/output order', async () => {
+    postHostAiListingDescription.mockResolvedValue(response);
+    render(<HostAiDescriptionAssistant open listing={listing} description="Existing copy" onApply={vi.fn()} onClose={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Generate' }));
+    await waitFor(() => expect(screen.getByLabelText('Generated description')).toHaveValue(response.generatedDescription));
+
+    const currentDescription = screen.getByLabelText('Current description');
+    const generatedDescription = screen.getByLabelText('Generated description');
+    const currentAnalysis = screen.getByRole('heading', { name: 'Current analysis' });
+    const generatedAnalysis = screen.getByRole('heading', { name: 'Generated analysis' });
+    expect(currentDescription.compareDocumentPosition(generatedDescription) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(currentAnalysis.compareDocumentPosition(generatedAnalysis) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('disables every action while waiting for the response', async () => {

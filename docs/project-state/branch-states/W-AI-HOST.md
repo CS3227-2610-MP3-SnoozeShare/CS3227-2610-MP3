@@ -9,7 +9,7 @@ after the branch merges.
 - **Owner:** Xiao-Congchen
 - **Status:** In review
 - **Approved:** Spec and plan approved (Xiao-Congchen, 2026-10-22); Gate 3 review requested
-- **Last updated:** 2026-10-23 by GPT-5 — refined Host AI modal interactions, layout, controls, and analysis status icons
+- **Last updated:** 2026-10-23 by GPT-5 — aligned Host AI modal controls, descriptions, and analyses into rows
 
 ---
 
@@ -33,7 +33,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S2 | 2026-10-23 00:20 | GPT-5 (lead) | W~1 | In review | Corrected live AI issues; refined modal close behavior, layout order, dropdown styling, error placement, and analysis icons | Commit modal refinement, then leave branch ready for Gate 3 review | 2026-10-23 02:00 |
+| S2 | 2026-10-23 00:20 | GPT-5 (lead) | W~1 | In review | Corrected live AI issues; refined modal interactions, controls, row alignment, error placement, and analysis icons | Commit modal row-alignment refinement, then leave branch ready for Gate 3 review | 2026-10-23 02:07 |
 
 **Remaining**
 
@@ -47,7 +47,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W~1 | W-AI-HOST: Host AI Listing Optimisation Assistant | In review | [design](../../superpowers/specs/2026-10-22-w-ai-host-design.md) | [plan](../../superpowers/plans/2026-10-22-w-ai-host.md) | T1–T4 plus live fixes, relaxed Generate validation, and modal refinement complete; frontend checks pass | — |
+| W~1 | W-AI-HOST: Host AI Listing Optimisation Assistant | In review | [design](../../superpowers/specs/2026-10-22-w-ai-host-design.md) | [plan](../../superpowers/plans/2026-10-22-w-ai-host.md) | T1–T4 plus live fixes, relaxed Generate validation, and modal row alignment complete; frontend checks pass | — |
 
 ---
 
@@ -143,3 +143,4 @@ plain-text rendering conventions.
 | 2026-10-23 | Added server-derived `targetWordCount` values to the serialized context and made the prompt require the selected numeric target using the application's word-count rule; added contract regression coverage | W~1 | Post-review fix |
 | 2026-10-23 | Removed Host-side generated word-band rejection and the corresponding UI range labels; added regressions for accepting an out-of-band generated response and displaying only Short/Medium/Long | W~1 | Operator-directed change |
 | 2026-10-23 | Refined the assistant modal with Escape/backdrop/X closing, full viewport backdrop, listing-form dropdowns, reordered analysis/actions, error placement, and PASS/IMPROVE icons; added UI regressions | W~1 | Operator-directed change |
+| 2026-10-23 | Removed Long length, aligned the three controls in one row, and aligned current/generated descriptions and analyses into matching rows; added layout regressions | W~1 | Operator-directed change |
