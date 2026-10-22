@@ -141,6 +141,77 @@ class AgentDisputeControllerTest extends AgentApiIntegrationTest {
         com.snoozeshare.testsupport.ErrorAssertions.assertCleanMessage(result, "Ticket is not in review");
     }
 
+    private com.snoozeshare.testsupport.DisputeScenarioFactory.Scenario assigned(RemedyType remedy) throws Exception {
+        var dispute = scenarios.openDispute(remedy);
+        putAs("/api/agent/disputes/" + dispute.ticket().getId() + "/assign", agent.token(), "").andExpect(status().isOk());
+        return dispute;
+    }
+
+    private void expectInvalid(String path, String body, String code, String message) throws Exception {
+        var result = putAs(path, agent.token(), body).andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(code)).andReturn();
+        if (message != null) {
+            com.snoozeshare.testsupport.ErrorAssertions.assertCleanMessage(result, message);
+        }
+    }
+
+    @Test
+    void manualNeedsRefund() throws Exception { // E19
+        var dispute = scenarios.inReviewDispute(agent.id());
+        expectInvalid(resolvePath(dispute.ticket().getId()), resolveBody("MANUAL", "null", "r"),
+                "INVALID_REQUEST", "Guest refund is required");
+    }
+
+    @Test
+    void acceptNeedsPositiveRefund() throws Exception { // E22
+        var dispute = assigned(RemedyType.PARTIAL_REFUND);
+        expectInvalid(resolvePath(dispute.ticket().getId()), resolveBody("ACCEPT", "0", "r"), "INVALID_REQUEST",
+                "Accept needs a refund above zero; use Reject or Manual adjustment for a zero refund");
+    }
+
+    @Test
+    void refundBoundaries() throws Exception { // E23
+        var dispute = scenarios.inReviewDispute(agent.id());
+        String path = resolvePath(dispute.ticket().getId());
+        var guestBefore = balanceOf(dispute.guest().getId());
+
+        expectInvalid(path, resolveBody("MANUAL", "120.01", "r"), "INVALID_REQUEST",
+                "Guest refund cannot exceed the escrow held");
+        expectInvalid(path, resolveBody("MANUAL", "-1", "r"), "VALIDATION_ERROR", null);
+        expectInvalid(path, resolveBody("MANUAL", "10.505", "r"), "VALIDATION_ERROR", null);
+        expectInvalid(path, resolveBody("MANUAL", "1234567890", "r"), "VALIDATION_ERROR", null);
+        org.assertj.core.api.Assertions.assertThat(balanceOf(dispute.guest().getId())).isEqualByComparingTo(guestBefore);
+        putAs(path, agent.token(), resolveBody("MANUAL", "120.00", "all")).andExpect(status().isOk());
+    }
+
+    @Test
+    void refundIgnoredRules() throws Exception { // E77
+        var reject = scenarios.inReviewDispute(agent.id());
+        putAs(resolvePath(reject.ticket().getId()), agent.token(), resolveBody("REJECT", "50", "r"))
+                .andExpect(jsonPath("$.ticket.status").value("RESOLVED_REJECTED"));
+        var full = scenarios.inReviewDispute(agent.id());
+        var guestBefore = balanceOf(full.guest().getId());
+        putAs(resolvePath(full.ticket().getId()), agent.token(), resolveBody("ACCEPT", "5", "r"))
+                .andExpect(jsonPath("$.ticket.status").value("RESOLVED_APPROVED"));
+        org.assertj.core.api.Assertions.assertThat(balanceOf(full.guest().getId()).subtract(guestBefore))
+                .isEqualByComparingTo("120.00");
+        var payout = assigned(RemedyType.HOST_PAYOUT);
+        putAs(resolvePath(payout.ticket().getId()), agent.token(), resolveBody("ACCEPT", "null", "r"))
+                .andExpect(jsonPath("$.ticket.status").value("RESOLVED_APPROVED"));
+        var invalid = scenarios.inReviewDispute(agent.id());
+        expectInvalid(resolvePath(invalid.ticket().getId()), resolveBody("REJECT", "-1", "r"), "VALIDATION_ERROR", null);
+    }
+
+    @Test
+    void blankReasonIs400() throws Exception { // E78, E65
+        var dispute = scenarios.inReviewDispute(agent.id());
+        String path = resolvePath(dispute.ticket().getId());
+        expectInvalid(path, resolveBody("REJECT", "null", ""), "VALIDATION_ERROR", null);
+        expectInvalid(path, "{\"mode\":\"REJECT\"}", "VALIDATION_ERROR", null);
+        expectInvalid(path, resolveBody("REJECT", "null", "x".repeat(1001)), "VALIDATION_ERROR", null);
+        putAs(path, agent.token(), resolveBody("REJECT", "null", "x".repeat(1000))).andExpect(status().isOk());
+    }
+
     @Test
     void queueFiltersAndCounts() throws Exception { // F3
         var first = scenarios.openDispute(RemedyType.FULL_REFUND);
