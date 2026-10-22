@@ -7,7 +7,9 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -17,6 +19,7 @@ import com.snoozeshare.config.ConditionalOnDatabase;
 import com.snoozeshare.service.ListingMetrics;
 import com.snoozeshare.service.ListingMetricsService;
 import com.snoozeshare.service.ListingReview;
+import com.snoozeshare.service.ListingSummaryMetrics;
 
 @Service
 @ConditionalOnDatabase
@@ -86,5 +89,34 @@ public class ListingMetricsServiceImpl implements ListingMetricsService {
         double occupancyPercentage = Math.min(100.0, bookedNights / 30.0 * 100.0);
         return new ListingMetrics(bookingCount, averageRating, reviews, occupancyPercentage,
                 earnings);
+    }
+
+    @Override
+    public Map<UUID, ListingSummaryMetrics> summaryMetricsForHost(UUID hostId) {
+        Map<UUID, Long> bookingCounts = new HashMap<>();
+        jdbc.queryForList(
+                "SELECT p.id AS listing_id, COUNT(b.id) AS booking_count "
+                        + "FROM properties p LEFT JOIN bookings b ON b.listing_id = p.id "
+                        + "WHERE p.host_id = ? GROUP BY p.id",
+                hostId).forEach(row -> bookingCounts.put(
+                (UUID) row.get("listing_id"), ((Number) row.get("booking_count")).longValue()));
+
+        Map<UUID, Double> averageRatings = new HashMap<>();
+        jdbc.queryForList(
+                "SELECT p.id AS listing_id, AVG(r.rating) AS average_rating "
+                        + "FROM properties p "
+                        + "LEFT JOIN bookings b ON b.listing_id = p.id "
+                        + "LEFT JOIN reviews r ON r.booking_id = b.id "
+                        + "WHERE p.host_id = ? GROUP BY p.id",
+                hostId).forEach(row -> {
+                    Object average = row.get("average_rating");
+                    averageRatings.put((UUID) row.get("listing_id"),
+                            average == null ? 0.0 : ((Number) average).doubleValue());
+                });
+
+        Map<UUID, ListingSummaryMetrics> summaries = new HashMap<>();
+        bookingCounts.forEach((listingId, bookingCount) -> summaries.put(listingId,
+                new ListingSummaryMetrics(bookingCount, averageRatings.getOrDefault(listingId, 0.0))));
+        return Map.copyOf(summaries);
     }
 }

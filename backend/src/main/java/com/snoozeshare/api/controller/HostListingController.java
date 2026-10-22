@@ -1,6 +1,7 @@
 package com.snoozeshare.api.controller;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -22,6 +23,7 @@ import com.snoozeshare.api.request.CreateListingRequest;
 import com.snoozeshare.api.request.UpdateListingRequest;
 import com.snoozeshare.api.request.UpdateListingStatusRequest;
 import com.snoozeshare.api.response.HostListingDetailResponse;
+import com.snoozeshare.api.response.HostListingSummaryResponse;
 import com.snoozeshare.api.response.ListingMetricsResponse;
 import com.snoozeshare.api.response.PropertyResponse;
 import com.snoozeshare.auth.security.FirebaseTokenVerifier.FirebaseAuthentication;
@@ -29,6 +31,7 @@ import com.snoozeshare.auth.service.HostIdentityResolver;
 import com.snoozeshare.domain.model.Property;
 import com.snoozeshare.service.ListingMetricsService;
 import com.snoozeshare.service.ListingService;
+import com.snoozeshare.service.ListingSummaryMetrics;
 
 import jakarta.validation.Valid;
 
@@ -53,11 +56,17 @@ public class HostListingController {
     }
 
     @GetMapping
-    public List<PropertyResponse> list(
+    public List<HostListingSummaryResponse> list(
         @AuthenticationPrincipal FirebaseAuthentication identity) {
         UUID hostId = identityResolver.resolve(identity);
-        return listings.findByHostId(hostId).stream()
-            .map(PropertyResponse::from)
+        List<Property> properties = listings.findByHostId(hostId);
+        if (properties.isEmpty()) {
+            return List.of();
+        }
+        Map<UUID, ListingSummaryMetrics> summaries = metrics.summaryMetricsForHost(hostId);
+        return properties.stream()
+            .map(property -> HostListingSummaryResponse.from(property,
+                summaries.getOrDefault(property.getId(), new ListingSummaryMetrics(0, 0.0))))
             .toList();
     }
 

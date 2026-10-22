@@ -15,7 +15,7 @@
 
 | Task | Depends on | Can run concurrently with | Wave | Status |
 |---|---|---|---|---|
-| T1 Add batched owner-scoped listing summary metrics | - | T3, T4 | 1 | Not started |
+| T1 Add batched owner-scoped listing summary metrics | - | T3, T4 | 1 | Done |
 | T2 Consume metrics and update listing status in place | T1 | T4 | 2 | Not started |
 | T3 Correct listing detail time and occupancy formatting | - | T1, T4 | 1 | Not started |
 | T4 Keep calendar mounted during month loads and clear initial range | - | T1, T2, T3 | 1 | Not started |
@@ -70,12 +70,12 @@ Tasks T2 and T3 both edit `frontend/src/components/host/hostTypes.ts`; perform t
 
 **Checklist**
 
-- [ ] 1. Add failing service tests for E2: host batches of 1 and 101 listings each perform exactly two grouped query calls and no per-listing query. Run `./gradlew test --tests com.snoozeshare.service.impl.ListingMetricsServiceImplTest` in `backend/`; expect FAIL because the batch method is absent.
-- [ ] 2. Add the summary value and batch method; make the two aggregate queries use `properties.host_id = ?`, with booking counts and review averages grouped by listing. Return 0.0 where no review group exists.
-- [ ] 3. Add failing authenticated controller integration coverage for E1/E9: owned metrics, no-review `0.0`, foreign-host exclusion, all existing properties/order, legacy parameters unchanged, and empty collection; verify the controller skips the summary service for an empty owner collection.
-- [ ] 4. Implement the summary response DTO and update only `HostListingController.list`; skip the summary call for an empty list and map missing metric groups to zero values.
-- [ ] 5. Run targeted service and controller tests; expect PASS. Run `./gradlew checkstyleMain checkstyleTest` and `./gradlew build` from `backend/`.
-- [ ] 6. Update branch state Progress and Changes; commit `feat: return batched Host listing metrics`.
+- [x] 1. Add failing service tests for E2: host batches of 1 and 101 listings each perform exactly two grouped query calls and no per-listing query. Run `./gradlew test --tests com.snoozeshare.service.impl.ListingMetricsServiceImplTest` in `backend/`; it failed at test compilation because the batch method and summary record are not yet implemented.
+- [x] 2. Add the summary value and batch method; make the two aggregate queries use `properties.host_id = ?`, with booking counts and review averages grouped by listing. Return 0.0 where no review group exists.
+- [x] 3. Add failing authenticated controller integration coverage for E1/E9: owned metrics, no-review `0.0`, foreign-host exclusion, all existing properties/order, legacy parameters unchanged, and empty collection; verify the controller skips the summary service for an empty owner collection. The contract test failed on missing collection metrics before the response update.
+- [x] 4. Implement the summary response DTO and update only `HostListingController.list`; skip the summary call for an empty list and map missing metric groups to zero values.
+- [x] 5. Run targeted service and controller tests; expect PASS. Run `./gradlew checkstyleMain checkstyleTest` and `./gradlew build` from `backend/`.
+- [x] 6. Update branch state Progress and Changes; commit `feat: return batched Host listing metrics`.
 
 ### T2: Consume metrics and update listing status in place
 

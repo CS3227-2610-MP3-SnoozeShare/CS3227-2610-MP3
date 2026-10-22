@@ -1,6 +1,8 @@
 package com.snoozeshare.api.host;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -9,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Map;
 import java.util.Optional;
@@ -26,6 +29,7 @@ import org.springframework.boot.testcontainers.service.connection.ServiceConnect
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
 
@@ -36,13 +40,19 @@ import com.snoozeshare.auth.security.FirebaseTokenVerifier.FirebaseAuthenticatio
 import com.snoozeshare.auth.security.FirebaseTokenVerifier.VerificationException;
 import com.snoozeshare.auth.security.FirebaseTokenVerifier.VerificationFailure;
 import com.snoozeshare.domain.enums.AccountStatus;
+import com.snoozeshare.domain.enums.BookingStatus;
 import com.snoozeshare.domain.enums.ListingStatus;
 import com.snoozeshare.domain.enums.PropertyType;
 import com.snoozeshare.domain.enums.Role;
+import com.snoozeshare.domain.model.Booking;
 import com.snoozeshare.domain.model.Property;
+import com.snoozeshare.domain.model.Review;
 import com.snoozeshare.domain.model.User;
+import com.snoozeshare.repository.BookingRepository;
 import com.snoozeshare.repository.PropertyRepository;
+import com.snoozeshare.repository.ReviewRepository;
 import com.snoozeshare.repository.UserRepository;
+import com.snoozeshare.service.ListingMetricsService;
 
 /** Exercises authenticated Host listing contracts against the real service and PostgreSQL repositories. */
 @SpringBootTest(
@@ -70,6 +80,15 @@ class HostListingsControllerTest {
 
     @Autowired
     private UserRepository users;
+
+    @Autowired
+    private BookingRepository bookings;
+
+    @Autowired
+    private ReviewRepository reviews;
+
+    @MockitoSpyBean
+    private ListingMetricsService listingMetrics;
 
     @Autowired
     private FakeTokenVerifier verifier;
@@ -106,6 +125,11 @@ class HostListingsControllerTest {
         saveUser(otherHostId, "other-host-" + otherHostId);
         Property foreign = saveProperty(otherHostId, "Other host",
             Instant.parse("2026-01-03T00:00:00Z"));
+        UUID guestId = UUID.randomUUID();
+        saveGuest(guestId);
+        saveReviewedBooking(newest, guestId, 4);
+        saveReviewedBooking(newest, guestId, 5);
+        saveReviewedBooking(foreign, guestId, 1);
 
         String completeResponse = mockMvc.perform(get("/api/host/listings")
                 .header("Authorization", "Bearer " + token))
@@ -113,7 +137,11 @@ class HostListingsControllerTest {
             .andExpect(jsonPath("$.length()").value(101))
             .andExpect(jsonPath("$[0].id").value(newest.getId().toString()))
             .andExpect(jsonPath("$[0].hostId").value(hostId.toString()))
+            .andExpect(jsonPath("$[0].bookingCount").value(2))
+            .andExpect(jsonPath("$[0].averageRating").value(4.5))
             .andExpect(jsonPath("$[100].id").value(oldest.getId().toString()))
+            .andExpect(jsonPath("$[100].bookingCount").value(0))
+            .andExpect(jsonPath("$[100].averageRating").value(0.0))
             .andExpect(jsonPath("$[?(@.id == '" + foreign.getId() + "')]").isEmpty())
             .andExpect(jsonPath("$.page").doesNotExist())
             .andExpect(jsonPath("$.size").doesNotExist())
@@ -127,6 +155,16 @@ class HostListingsControllerTest {
             .andExpect(jsonPath("$[0].id").value(newest.getId().toString()))
             .andReturn().getResponse().getContentAsString();
         assertThat(legacyResponse).isEqualTo(completeResponse);
+    }
+
+    @Test
+    void emptyListingCollectionSkipsTheSummaryMetricsService() throws Exception {
+        mockMvc.perform(get("/api/host/listings")
+                .header("Authorization", "Bearer " + token))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(0));
+
+        verify(listingMetrics, never()).summaryMetricsForHost(hostId);
     }
 
     @Test
@@ -241,6 +279,22 @@ class HostListingsControllerTest {
     private void saveUser(UUID id, String uid) {
         users.save(new User(id, uid, Role.HOST, "Other", uid + "@example.com", AccountStatus.ACTIVE,
             null, Instant.now(), Instant.now(), null));
+    }
+
+    private void saveGuest(UUID id) {
+        String uid = "guest-" + id;
+        users.save(new User(id, uid, Role.GUEST, "Guest", uid + "@example.com",
+            AccountStatus.ACTIVE, null, Instant.now(), Instant.now(), null));
+    }
+
+    private void saveReviewedBooking(Property property, UUID guestId, int rating) {
+        UUID bookingId = UUID.randomUUID();
+        Instant createdAt = Instant.now();
+        bookings.save(new Booking(bookingId, property.getId(), guestId,
+            LocalDate.now().plusDays(30), LocalDate.now().plusDays(32), BookingStatus.CONFIRMED,
+            new BigDecimal("80.00"), new BigDecimal("160.00"), createdAt, null, null, null));
+        reviews.save(new Review(UUID.randomUUID(), bookingId, guestId, rating,
+            "Useful review", createdAt));
     }
 
     private String createBody(String title, String description) {
