@@ -8,6 +8,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.snoozeshare.config.ConditionalOnDatabase;
 import com.snoozeshare.domain.enums.WalletTransactionType;
 import com.snoozeshare.domain.model.Wallet;
 import com.snoozeshare.domain.model.WalletTransaction;
@@ -17,7 +18,7 @@ import com.snoozeshare.repository.WalletRepository;
 import com.snoozeshare.service.WalletService;
 
 @Service
-
+@ConditionalOnDatabase
 public class WalletServiceImpl implements WalletService {
 
     private final WalletRepository wallets;
@@ -62,7 +63,8 @@ public class WalletServiceImpl implements WalletService {
     }
 
     private WalletTransaction move(UUID userId, WalletTransactionType type, BigDecimal amount) {
-        Wallet wallet = getWallet(userId);
-        return ledger.post(wallet.getId(), type, amount, userId, null, null, null, Instant.now());
+        UUID walletId = wallets.findIdByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Wallet does not exist"));
+        return ledger.post(walletId, type, amount, userId, null, null, null, Instant.now());
     }
 }

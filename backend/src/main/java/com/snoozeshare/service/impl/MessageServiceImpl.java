@@ -9,7 +9,11 @@ import java.util.UUID;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import com.snoozeshare.config.ConditionalOnDatabase;
 import com.snoozeshare.domain.enums.Role;
 import com.snoozeshare.domain.enums.ThreadChannel;
 import com.snoozeshare.domain.enums.TicketStatus;
@@ -30,7 +34,7 @@ import com.snoozeshare.service.ConversationSummary;
 import com.snoozeshare.service.MessageService;
 
 @Service
-
+@ConditionalOnDatabase
 public class MessageServiceImpl implements MessageService {
 
     private static final String SUPPORT_TEAM = "Support team";
@@ -72,6 +76,7 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
+    @Transactional
     public Message post(UUID ticketId, ThreadChannel channel, UUID authorId, Role authorRole,
                         String body) {
         DomainValidation.requireText(body, "body");
@@ -83,16 +88,23 @@ public class MessageServiceImpl implements MessageService {
         Instant now = clock.instant();
         Message saved = messages.save(new Message(UUID.randomUUID(), ticketId, channel, authorId,
                 authorRole, body.trim(), now));
-        publisher.publishEvent(new MessagePostedEvent(saved.getId(), ticketId, now));
+        publishAfterCommit(new MessagePostedEvent(saved.getId(), ticketId, now));
         return saved;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ConversationSummary> conversationsFor(UUID userId, Role role) {
         ThreadChannel channel = channelOf(role);
+        if (role == Role.HOST) {
+            return tickets.findConversationTicketsByHost(userId, channel).stream()
+                    .map(ticket -> summarize(ticket, channel, userId).summary())
+                    .toList();
+        }
         return ticketsFor(userId, role).stream()
                 .map(ticket -> summarize(ticket, channel, userId))
-                .sorted(Comparator.comparing(Ranked::lastActivity).reversed())
+                .sorted(Comparator.comparing(Ranked::lastActivity).reversed()
+                        .thenComparing(ranked -> ranked.summary().ticketId()))
                 .map(Ranked::summary)
                 .toList();
     }
@@ -115,11 +127,25 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
+    @Transactional
     public void markRead(UUID ticketId, ThreadChannel channel, UUID userId, Role role) {
         requireParty(ticket(ticketId), channel, userId, role);
         messages.findLast(ticketId, channel)
                 .ifPresent(last -> messageReads.markRead(ticketId, channel, userId,
                         last.getId()));
+    }
+
+    private void publishAfterCommit(Object event) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            publisher.publishEvent(event);
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                publisher.publishEvent(event);
+            }
+        });
     }
 
     private Ranked summarize(Ticket ticket, ThreadChannel channel, UUID userId) {

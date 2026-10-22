@@ -9,6 +9,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.snoozeshare.config.ConditionalOnDatabase;
 import com.snoozeshare.domain.enums.AuditAction;
 import com.snoozeshare.domain.enums.BookingStatus;
 import com.snoozeshare.domain.enums.RemedyType;
@@ -41,7 +42,7 @@ import com.snoozeshare.service.DisputeSettlementService;
 import com.snoozeshare.service.Settlement;
 
 @Service
-
+@ConditionalOnDatabase
 public class DisputeSettlementServiceImpl implements DisputeSettlementService {
 
     private final TicketRepository tickets;

@@ -34,6 +34,7 @@ class ProdProfileTest {
                 "--FIREBASE_PROJECT_ID=test-project",
                 "--SNOOZESHARE_HOST_REGISTRATION_CODE=host-code",
                 "--SNOOZESHARE_AGENT_REGISTRATION_CODE=agent-code",
+                "--SNOOZESHARE_AI_ENABLED=false",
                 "--GOOGLE_APPLICATION_CREDENTIALS=/tmp/test-service-account.json"));
             args.removeIf(arg -> arg.startsWith("--" + omitted + "="));
             assertThatThrownBy(() -> new SpringApplicationBuilder(SnoozeShareApplication.class)
@@ -62,8 +63,33 @@ class ProdProfileTest {
                     "--FIREBASE_PROJECT_ID=test-project",
                     "--SNOOZESHARE_HOST_REGISTRATION_CODE=host-code",
                     "--SNOOZESHARE_AGENT_REGISTRATION_CODE=agent-code",
+                    "--SNOOZESHARE_AI_ENABLED=false",
                     "--GOOGLE_APPLICATION_CREDENTIALS=/tmp/test-service-account.json"))
                 .satisfies(error -> assertThat(messageChain(error)).contains("SNOOZESHARE_CORS_ALLOWED_ORIGIN"));
+        }
+    }
+
+    @Test
+    void missingAiEnabled() {
+        assumeTrue(System.getenv("SNOOZESHARE_AI_ENABLED") == null,
+            "SNOOZESHARE_AI_ENABLED is set in this machine's environment");
+        try (PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17")) {
+            postgres.start();
+            assertThatThrownBy(() -> new SpringApplicationBuilder(SnoozeShareApplication.class)
+                .profiles("prod")
+                .web(WebApplicationType.NONE)
+                .run("--SPRING_DATASOURCE_URL=" + postgres.getJdbcUrl(),
+                    "--SPRING_DATASOURCE_USERNAME=" + postgres.getUsername(),
+                    "--SPRING_DATASOURCE_PASSWORD=" + postgres.getPassword(),
+                    "--SNOOZESHARE_CORS_ALLOWED_ORIGIN=http://localhost:3000",
+                    "--SNOOZESHARE_SECURITY_ENABLED=true",
+                    "--SNOOZESHARE_TRUST_FORWARD_HEADERS=true",
+                    "--FIREBASE_ENABLED=true",
+                    "--FIREBASE_PROJECT_ID=test-project",
+                    "--SNOOZESHARE_HOST_REGISTRATION_CODE=host-code",
+                    "--SNOOZESHARE_AGENT_REGISTRATION_CODE=agent-code",
+                    "--GOOGLE_APPLICATION_CREDENTIALS=/tmp/test-service-account.json"))
+                .satisfies(error -> assertThat(messageChain(error)).contains("SNOOZESHARE_AI_ENABLED"));
         }
     }
 

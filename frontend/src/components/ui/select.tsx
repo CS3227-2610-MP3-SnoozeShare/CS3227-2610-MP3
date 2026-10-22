@@ -20,13 +20,13 @@ export function SelectField({ 'aria-label': ariaLabel, name, value, options, onV
     <Select.Root value={value} name={name} onValueChange={(nextValue) => { if (nextValue) onValueChange(nextValue); }}>
       <Select.Trigger
         aria-label={ariaLabel}
-        className="mt-1 flex h-9 w-full items-center justify-between rounded-lg border border-input bg-background px-3 py-1.5 text-sm shadow-xs outline-none transition-colors focus:border-ring focus:ring-3 focus:ring-ring/50"
+        className="flex h-9 w-full items-center justify-between rounded-lg border border-input bg-background px-3 py-1.5 text-sm font-normal shadow-xs outline-none transition-colors focus:border-ring focus:ring-3 focus:ring-ring/50"
       >
-        <Select.Value />
+        <Select.Value>{options.find((option) => option.value === value)?.label ?? value}</Select.Value>
         <Select.Icon><ChevronDown className="size-4 opacity-70" /></Select.Icon>
       </Select.Trigger>
       <Select.Portal>
-        <Select.Positioner sideOffset={4} className="z-50">
+        <Select.Positioner alignItemWithTrigger={false} side="bottom" sideOffset={0} className="z-50">
           <Select.Popup className="min-w-[var(--anchor-width)] overflow-hidden rounded-lg border border-border bg-background p-1 text-sm shadow-lg outline-none">
             <Select.List>
               {options.map((option) => (

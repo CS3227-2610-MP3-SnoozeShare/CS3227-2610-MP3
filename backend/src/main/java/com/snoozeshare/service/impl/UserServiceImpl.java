@@ -5,13 +5,14 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import com.snoozeshare.config.ConditionalOnDatabase;
 import com.snoozeshare.domain.enums.Role;
 import com.snoozeshare.domain.model.User;
 import com.snoozeshare.repository.UserRepository;
 import com.snoozeshare.service.UserService;
 
 @Service
-
+@ConditionalOnDatabase
 public class UserServiceImpl implements UserService {
 
     private final UserRepository users;

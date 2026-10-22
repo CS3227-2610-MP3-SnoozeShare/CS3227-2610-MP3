@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.snoozeshare.config.ConditionalOnDatabase;
 import com.snoozeshare.domain.model.AuditLogEntry;
 import com.snoozeshare.domain.model.User;
 import com.snoozeshare.repository.AuditCriteria;
@@ -22,7 +23,7 @@ import com.snoozeshare.service.AuditService;
 
 /** Writes and queries audit log entries. */
 @Service
-
+@ConditionalOnDatabase
 public class AuditServiceImpl implements AuditService {
 
     private static final Pattern ID_FRAGMENT =

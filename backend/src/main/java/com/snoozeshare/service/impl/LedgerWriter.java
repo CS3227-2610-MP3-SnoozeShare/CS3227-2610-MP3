@@ -7,7 +7,10 @@ import java.util.UUID;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import com.snoozeshare.config.ConditionalOnDatabase;
 import com.snoozeshare.domain.enums.AuditAction;
 import com.snoozeshare.domain.enums.WalletTransactionType;
 import com.snoozeshare.domain.model.Wallet;
@@ -26,7 +29,7 @@ import com.snoozeshare.service.AuditService;
  * {@link ApplicationEventPublisher}.
  */
 @Service
-
+@ConditionalOnDatabase
 public class LedgerWriter {
 
     private final WalletRepository wallets;
@@ -88,13 +91,24 @@ public class LedgerWriter {
                 .at(at)
                 .build());
 
-        events.publishEvent(
-                new WalletTransactionRecordedEvent(
-                        txId, walletId, at));
+        publishAfterCommit(new WalletTransactionRecordedEvent(txId, walletId, at));
 
         return new WalletTransaction(txId, type.name(),
                 wallet.getUserId(), amount, balanceAfter,
                 reason, bookingId, ticketId, at);
+    }
+
+    private void publishAfterCommit(Object event) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            events.publishEvent(event);
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                events.publishEvent(event);
+            }
+        });
     }
 
     /**

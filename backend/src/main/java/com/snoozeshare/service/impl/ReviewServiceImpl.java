@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.snoozeshare.config.ConditionalOnDatabase;
 import com.snoozeshare.domain.enums.AuditAction;
 import com.snoozeshare.domain.enums.BookingStatus;
 import com.snoozeshare.domain.model.Booking;
@@ -17,7 +18,7 @@ import com.snoozeshare.service.AuditService;
 import com.snoozeshare.service.ReviewService;
 
 @Service
-
+@ConditionalOnDatabase
 public class ReviewServiceImpl implements ReviewService {
 
     private final BookingRepository bookings;

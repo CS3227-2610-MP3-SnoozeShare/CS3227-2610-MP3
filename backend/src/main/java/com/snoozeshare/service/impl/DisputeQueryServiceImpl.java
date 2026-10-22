@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import com.snoozeshare.config.ConditionalOnDatabase;
 import com.snoozeshare.domain.enums.AssigneeFilter;
 import com.snoozeshare.domain.enums.BookingStatus;
 import com.snoozeshare.domain.enums.TicketStatus;
@@ -25,7 +26,7 @@ import com.snoozeshare.service.DisputeQueryService;
 import com.snoozeshare.service.DisputeSummary;
 
 @Service
-
+@ConditionalOnDatabase
 public class DisputeQueryServiceImpl implements DisputeQueryService {
 
     private final TicketRepository tickets;

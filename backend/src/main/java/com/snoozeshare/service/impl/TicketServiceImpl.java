@@ -10,6 +10,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.snoozeshare.config.ConditionalOnDatabase;
 import com.snoozeshare.domain.enums.AssigneeFilter;
 import com.snoozeshare.domain.enums.AuditAction;
 import com.snoozeshare.domain.enums.Role;
@@ -34,7 +35,7 @@ import com.snoozeshare.service.requests.NewTicketRequest;
 import com.snoozeshare.service.requests.ResolutionRequest;
 
 @Service
-
+@ConditionalOnDatabase
 public class TicketServiceImpl implements TicketService {
 
     private final TicketRepository tickets;

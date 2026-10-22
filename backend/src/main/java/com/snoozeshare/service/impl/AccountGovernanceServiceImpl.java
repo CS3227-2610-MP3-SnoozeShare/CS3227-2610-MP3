@@ -10,6 +10,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.snoozeshare.config.ConditionalOnDatabase;
 import com.snoozeshare.domain.enums.AccountStatus;
 import com.snoozeshare.domain.enums.AuditAction;
 import com.snoozeshare.domain.enums.BookingStatus;
@@ -34,7 +35,7 @@ import com.snoozeshare.service.AuditRecord;
 import com.snoozeshare.service.AuditService;
 
 @Service
-
+@ConditionalOnDatabase
 public class AccountGovernanceServiceImpl implements AccountGovernanceService {
 
     static final String CASCADE_BOOKING_REASON = "Account suspended — cascading cancellation";
