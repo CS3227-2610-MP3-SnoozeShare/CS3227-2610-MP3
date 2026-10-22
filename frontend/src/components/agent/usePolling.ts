@@ -10,7 +10,7 @@ export type PollingState<T> = {
 };
 
 /**
- * Loads once, then again every `intervalMs` while the tab is visible (C78, N8).
+ * Loads once, then again every `intervalMs` while the tab is visible (C78, N8); 0 loads on demand only.
  * A response older than the newest request is ignored. Reloading keeps the last data on screen.
  */
 export function usePolling<T>(load: () => Promise<T>, intervalMs: number): PollingState<T> {
@@ -46,7 +46,7 @@ export function usePolling<T>(load: () => Promise<T>, intervalMs: number): Polli
     };
     const start = () => {
       stop();
-      timer = setInterval(run, intervalMs);
+      if (intervalMs > 0) timer = setInterval(run, intervalMs);
     };
     const onVisibility = () => {
       if (document.visibilityState === 'visible') {
