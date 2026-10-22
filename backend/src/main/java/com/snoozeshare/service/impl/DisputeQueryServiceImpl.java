@@ -56,6 +56,11 @@ public class DisputeQueryServiceImpl implements DisputeQueryService {
     }
 
     @Override
+    public int unassignedCount() {
+        return (int) tickets.countByStatusAndAssignedAgentIdIsNull(TicketStatus.OPEN);
+    }
+
+    @Override
     public DisputeDetail detail(UUID ticketId) {
         Ticket ticket = tickets.findById(ticketId)
                 .orElseThrow(() -> new NotFoundException("Ticket does not exist"));

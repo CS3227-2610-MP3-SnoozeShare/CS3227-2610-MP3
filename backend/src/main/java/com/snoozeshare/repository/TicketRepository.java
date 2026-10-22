@@ -20,6 +20,8 @@ public interface TicketRepository
 
     List<Ticket> findByStatus(TicketStatus status);
 
+    long countByStatusAndAssignedAgentIdIsNull(TicketStatus status);
+
     /** Locks the ticket row; the caller takes this as its first read of the ticket (SD10). */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT t FROM Ticket t WHERE t.id = :id")
