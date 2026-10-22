@@ -24,6 +24,7 @@ import com.snoozeshare.domain.statemachine.TicketStateMachine;
 import com.snoozeshare.domain.validation.DomainValidation;
 import com.snoozeshare.infra.events.TicketOpenedEvent;
 import com.snoozeshare.repository.BookingRepository;
+import com.snoozeshare.repository.RowLocks;
 import com.snoozeshare.repository.TicketCategoryRepository;
 import com.snoozeshare.repository.TicketRepository;
 import com.snoozeshare.repository.UserRepository;
@@ -48,13 +49,15 @@ public class TicketServiceImpl implements TicketService {
     private final Clock clock;
     private final ApplicationEventPublisher publisher;
     private final DisputeWindowPolicy disputeWindow;
+    private final RowLocks rowLocks;
 
     @SuppressWarnings("checkstyle:ParameterNumber")
     public TicketServiceImpl(TicketRepository tickets,
                              TicketCategoryRepository categories,
                              BookingRepository bookings, UserRepository users,
                              DisputeSettlementService settlement, AuditService audit,
-                             Clock clock, ApplicationEventPublisher publisher) {
+                             Clock clock, ApplicationEventPublisher publisher,
+                             RowLocks rowLocks) {
         this.tickets = tickets;
         this.categories = categories;
         this.bookings = bookings;
@@ -64,6 +67,7 @@ public class TicketServiceImpl implements TicketService {
         this.clock = clock;
         this.publisher = publisher;
         this.disputeWindow = new DisputeWindowPolicy(clock);
+        this.rowLocks = rowLocks;
     }
 
     @Override
@@ -200,7 +204,7 @@ public class TicketServiceImpl implements TicketService {
     @Transactional
     public Ticket assignToMe(UUID ticketId, UUID agentId) {
         requireAgent(agentId);
-        Ticket ticket = loadTicket(ticketId);
+        Ticket ticket = loadTicketForUpdate(ticketId);
         if (ticket.getStatus() != TicketStatus.OPEN || !TicketStateMachine.canTransition(
                 ticket.getStatus(), TicketStatus.IN_REVIEW, Role.AGENT)) {
             throw new IllegalStateException("Ticket is not open");
@@ -222,7 +226,7 @@ public class TicketServiceImpl implements TicketService {
     @Transactional
     public Ticket saveNotes(UUID ticketId, String notes, UUID agentId) {
         requireAgent(agentId);
-        Ticket ticket = loadTicket(ticketId);
+        Ticket ticket = loadTicketForUpdate(ticketId);
         if (ticket.getStatus() != TicketStatus.IN_REVIEW) {
             throw new IllegalStateException(
                     "Notes can only be saved while the ticket is in review");
@@ -242,7 +246,7 @@ public class TicketServiceImpl implements TicketService {
     @Transactional
     public Ticket unassign(UUID ticketId, UUID agentId) {
         requireAgent(agentId);
-        Ticket ticket = loadTicket(ticketId);
+        Ticket ticket = loadTicketForUpdate(ticketId);
         if (ticket.getStatus() != TicketStatus.IN_REVIEW || !TicketStateMachine.canTransition(
                 ticket.getStatus(), TicketStatus.OPEN, Role.AGENT)) {
             throw new IllegalStateException("Ticket is not in review");
@@ -270,7 +274,7 @@ public class TicketServiceImpl implements TicketService {
     @Transactional
     public Ticket resolve(UUID ticketId, ResolutionRequest request, UUID agentId) {
         requireAgent(agentId);
-        Ticket ticket = loadTicket(ticketId);
+        Ticket ticket = loadTicketForUpdate(ticketId);
         Booking booking = bookings.findById(ticket.getBookingId())
                 .orElseThrow(() -> new IllegalArgumentException("Booking does not exist"));
         BigDecimal refund = switch (request.mode()) {
@@ -309,8 +313,10 @@ public class TicketServiceImpl implements TicketService {
         return user;
     }
 
-    private Ticket loadTicket(UUID ticketId) {
-        return tickets.findById(ticketId)
+    /** First read of the ticket in every mutation: takes the row lock so a racing agent sees the committed state. */
+    private Ticket loadTicketForUpdate(UUID ticketId) {
+        rowLocks.timeout();
+        return tickets.findByIdForUpdate(ticketId)
                 .orElseThrow(() -> new NotFoundException("Ticket does not exist"));
     }
 
