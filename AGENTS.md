@@ -175,6 +175,8 @@ integration commits touched 55–96 files and needed a follow-up repair. So:
 
 - **One logical change per commit** — a fix, a refactor, a doc update, a test. Do not mix a
   behaviour change with unrelated formatting or cleanup.
+- **Every commit must contain fewer than 150 changed lines** (additions plus deletions,
+  including tests and documentation). Split larger changes into buildable commits.
 - **Each commit builds and passes tests** (the build command of each component you changed, from `PROJECT_STATE.md` § How to Resume). Never commit a known-red tree to
   "fix it in the next commit".
 - **Aim for a handful of files per commit.** If a change touches more than about 15 files,

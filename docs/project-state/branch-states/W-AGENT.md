@@ -31,7 +31,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-22 | Codex | W-AGENT | Active | T1 step 1: Slice A test support | Establish backend baseline, then implement Slice A per the plan; run focused auth regression test and commit the slice | 2026-10-22 |
+| S1 | 2026-10-22 | Codex | W-AGENT | Active | Rebuild T1 commit history under the operator cap | Verify each small snapshot; pause again before T7 | 2026-10-22 |
 
 **Remaining**
 
@@ -48,7 +48,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AGENT | Agent features: disputes, accounts, audit, categories — REST controllers and Next.js pages | Building | [spec](docs/superpowers/specs/2026-10-22-w-agent-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-agent.md) | T1/12 in flight: REST foundation | — |
+| W-AGENT | Agent features: disputes, accounts, audit, categories — REST controllers and Next.js pages | Building | [spec](docs/superpowers/specs/2026-10-22-w-agent-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-agent.md) | T1 history split in flight; final implementation preserved in backup | — |
 
 ---
 
@@ -80,6 +80,7 @@ No change: Q~1 (audit zone) was answered on 2026-10-22 (C~7); nothing is open.
 
 | ID | Date | Decision | Why / who asked | Source |
 |---|---|---|---|---|
+| C~10 | 2026-10-22 | Keep every commit under 150 changed lines; split the local T1 history and retain the final implementation | Operator found the T1 commits too large to review | Operator conversation |
 | C~1 | 2026-10-22 | W-AGENT covers all four agent areas (disputes with threads and notes, accounts, audit, categories), API and pages in one workstream, no AI | Operator confirmed the proposed scope | Operator conversation |
 | C~2 | 2026-10-22 | Where the desktop screens and the design artifact differ, the desktop behaviour wins: keep C22 (no force actions), Manual adjustment is one guest refund, audit filters are Search / Action / From / To / Load more, Accounts lists Guests and Hosts only, categories keep Delete, amounts in SGD | Operator answered each difference, 2026-10-22 | Spec SD2 to SD5 |
 | C~3 | 2026-10-22 | W-AGENT builds the shared REST foundation (global error handler, `@CurrentUserId`, ArchUnit layering test, typed frontend helpers) because no controllers or backend exist elsewhere | `origin/W-HOST` is fixture-only frontend and has no open pull request | Spec SD1, SD12 |
