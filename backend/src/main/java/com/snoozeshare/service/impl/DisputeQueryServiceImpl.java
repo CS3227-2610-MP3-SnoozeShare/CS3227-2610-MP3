@@ -2,8 +2,14 @@ package com.snoozeshare.service.impl;
 
 import java.time.Clock;
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -30,6 +36,8 @@ import com.snoozeshare.service.NotFoundException;
 @ConditionalOnDatabase
 public class DisputeQueryServiceImpl implements DisputeQueryService {
 
+    private static final String UNKNOWN_USER = "Unknown user";
+
     private final TicketRepository tickets;
     private final BookingRepository bookings;
     private final PropertyRepository properties;
@@ -51,8 +59,48 @@ public class DisputeQueryServiceImpl implements DisputeQueryService {
     @Override
     public List<DisputeSummary> queue(TicketStatus status, AssigneeFilter assignee,
                                       UUID agentId) {
-        return tickets.findQueue(status, assignee, agentId).stream()
-                .map(this::summarize).toList();
+        List<Ticket> found = tickets.findQueue(status, assignee, agentId);
+        Map<UUID, Booking> bookingsById = byId(bookings.findAllById(
+                found.stream().map(Ticket::getBookingId).collect(Collectors.toSet())), Booking::getId);
+        Map<UUID, Property> propertiesById = byId(properties.findAllById(
+                bookingsById.values().stream().map(Booking::getListingId).collect(Collectors.toSet())),
+                Property::getId);
+        Set<UUID> userIds = new HashSet<>();
+        for (Ticket ticket : found) {
+            Booking booking = require(bookingsById.get(ticket.getBookingId()), "Booking does not exist");
+            Property property = require(propertiesById.get(booking.getListingId()), "Property does not exist");
+            userIds.add(booking.getGuestId());
+            userIds.add(property.getHostId());
+            if (ticket.getAssignedAgentId() != null) {
+                userIds.add(ticket.getAssignedAgentId());
+            }
+        }
+        Map<UUID, String> names = new HashMap<>();
+        users.findAllById(userIds).forEach(user -> names.put(user.getId(), user.getDisplayName()));
+        return found.stream().map(ticket -> {
+            Booking booking = bookingsById.get(ticket.getBookingId());
+            Property property = propertiesById.get(booking.getListingId());
+            return new DisputeSummary(ticket.getId(), label(ticket.getId()), ticket.getTitle(),
+                    ticket.getCategory(), property.getTitle(),
+                    names.getOrDefault(booking.getGuestId(), UNKNOWN_USER),
+                    names.getOrDefault(property.getHostId(), UNKNOWN_USER),
+                    ticket.getAssignedAgentId() == null ? null
+                            : names.getOrDefault(ticket.getAssignedAgentId(), UNKNOWN_USER),
+                    ticket.getStatus(), ticket.getCreatedAt());
+        }).toList();
+    }
+
+    private static <T> T require(T value, String message) {
+        if (value == null) {
+            throw new IllegalArgumentException(message);
+        }
+        return value;
+    }
+
+    private static <T> Map<UUID, T> byId(Iterable<T> items, Function<T, UUID> id) {
+        Map<UUID, T> map = new HashMap<>();
+        items.forEach(item -> map.put(id.apply(item), item));
+        return map;
     }
 
     @Override
@@ -74,15 +122,6 @@ public class DisputeQueryServiceImpl implements DisputeQueryService {
                 phase(booking, held, LocalDate.now(clock)));
     }
 
-    private DisputeSummary summarize(Ticket ticket) {
-        Booking booking = booking(ticket);
-        Property property = property(booking);
-        return new DisputeSummary(ticket.getId(), label(ticket.getId()), ticket.getTitle(),
-                ticket.getCategory(), property.getTitle(), name(booking.getGuestId()),
-                name(property.getHostId()), agentName(ticket), ticket.getStatus(),
-                ticket.getCreatedAt());
-    }
-
     private Booking booking(Ticket ticket) {
         return bookings.findById(ticket.getBookingId())
                 .orElseThrow(() -> new IllegalArgumentException("Booking does not exist"));
@@ -99,7 +138,7 @@ public class DisputeQueryServiceImpl implements DisputeQueryService {
     }
 
     private String name(UUID userId) {
-        return users.findById(userId).map(User::getDisplayName).orElse("Unknown user");
+        return users.findById(userId).map(User::getDisplayName).orElse(UNKNOWN_USER);
     }
 
     static String label(UUID ticketId) {
