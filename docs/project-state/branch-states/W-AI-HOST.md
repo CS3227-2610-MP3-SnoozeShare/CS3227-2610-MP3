@@ -33,7 +33,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-22 21:56 | GPT-5 (lead) | W~1 | Building | Plan approved; beginning T1 contract implementation | T1 step 1: write failing contract tests | 2026-10-23 00:05 |
+| S1 | 2026-10-22 21:56 | GPT-5 (lead) | W~1 | Building | T1 complete; beginning T2 backend endpoint | T2 step 1: write failing endpoint tests | 2026-10-23 00:25 |
 
 **Remaining**
 
@@ -45,7 +45,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W~1 | W-AI-HOST: Host AI Listing Optimisation Assistant | Planned | [design](../../superpowers/specs/2026-10-22-w-ai-host-design.md) | [plan](../../superpowers/plans/2026-10-22-w-ai-host.md) | Gate 2 approved; T1 implementation begins | — |
+| W~1 | W-AI-HOST: Host AI Listing Optimisation Assistant | Building | [design](../../superpowers/specs/2026-10-22-w-ai-host-design.md) | [plan](../../superpowers/plans/2026-10-22-w-ai-host.md) | T1 complete; T2 backend endpoint begins | — |
 
 ---
 
@@ -117,3 +117,5 @@ No change.
 | 2026-10-22 | Gate 1 approved by Xiao-Congchen; implementation planning may begin | W~1 | Gate 1 |
 | 2026-10-22 | Implementation plan written, linted, and reconciled with the High-tier review | W~1 | Plan review |
 | 2026-10-22 | Gate 2 approved by Xiao-Congchen; implementation may begin | W~1 | Gate 2 |
+| 2026-10-23 | T1 added an explicit model-response record so gateway JSON remains separate from HTTP metadata | W~1 | Plan refinement |
+| 2026-10-23 | T1 contract types, address-free context serialization, Unicode word bands, and validation tests complete | W~1 | T1 |
