@@ -31,7 +31,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S2 | 2026-10-22 | Claude Sonnet 5.5 | W-AGENT | Active | T7 step 3 next: AgentDialog and SessionNotice | write the failing `AgentDialog.test.tsx` and `SessionNotice.test.tsx` under `frontend/src/components/agent/`, then implement; every commit stays under 150 changed lines (AGENTS.md § 6) | 2026-10-22 |
+| S2 | 2026-10-22 | Claude Sonnet 5.5 | W-AGENT | Active | T7 step 4 next: RoleNavbar and /agent redirect | edit `frontend/src/components/role/RoleNavbar.test.tsx` first, then `RoleNavbar.tsx`, then `frontend/src/app/agent/page.tsx` with its test; every commit stays under 150 changed lines (AGENTS.md § 6) | 2026-10-22 |
 
 **Remaining**
 
