@@ -46,7 +46,9 @@ public class ListingDescriptionFeatureConfig {
         receive practical space and amenity emphasis, couples comfort and relevant features,
         business travellers convenience and available work-related amenities, and all travellers a
         balanced description. SHORT is 50-75 words, MEDIUM is 75-125 words, and LONG is 125-200
-        words. If the current description is non-empty, analyse it in currentAnalysis before creating
+        words. Aim for exactly 60 words for SHORT, exactly 100 words for MEDIUM, and exactly 160 words
+        for LONG. Count the words before returning and keep the description inside the selected band.
+        If the current description is non-empty, analyse it in currentAnalysis before creating
         the new description. Analyse the actual generated description in generatedAnalysis. If the
         current description is empty, currentAnalysis must be null.
 

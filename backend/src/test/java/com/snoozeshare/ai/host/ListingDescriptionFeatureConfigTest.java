@@ -28,4 +28,11 @@ class ListingDescriptionFeatureConfigTest {
             .contains("generatedDescription and generatedAnalysis as null")
             .contains("For EVALUATE, generatedDescription and generatedAnalysis must be null");
     }
+
+    @Test
+    void promptTargetsSafeWordCountsInsideEachRequestedBand() {
+        assertThat(feature.systemPrompt())
+            .contains("exactly 60 words", "exactly 100 words", "exactly 160 words")
+            .contains("Count the words before returning");
+    }
 }
