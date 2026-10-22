@@ -5,7 +5,7 @@ read it for context and write here instead of editing it. `sync-project-state` f
 after the branch merges.
 
 - **Branch:** W-AI-HOST (from `development` at `f6cad04`)
-- **Base:** `f6cad04`
+- **Base:** `de137c6`
 - **Owner:** Xiao-Congchen
 - **Status:** Planned
 - **Approved:** Spec and plan approved (Xiao-Congchen, 2026-10-22); implementation in progress
@@ -33,11 +33,13 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-22 21:56 | GPT-5 (lead) | W~1 | Building | T1 complete; beginning T2 backend endpoint | T2 step 1: write failing endpoint tests | 2026-10-23 00:25 |
+| S1 | 2026-10-22 21:56 | GPT-5 (lead) | W~1 | Building | T2 backend endpoint complete; T3 frontend adapter/modal next | T3 step 1: write failing frontend tests | 2026-10-23 00:55 |
 
 **Remaining**
 
-- [ ] Finish the constrained W-AI-HOST spec review and ask for gate 1 approval.
+- [ ] Implement and verify T3 typed frontend adapter and modal.
+- [ ] Implement and verify T4 New/Edit form integration.
+- [ ] Run T5 full verification, code review, and Gate 3 handoff.
 
 ---
 
@@ -53,10 +55,10 @@ No change.
 
 ### 4.14 Host AI feature
 
-**Now (proposed):** No Host AI feature is implemented yet. This branch will add a Host-only
-assistant that calls `LlmGateway.run` with listing details and host-selected writing guidance, then
-returns a generated description as a suggestion for Host review and editing. It must not mutate a
-listing or auto-apply model output.
+**Now:** The backend exposes a conditional, Host-authenticated `POST /api/host/ai/listing-description`
+operation. It serializes address-free listing facts and fixed Host preferences into one bounded
+untrusted context, calls the shared gateway once, validates the returned analysis/description, and
+returns a suggestion without mutating or saving a listing. The frontend assistant remains to be built.
 
 | Path | Role |
 |---|---|
@@ -103,7 +105,10 @@ plain-text rendering conventions.
 
 ## 9. Deviations
 
-No change.
+- **D~1 (2026-10-23):** T2 endpoint tests were added alongside the initial service seam rather than
+  before the first implementation edit, because the generic gateway response type and existing
+  Host service ownership API had to be inspected together. The tests cover the approved behavior;
+  no scope or contract was changed.
 
 ---
 
@@ -119,3 +124,4 @@ No change.
 | 2026-10-22 | Gate 2 approved by Xiao-Congchen; implementation may begin | W~1 | Gate 2 |
 | 2026-10-23 | T1 added an explicit model-response record so gateway JSON remains separate from HTTP metadata | W~1 | Plan refinement |
 | 2026-10-23 | T1 contract types, address-free context serialization, Unicode word bands, and validation tests complete | W~1 | T1 |
+| 2026-10-23 | T2 added conditional Host endpoint, gateway feature registration, ownership and output validation, safe degraded mapping, and focused backend tests | W~1 | T2 |
