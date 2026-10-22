@@ -124,7 +124,7 @@ describe('HostAiDescriptionAssistant', () => {
     fireEvent.click(screen.getByRole('button', { name: /^Generate/ }));
     expect(screen.getByRole('button', { name: 'Generating…' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Close AI Description Assistant' })).toBeDisabled();
-    expect(screen.getByRole('status')).toHaveTextContent('Loading');
+    expect(screen.queryByText('Loading…')).not.toBeInTheDocument();
     resolve(response);
     await waitFor(() => expect(screen.getByRole('button', { name: /^Generate/ })).not.toBeDisabled());
   });

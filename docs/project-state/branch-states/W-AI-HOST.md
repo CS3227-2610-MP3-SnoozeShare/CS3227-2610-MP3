@@ -9,7 +9,7 @@ after the branch merges.
 - **Owner:** Xiao-Congchen
 - **Status:** In review
 - **Approved:** Spec and plan approved (Xiao-Congchen, 2026-10-22); Gate 3 review requested
-- **Last updated:** 2026-10-23 by GPT-5 — preserved assistant results across reopen and simplified analysis feedback
+- **Last updated:** 2026-10-23 by GPT-5 — removed redundant visible AI loading text
 
 ---
 
@@ -33,7 +33,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S2 | 2026-10-23 00:20 | GPT-5 (lead) | W~1 | In review | Preserved Host AI modal state and removed PASS/IMPROVE feedback prefixes; frontend checks pass | Commit modal-state cleanup, then leave branch ready for Gate 3 review | 2026-10-23 02:28 |
+| S2 | 2026-10-23 00:20 | GPT-5 (lead) | W~1 | In review | Preserved Host AI modal state and removed redundant visible loading text; frontend checks pass | Commit loading-text cleanup, then leave branch ready for Gate 3 review | 2026-10-23 02:35 |
 
 **Remaining**
 
@@ -146,3 +146,4 @@ plain-text rendering conventions.
 | 2026-10-23 | Removed Long length, aligned the three controls in one row, and aligned current/generated descriptions and analyses into matching rows; added layout regressions | W~1 | Operator-directed change |
 | 2026-10-23 | Removed Host-specific gateway/validation diagnosis warnings and completed Long removal from the backend contract/prompt; added a no-diagnosis-log regression | W~1 | Operator-directed change |
 | 2026-10-23 | Removed PASS/IMPROVE prefixes from analysis feedback, preserved generated results across modal reopen, reset current analysis when the description refreshes, and reset results only after Apply; added regressions | W~1 | Operator-directed change |
+| 2026-10-23 | Removed the redundant visible `Loading…` status text while retaining pending button labels and disabled-state behavior; updated regression coverage | W~1 | Operator-directed change |
