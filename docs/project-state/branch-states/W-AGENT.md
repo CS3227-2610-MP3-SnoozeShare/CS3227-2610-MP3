@@ -9,7 +9,7 @@ after the branch merges.
 - **Owner:** Xiao-Congchen
 - **Status:** Draft
 - **Approved:** —
-- **Last updated:** 2026-10-22 by Codex — T1 complete, paused at operator request
+- **Last updated:** 2026-10-22 by Codex — T1 history split applied; S2 paused after T2
 
 ---
 
@@ -31,7 +31,6 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-22 | Codex | W-AGENT | Blocked — needs human | T1 history split ready on `rewrite/w-agent-150loc`; Q~2 | After S2 is paused, preserve later commits and working changes while applying the rewritten history | 2026-10-22 |
 | S2 | 2026-10-22 | Claude Sonnet 5.5 | W-AGENT | Paused | T2 done; paused at operator request | T3 step 1: the drafted files are in `git stash list` ("T3 draft": `AgentMessageController`, `MessageMapper`, `AgentMessageControllerTest`, the `@Size` cap on `PostMessageRequest`); `git stash pop`, run `AgentMessageControllerTest`, then commit; commits stay under 150 changed lines; Checkstyle only at task end | 2026-10-22 |
 
 **Remaining**
@@ -40,7 +39,6 @@ No change.
 - [x] Gate 1: spec reviewed in two rounds, approved by Xiao-Congchen 2026-10-22 (Q~1 answered: Asia/Singapore)
 - [x] Gate 2: plan approved by Xiao-Congchen 2026-10-22
 - [x] Execute the plan (`executing-plans-lite`); T1 complete
-- [ ] Apply the prepared history after Q~2: `rewrite/w-agent-150loc` at `b16f8b9` contains 23 T1 replacement commits plus eight preserved T7 commits; its implementation matches `2948454`. `W-AGENT` and S2's uncommitted T2 files are untouched. Preserve any later commits and working changes when applying. Backup refs: `backup/w-agent-t1-before-150loc`, `backup/w-agent-t7-before-150loc`.
 - [ ] **Handover:** the W-AI-GATEWAY branch state is still in `branch-states/` on `development`: its fold (gate 4) is pending and is not this branch's work
 - [ ] **Handover:** audit reasons, notes and messages typed by agents will become LLM input in W-AI-AGENT; treat them as untrusted (prompt injection) in that spec
 
@@ -93,9 +91,7 @@ No change.
 
 Q~1 (audit zone) was answered on 2026-10-22 (C~7).
 
-| ID | Question | Needed before |
-|---|---|---|
-| Q~2 | Pause the active S2 session briefly to apply the prepared history, or retain the rewrite on its separate branch? S2 has concurrent T7 commits and uncommitted T2 edits. | Moving `W-AGENT` to the rewritten history without racing S2's Git operations |
+Q~2 was resolved on 2026-10-22: the operator paused S2 and authorized applying the history rewrite. It is now applied; there are no open questions.
 
 ---
 
@@ -145,7 +141,7 @@ Q~1 (audit zone) was answered on 2026-10-22 (C~7).
 | 2026-10-22 | T1 Slice D adds token-derived actor resolution and fail-closed missing-actor handling; backend suite passes | W-AGENT | T1 Slice D |
 | 2026-10-22 | T1 Slice E adds consistent API errors and safe logging; `RowLocks` and ArchUnit boundary rules; full backend Checkstyle and tests pass | W-AGENT | T1 complete |
 | 2026-10-22 | Recorded the operator's commit cap in AGENTS.md; T1 history split finished; per-commit checks waived by the operator; line budgets and implementation parity verified; concurrent later commits preserved | W-AGENT | commit organization |
-| 2026-10-22 | Prepared the T1 split on `rewrite/w-agent-150loc`: 23 replacement commits (maximum 133 changed lines), plus eight preserved T7 commits (maximum 148); implementation parity verified; apply waits for Q~2 | W-AGENT | commit organization |
+| 2026-10-22 | Applied the T1 history split: 23 replacement commits (maximum 133 changed lines); all later T7/T2 commits and the T3 draft stash preserved; implementation parity and every rewritten commit budget verified; per-commit checks skipped at the operator's request | W-AGENT | commit organization |
 | 2026-10-22 | `development` merged into the branch (W-AI-GATEWAY folded; no conflict with the spec) | W-AGENT | merge commit |
 | 2026-10-22 | T7 frontend foundation: `apiJson` and `isSessionFailure`, `usePolling`, `SessionNotice`, `AgentDialog`, agent navbar links without the wallet pill, `/agent` redirect, API types and formatting; 101 frontend tests, lint and build pass | W-AGENT | T7 commits |
 | 2026-10-22 | Plan-only fix: the frontend build command needs the CI placeholder Firebase variables | W-AGENT | T7 close |
