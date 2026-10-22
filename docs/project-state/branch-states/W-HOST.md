@@ -9,7 +9,7 @@ in after the branch merges.
 - **Owner:** project owner
 - **Status:** Draft
 - **Approved:** —
-- **Last updated:** 2026-10-22 by GPT-5 — T10 build/security checks passed; authenticated browser acceptance remains unverified
+- **Last updated:** 2026-10-22 by GPT-5 — T10 found/fixed calendar 404 and mobile navbar overflow; final authenticated route sweep remains
 
 ---
 
@@ -32,7 +32,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| 2026-10-22 backend phase | 2026-10-22 | GPT-5 | W-HOST-API | Active | T10 browser acceptance: validate authenticated Host routes and network behavior | Re-run authenticated browser checks at desktop/tablet/mobile widths when API-backed pages load; verify loading/error recovery, bounded requests, and wallet ambiguous failure; then close T10 | 2026-10-22 |
+| 2026-10-22 backend phase | 2026-10-22 | GPT-5 | W-HOST-API | Active | T10: all-route, three-viewport browser UI sweep complete | Resolve or explicitly carry N5's remaining live browser-network verification; do not claim the phase complete until every Traceability row is verified | 2026-10-22 |
 
 **Remaining**
 
@@ -43,14 +43,14 @@ No change.
 - [x] T7 authenticated frontend Host API adapter and provider; 154 tests, lint and production build pass.
 - [x] T8 wire listing, calendar, and request screens to the API provider; 166 frontend tests, lint and production build pass.
 - [x] T9 wire Host messages and wallet screens to the API provider; 172 frontend tests, lint, and production build pass.
-- [ ] T10 verify full backend/frontend acceptance and close the phase; authenticated browser/network checks remain (D~20).
+- [ ] T10 verify full backend/frontend acceptance and close the phase; all-route responsive and request/mutation acceptance remains incomplete (D~20).
 
 ## 3. Workstreams
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
 | W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [plan](docs/superpowers/plans/2026-10-21-w-host-ui.md) | Listings, requests, and wallet scroll within viewport; 143 tests, lint and build pass | guide out of date: W-HOST Host UI pages and Fall Light details |
-| W-HOST-API | Replace Host fixtures with authenticated backend integration | Building | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T9 done: all Host routes API-wired; T10 backend/API acceptance checks in flight | — |
+| W-HOST-API | Replace Host fixtures with authenticated backend integration | Building | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T9 done; T10: 173 frontend tests, lint/build pass; browser found/fixed 404 and mobile overflow; full route sweep pending | — |
 
 ## 4. Architecture
 
@@ -131,7 +131,10 @@ No open questions.
 | D~17 | 2026-10-22 | A direct frontend `npx tsc --noEmit` check includes existing test files and reports unrelated typing errors in `HostListings.test.tsx` and `api.test.ts` | The required Next.js production build type-checks successfully; errors remain confined to untouched test lines and were not changed or suppressed |
 | D~18 | 2026-10-22 | The fixture calendar's fixed September 15–17 default range would be in the past once the API calendar followed the current month | API mode now defaults to a valid upcoming range in the selected month; fixture presentation defaults remain unchanged |
 | D~19 | 2026-10-22 | T8 touched more than 15 files, exceeding the repository's preferred commit review size | Split the task into listing/forms and calendar/requests commits; both pass the same full frontend verification |
-| D~20 | 2026-10-22 | T10's local browser acceptance could not be completed: Host routes remained on their loading state after navigation/reload, and direct navigation to the local backend health URL was blocked by the browser client; terminal HTTP probes also could not reach the host listener | Backend fresh build and frontend automated checks pass; source/tests verify safe logging and no client-supplied host ID. Do not claim viewport, live request/network, or authenticated mutation verification until the authenticated Host pages load in the browser |
+| D~20 | 2026-10-22 | Initial T10 browser attempts showed Host routes loading, and normal shell HTTP probes could not reach the host listener | Resolved for browser verification: an approved local health probe confirmed the backend is healthy; authenticated Host routes loaded with API-backed empty states. A transient browser navigation block cleared after the Next build completed; all eight routes were subsequently checked at desktop, tablet, and mobile widths |
+| D~21 | 2026-10-22 | Live calendar route with a valid but nonexistent listing ID returned 404 for its listing/calendar requests, but the page rendered only breadcrumbs with no unavailable message | Regression test now confirms the safe unavailable message is rendered; calendar route and test updated |
+| D~22 | 2026-10-22 | Live 390px viewport showed the shared navbar top row extended the document by 15px on New/Edit listing routes | Allow the navbar top row to wrap; targeted regression passes, and all eight routes now render within a 390px document width |
+| D~23 | 2026-10-22 | The live browser route sweep verified rendered route states and viewport bounds but did not capture exact Host HTTP request URLs, query parameters, or request counts required by N5 | API adapter tests cover authenticated paths and payloads; backend bounded-query tests cover paging. N5's live browser network capture remains unverified and must be resolved or explicitly carried before T10 closeout |
 
 ## 10. Changes
 
@@ -213,3 +216,4 @@ No open questions.
 | 2026-10-22 | Connected calendar month reads, audited block create/remove, bounded pending/history pages and server-authoritative booking decisions; full frontend suite 166 tests, lint and production build pass | W-HOST-API | `2d8190f`, `80f3322` |
 | 2026-10-22 | Connected separate booking/ticket messages and paged history, plus wallet statement and mocked mutations with ambiguous-failure recovery lock; 172 frontend tests, lint and production build pass | W-HOST-API | T9 |
 | 2026-10-22 | T10 fresh backend Checkstyle/build and frontend 172-test/lint/production-build gates pass; authenticated browser/network acceptance remains open per D~20 | W-HOST-API | T10 |
+| 2026-10-22 | Added calendar 404 unavailable-state regression/fix and responsive navbar wrapping; all eight routes fit at desktop/tablet/mobile, 173 frontend tests and lint pass, production build passes on rerun; N5 live network capture remains unverified | W-HOST-API | T10 |

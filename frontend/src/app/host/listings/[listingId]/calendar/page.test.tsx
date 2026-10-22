@@ -3,10 +3,11 @@ import { describe, expect, it, vi } from 'vitest';
 import HostCalendarPage from './page';
 import { HostFixtureProvider } from '@/components/host/HostFixtureProvider';
 import { HostApiProvider } from '@/components/host/HostApiProvider';
+import { BackendApiError } from '@/lib/api';
 
 vi.mock('next/navigation', () => ({ useParams: () => ({ listingId: 'lakeside-cabin' }) }));
 const { fetchHostCalendar, fetchHostListing, fetchHostWallet, createHostBlock, deleteHostBlock } = vi.hoisted(() => ({ fetchHostCalendar: vi.fn(), fetchHostListing: vi.fn(), fetchHostWallet: vi.fn(), createHostBlock: vi.fn(), deleteHostBlock: vi.fn() }));
-vi.mock('@/lib/hostApi', () => ({ fetchHostCalendar, fetchHostListing, fetchHostWallet, createHostBlock, deleteHostBlock, topUpHostWallet: vi.fn(), withdrawFromHostWallet: vi.fn() }));
+vi.mock('@/lib/hostApi', async (importOriginal) => ({ ...await importOriginal<typeof import('@/lib/hostApi')>(), fetchHostCalendar, fetchHostListing, fetchHostWallet, createHostBlock, deleteHostBlock, topUpHostWallet: vi.fn(), withdrawFromHostWallet: vi.fn() }));
 const currentCalendar = () => { const now = new Date(); return { year: now.getFullYear(), month: now.getMonth() + 1, days: [{ date: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`, booked: false, blocked: false }], blocks: [] }; };
 
 describe('Host calendar page', () => {
@@ -54,5 +55,15 @@ describe('Host calendar page', () => {
     await screen.findByRole('heading', { name: 'October 2026' });
     fireEvent.click(screen.getByRole('button', { name: 'Next month' }));
     await waitFor(() => expect(fetchHostCalendar).toHaveBeenCalledWith('lakeside-cabin', 2026, 11));
+  });
+  it('shows a safe unavailable state when the API says the listing does not exist', async () => {
+    const notFound = () => new BackendApiError('NOT_FOUND', 'private backend details', 'request-1', 404);
+    fetchHostCalendar.mockRejectedValue(notFound());
+    fetchHostListing.mockRejectedValue(notFound());
+    fetchHostWallet.mockResolvedValue({ wallet: { id: 'w', userId: 'h', balance: 10, currency: 'SGD', updatedAt: '' }, statement: { items: [], page: 0, size: 1, hasMore: false } });
+    render(<HostApiProvider><HostFixtureProvider><HostCalendarPage /></HostFixtureProvider></HostApiProvider>);
+
+    expect(await screen.findByText('This item is no longer available.')).toBeInTheDocument();
+    expect(screen.queryByText('private backend details')).not.toBeInTheDocument();
   });
 });

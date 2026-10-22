@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { useHostFixtures } from '@/components/host/HostFixtureProvider';
@@ -33,6 +34,8 @@ export default function HostCalendarPage() {
     ? !calendarResource || !listingResource || calendarResource.status === 'loading' || listingResource.status === 'loading'
     : fixtureCalendar.state === 'loading';
   if (loading) return <HostPageFrame title=""><div className="ss-card h-64 animate-pulse bg-[var(--surface-inset)]" /></HostPageFrame>;
+  const notFound = api && (calendarResource?.status === 'not-found' || listingResource?.status === 'not-found');
+  if (notFound) return <HostPageFrame title=""><div className="ss-card p-8 text-center"><p>This item is no longer available.</p><Link className="mt-4 inline-block text-primary underline" href="/host/listings">Back to Listings</Link></div></HostPageFrame>;
   const error = api
     ? calendarResource?.status === 'error' ? calendarResource.message : listingResource?.status === 'error' ? listingResource.message : ''
     : fixtureCalendar.state === 'error' ? fixtureCalendar.error : '';

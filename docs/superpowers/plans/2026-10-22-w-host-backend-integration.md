@@ -331,16 +331,19 @@
 | Action | Path | What changes |
 |---|---|---|
 | Modify | `docs/superpowers/plans/2026-10-22-w-host-backend-integration.md` | Tick verified checklists and task statuses; keep plan status aligned with approval and execution. |
+| Modify | `frontend/src/app/host/listings/[listingId]/calendar/page.tsx` | Render a safe unavailable/not-found state when the calendar or listing request returns 404 instead of leaving a breadcrumb-only page. |
+| Test | `frontend/src/app/host/listings/[listingId]/calendar/page.test.tsx` | Verify a missing listing shows a user-visible not-found state and no blank calendar page. |
 | Verify | Host backend/frontend routes in local environment | Check all eight Host routes at desktop/tablet/mobile widths, auth recovery, API requests, loading/error/empty states, and wallet ambiguous failure handling. |
 
 **Checklist**
 
 - [x] 1. Run `cd backend && ./gradlew build --rerun-tasks` and `cd frontend && npm test && npm run lint && NEXT_PUBLIC_API_BASE_URL=http://localhost:8080 npm run build`.
-- [ ] 2. Verify every Traceability row; record any unverified behavior or build divergence in branch-state Deviations instead of claiming completion.
-- [x] 3. Inspect the API error logger and request adapter; logs include only request ID/status/code/path, and adapter tests verify no client-supplied host ID or wallet retry metadata.
-- [x] 4. Record verification evidence: backend fresh Checkstyle/build passed; frontend 172 tests across 32 files, lint, and production build passed.
+- [x] 2. Add a failing regression for calendar 404, render a safe unavailable state, and verify the regression passes; also fix the live-discovered 390px navbar overflow with a wrapping row and regression assertion.
+- [ ] 3. Verify every Traceability row; all eight routes now render within the viewport at desktop/tablet/mobile. Record N5's remaining exact live browser request/query/count capture as D~23; automated adapter and bounded-query tests pass, but do not treat them as browser network evidence.
+- [x] 4. Inspect the API error logger and request adapter; logs include only request ID/status/code/path, and adapter tests verify no client-supplied host ID or wallet retry metadata.
+- [x] 5. Record verification evidence: backend fresh Checkstyle/build passed; frontend 173 tests across 32 files and lint passed; production build passed on rerun after one transient favicon entry invariant.
 
-**Verification evidence (2026-10-22):** `./gradlew build --rerun-tasks` completed with `BUILD SUCCESSFUL`; frontend `npm test` passed 172 tests in 32 files, lint passed, and Next.js production build completed. Browser acceptance checks remain in progress (see branch-state D~20).
+**Verification evidence (2026-10-22):** `./gradlew build --rerun-tasks` completed with `BUILD SUCCESSFUL`; frontend `npm test` passed 173 tests in 32 files and lint passed. One Next build attempt stopped during page-data collection with `Invariant: no direct app page entry found for /favicon.ico`; immediate rerun completed successfully and listed all 16 routes. The live browser rendered all eight Host routes at 1680px, 1280px, and 390px with document width equal to viewport width. No live wallet/message/booking mutations or token invalidation were performed. Exact live browser network capture for N5 remains unverified (D~23), so T10 and closeout remain open.
 
 ### Close-out
 

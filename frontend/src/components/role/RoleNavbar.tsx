@@ -22,7 +22,7 @@ export function RoleNavbar({ role, onLogout, walletLabel, activePath }: { role: 
   return (
     <nav aria-label="Workspace navigation" className="ss-role-navbar shrink-0 border-b border-[var(--border-muted)] bg-card px-6 pb-0 pt-3">
       <div className="w-full">
-        <div data-testid="workspace-navbar-top" className="flex min-h-7 items-center gap-3">
+        <div data-testid="workspace-navbar-top" className="flex min-h-7 flex-wrap items-center gap-3">
           <Link href={landingPath} className="text-base font-extrabold tracking-[0.04em] text-primary">SnoozeShare</Link>
           {workspaceLabels[role] && <span className="ss-pill ss-status-neutral text-xs">{workspaceLabels[role]}</span>}
           <span aria-label={walletLabel ? `Wallet: ${walletLabel}` : 'Wallet'} className="ss-pill ss-status-neutral ml-auto text-xs">{walletLabel ? `Wallet: ${walletLabel}` : 'Wallet'}</span>
