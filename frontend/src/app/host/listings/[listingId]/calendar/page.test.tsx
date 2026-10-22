@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import HostCalendarPage from './page';
 import { HostFixtureProvider } from '@/components/host/HostFixtureProvider';
@@ -43,13 +43,15 @@ describe('Host calendar page', () => {
     fireEvent.click(screen.getByRole('button', { name: String(Math.max(3, now.getDate() + 3)) }));
     fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
     fireEvent.change(screen.getByLabelText('Reason'), { target: { value: 'Maintenance' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Block these dates' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
     const startDay = String(Math.max(2, now.getDate() + 1)).padStart(2, '0');
     const endDay = String(Math.max(3, now.getDate() + 3)).padStart(2, '0');
     const month = String(now.getMonth() + 1).padStart(2, '0');
-    await waitFor(() => expect(createHostBlock).toHaveBeenCalledWith('lakeside-cabin', { startDate: `${now.getFullYear()}-${month}-${startDay}`, endDate: `${now.getFullYear()}-${month}-${endDay}`, reason: 'Maintenance' }));
-    await waitFor(() => expect(fetchHostCalendar).toHaveBeenCalledTimes(2));
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Block these dates' }));
+      await waitFor(() => expect(createHostBlock).toHaveBeenCalledWith('lakeside-cabin', { startDate: `${now.getFullYear()}-${month}-${startDay}`, endDate: `${now.getFullYear()}-${month}-${endDay}`, reason: 'Maintenance' }));
+      await waitFor(() => expect(fetchHostCalendar).toHaveBeenCalledTimes(2));
+    });
+    expect(screen.queryByRole('button', { name: 'Confirm' })).not.toBeInTheDocument();
   });
   it('loads a new API month when navigating the calendar', async () => {
     fetchHostCalendar.mockImplementation((_id: string, year: number, month: number) => Promise.resolve({ year, month, days: [{ date: `${year}-${String(month).padStart(2, '0')}-01`, booked: false, blocked: false }], blocks: [] }));

@@ -1,4 +1,5 @@
 import type { ListingDetail } from './hostTypes';
+import { formatTime } from './hostTypes';
 import { StatusPill } from '@/components/ui/status-pill';
 
 export function HostListingDetail({ listing }: { listing: ListingDetail }) {
@@ -7,8 +8,8 @@ export function HostListingDetail({ listing }: { listing: ListingDetail }) {
     ['BEDROOMS', listing.bedrooms],
     ['BATHROOMS', listing.bathrooms],
     ['PER NIGHT', `$${listing.rate}`],
-    ['CHECK-IN', listing.checkIn],
-    ['CHECK-OUT', listing.checkOut],
+    ['CHECK-IN', formatTime(listing.checkIn)],
+    ['CHECK-OUT', formatTime(listing.checkOut)],
   ] as const;
 
   return (

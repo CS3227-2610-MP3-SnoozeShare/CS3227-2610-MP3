@@ -1,9 +1,11 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import userEvent from '@testing-library/user-event';
+import { describe, expect, it, vi } from 'vitest';
 import { HostCalendarPanel } from './HostCalendarPanel';
 import { HostRequestsTable } from './HostRequestsTable';
 import { createHostFixtureAdapter } from './hostFixtures';
 import { resolveCalendarState } from './calendarState';
+import { BackendApiError } from '@/lib/api';
 
 describe('Host calendar and requests', () => {
   it('applies Booked > Blocked > Available > Other month precedence', () => {
@@ -57,11 +59,43 @@ describe('Host calendar and requests', () => {
     expect(screen.queryByText('Oct 3 – Oct 5, 2026')).not.toBeInTheDocument();
   });
 
-  it('requires a reason before opening the block confirmation', () => {
+  it('requires a reason before submitting a block and does not open a confirmation dialog', () => {
     render(<HostCalendarPanel calendar={createHostFixtureAdapter().getCalendar('lakeside-cabin').data!} />);
     fireEvent.click(screen.getByRole('button', { name: 'Block these dates' }));
     expect(screen.getByText('Reason is required')).toBeInTheDocument();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('uses Block these dates as the direct confirmation action', async () => {
+    const user = userEvent.setup();
+    const createBlock = vi.fn().mockResolvedValue(undefined);
+    render(<HostCalendarPanel calendar={createHostFixtureAdapter().getCalendar('lakeside-cabin').data!} onCreateBlock={createBlock} />);
+    await user.click(screen.getByRole('button', { name: 'Date range: Select dates' }));
+    const picker = screen.getByRole('dialog', { name: 'Choose date range' });
+    await user.click(within(picker).getByRole('button', { name: '18' }));
+    await user.click(within(picker).getByRole('button', { name: '20' }));
+    await user.click(screen.getByRole('button', { name: 'Apply' }));
+    await user.type(screen.getByLabelText('Reason'), 'Maintenance');
+
+    await user.click(screen.getByRole('button', { name: 'Block these dates' }));
+
+    expect(createBlock).toHaveBeenCalledWith({ startDate: '2026-09-18', endDate: '2026-09-20', reason: 'Maintenance' });
+    expect(screen.queryByRole('dialog', { name: 'Block these dates?' })).not.toBeInTheDocument();
+  });
+
+  it('submits the block form on Enter and shows a specific overlap error', async () => {
+    const user = userEvent.setup();
+    const createBlock = vi.fn().mockRejectedValue(new BackendApiError('DATE_RANGE_UNAVAILABLE', 'Request could not be completed', 'req', 409));
+    render(<HostCalendarPanel calendar={createHostFixtureAdapter().getCalendar('lakeside-cabin').data!} onCreateBlock={createBlock} />);
+    await user.click(screen.getByRole('button', { name: 'Date range: Select dates' }));
+    const picker = screen.getByRole('dialog', { name: 'Choose date range' });
+    await user.click(within(picker).getByRole('button', { name: '18' }));
+    await user.click(within(picker).getByRole('button', { name: '20' }));
+    await user.click(screen.getByRole('button', { name: 'Apply' }));
+    await user.type(screen.getByLabelText('Reason'), 'Maintenance{Enter}');
+
+    await waitFor(() => expect(createBlock).toHaveBeenCalledOnce());
+    expect(await screen.findByRole('alert')).toHaveTextContent('These dates overlap an existing booking or blocked period. Choose another date range.');
   });
 
   it('keeps a chosen range open until Apply', () => {

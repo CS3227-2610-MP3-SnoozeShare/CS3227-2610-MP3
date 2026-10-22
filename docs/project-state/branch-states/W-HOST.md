@@ -8,7 +8,7 @@ in after the branch merges.
 - **Base:** `e185dc0`
 - **Owner:** project owner
 - **Status:** In review
-- **Last updated:** 2026-10-22 by GPT-5 — listing form validation and error placement follow-up complete; owner review needed
+- **Last updated:** 2026-10-22 by GPT-5 — listing time/calendar follow-up implemented and verified; owner review needed
 
 ---
 
@@ -34,7 +34,7 @@ No change.
 
 **Remaining**
 
-- [ ] Owner review and approval remain for W-HOST and W-HOST-API, including the listing-form follow-up.
+- [ ] Owner review and approval remain for W-HOST and W-HOST-API, including this listing-time/calendar follow-up.
 - [x] T4 booking decisions: owner-scoped database paging, authenticated API, row-lock decision and concurrency tests are complete.
 - [x] T5 Host booking/ticket message APIs: distinct authenticated routes, database-bounded summaries/history, after-commit events and rollback coverage complete.
 - [x] T6 Host wallet API: authenticated balance, paged statement and mocked mutation routes; five PostgreSQL integration tests pass.
@@ -54,7 +54,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [experience corrections spec](docs/superpowers/specs/2026-10-22-w-host-experience-corrections-design.md); [UI spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [UI plan](docs/superpowers/plans/2026-10-21-w-host-ui.md); [experience corrections plan](docs/superpowers/plans/2026-10-22-w-host-experience-corrections.md) | Form validation/error placement follow-up complete; 191 tests, lint, and production build pass; owner review pending | guide out of date: Host metrics, time display, and calendar behavior |
+| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | In review | [experience corrections spec](docs/superpowers/specs/2026-10-22-w-host-experience-corrections-design.md); [UI spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md) | [UI plan](docs/superpowers/plans/2026-10-21-w-host-ui.md); [experience corrections plan](docs/superpowers/plans/2026-10-22-w-host-experience-corrections.md) | Listing/calendar follow-up verified: 196 frontend tests, lint/build, backend Checkstyle/build pass; owner review pending | guide out of date: Host metrics, time display, and calendar behavior |
 | W-HOST-API | Replace Host fixtures with authenticated backend integration | In review | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T17 complete: 101/1,001-row tests, full gates, and authenticated read-only captures; owner review pending | — |
 
 ## 4. Architecture
@@ -121,6 +121,7 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | C~21 | 2026-10-22 | Correct Host listing metrics, avoid full-content reloads for listing status and calendar month changes, preserve listing times exactly across detail/edit views, show occupancy to two decimals, and leave the calendar block date range empty initially | Project owner approved this follow-up after review found collection responses omit metrics, status/month loads replace the page with a skeleton, and local-time parsing followed by UTC formatting shifts times (e.g. 07:00 to 23:00 prior day); rejecting timezone conversion and API N+1 detail reads | Operator conversation |
 | C~22 | 2026-10-22 | Approve the W-HOST experience-corrections spec and proceed to the plan gate | Trevor approved the reviewed Medium-risk spec after two rounds of Implementer, Tester, and Attacker review; code remains gated on a separate plan approval | Operator, 2026-10-22 |
 | C~23 | 2026-10-22 | New/Edit listing forms validate check-in and check-out, require check-out strictly earlier than check-in, use required/non-negative copy for bedroom and bathroom errors, and show request failures to the right of the form actions | The project owner requested these form validation and error-placement behaviors after reviewing the listing pages | Operator conversation |
+| C~24 | 2026-10-22 | Listing detail check-in/out display uses zero-padded `hh:mm AM/PM`; calendar block submission has no confirmation modal, submits by button or Enter, and reports booking/blocked-period overlap distinctly | The project owner requested these listing-detail and calendar interaction/error behaviors | Operator conversation |
 
 ## 9. Deviations
 
@@ -260,3 +261,4 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | 2026-10-22 | Mapped server listing summaries into card metrics and patched only the updated row's status from the mutation response; no collection reload; 188 frontend tests, lint, and production build pass | W-HOST | T2 |
 | 2026-10-22 | Added service-level query-count coverage for one- and 101-listing Host batches after review; exactly two grouped owner-scoped reads per size; Checkstyle/build pass | W-HOST | T1 review follow-up, D~32 |
 | 2026-10-22 | Added inline check-in/out required and ordering validation, corrected bedroom/bathroom errors, and moved safe request failures to the right of form actions; 191 tests, lint, and production build pass | W-HOST | C~23 |
+| 2026-10-22 | Formatted listing detail times as zero-padded 12-hour values; made Block these dates submit directly (including Enter), and mapped overlapping booking/block conflicts to a specific safe error; 196 frontend tests, lint/build, backend Checkstyle/build pass | W-HOST | C~24 |

@@ -110,8 +110,8 @@ describe('Host listing components', () => {
     expect(screen.getByText('BEDROOMS').parentElement).toHaveTextContent('2');
     expect(screen.getByText('BATHROOMS').parentElement).toHaveTextContent('1');
     expect(screen.getByText('PER NIGHT').parentElement).toHaveTextContent('$120');
-    expect(screen.getByText('CHECK-IN').parentElement).toHaveTextContent('3:00 PM');
-    expect(screen.getByText('CHECK-OUT').parentElement).toHaveTextContent('11:00 AM');
+    expect(screen.getByText('CHECK-IN').parentElement?.querySelector('dd')).toHaveTextContent(/^03:00 PM$/);
+    expect(screen.getByText('CHECK-OUT').parentElement?.querySelector('dd')).toHaveTextContent(/^11:00 AM$/);
     expect(screen.getByText('MAX GUESTS').parentElement?.querySelector('dd')).toHaveClass('text-base');
     expect(screen.getByText('MAX GUESTS')).toHaveClass('text-[10px]');
     expect(screen.getByRole('heading', { name: 'Description' })).toHaveClass('text-base');

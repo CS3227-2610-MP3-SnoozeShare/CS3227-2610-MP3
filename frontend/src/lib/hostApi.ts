@@ -41,6 +41,7 @@ async function request(path: string, init?: RequestInit) {
 
 export function hostSafeErrorMessage(error: unknown) {
   if (!(error instanceof BackendApiError)) return 'Unable to complete this request. Please try again.';
+  if (error.code === 'DATE_RANGE_UNAVAILABLE') return 'These dates overlap an existing booking or blocked period. Choose another date range.';
   if (error.status === 401) return 'Your session has expired. Sign in again to continue.';
   if (error.status === 403) return 'You do not have permission to do that.';
   if (error.status === 404) return 'This item is no longer available.';

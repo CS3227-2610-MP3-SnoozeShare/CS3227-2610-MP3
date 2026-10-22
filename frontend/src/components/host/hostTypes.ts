@@ -171,6 +171,16 @@ function humanize(value: string) {
   return value.toLowerCase().replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
-function formatTime(value: string) {
-  return /^(\d{2}:\d{2})/.exec(value)?.[1] ?? value;
+export function formatTime(value: string) {
+  const twelveHour = /^(\d{1,2}):(\d{2})\s*(AM|PM)$/i.exec(value);
+  if (twelveHour) {
+    const hour = Number(twelveHour[1]);
+    if (hour >= 1 && hour <= 12) return `${String(hour).padStart(2, '0')}:${twelveHour[2]} ${twelveHour[3].toUpperCase()}`;
+  }
+  const twentyFourHour = /^(\d{1,2}):(\d{2})(?::\d{2}(?:\.\d+)?)?$/.exec(value);
+  if (!twentyFourHour) return value;
+  const hour = Number(twentyFourHour[1]);
+  const minute = Number(twentyFourHour[2]);
+  if (hour > 23 || minute > 59) return value;
+  return `${String(hour % 12 || 12).padStart(2, '0')}:${twentyFourHour[2]} ${hour < 12 ? 'AM' : 'PM'}`;
 }

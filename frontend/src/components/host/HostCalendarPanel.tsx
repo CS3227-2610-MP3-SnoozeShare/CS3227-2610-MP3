@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { CalendarDays } from 'lucide-react';
 import { CalendarGrid, type CalendarDay as GridDay } from '@/components/ui/calendar-grid';
-import { Modal } from '@/components/ui/modal';
 import { resolveCalendarState, calendarDayLabel } from './calendarState';
 import type { CalendarData } from './hostTypes';
 import { hostSafeErrorMessage } from '@/lib/hostApi';
@@ -11,7 +10,6 @@ import { hostSafeErrorMessage } from '@/lib/hostApi';
 type BlockInput = { startDate: string; endDate: string; reason: string };
 export function HostCalendarPanel({ calendar, onCreateBlock, onDeleteBlock, onMonthChange, requestedMonth, calendarLoading = false }: { calendar: CalendarData; onCreateBlock?: (block: BlockInput) => Promise<void>; onDeleteBlock?: (block: CalendarData['blockedDates'][number]) => Promise<void>; onMonthChange?: (year: number, month: number) => void; requestedMonth?: { year: number; month: number }; calendarLoading?: boolean }) {
   const [monthOffset, setMonthOffset] = useState(0);
-  const [open, setOpen] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [draftFrom, setDraftFrom] = useState('');
   const [draftTo, setDraftTo] = useState('');
@@ -105,16 +103,14 @@ export function HostCalendarPanel({ calendar, onCreateBlock, onDeleteBlock, onMo
     setTo(draftTo);
     setDatePickerOpen(false);
   };
-  const block = () => {
+  const submitBlock = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     if (!reason.trim()) { setError('Reason is required'); return; }
     if (!from || !to || from > to) { setError('End date must be on or after start date'); return; }
     setError('');
-    setOpen(true);
-  };
-  const confirmBlock = async () => {
     try {
       if (onCreateBlock) await onCreateBlock({ startDate: from, endDate: to, reason: reason.trim() });
-      setOpen(false);
+      else setBlockedDates((current) => [...current, { startDate: from, endDate: to, reason: reason.trim() }]);
     } catch (caught) {
       setError(hostSafeErrorMessage(caught));
     }
@@ -161,7 +157,7 @@ export function HostCalendarPanel({ calendar, onCreateBlock, onDeleteBlock, onMo
 
       <aside className="border-t border-border bg-white px-5 py-5 lg:border-l lg:border-t-0">
         <h2 className="mb-4 text-base font-semibold">Block dates</h2>
-        <div className="space-y-3">
+        <form className="space-y-3" noValidate onSubmit={(event) => void submitBlock(event)}>
           <div className="relative space-y-1" ref={datePickerRef}>
             <label className="text-xs font-semibold" htmlFor="date-range">Date range</label>
             <button aria-label={`Date range: ${rangeText}`} aria-expanded={datePickerOpen} aria-haspopup="dialog" className="flex h-9 w-full items-center justify-between rounded-lg border border-input bg-background px-2 text-left text-sm font-normal hover:bg-[var(--surface-inset)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" id="date-range" onClick={toggleDatePicker} type="button"><span>{rangeText}</span><CalendarDays aria-hidden="true" className="h-4 w-4 shrink-0 text-[var(--text-subtle)]" /></button>
@@ -189,9 +185,9 @@ export function HostCalendarPanel({ calendar, onCreateBlock, onDeleteBlock, onMo
             </div>}
           </div>
           <label className="flex flex-col gap-1 text-xs font-semibold" htmlFor="reason">Reason<input className="h-9 rounded-lg border border-input bg-background px-2 text-sm font-normal" id="reason" onChange={(event) => setReason(event.target.value)} placeholder="e.g. Maintenance" required value={reason} /></label>
-          {error && <p className="text-xs text-destructive">{error}</p>}
-          <button className="w-full rounded-lg bg-[#941f26] px-3 py-2 text-sm font-semibold text-white hover:bg-[#7f1c22]" onClick={block} type="button">Block these dates</button>
-        </div>
+          {error && <p className="text-xs text-destructive" role="alert">{error}</p>}
+          <button className="w-full rounded-lg bg-[#941f26] px-3 py-2 text-sm font-semibold text-white hover:bg-[#7f1c22]" type="submit">Block these dates</button>
+        </form>
         <div className="mt-4 border-t border-border pt-4">
           <h3 className="mb-2 text-sm font-semibold">Current blocked dates</h3>
           {blockedDates.length ? blockedDates.map((item) => {
@@ -203,7 +199,6 @@ export function HostCalendarPanel({ calendar, onCreateBlock, onDeleteBlock, onMo
           }) : <p className="text-sm text-[var(--text-subtle)]">No current blocked dates</p>}
         </div>
       </aside>
-      <Modal open={open} title="Block these dates?" description={onCreateBlock ? 'These dates will be blocked on your booking calendar.' : 'This is a presentation-only Host control. No booking availability will be changed.'} onClose={() => setOpen(false)} onConfirm={() => void confirmBlock()} confirmLabel="Confirm" />
     </section>
   );
 }

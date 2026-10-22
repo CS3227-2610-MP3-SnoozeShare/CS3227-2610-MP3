@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { BackendApiError } from './api';
-import { mapHostListing, mapHostListingDetail, mapHostWallet } from '@/components/host/hostTypes';
+import { formatTime, mapHostListing, mapHostListingDetail, mapHostWallet } from '@/components/host/hostTypes';
 
 const { authenticatedFetch, signOutUser } = vi.hoisted(() => ({ authenticatedFetch: vi.fn(), signOutUser: vi.fn() }));
 vi.mock('./api', async (importOriginal) => {
@@ -75,6 +75,8 @@ describe('Host API adapter', () => {
     const { hostSafeErrorMessage } = await import('./hostApi');
     expect(hostSafeErrorMessage(new BackendApiError('STATE_CONFLICT', 'internal details', 'req', 409)))
       .toBe('This item changed. Refresh and try again.');
+    expect(hostSafeErrorMessage(new BackendApiError('DATE_RANGE_UNAVAILABLE', 'internal details', 'req', 409)))
+      .toBe('These dates overlap an existing booking or blocked period. Choose another date range.');
     expect(hostSafeErrorMessage(new Error('secret or SQL details')))
       .toBe('Unable to complete this request. Please try again.');
   });
@@ -104,11 +106,19 @@ describe('Host API adapter', () => {
         bookingCount: 0, averageRating: 0, reviews: [], occupancyPercentage: 0, earnings: 0,
       } });
 
-      expect(detail.checkIn).toBe('07:00');
-      expect(detail.checkOut).toBe('03:00');
+      expect(detail.checkIn).toBe('07:00 AM');
+      expect(detail.checkOut).toBe('03:00 AM');
     } finally {
       if (originalTimezone === undefined) delete process.env.TZ;
       else process.env.TZ = originalTimezone;
     }
+  });
+
+  it.each([
+    ['00:05:00', '12:05 AM'],
+    ['12:05:00', '12:05 PM'],
+    ['15:05:00', '03:05 PM'],
+  ])('formats listing time %s as %s', (value, expected) => {
+    expect(formatTime(value)).toBe(expected);
   });
 });

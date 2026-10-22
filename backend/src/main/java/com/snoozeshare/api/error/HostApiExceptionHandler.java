@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import com.snoozeshare.auth.api.AuthErrorResponse;
+import com.snoozeshare.service.AvailabilityConflictException;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
@@ -58,6 +59,13 @@ public class HostApiExceptionHandler {
         IllegalArgumentException exception,
         HttpServletRequest request) {
         return respond(HttpStatus.UNPROCESSABLE_ENTITY, "DOMAIN_RULE_VIOLATION", request);
+    }
+
+    @ExceptionHandler(AvailabilityConflictException.class)
+    public ResponseEntity<AuthErrorResponse> handleAvailabilityConflict(
+        AvailabilityConflictException exception,
+        HttpServletRequest request) {
+        return respond(HttpStatus.CONFLICT, "DATE_RANGE_UNAVAILABLE", request);
     }
 
     @ExceptionHandler(IllegalStateException.class)

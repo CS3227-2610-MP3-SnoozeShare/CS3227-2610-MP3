@@ -47,6 +47,7 @@ import com.snoozeshare.repository.AvailabilityBlockRepository;
 import com.snoozeshare.repository.BookingRepository;
 import com.snoozeshare.repository.PropertyRepository;
 import com.snoozeshare.repository.UserRepository;
+import com.snoozeshare.service.AvailabilityConflictException;
 import com.snoozeshare.service.AvailabilityService;
 
 /** Exercises authenticated Host calendar contracts against PostgreSQL. */
@@ -175,8 +176,8 @@ class HostCalendarIntegrationTest {
                 .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(blockBody(end, end.plusDays(1), null)))
-            .andExpect(status().isUnprocessableEntity())
-            .andExpect(jsonPath("$.code").value("DOMAIN_RULE_VIOLATION"));
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.code").value("DATE_RANGE_UNAVAILABLE"));
         mockMvc.perform(post("/api/host/listings/" + propertyId + "/blocks")
                 .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -335,7 +336,7 @@ class HostCalendarIntegrationTest {
         try {
             availability.createHostBlock(propertyId, from, to, hostId, null);
             return "created";
-        } catch (IllegalArgumentException exception) {
+        } catch (AvailabilityConflictException exception) {
             return "overlap";
         }
     }

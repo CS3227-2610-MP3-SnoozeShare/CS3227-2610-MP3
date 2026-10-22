@@ -37,6 +37,7 @@ import com.snoozeshare.repository.PropertyRepository;
 import com.snoozeshare.repository.UserRepository;
 import com.snoozeshare.service.AuditRecord;
 import com.snoozeshare.service.AuditService;
+import com.snoozeshare.service.AvailabilityConflictException;
 import com.snoozeshare.service.AvailabilityService;
 
 @Service
@@ -98,7 +99,7 @@ public class AvailabilityServiceImpl implements AvailabilityService {
             }
             if (!bookings.findOverlapping(propertyId, start, exclusiveEnd).isEmpty()
                     || !blocks.findOverlapping(propertyId, start, exclusiveEnd).isEmpty()) {
-                throw new IllegalArgumentException("Date range is not available");
+                throw new AvailabilityConflictException();
             }
             String normalizedReason = reason == null ? null : reason.trim();
             if (normalizedReason != null && normalizedReason.isEmpty()) {

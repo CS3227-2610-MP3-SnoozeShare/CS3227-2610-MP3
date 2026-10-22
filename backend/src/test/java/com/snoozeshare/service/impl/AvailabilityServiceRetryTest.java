@@ -45,6 +45,7 @@ import com.snoozeshare.repository.BookingRepository;
 import com.snoozeshare.repository.PropertyRepository;
 import com.snoozeshare.repository.UserRepository;
 import com.snoozeshare.service.AuditService;
+import com.snoozeshare.service.AvailabilityConflictException;
 
 class AvailabilityServiceRetryTest {
 
@@ -116,7 +117,7 @@ class AvailabilityServiceRetryTest {
 
         assertThatThrownBy(() -> fixture.service.createHostBlock(PROPERTY_ID, START,
                 START.plusDays(1), HOST_ID, "Reason"))
-            .isInstanceOf(IllegalArgumentException.class)
+            .isInstanceOf(AvailabilityConflictException.class)
             .hasMessage("Date range is not available");
 
         verify(fixture.transactions, times(2)).getTransaction(any(TransactionDefinition.class));
