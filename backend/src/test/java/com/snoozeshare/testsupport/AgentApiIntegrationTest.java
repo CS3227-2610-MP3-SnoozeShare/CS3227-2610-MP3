@@ -9,11 +9,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.snoozeshare.PostgresIntegrationTest;
 import com.snoozeshare.auth.repository.AuthUserRepository;
 import com.snoozeshare.domain.enums.Role;
+import com.snoozeshare.service.AuditService;
+import com.snoozeshare.service.impl.LedgerWriter;
 
 /** Shared authenticated API fixture backed by the real Postgres auth repository. */
 @SpringBootTest(
@@ -22,6 +25,13 @@ import com.snoozeshare.domain.enums.Role;
 @AutoConfigureMockMvc
 @Import(AgentApiIntegrationTest.AgentApiTestConfiguration.class)
 public abstract class AgentApiIntegrationTest extends PostgresIntegrationTest {
+
+    /** Shared spies: one Spring context serves every API test; they call the real beans unless a test stubs them. */
+    @MockitoSpyBean
+    protected AuditService audit;
+
+    @MockitoSpyBean
+    protected LedgerWriter ledgerWriter;
 
     @Autowired
     protected MockMvc mockMvc;

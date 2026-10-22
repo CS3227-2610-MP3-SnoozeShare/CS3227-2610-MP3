@@ -17,12 +17,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.PessimisticLockingFailureException;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import com.snoozeshare.domain.enums.RemedyType;
 import com.snoozeshare.domain.enums.ResolutionMode;
 import com.snoozeshare.domain.model.User;
-import com.snoozeshare.service.AuditService;
 import com.snoozeshare.service.TicketService;
 import com.snoozeshare.service.requests.ResolutionRequest;
 import com.snoozeshare.testsupport.AgentApiIntegrationTest;
@@ -33,9 +31,6 @@ class AgentDisputeConcurrencyTest extends AgentApiIntegrationTest {
 
     @Autowired
     private TicketService tickets;
-
-    @MockitoSpyBean
-    private AuditService audit;
 
     private final ExecutorService holder = Executors.newSingleThreadExecutor(r -> new Thread(r, "holder"));
     private final ExecutorService waiter = Executors.newSingleThreadExecutor(r -> new Thread(r, "waiter"));

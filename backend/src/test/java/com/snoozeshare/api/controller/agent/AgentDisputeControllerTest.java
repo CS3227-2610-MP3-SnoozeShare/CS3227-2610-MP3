@@ -11,7 +11,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
 
 import com.snoozeshare.domain.enums.RemedyType;
@@ -19,9 +18,6 @@ import com.snoozeshare.testsupport.AgentApiIntegrationTest;
 
 /** A1 to A5 of the agent dispute API. */
 class AgentDisputeControllerTest extends AgentApiIntegrationTest {
-
-    @MockitoSpyBean
-    private com.snoozeshare.service.impl.LedgerWriter ledgerWriter;
 
     private ResultActions getAs(String path, String token) throws Exception {
         return mockMvc.perform(get(path).header("Authorization", "Bearer " + token));
