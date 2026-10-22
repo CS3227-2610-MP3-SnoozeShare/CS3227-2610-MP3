@@ -51,6 +51,11 @@ class ModelCheckTest {
         return new ModelCheck(p, new SoclaasClient(p), new LlmScheduler(p, clock), clock, Runnable::run);
     }
 
+    private List<String> infos() {
+        return logs.list.stream().filter(e -> e.getLevel() == Level.INFO).map(ILoggingEvent::getFormattedMessage)
+            .toList();
+    }
+
     private List<String> warnings() {
         return logs.list.stream().filter(e -> e.getLevel() == Level.WARN).map(ILoggingEvent::getFormattedMessage)
             .toList();
@@ -70,6 +75,7 @@ class ModelCheckTest {
         stub.script(reply(200, "{\"data\":[{\"id\":\"fast-m\"},{\"id\":\"std-m\"},{\"id\":\"strong-m\"}]}"));
         check(true).onReady(null);
         assertThat(warnings()).isEmpty();
+        assertThat(infos()).singleElement().satisfies(m -> assertThat(m).contains("3 models").doesNotContain("clsk"));
     }
 
     @Test
