@@ -31,7 +31,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| GPT-5 | 2026-10-22 | — | W-HOST follow-up | Active | Spec approved; recording the Gate 1 artifact before the plan-only approval commit | Commit approved spec/state, then the plan alone and state update; run baseline gates before T1 | 2026-10-22 |
+| GPT-5 | 2026-10-22 | — | W-HOST follow-up | Active | Plan approved and committed; recording Planned status before baseline checks | Commit branch-state status, then run backend and frontend baselines before T1 | 2026-10-22 |
 
 **Remaining**
 
@@ -55,7 +55,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | Spec'd | [UI spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md); [experience corrections spec](docs/superpowers/specs/2026-10-22-w-host-experience-corrections-design.md) | [UI plan](docs/superpowers/plans/2026-10-21-w-host-ui.md); follow-up plan approved in working tree for plan-only commit | Trevor approved the spec; plan Gate 2 is approved and being recorded | guide out of date: Host metrics, time display, and calendar behavior |
+| W-HOST | Host features — listings, calendar, requests, wallet, messages, Next.js pages | Planned | [UI spec](docs/superpowers/specs/2026-10-21-w-host-ui-design.md); [experience corrections spec](docs/superpowers/specs/2026-10-22-w-host-experience-corrections-design.md) | [UI plan](docs/superpowers/plans/2026-10-21-w-host-ui.md); [experience corrections plan](docs/superpowers/plans/2026-10-22-w-host-experience-corrections.md) | Trevor approved the spec and four-task plan 2026-10-22; baseline gates next, then T1 | guide out of date: Host metrics, time display, and calendar behavior |
 | W-HOST-API | Replace Host fixtures with authenticated backend integration | In review | [spec](docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-host-backend-integration.md) | T17 complete: 101/1,001-row tests, full gates, and authenticated read-only captures; owner review pending | — |
 
 ## 4. Architecture
@@ -250,4 +250,4 @@ W-DOMAIN is complete and merged; its accepted gaps remain as recorded in `PROJEC
 | 2026-10-22 | Removed message-history and wallet load-more state/controls; 1,001 messages and 101 statement rows render with 178 frontend tests, lint, production build pass; full wallet recovery behavior retained | W-HOST-API | T16 |
 | 2026-10-22 | Verified complete Host collections: backend full rerun, 178 frontend tests/lint/production build, 101/1,001-row integration evidence, and authenticated GET-only browser captures with no page/size parameters; no N1/N3/N4 findings | W-HOST-API | T17 |
 | 2026-10-22 | Merged `development` through `e185dc0`; adopted `@ConditionalOnDatabase`, retaining W-HOST behavior and both branches' audit actions; backend build and frontend tests/lint/production build pass | W-HOST | C~20 |
-| 2026-10-22 | Added and approved the Host experience-corrections spec after two review rounds; the four-task plan also received Gate 2 approval | W-HOST | C~21, C~22 |
+| 2026-10-22 | Added and approved the Host experience-corrections spec; approved the reviewed four-task plan and committed it separately | W-HOST | C~21, C~22, `a9494d3` |
