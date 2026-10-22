@@ -7,6 +7,7 @@ Iteration 2 started; earlier entries: [docs/project-history/iteration-1/done-led
 
 | Date | What changed | Workstream | Ref |
 |---|---|---|---|
+| 2026-10-23 | Updated the Developer Guide for confirmed W-AGENT: new § 4.24 (shared web API foundation) and § 4.25 (Agent REST API and web pages, with a resolve-a-dispute sequence diagram and a frontend component diagram), plus updates to § 1, § 2 (`SNOOZESHARE_AUDIT_ZONE`), § 3.2 key decisions, § 4.18, § 4.21–4.23, § 5 (web Agent requirements, NFRs and Known Limitations), § 6 and § 7 | W-AGENT | `docs/DeveloperGuide.md` §§ 4.24–4.25 |
 | 2026-10-23 | Folded the W-AGENT branch state into `PROJECT_STATE.md` (decisions C143–C154, deviations D94–D112, new § 4.15 shared web API foundation and § 4.16 Agent API and pages); W-AGENT is `Done`, guide confirmation pending | W-AGENT | [archive](branch-states/archive/2026-10-23-W-AGENT.md) |
 | 2026-10-23 | T12 close-out: E57 performance test (the queue was 5.2 s p95 and is now about 70 ms), merged W-HOST and W-GUEST from development and patched the contract drift (D105 to D109), Host controllers moved behind view classes, pages rebuilt from the artifact and desktop screens (D110 to D112), queue status filter and Unassign added; backend full suite, Checkstyle, 310 frontend tests, lint and a production build pass | W-AGENT | T12 commits |
 | 2026-10-22 | T11 categories page: add, edit, switch with revert on failure, inline delete confirm; 141 frontend tests, lint, tsc and build pass | W-AGENT | T11 commits |
