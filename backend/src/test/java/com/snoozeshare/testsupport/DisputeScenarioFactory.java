@@ -13,7 +13,9 @@ import com.snoozeshare.domain.enums.BookingStatus;
 import com.snoozeshare.domain.enums.ListingStatus;
 import com.snoozeshare.domain.enums.PropertyType;
 import com.snoozeshare.domain.enums.RemedyType;
+import com.snoozeshare.domain.enums.ResolutionMode;
 import com.snoozeshare.domain.enums.Role;
+import com.snoozeshare.domain.enums.TicketStatus;
 import com.snoozeshare.domain.model.Booking;
 import com.snoozeshare.domain.model.Property;
 import com.snoozeshare.domain.model.Ticket;
@@ -25,6 +27,7 @@ import com.snoozeshare.service.TicketService;
 import com.snoozeshare.service.TransactionService;
 import com.snoozeshare.service.WalletService;
 import com.snoozeshare.service.requests.NewTicketRequest;
+import com.snoozeshare.service.requests.ResolutionRequest;
 
 /** Creates reusable agent API scenarios with real service calls for money movements. */
 public class DisputeScenarioFactory {
@@ -62,6 +65,77 @@ public class DisputeScenarioFactory {
 
     public Scenario openDispute(RemedyType remedy) {
         return createDispute(remedy);
+    }
+
+    public Scenario inReviewDispute(UUID agentId) {
+        Scenario scenario = openDispute(RemedyType.FULL_REFUND);
+        Ticket assigned = tickets.assignToMe(scenario.ticket().getId(), agentId);
+        return scenario.withTicket(assigned);
+    }
+
+    public Scenario resolvedDispute(UUID agentId) {
+        Scenario scenario = inReviewDispute(agentId);
+        Ticket resolved = tickets.resolve(scenario.ticket().getId(),
+                new ResolutionRequest(ResolutionMode.REJECT, BigDecimal.ZERO, "Resolved"), agentId);
+        return scenario.withTicket(resolved);
+    }
+
+    public Scenario releasedEscrowDispute() {
+        Scenario scenario = openDispute(RemedyType.FULL_REFUND);
+        transactions.settleBookingCompletion(scenario.booking().getId());
+        return scenario;
+    }
+
+    public Scenario disputeInCategory(String label) {
+        Scenario scenario = openDispute(RemedyType.FULL_REFUND);
+        return scenario.withCategory(label);
+    }
+
+    public User guestWithConfirmedFutureBooking() {
+        AgentTestUsers.TestUser guest = users.create(Role.GUEST);
+        AgentTestUsers.TestUser host = users.create(Role.HOST);
+        Property property = property(host.id());
+        LocalDate start = LocalDate.now().plusDays(20);
+        Booking booking = booking(property, guest.id(), start, BookingStatus.CONFIRMED);
+        fundAndHold(guest.id(), booking);
+        return guest.user();
+    }
+
+    public HostScenario hostWithTwoListingsAndOneBooking() {
+        AgentTestUsers.TestUser host = users.create(Role.HOST);
+        AgentTestUsers.TestUser guest = users.create(Role.GUEST);
+        Property first = property(host.id());
+        Property second = property(host.id());
+        Booking booking = booking(first, guest.id(), LocalDate.now().plusDays(20),
+                BookingStatus.CONFIRMED);
+        fundAndHold(guest.id(), booking);
+        return new HostScenario(host.user(), first, second, booking, guest.user());
+    }
+
+    public void bulk(int ticketCount, int accountCount, int auditRows) {
+        AgentTestUsers.TestUser agent = users.create(Role.AGENT);
+        AgentTestUsers.TestUser guest = users.create(Role.GUEST);
+        AgentTestUsers.TestUser host = users.create(Role.HOST);
+        Property property = property(host.id());
+        Booking booking = booking(property, guest.id(), LocalDate.now().minusDays(4),
+                BookingStatus.CONFIRMED);
+        fundAndHold(guest.id(), booking);
+        Instant now = Instant.now();
+        for (int index = 0; index < ticketCount; index++) {
+            Ticket ticket = new Ticket(UUID.randomUUID(), booking.getId(), guest.id(),
+                    Role.GUEST, "Performance", "Ticket " + index, "Description",
+                    RemedyType.OTHER, null, TicketStatus.OPEN, null, null, null, now, null);
+            ticketsRepository.save(ticket);
+        }
+        for (int index = 0; index < accountCount; index++) {
+            users.create(index % 2 == 0 ? Role.GUEST : Role.HOST);
+        }
+        for (int index = 0; index < auditRows; index++) {
+            jdbc.update("insert into audit_log (id, actor_user_id, action_type, entity_type, "
+                            + "entity_id, timestamp) values (?::uuid, ?::uuid, ?, ?, ?::uuid, ?)",
+                    UUID.randomUUID().toString(), agent.id(), "TICKET_OPENED", "Ticket",
+                    UUID.randomUUID().toString(), now);
+        }
     }
 
     private Scenario createDispute(RemedyType remedy) {
