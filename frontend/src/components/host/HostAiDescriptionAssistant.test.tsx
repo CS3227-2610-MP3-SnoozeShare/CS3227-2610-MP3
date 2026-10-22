@@ -20,6 +20,7 @@ describe('HostAiDescriptionAssistant', () => {
     const onClose = vi.fn();
     render(<StrictMode><HostAiDescriptionAssistant open listing={listing} description="Existing copy" onApply={onApply} onClose={onClose} /></StrictMode>);
 
+    expect(screen.getByText('Your listing details help the assistant create a grounded description based on the property information you provide.')).toBeInTheDocument();
     expect(screen.getByLabelText('Current description')).toHaveValue('Existing copy');
     expect(screen.getByText('Short')).toBeInTheDocument();
     expect(screen.getByText('Medium')).toBeInTheDocument();

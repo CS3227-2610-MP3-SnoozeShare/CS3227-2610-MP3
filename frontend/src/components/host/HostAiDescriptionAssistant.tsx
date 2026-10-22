@@ -88,7 +88,7 @@ export function HostAiDescriptionAssistant({ open, listingId, listing, descripti
     <div className="fixed inset-0 z-50 flex min-h-dvh w-screen items-center justify-center bg-black/30 p-4" onClick={(event) => { if (!disabled && event.target === event.currentTarget) onClose(); }} role="presentation">
       <div aria-describedby="host-ai-description" aria-labelledby="host-ai-title" aria-modal="true" className="ss-card max-h-[calc(100dvh-2rem)] w-full max-w-5xl overflow-y-auto p-5" role="dialog">
         <div className="flex items-start justify-between gap-4">
-          <div><h2 className="text-lg font-semibold" id="host-ai-title">AI Description Assistant ✨</h2><p className="mt-1 text-sm text-[var(--text-subtle)]" id="host-ai-description">Review the current description or generate a grounded suggestion.</p></div>
+          <div><h2 className="text-lg font-semibold" id="host-ai-title">AI Description Assistant ✨</h2><p className="mt-1 text-sm text-[var(--text-subtle)]" id="host-ai-description">Your listing details help the assistant create a grounded description based on the property information you provide.</p></div>
           <button aria-label="Close AI Description Assistant" className="rounded-md p-1 text-[var(--text-subtle)] hover:bg-muted hover:text-foreground" disabled={disabled} onClick={onClose} title="Close" type="button"><X aria-hidden="true" className="size-5" /></button>
         </div>
         <div className="mt-5 space-y-5">
