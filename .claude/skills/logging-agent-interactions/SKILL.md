@@ -1,6 +1,6 @@
 ---
 name: logging-agent-interactions
-description: Use when explicitly invoked at the end of an agent session to record that session's material project interactions.
+description: Use when explicitly invoked to record or retrieve material interactions for a specific chat and agent session.
 ---
 
 # Logging Agent Interactions
@@ -10,6 +10,34 @@ description: Use when explicitly invoked at the end of an agent session to recor
 Maintain a concise, append-only record of material user/agent interactions for this repository.
 `PROJECT_STATE.md` remains the source of truth for current decisions, workstream status, and
 handoff state; this log preserves interaction evidence and context.
+
+## Chat identity and transcript access
+
+This skill distinguishes a persisted **chat** from an agent **session**. A chat may be resumed
+after several days, may be compacted, or may contain multiple agent sessions. The model's active
+context is not necessarily the complete persisted chat transcript.
+
+Every log must identify the chat it belongs to. Prefer the host's stable conversation/thread ID.
+If the host does not expose one, use an explicit user-supplied chat URL or recognizable chat
+anchor and mark the identity as uncertain; never guess from the newest file, branch, or workstream.
+
+Use the host's transcript or thread-retrieval capability before reconstructing a log. In Codex,
+use the thread retrieval tool with the exact thread ID when it is available, following pagination
+or cursors until the requested history has been read. A visible chat in the UI is not by itself
+evidence that the full transcript is in the model context.
+
+When the user asks to retrieve logs from a specific chat:
+
+1. Resolve the exact chat key or thread ID.
+2. Fetch the persisted transcript, rather than relying on current context, memory, or compaction.
+3. Find every session file with that chat key and follow its continuation links.
+4. Read the complete linked chain before summarizing or extracting interactions.
+5. If the chat identity or transcript cannot be fetched, say what is missing and do not silently
+   substitute the latest branch log or a similarly named chat.
+
+If the retrieved transcript differs from the active context, the retrieved transcript is the
+source for historical user-input wording. Preserve the distinction between fetched history and
+information remembered from the current context.
 
 ## When to run
 
@@ -61,6 +89,9 @@ overwrite existing entries.
 # Agent Session Interaction Log
 
 - Session key: `2026-09-23_14-44-51_w1`
+- Chat key: `chat:<stable-conversation-id>`
+- Transcript source: `host thread retrieval` or `user-provided transcript`
+- Continuation of: `none` or a prior session key
 - Branch: `w1`
 - Workstream: W1
 
@@ -95,21 +126,27 @@ information. Redact passwords, API keys, access tokens, private keys, and simila
 explicit markers such as `[REDACTED: API key]`. Do not repeat a redacted value in the agent
 summary. Do not guess that ordinary project names, requirements, or source code are confidential.
 
-## Manual end-of-session procedure
+## Manual logging procedure
 
-When explicitly invoked at session end:
+When explicitly invoked to record a session:
 
-1. Identify the branch, session key, and workstream.
-2. Review the complete session transcript and select material user inputs.
-3. Redact only high-confidence confidential values.
-4. Create the single session file, if at least one material input exists.
-5. Append exactly one entry for each selected material input in chronological order, without
+1. Identify the chat key, branch, session key, and workstream.
+2. Fetch the persisted transcript for the exact chat key when the host provides retrieval. Do not
+   assume the active context contains the complete history.
+3. Review the complete retrieved transcript and select material user inputs.
+4. Redact only high-confidence confidential values.
+5. Create the single session file, if at least one material input exists.
+6. Append exactly one entry for each selected material input in chronological order, without
    timestamp metadata.
-6. Summarize each response factually; do not claim work that did not happen.
-7. Verify that every entry exists in the session file.
+7. Summarize each response factually; do not claim work that did not happen.
+8. Verify that every entry exists in the session file and record any transcript gap in the header
+   or Outcomes section.
 
 If writing fails, report the logging failure to the user, continue the requested project work, and
 do not claim successful recording.
+
+If transcript retrieval fails, report that the log is incomplete and identify the unavailable chat
+or cursor. Do not fill missing user inputs from memory or invent a reconstructed transcript.
 
 ## Examples
 

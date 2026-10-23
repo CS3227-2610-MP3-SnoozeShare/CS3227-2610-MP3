@@ -15,7 +15,7 @@ Treat the project as if you were taking it over cold. A new owner learns *what w
 from `docs/DeveloperGuide.md`, not from a decision log. So the guide must already hold that context
 before anything is archived. That ordering is the whole skill: **guide first, archive second.**
 
-It is **manual**, run by the project owner on `main` (or a short-lived `refresh/<n>` branch if they
+It is **manual**, run by the project owner on `INT` (or a short-lived `refresh/<n>` branch if they
 want the change reviewed). Nothing triggers it. Related: `maintaining-project-state` (the file's
 structure), `sync-project-state` (folds branch states), `update-documentation` (the guide).
 
@@ -32,7 +32,7 @@ structure), `sync-project-state` (folds branch states), `update-documentation` (
 
 ## Procedure
 
-**1. Preconditions.** Stop and report if any fails. Work on the default branch (`main` or `master`) or a fresh `refresh/<n>`, clean tree.
+**1. Preconditions.** Stop and report if any fails. Work on `INT` or a fresh `refresh/<n>`, clean tree.
 
 - No non-archived files in `docs/project-state/branch-states/` (unfolded work would be lost). The directory may not exist in projects that don't use branch states; that passes.
 - The Sessions table in `PROJECT_STATE.md` § How to Resume is empty, or the owner discards each row.

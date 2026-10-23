@@ -1,0 +1,50 @@
+# Render Blueprint for the dev backend. Secret values are entered in the Render dashboard (sync: false).
+services:
+  - type: web
+    name: snoozeshare-api
+    runtime: docker
+    plan: free
+    branch: development
+    autoDeploy: true
+    # Redeploy only when the backend or this Blueprint changes, not for documentation or frontend pushes.
+    buildFilter:
+      paths:
+        - backend/**
+        - render.yaml
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: JAVA_TOOL_OPTIONS
+        value: -XX:MaxRAMPercentage=70
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+      - key: SNOOZESHARE_CORS_ALLOWED_ORIGIN
+        sync: false
+      - key: SNOOZESHARE_SECURITY_ENABLED
+        value: "true"
+      - key: SNOOZESHARE_TRUST_FORWARD_HEADERS
+        value: "true"
+      - key: FIREBASE_ENABLED
+        value: "true"
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      - key: SNOOZESHARE_HOST_REGISTRATION_CODE
+        sync: false
+      - key: SNOOZESHARE_AGENT_REGISTRATION_CODE
+        sync: false
+      - key: GOOGLE_APPLICATION_CREDENTIALS
+        sync: false
+      # AI stays off until the SoCLaaS values are verified (W-AI-GATEWAY T8); the key is added in the dashboard.
+      - key: SNOOZESHARE_AI_ENABLED
+        value: "false"
+      - key: SOCLAAS_BASE_URL
+        sync: false
+      - key: SOCLAAS_API_KEY
+        sync: false

@@ -1,0 +1,28 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:${POSTGRES_PORT:5432}/snoozeshare
+    username: snoozeshare
+    password: snoozeshare
+snoozeshare:
+  cors:
+    allowed-origin: http://localhost:3000
+  firebase:
+    enabled: ${FIREBASE_ENABLED:false}
+    project-id: ${FIREBASE_PROJECT_ID:}
+  security:
+    enabled: ${FIREBASE_ENABLED:false}
+  proxy:
+    trust-forwarded-headers: ${SNOOZESHARE_TRUST_FORWARD_HEADERS:false}
+  registration:
+    host-code: ${SNOOZESHARE_HOST_REGISTRATION_CODE:}
+    agent-code: ${SNOOZESHARE_AGENT_REGISTRATION_CODE:}
+  ai:
+    enabled: ${SNOOZESHARE_AI_ENABLED:false}
+    mock: ${SNOOZESHARE_AI_MOCK:false}
+    base-url: ${SOCLAAS_BASE_URL:}
+    api-key: ${SOCLAAS_API_KEY:}
+    model-fast: ${SNOOZESHARE_AI_MODEL_FAST:llama3.1:8b}
+    model-standard: ${SNOOZESHARE_AI_MODEL_STANDARD:qwen3.5:9b}
+    model-strong: ${SNOOZESHARE_AI_MODEL_STRONG:gemma4:26b}
+  # The ticket assistant is on by default (snoozeshare.assistant.*, see application.yml) but only calls the model
+  # while snoozeshare.ai.enabled is true; use SNOOZESHARE_AI_MOCK=true to try it without SoCLaaS.

@@ -1,6 +1,6 @@
 ---
 name: update-documentation
-description: Use when sync-project-state folds a Done workstream into PROJECT_STATE.md or a workstream reaches Done directly on main, when an approved design spec is on main (a first write is due if docs/DeveloperGuide.md does not exist), when the operator asks to update DeveloperGuide.md, the docs, or handover documentation, when the operator declares a phase transition, when PROJECT_STATE.md shows a Guide value of Awaiting confirmation or Pending, or when docs/DeveloperGuide.md contradicts PROJECT_STATE.md or the code. Keywords - DeveloperGuide.md, developer guide, PROJECT_STATE.md Guide column, handover, onboarding, architecture documentation, diagrams, checkpoint, documented.
+description: Use when sync-project-state folds a Done workstream into PROJECT_STATE.md or a workstream reaches Done directly on the integration branch (INT), when an approved design spec is on INT (a first write is due if docs/DeveloperGuide.md does not exist), when the operator asks to update DeveloperGuide.md, the docs, or handover documentation, when the operator declares a phase transition, when PROJECT_STATE.md shows a Guide value of Awaiting confirmation or Pending, or when docs/DeveloperGuide.md contradicts PROJECT_STATE.md or the code. Keywords - DeveloperGuide.md, developer guide, PROJECT_STATE.md Guide column, handover, onboarding, architecture documentation, diagrams, checkpoint, documented.
 ---
 
 # Update Documentation
@@ -12,10 +12,10 @@ goals, requirements, architecture, key decisions, diagrams, and how to test. It 
 confirmed work**, changes **only at checkpoints**, and is **never written without operator
 approval**.
 
-**It is written only on `main`.** A branch never edits `docs/DeveloperGuide.md`: it is a shared file, and
+**It is written only on `INT`.** A branch never edits `docs/DeveloperGuide.md`: it is a shared file, and
 merged work is what "confirmed" means. A workstream finished on a branch reaches the guide only after
-the project owner runs `sync-project-state`, which sets its Guide value. The checkpoint below then
-runs on `main` or on the sync branch, or on its own branch and PR if the owner wants the guide change
+`sync-project-state` has run (on the owner's yes), which sets its Guide value; the agent proposes the update itself once the owner confirms the workstream (`AGENTS.md` § 8, gate 6). The checkpoint below then
+runs on `INT` or on the sync branch, or on its own branch and PR if the owner wants the guide change
 separate from the fold.
 
 It is not the source of truth — `PROJECT_STATE.md` is. The state file keeps work continuous
@@ -44,7 +44,7 @@ branch state's row and folds with it.
 | Value | Meaning | Set when |
 |---|---|---|
 | `—` | Not `Done`, or `Done` on a branch not yet folded | Default |
-| `Awaiting confirmation` | `Done`; you asked whether it is confirmed | `sync-project-state` folds the workstream as `Done` (or it reaches `Done` directly on `main`) |
+| `Awaiting confirmation` | `Done`; you asked whether it is confirmed | `sync-project-state` folds the workstream as `Done` (or it reaches `Done` directly on `INT`) |
 | `Pending` | Confirmed, not yet in the guide | The operator confirms, or holds a proposal |
 | `Documented YYYY-MM-DD` | In the guide | After writing an approved update |
 | `N/A` | Nothing a developer needs to read about | Any time, with the reason in Progress |
@@ -55,7 +55,7 @@ order; handle each on its own.
 ## When a Workstream Reaches `Done`
 
 Under the branch-state workflow this happens at fold: `sync-project-state` does steps 1–2 and
-hands over here. Work finished directly on `main` follows the same steps.
+hands over here. Work finished directly on `INT` follows the same steps.
 
 1. Set Guide to `Awaiting confirmation` — or `N/A` if nothing is developer-facing, with the
    reason in Progress.

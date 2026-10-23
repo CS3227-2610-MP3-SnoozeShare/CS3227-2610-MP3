@@ -10,7 +10,7 @@ Handover brief for developers taking over this project. It describes **confirmed
 is updated at checkpoints, so it can lag behind the code. For current status, work in flight, and
 what to build next, read [`PROJECT_STATE.md`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/PROJECT_STATE.md) — that is the source of truth.
 
-**Last updated:** 2026-10-19 — covers W1 to W16 and the MP3-0 fixes; checked against the built app (database selection, search budget filter, Trips groups, date rules, post-commit events)
+**Last updated:** 2026-10-23 — covers W1 to W16, MP3-0, W-INFRA, W-AUTH, W-DOMAIN, W-AI-GATEWAY, W-AI-HOST, W-HOST, W-HOST-API, W-GUEST, W-AGENT and W-AI-AGENT; the desktop sections were checked against the built app on 2026-10-19, the web platform and deployment on 2026-10-20, auth on 2026-10-21, domain and AI gateway on 2026-10-22, Host API/pages against merged backend/frontend code and tests plus authenticated read-only browser captures on 2026-10-22, Guest controllers/pages against merged code and tests on 2026-10-22, and Host AI against merged backend/frontend code, tests and operator browser verification on 2026-10-23, and the ticket clarification assistant against merged backend/frontend code and tests on 2026-10-23
 
 ## Contents
 
@@ -30,8 +30,21 @@ what to build next, read [`PROJECT_STATE.md`](https://github.com/CS3227-2610-MP3
 SnoozeShare is a Java 25 / JavaFX desktop application for short-term property rentals. Guests book
 stays, hosts list properties, and support agents settle disputes between them. All money moves
 through one wallet and transaction ledger, and the booking price is held in escrow until the stay
-and its dispute window are over. It runs as a single process against an embedded SQLite database;
-there is no server.
+and its dispute window are over. The desktop app runs as a single process against an embedded SQLite
+database; there is no server.
+
+The project is being re-platformed as a web app (C76). The repository is a mono-repo of three
+independent builds: `desktop/` (this guide's JavaFX app), `backend/` (a Spring Boot API on PostgreSQL)
+and `frontend/` (a Next.js app). The web side has Firebase authentication with role authorization
+([4.18](#418-authentication-and-role-authorization-backendauth-frontend-providers)), the full domain
+model, repositories and core services ported to Spring Data JPA
+([4.19](#419-domain-model-repositories-and-services-backend-domain-layer)), a shared SoCLaaS LLM
+shared SoCLaaS LLM gateway for role AI features, with the Host AI assistant built on it ([4.20](#420-ai-gateway-backendai), [4.26](#426-host-ai-listing-optimisation-assistant)), authenticated
+Host REST APIs and API-backed Host pages ([4.21](#421-host-rest-api-backendapicontroller),
+[4.22](#422-host-web-pages-frontendsrcapphost)), Guest REST controllers and Next.js pages
+([4.23](#423-guest-rest-api-and-web-pages)), CI and a live dev deployment. The Agent REST API and
+pages, with the shared web API foundation they introduced ([4.24](#424-shared-web-api-foundation-backendapi),
+[4.25](#425-agent-rest-api-and-web-pages-backendapicontrolleragent-frontendsrcappagent)). The ticket clarification assistant asks Guests follow-up questions on new tickets and gives the Agent a draft report ([4.28](#428-ticket-clarification-assistant-backendserviceassistant)).
 
 **Target user:** the three roles the app serves — Guest (renter), Host (homeowner) and Support
 Agent (platform admin). This guide documents the role shells, Host operations, Support Agent
@@ -55,6 +68,16 @@ dispute-resolution tooling, messaging, wallets and the platform audit trail.
 | F11 (W12) | **Platform Audit Trail:** every change is logged as one typed row, and agents search the log on the Audit Log screen | [4.14](#414-audit-trail) |
 | F12 (W13) | Persistent ticket and booking conversations, with Guest and Host Messages inboxes | [4.4](#44-ticket-messaging-messageservice), [4.4a](#44a-booking-messaging-bookingconversationservice), [4.8](#48-guest-portal-uiguest) and [4.9](#49-host-portal-uihost) |
 | — (W14) | **Unified Ledger:** every wallet movement is a single `audit_log` money row (with the wallet's running balance); the System user gets a real role and wallet and receives the platform's 3% fee | [4.16](#416-unified-ledger-ledgerwriter) |
+| — (W-AUTH) | **Web authentication:** Firebase sign-up and sign-in, registration with Host and Agent codes, role-based API authorization, and client-side route guards | [4.18](#418-authentication-and-role-authorization-backendauth-frontend-providers) |
+| — (W-DOMAIN) | **Web domain layer:** 12 JPA entities, 12 Spring Data repositories, 15 service implementations, 16 request DTOs and 21 response DTOs ported from the desktop app to Spring Boot with Spring Data JPA on PostgreSQL | [4.19](#419-domain-model-repositories-and-services-backend-domain-layer) |
+| — (W-AI-GATEWAY) | **LLM gateway:** one backend entry point, `LlmGateway.run`, for every role's AI feature, with input and output guardrails, a shared rate and cost budget, per-user and daily caps, a metadata-only audit row, mock mode and fallbacks; off by default | [4.20](#420-ai-gateway-backendai) |
+| — (W-AI-HOST) | **Host AI Listing Optimisation Assistant:** a grounded, Host-only description evaluator and generator with Apply-only updates, minimum-detail eligibility, and responsive modal behavior | [4.26](#426-host-ai-listing-optimisation-assistant) |
+| — (W-AI-GUEST) | **Guest AI Search Assistant:** natural language search via LLM — a text query is parsed into structured filters by the FAST-tier gateway and run through the existing search | [4.27](#427-guest-ai-search-assistant) |
+| — (W-AI-AGENT) | **Ticket clarification assistant:** after a Guest files a ticket, an automated assistant ("Snoozy") asks up to three rounds of clarifying questions in the ticket's Guest thread and keeps a draft report the assigned Agent can insert into notes | [4.28](#428-ticket-clarification-assistant-backendserviceassistant) |
+| — (W-HOST) | **Web Host experience:** authenticated Next.js listings, listing detail/forms, calendar, requests, messages and wallet pages, preserving the approved Host presentation | [4.22](#422-host-web-pages-frontendsrcapphost) |
+| — (W-HOST-API) | **Host backend integration:** owner-scoped REST endpoints over existing services, complete collection/history responses, transactional booking/calendar/message/wallet operations | [4.21](#421-host-rest-api-backendapicontroller) |
+| — (W-GUEST) | **Guest web experience:** 5 REST controllers with 19 endpoints for search, bookings, wallet, messaging and reviews; 4 Next.js pages with typed API wrappers, components and integration tests | [4.23](#423-guest-rest-api-and-web-pages) |
+| — (W-AGENT) | **Agent web experience:** 5 REST controllers with 18 operations for the dispute queue and detail (assign, unassign, notes, two ticket threads, Accept / Reject / Manual resolution), account suspension and reactivation, the audit log and ticket categories; 5 Next.js pages with the desktop behaviour and the artifact look; a shared API foundation (one error body, token-derived actor, decoded-path checks, row locks, an architecture test) | [4.24](#424-shared-web-api-foundation-backendapi), [4.25](#425-agent-rest-api-and-web-pages-backendapicontrolleragent-frontendsrcappagent) |
 
 **Value proposition:** a support agent can take a dispute ticket, read both parties' evidence and
 chat, and settle the booking's held escrow between guest and host in one atomic, audited action.
@@ -69,7 +92,8 @@ Every payout follows one uniform fee rule, so the ledger always adds up.
 - Every agent mutation leaves an audit record.
 - Every supported audit hook for a booking, ticket, listing, ticket category or wallet balance writes
   rows that commit or roll back with the change itself; an agent can search them by user, id, action
-  type and date (F11). Booking decision-state and Host calendar-block coverage remains incomplete.
+  type and date (F11). The desktop app still lacks booking-decision and Host calendar-block audit
+  coverage; the web Host API writes those audit rows as described in [4.21](#421-host-rest-api-backendapicontroller).
 - The ticket categories guests choose from are maintained by agents, not by code changes.
 
 **Out of scope**
@@ -86,8 +110,7 @@ Every payout follows one uniform fee rule, so the ledger always adds up.
   completion sweep; it skips bookings with an open or in-review ticket and is invoked by the app
   startup and Host Requests flow (C17, W8).
 - **Clawing money back from a host wallet** — agents only ever settle *held* escrow (C17).
-- **Microservices, message brokers, horizontal scaling, JPMS modules, JPA/Hibernate, a separate DTO
-  layer** — ruled out for a course-scoped single-process app (`PROJECT_STATE.md` § Known Gaps).
+- **Microservices, message brokers, horizontal scaling, JPMS modules** — ruled out for a course-scoped single-instance app (`PROJECT_STATE.md` § Known Gaps).
 
 ---
 
@@ -97,23 +120,74 @@ Every payout follows one uniform fee rule, so the ledger always adds up.
 
 | Tool | Version | Notes |
 |---|---|---|
-| JDK | 25 | `build.gradle` sets a Java 25 toolchain |
-| Gradle | 9.7.1 | Provided by the wrapper (`gradlew`, `gradlew.bat`); nothing to install |
+| JDK | 25 | `desktop/build.gradle` and `backend/build.gradle` set a Java 25 toolchain |
+| Gradle | 9.7.1 | Each of `desktop/` and `backend/` has its own wrapper (`gradlew`, `gradlew.bat`); nothing to install |
 | JavaFX | 25.0.4 | Fetched by the `org.openjfx.javafxplugin` Gradle plugin; no separate SDK |
-| SQLite | embedded | `org.xerial:sqlite-jdbc` is a Gradle dependency; the `sqlite3` CLI is only needed to rebuild `db/snoozeshare-mock.db` |
+| SQLite | embedded | `org.xerial:sqlite-jdbc` is a Gradle dependency; the `sqlite3` CLI is only needed to rebuild `desktop/db/snoozeshare-mock.db` |
+| Docker | current | Local Postgres (`docker-compose.yml`) and the backend tests (Testcontainers) |
+| Node.js | 22 | `frontend/.nvmrc`; `engine-strict` rejects other majors |
+| PostgreSQL | 17 | `postgres:17` in `docker-compose.yml`; nothing to install |
+| Spring Boot | 3.5.16 | `backend/build.gradle` |
+| Next.js | 15.5.28 | `frontend/package.json` |
 
-**Build, test, run** (Windows PowerShell; on macOS/Linux use `./gradlew`)
+**Desktop: build, test, run** (Windows PowerShell; on macOS/Linux use `./gradlew`). There is no root build: run these inside `desktop/`.
 
 ```powershell
+cd desktop
 .\gradlew build   # compile, checkstyle, tests
 .\gradlew test    # tests only
 .\gradlew run     # start the app (main class com.snoozeshare.app.Launcher)
 ```
 
-**Continuous integration.** Two workflows live in `.github/workflows/`. `ci.yml` runs Checkstyle
-(`checkstyleMain checkstyleTest`) on every push to any branch, and the full `build` (compile,
-Checkstyle, all tests, under `xvfb-run` so the JavaFX suites have a display) on every pull request and
-on every push to `main`. `jekyll-gh-pages.yml` builds `docs/` with Jekyll and publishes it to GitHub
+**Backend: build, test, run.** Start the database, then the app; the default `dev` profile connects to it.
+
+```powershell
+docker compose up -d postgres
+cd backend
+.\gradlew bootRun    # http://localhost:8080/actuator/health
+.\gradlew build      # compile, Checkstyle, tests (needs Docker)
+```
+
+If port 5432 is taken, set `POSTGRES_PORT` (for example `$env:POSTGRES_PORT='5433'`) before `docker compose up` and before `bootRun`. On a machine short of memory, run `.\gradlew checkstyleMain checkstyleTest` and `.\gradlew test` as separate commands.
+
+**Frontend: install, run, test.**
+
+```powershell
+cd frontend
+npm ci
+npm run dev      # http://localhost:3000
+npm test         # Vitest
+npm run lint
+npm run build    # needs NEXT_PUBLIC_API_BASE_URL
+```
+
+**Turn authentication on locally.** With `FIREBASE_ENABLED` unset the `dev` profile leaves every path open and the
+`/api/auth` endpoints do not exist, so the health page works without a Firebase project. To sign in you need a Firebase
+project with the Email/Password provider enabled and a service-account key kept outside the repository. In PowerShell,
+from `backend/` (the placeholders are yours to choose; never commit real values):
+
+```powershell
+$env:FIREBASE_ENABLED = "true"
+$env:FIREBASE_PROJECT_ID = "<your-firebase-project-id>"
+$env:SNOOZESHARE_HOST_REGISTRATION_CODE = "<code-for-hosts>"
+$env:SNOOZESHARE_AGENT_REGISTRATION_CODE = "<code-for-agents>"
+$env:GOOGLE_APPLICATION_CREDENTIALS = "<path-to-service-account.json>"
+.\gradlew bootRun
+```
+
+Then put the six `NEXT_PUBLIC_FIREBASE_*` values from the Firebase console, plus `NEXT_PUBLIC_API_BASE_URL`, in the
+gitignored `frontend/.env.local` and run `npm run dev`. With auth on, the backend fails at startup if the project ID, either
+code or the credentials are missing.
+
+**Run the AI gateway locally without SoCLaaS.** The gateway is off by default. To switch it on in mock mode (each feature answers from its own `mockResponse`; no key and no network), set these before `bootRun`. No role feature uses the gateway yet, so the settings take effect when one registers an `AiFeature` ([4.20](#420-ai-gateway-backendai)):
+
+```powershell
+$env:SNOOZESHARE_AI_ENABLED = "true"
+$env:SNOOZESHARE_AI_MOCK = "true"
+.\gradlew bootRun
+```
+
+**Continuous integration.** Two workflows live in `.github/workflows/`. `ci.yml` has two jobs, `checkstyle` and `build`, and each covers all three components (steps are named `desktop:`, `backend:` and `frontend:`). `checkstyle` runs on every push to any branch: Checkstyle for `desktop/` and `backend/`, and `npm run lint` for `frontend/`. `build` runs on every pull request and on every push to `development` and `main`: the desktop build (under `xvfb-run` so the JavaFX suites have a display), the backend build (its tests use Testcontainers on the runner's Docker) and the frontend `npm test` and `npm run build`. A failed run uploads the `checkstyle-reports` and `test-reports` artifacts. The frontend production build also needs the six public `NEXT_PUBLIC_FIREBASE_*` values; CI reads them from repository variables and falls back to dummy values, so builds without those variables (forks, Dependabot) still pass. `jekyll-gh-pages.yml` builds `docs/` with Jekyll and publishes it to GitHub
 Pages on every push to `main` (Settings > Pages > Source is GitHub Actions). Making the `build` check
 required before merge is a repository branch-protection setting, not something the workflows enforce.
 
@@ -121,13 +195,32 @@ required before merge is a repository branch-protection setting, not something t
 
 | Name | Purpose | Where to obtain the value |
 |---|---|---|
-| `SNOOZESHARE_DB_URL` | Optional JDBC URL that points the app at a SQLite file, for example `jdbc:sqlite:build/acceptance.db`. When unset or blank the app opens `db/snoozeshare-mock.db` if that file exists in the working directory (it does when you run from the project root); only if the file is missing does it fall back to an empty in-memory database, which nothing survives a restart. | Build it from a copy of the mock DB (below). No secret is involved. |
+| `POSTGRES_PORT` | Optional host port for the local Postgres container and the backend's `dev` profile (default 5432) | Choose a free port |
+| `PORT` | Backend listening port (default 8080); the host sets it | The hosting platform |
+| `NEXT_PUBLIC_API_BASE_URL` | Backend base URL for the frontend, without a trailing slash (default `http://localhost:8080` in development; required for a production build) | `frontend/.env.example`; the Render URL on Vercel |
+| `SPRING_PROFILES_ACTIVE` | `prod` on the hosted backend; unset means `dev` | The runbook |
+| `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD` | `prod` database settings, no defaults; the URL is a JDBC URL ending in `?sslmode=require` | Neon (see the runbook) |
+| `SNOOZESHARE_CORS_ALLOWED_ORIGIN` | `prod` only: the one browser origin allowed to call the backend | The Vercel production domain |
+| `FIREBASE_ENABLED` | `true` turns on Firebase token verification and role authorization. In `dev` it defaults to `false` (every path is open) and also supplies `snoozeshare.security.enabled`; in `prod` it must be `true` | You locally; Render |
+| `SNOOZESHARE_SECURITY_ENABLED` | `prod` only: must be `true`, or startup fails | Render |
+| `FIREBASE_PROJECT_ID` | The Firebase project whose ID tokens the backend accepts; required when auth is on | Firebase console > Project settings |
+| `GOOGLE_APPLICATION_CREDENTIALS` | Path to the Firebase Admin service-account JSON (Application Default Credentials); keep it out of git | Firebase console > Project settings > Service accounts |
+| `SNOOZESHARE_HOST_REGISTRATION_CODE`, `SNOOZESHARE_AGENT_REGISTRATION_CODE` | The two secrets a person must enter to register as a Host or an Agent; required when auth is on; use long random values | Chosen by the operator; set on Render |
+| `SNOOZESHARE_TRUST_FORWARD_HEADERS` | `true` makes the backend take the client address for rate limits from `CF-Connecting-IP` (Render sits behind Cloudflare); `false` uses the direct peer. `dev` defaults to `false`; `prod` requires it | Render |
+| `SNOOZESHARE_AUDIT_ZONE` | Optional. The time zone whose midnight starts and ends the audit log's From and To days (property `snoozeshare.audit.zone`); defaults to `Asia/Singapore` (C149), not the server zone | Local and Render, usually unset |
+| `SNOOZESHARE_AI_ENABLED` | Turns the LLM gateway on. Defaults to `false` in `dev`; in `prod` it has no default and startup fails naming it when unset (`render.yaml` sets `"false"`) | Render |
+| `SNOOZESHARE_ASSISTANT_ENABLED`, `SNOOZESHARE_ASSISTANT_MAX_ROUNDS`, `SNOOZESHARE_ASSISTANT_THREADS`, `SNOOZESHARE_ASSISTANT_QUEUE`, `SNOOZESHARE_ASSISTANT_STALE_AFTER_MINUTES` | Optional. The ticket clarification assistant's switch (default `true`), question rounds (3), worker threads (2), queue size (50) and the minutes before a `PENDING` row is shown as stale (10). It only calls the model while the gateway is enabled. See [4.28](#428-ticket-clarification-assistant-backendserviceassistant) | Render |
+| `SOCLAAS_BASE_URL`, `SOCLAAS_API_KEY` | The NUS SoCLaaS base URL (ending `/v1`, `https` in `prod`) and your environment's own key. Needed only when the gateway is enabled and not in mock mode. Development and production use separate keys; never commit one | SoCLaaS portal (`soclaas-portal.comp.nus.edu.sg`) and the integration guide |
+| `SNOOZESHARE_AI_MOCK` | `true` answers AI calls from each feature's mock response instead of calling SoCLaaS; the `prod` profile rejects it | Local only |
+| `SNOOZESHARE_AI_MODEL_FAST`, `_STANDARD`, `_STRONG` and other `snoozeshare.ai.*` keys (for example `SNOOZESHARE_AI_MAX_RPM`) | Optional overrides of the model names and limits listed in [4.20](#420-ai-gateway-backendai) | `GET /v1/models` for model ids |
+| `NEXT_PUBLIC_FIREBASE_API_KEY`, `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`, `NEXT_PUBLIC_FIREBASE_PROJECT_ID`, `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`, `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`, `NEXT_PUBLIC_FIREBASE_APP_ID` | The public Firebase web-app configuration; all six are required for sign-in and for a production build | Firebase console > Project settings > Your apps |
+| `SNOOZESHARE_DB_URL` | Optional JDBC URL that points the app at a SQLite file, for example `jdbc:sqlite:build/acceptance.db`. When unset or blank the app opens `desktop/db/snoozeshare-mock.db` if that file exists in the working directory (it does when you run from the project root); only if the file is missing does it fall back to an empty in-memory database, which nothing survives a restart. | Build it from a copy of the mock DB (below). No secret is involved. |
 
-`Main.resolveDatabaseUrl` picks the database in this order: an explicit `SNOOZESHARE_DB_URL`, then `db/snoozeshare-mock.db` if it exists, otherwise in-memory. The result goes to `AppContext.create(String)`, or to `AppContext.create()` for the in-memory case.
+`Main.resolveDatabaseUrl` picks the database in this order: an explicit `SNOOZESHARE_DB_URL`, then `desktop/db/snoozeshare-mock.db` if it exists, otherwise in-memory. The result goes to `AppContext.create(String)`, or to `AppContext.create()` for the in-memory case.
 
-**Run against a copy of the mock database**
+**Run the desktop app against a copy of the mock database** (from `desktop/`)
 
-`db/snoozeshare-mock.db` is a committed, pre-populated reference database. A plain `.\gradlew run`
+`desktop/db/snoozeshare-mock.db` is a committed, pre-populated reference database. A plain `.\gradlew run`
 opens it directly, and the app writes to whatever it opens, so your changes land in the committed
 file and show up in `git status`. To keep the reference database clean, copy it first:
 
@@ -142,20 +235,20 @@ The first start records the schema baseline in `schema_history` (D10); the copy 
 preparation.
 
 **Mock logins.** Authentication is mocked (`UserService.authenticate(email)`): the login screen takes
-an email and checks no credential. The mock agents seeded in [`db/seed-mock-data.sql`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/db/seed-mock-data.sql) are
+an email and checks no credential. The mock agents seeded in [`desktop/db/seed-mock-data.sql`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/db/seed-mock-data.sql) are
 `amy.tanaka@snoozeshare.test`, `ben.alvarez@snoozeshare.test` and `chen.wu@snoozeshare.test`. Registering
 a Host or Agent through the app needs a registration code; those are mock constants in
-[`RegistrationCodes`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/config/RegistrationCodes.java).
+[`RegistrationCodes`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/config/RegistrationCodes.java).
 
 **Rebuilding the mock database** (only after editing the seed):
-`sqlite3 x.db < db/schema.sql` then `sqlite3 x.db < db/seed-mock-data.sql`, and replace
-`db/snoozeshare-mock.db`. See the conventions in [Testing](#7-testing) before editing the seed.
+`sqlite3 x.db < desktop/db/schema.sql` then `sqlite3 x.db < desktop/db/seed-mock-data.sql`, and replace
+`desktop/db/snoozeshare-mock.db`. See the conventions in [Testing](#7-testing) before editing the seed.
 
 ---
 
 ## 3. Architecture
 
-SnoozeShare is a layered modular monolith in one Gradle module. Dependencies run strictly downward:
+The desktop app is a layered modular monolith in one Gradle module (sections 3.1 and 4). The web platform is described in [3.2](#32-web-platform-and-deployment). Dependencies run strictly downward:
 `ui` → `service` → `domain` and `repository` → `infra.db`. The diagram shows the dispute-resolution
 slice only; `AppContext` wires every box and hands the services to the UI.
 
@@ -177,11 +270,11 @@ W1 establishes the application boundaries used by every later workstream:
   `TransactionManager` takes an optional `TransactionListener` (`onBegin`, `afterCommit`,
   `afterRollback`); `inTransactionUnchecked` wraps work that cannot throw `SQLException`.
 - `domain.policy` is the single home of two date rules, each built from a `Clock` only:
-  [`DisputeWindowPolicy`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/domain/policy/DisputeWindowPolicy.java)
+  [`DisputeWindowPolicy`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/domain/policy/DisputeWindowPolicy.java)
   (a ticket can be filed from check-in through check-out + 7 days; a `CONFIRMED` booking auto-completes
   only from check-out + 8 days, so an accepted dispute always reaches a booking that can still be
   settled; C48) and
-  [`StayDatePolicy`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/domain/policy/StayDatePolicy.java)
+  [`StayDatePolicy`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/domain/policy/StayDatePolicy.java)
   (a stay or a search range may not start or end in the past, and check-out must follow check-in;
   `requireNotInPast` backs Host calendar blocks). Services call these; controllers and services never
   re-implement the rules. `AppContext` builds one `Clock.systemDefaultZone()` and passes it to the
@@ -192,7 +285,7 @@ W1 establishes the application boundaries used by every later workstream:
   `balanceAfter`) in the same transaction; there is a single ledger, not a separate one.
 - `EventBus`/`InProcessEventBus` publish committed domain events after successful transactions, and
   the shared audit contracts provide typed audit records for mutating services. Services do not publish
-  wallet events themselves: [`PostCommitEvents`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/infra/events/PostCommitEvents.java)
+  wallet events themselves: [`PostCommitEvents`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/infra/events/PostCommitEvents.java)
   is the `TransactionListener` that queues events during a transaction, publishes them in order through an
   `EventSink` (the one-method seam over the bus) after commit, and discards them on rollback. It is one
   shared queue, which relies on the single-process assumption (C50); nested transactions are rejected.
@@ -325,6 +418,104 @@ change back. See [4.14](#414-audit-trail).
 | The suspension reason lives in a nullable `users.suspensionReason` column (migration V003) and is also written to the audit row. | Looking a reason up should not mean reading the audit log, which is not a data store. | A `suspensions` table; deriving the reason from `audit_log` | C34 (reverses the no-column part of C32) |
 | Suspending a Guest or Host force-cancels their PENDING and not-yet-started CONFIRMED bookings (check-in after today) with a 100% refund; a Host's ACTIVE listings become INACTIVE. Started and ended stays are untouched, and reactivation restores nothing. | Upcoming stays cannot be honoured by a suspended party; a stay in progress settles through the normal path (W8 auto-completion, or W10 dispute resolution). | Cancelling PENDING only; reinstating on reactivation | C36 |
 
+
+### 3.2 Web platform and deployment
+
+The web side has authentication and the ported domain layer: a Spring Boot API with Firebase auth, JPA entities, Spring Data repositories and service implementations; a Next.js app with sign-in, registration, authenticated Host pages backed by Host REST endpoints, Guest pages backed by Guest REST controllers, and Agent pages backed by Agent REST controllers; a shared LLM gateway for role AI features, with the Host AI listing assistant and the Guest AI search assistant built on it and the gateway still off by default; and a hosted dev environment that tracks `development`. Agent REST controllers and pages (with the shared API foundation in [4.24](#424-shared-web-api-foundation-backendapi)). Host and Guest pages use the same REST boundary locally and in the hosted environment.
+
+```mermaid
+flowchart LR
+  subgraph Local["Local development"]
+    FE1["frontend: Next.js, Host + Guest pages :3000"]
+    BE1["backend: Spring Boot, Host + Guest REST API :8080 (profile dev)"]
+    PG1[("Postgres 17: docker-compose.yml")]
+  end
+  subgraph Hosted["Hosted dev environment (branch development)"]
+    V["Vercel: Next.js frontend, Host + Guest pages"]
+    R["Render: backend/Dockerfile, Host + Guest API (profile prod)"]
+    N[("Neon: branch dev")]
+  end
+  FB["Firebase Authentication (Email/Password)"]
+  SC["NUS SoCLaaS LLM (OpenAI-compatible API)"]
+  FE1 -->|"GET /actuator/health"| BE1
+  FE1 -->|"Bearer ID token: /api/host/**, /api/guest/**"| BE1
+  BE1 -->|"JDBC"| PG1
+  V -->|"GET /actuator/health (one allowed origin)"| R
+  V -->|"sign-up, sign-in (Firebase JS SDK)"| FB
+  V -->|"Bearer ID token: /api/auth/*"| R
+  V -->|"Bearer ID token: /api/host/**, /api/guest/**"| R
+  R -->|"verify ID token (Firebase Admin)"| FB
+  R -->|"JDBC, sslmode=require"| N
+  R -->|"LlmGateway: chat/completions, Bearer key (off by default)"| SC
+```
+
+1. The browser loads the page from `frontend/` (locally on port 3000, in the hosted environment from Vercel).
+2. `BackendStatus` calls `fetchBackendHealth` (`src/lib/api.ts`), which requests `NEXT_PUBLIC_API_BASE_URL` + `/actuator/health`; the component aborts the request after 5 seconds.
+3. The backend answers only if the request's `Origin` equals `snoozeshare.cors.allowed-origin` (the actuator and application endpoints are configured separately but fed from that one property).
+4. The health check runs a query against Postgres: locally the compose container, hosted a Neon branch. Flyway applied `V001__baseline.sql` through `V005__tighten_nightly_rate_constraint.sql` at startup (V002 auth, V003 domain tables, V004 system-user seed, V005 nightly-rate constraint; see [4.19](#419-domain-model-repositories-and-services-backend-domain-layer)).
+5. The page shows `Backend: UP` for a 200 response whose JSON status is `UP`, and `Backend: unreachable` for anything else; `Re-check` repeats the request.
+6. An authenticated request starts in the browser: `authenticatedFetch` (`src/lib/api.ts`) attaches the signed-in user's Firebase ID token as `Authorization: Bearer <token>`; Host calls are wrapped by `frontend/src/lib/hostApi.ts` and shared through `HostApiProvider` ([4.22](#422-host-web-pages-frontendsrcapphost)); Guest calls are wrapped by `frontend/src/lib/guest-api.ts` ([4.23](#423-guest-rest-api-and-web-pages)).
+7. `FirebaseAuthFilter` verifies the token with Firebase Admin, including a revocation check and project ID; a missing or invalid token gets `401 INVALID_TOKEN`, and an unreachable Firebase gets `503 AUTH_PROVIDER_UNAVAILABLE`.
+8. `RoleAuthorizationFilter` loads the active profile by Firebase UID and compares its role with the `/api/{role}/**` namespace; a mismatch gets `403 ROLE_MISMATCH`. For Host routes, `HostIdentityResolver` then cross-checks the active HOST identity against the domain user and supplies its UUID to the controller. For Guest routes, the filter stores the user ID as a request attribute and `ResolvedUser` reads it in the controller ([4.23](#423-guest-rest-api-and-web-pages)). The controller uses existing services, which access PostgreSQL through JPA/JDBC repositories ([4.21](#421-host-rest-api-backendapicontroller)).
+9. Host collection/history GETs return complete owner-scoped arrays in deterministic order, without `page`/`size` parameters or response-size caps. The calendar is the exception: it reads one requested month. See [4.21](#421-host-rest-api-backendapicontroller) and the accepted trade-off in [Known Limitations](#known-limitations).
+10. When a role feature calls the AI gateway (none does yet), `LlmGateway.run` sanitizes the input, checks the per-user and daily limits, sends one request to SoCLaaS through the global scheduler, validates the reply and writes one audit row, as described in [4.20](#420-ai-gateway-backendai).
+
+The hosted backend runs from `backend/Dockerfile` on Render's free plan, so it sleeps when idle and the first
+request after a pause is slow. `docs/runbooks/dev-environment.md` holds the deployment order, variables and
+evidence.
+
+**Hosting and deployment.** The full procedure, every variable and the dated evidence of the live checks are in `docs/runbooks/dev-environment.md`; this is what a newcomer needs to know first. Account-bound steps are done by a human, and an agent never enters credentials or tokens.
+
+Order: Render first, then Vercel, then Render again, because the frontend needs the backend URL and the backend needs the frontend's domain for CORS.
+
+1. **Render:** New > Blueprint from this repository. It reads `render.yaml` (a Docker web service on the free plan, branch `development`, build context `backend`, health check `/actuator/health`). Enter the `sync: false` secrets in the dashboard when prompted.
+2. **Neon:** create a project and a branch `dev`. On Render set `SPRING_PROFILES_ACTIVE=prod`, the three `SPRING_DATASOURCE_*` values and a placeholder `SNOOZESHARE_CORS_ALLOWED_ORIGIN` (for example `http://localhost:3000`); add the Firebase Admin settings and deploy.
+3. **Vercel:** create a project with root directory `frontend`, Production Branch `development` and `NEXT_PUBLIC_API_BASE_URL` set to the Render public URL (no trailing slash). A first deploy without that variable must fail the build.
+4. **Render:** set `SNOOZESHARE_CORS_ALLOWED_ORIGIN` to Vercel's stable production domain (scheme and host, no trailing slash) and redeploy.
+5. **Verify:** `curl.exe https://<render-url>/actuator/health` returns `{"status":"UP"}`, and the Vercel page shows `Backend: UP`.
+
+| Trap | What happens and what to do |
+|---|---|
+| Neon connection string | Neon shows a libpq string (`postgresql://USER:PASSWORD@HOST/DB?sslmode=require&channel_binding=require`). The backend needs `jdbc:postgresql://HOST/DB?sslmode=require` with the user and password in separate variables and no `channel_binding`. Use the direct host, not the `-pooler` one, because Flyway's migration lock can misbehave through the pooler. A URL that does not start with `jdbc` fails startup with `'url' must start with "jdbc"` |
+| New variables on an existing Render service | `render.yaml` sets its variables only when Render applies the Blueprint, which it does not do for an existing service, so add new ones by hand. A missing variable always shows as an `Error processing condition on ...` wrapper (for example on `FirebaseConfig`); the variable is named in the last `Caused by:` line, such as `Could not resolve placeholder 'FIREBASE_ENABLED'` |
+| Vercel Framework Preset | It must be **Next.js**. Left on "Other", the build fails with `No Output Directory named "public" found` (`frontend/vercel.json` also pins it) |
+| Vercel Production Branch | It must be `development` until the production deployment work. While it was `main`, `development` builds were Previews, which the backend's single allowed CORS origin cannot serve. **Redeploy** rebuilds the same commit as the deployment it is pressed on, so after changing the setting push a commit that touches `frontend/` |
+| Memory on the free plan | The service has limited memory, so `render.yaml` caps the JVM heap with `JAVA_TOOL_OPTIONS=-XX:MaxRAMPercentage=70` |
+
+| Decision | Why | Rejected | Ref |
+|---|---|---|---|
+| Desktop code moves under `desktop/`; `backend/` and `frontend/` sit beside it; independent builds, no root build | One repo for the re-platform, with the desktop tests still guarding the business rules | Leave in place; delete now; a root multi-project build | C81 |
+| `application-dev.yml` is committed with non-secret local defaults; secrets go in a gitignored `application-local.yml` | A fresh clone runs without setup | | C82 |
+| The `checkstyle` and `build` checks keep their names and each covers all three components; backend tests use Testcontainers Postgres 17 | Branch protection keeps working; tests run on the same database engine as production | | C83 |
+| Backend hosting is Render (free Docker web service); Vercel and Neon unchanged | Railway costs money | Railway; Cloudflare (no free JVM hosting); Cloud Run (needs a card) | C85 |
+| Roles live in PostgreSQL keyed by Firebase UID, not in Firebase custom claims | The backend controls authorization and there is no claim synchronization to go wrong | Firebase custom claims | C86 |
+| Host and Agent registration needs a server-side registration code; Guest needs none | A user cannot give themselves a privileged role | | C87 |
+| The API derives the UID from the verified bearer token, and route protection is client-side guards, not Next.js middleware | The client is never trusted for identity, and there is no session-cookie system to specify | A client-sent `firebaseUid`; Next.js middleware auth | C92 |
+| The `prod` profile fails startup unless security, Firebase, both codes and the Admin credentials are configured | An unset toggle would otherwise serve a permit-all production API | | C95 |
+| The client address for rate limits is `CF-Connecting-IP` when forwarded headers are trusted, and `X-Forwarded-For` is never read | Render's proxy appends to a client-supplied `X-Forwarded-For`, so its first entry is forgeable | The first `X-Forwarded-For` entry | C97 |
+| Spring Data JPA for persistence; entities use `id` as the PK column on every table | Cleaner Spring integration than ported JDBC; column naming follows W-AUTH's convention | Ported JDBC DAOs (C5 desktop) | C99 |
+| One generic LLM gateway; each role registers its own `AiFeature` (prompt, output type, caps) | A role feature should not need a gateway change, and Host's feature is undecided | A gateway that owns every feature's prompt | C103 |
+| The audit row stores metadata only, never prompt or reply text | Avoids copying personal data into `audit_log` | Truncated sanitized text | C104 |
+| A custom scheduler and circuit breaker, in package `com.snoozeshare.ai` | One shared key needs a global queue with priorities, which a per-user limiter does not give; no new dependency | Bucket4j; `service/ai` | C105 |
+| Daily caps count `AI_CALL` audit rows plus in-flight reservations, the audit is fail-closed, and no gateway call runs inside a transaction | Caps survive restarts and bursts; unaudited output must not reach a user; a 45 s call must not hold a connection | In-memory counters | C106 |
+| Replies with links, HTML or Markdown images are rejected by default; the base URL must be `https` and redirects are never followed; a budget 429 blocks calls for 15 minutes, then re-probes | Exfiltration through rendered links, the key leaving for another host, and a forged "quota" phrase causing a day-long outage | Blocking until 00:00 UTC | C107 |
+| Priority 0 (staff-facing features) may use the last 5% of the global daily cap | Guest registration needs no code, so many accounts could otherwise starve Host and Agent features; the key is not shared with any other system, so a large reserve is not needed | A 20% reserve; no reserve | C109 |
+| `max-rpm` defaults to 25 | The development key allows 30 requests a minute | 55 | C110 |
+| `reasoning-effort` defaults to `none` | `qwen3.5:9b` and `gemma4:26b` spend `max_tokens` on reasoning and return empty content on small limits; all three models accept `none` | Other, costlier models; reasoning on with large `maxTokens` | C111 |
+| The Agent REST layer owns the shared API foundation (error body, `@CurrentUserId`, `ApiLayerTest`) | Guest and Host routes did not exist when it was built; one set of conventions beats three | A separate foundation workstream; agent-only copies | C145 |
+| Tickets are locked pessimistically (row lock, 5 s timeout) in assign, unassign, notes, resolve and settlement; suspend and reactivate lock the target user; the lock is the first read | Two agents could otherwise settle one escrow twice or refund one booking twice | `@Version` (turns a race into a retry), SERIALIZABLE, leaving the race | C146, C148 |
+| `agentNotes` lives only on the Agent detail response; the Agent API caps request bodies at 64 KB with a filter | The Guest and Host controllers reuse `TicketResponse` and must not be able to leak notes | A global Jackson string limit (it would also cap the AI gateway) | C147 |
+| The audit log's From and To days use `Asia/Singapore` by default | The operator chose it; the server zone is UTC on Render | The server default zone; changing the shared `Clock` | C149 |
+| The desktop screens are the source of truth for the agent pages; where the design artifact differs, ask the operator | The artifact is derived and can be stale | | C144, C154 |
+| Single-phase AI search: the LLM extracts filters only, no second call to rank or explain individual results; listing descriptions never enter LLM context | Avoids indirect injection from host-authored content and halves token cost | Two-phase search+rank | C162 |
+| AI search returns degraded 200 with `INVALID_SEARCH_DATES` when the LLM extracts bad dates, not a 400 | The AI made the date mistake, not the user | Propagating the 400 | C165 |
+| The assistant posts as the existing SYSTEM user and the frontend labels every SYSTEM ticket-thread message "Snoozy · Automated assistant" | A new `AI` role would ripple through every switch on `Role` | An `AI` role value, a second seeded user, a widened `users.role` CHECK | C174 |
+| The assistant's report is stored in its own draft field and never written to `tickets.agent_notes`; the Agent inserts it by hand | The Agent also edits the notes; the Agent wants the most flexibility | Writing straight into `agent_notes` | C175 |
+| The assistant asks at submission, then after each Guest reply, up to a fixed round cap; Guest-raised tickets only | Host-raised tickets cannot exist (C40) | Submission only; Agent-requested follow-ups | C184, C185 |
+| Only the fixed support-email instruction may name a contact: the model emits the `[supporting-documents]` marker and the backend expands it with the stored ticket id | Useful for evidence while keeping arbitrary addresses and subjects out | Keeping the blanket contact prohibition | C180 |
+| A catch-up call replays the stored thread but leaves out the newest question when an unseen Guest reply precedes it | A reply that arrived during a call must be analysed without being treated as an answer to a question the Guest had not seen | Fabricating or reordering Guest turns; counting extra rounds; dropping the catch-up | C176 |
+| The initial release uses the v3 examples prompt | Useful information for human Agents mattered most; v3 led question-topic coverage in the one-run comparison | The v4 text it replaced | C172 |
+
 ---
 
 ## 4. Components
@@ -337,9 +528,9 @@ Dependencies come first. Money is `BigDecimal` at scale 2 with `HALF_UP` through
 
 **API**
 
-- [`SettlementCalculator.split(escrow, guestRefund)`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/domain/settlement/SettlementCalculator.java) returns a `SettlementBreakdown`.
-- [`SettlementBreakdown`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/domain/settlement/SettlementBreakdown.java) is a record of `escrow`, `guestRefund`, `hostGross`, `fee`, `hostNet`.
-- [`EscrowPolicy.isHeld(bookingTransactions)`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/domain/settlement/EscrowPolicy.java) is true when the list has an `ESCROW_HOLD` row and no `ESCROW_REFUND`, `BOOKING_PAYOUT`, `TICKET_REMEDY` or `AGENT_OVERRIDE` row.
+- [`SettlementCalculator.split(escrow, guestRefund)`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/domain/settlement/SettlementCalculator.java) returns a `SettlementBreakdown`.
+- [`SettlementBreakdown`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/domain/settlement/SettlementBreakdown.java) is a record of `escrow`, `guestRefund`, `hostGross`, `fee`, `hostNet`.
+- [`EscrowPolicy.isHeld(bookingTransactions)`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/domain/settlement/EscrowPolicy.java) is true when the list has an `ESCROW_HOLD` row and no `ESCROW_REFUND`, `BOOKING_PAYOUT`, `TICKET_REMEDY` or `AGENT_OVERRIDE` row.
 
 **Depends on:** `domain.enums`, `domain.model.WalletTransaction`, `DomainValidation`. No JavaFX or JDBC.
 
@@ -356,7 +547,7 @@ Dependencies come first. Money is `BigDecimal` at scale 2 with `HALF_UP` through
 
 **Purpose:** the single legality check for booking and ticket transitions.
 
-**API:** [`BookingStateMachine.canTransition(from, to, role)`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/domain/statemachine/BookingStateMachine.java) and [`TicketStateMachine.canTransition(from, to, role)`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/domain/statemachine/TicketStateMachine.java).
+**API:** [`BookingStateMachine.canTransition(from, to, role)`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/domain/statemachine/BookingStateMachine.java) and [`TicketStateMachine.canTransition(from, to, role)`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/domain/statemachine/TicketStateMachine.java).
 
 **Depends on:** `domain.enums` only.
 
@@ -381,9 +572,9 @@ booking machine but nothing in the agent UI uses them (C22).
 
 **API**
 
-- [`TicketRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/repository/TicketRepository.java) and its adapter [`JdbcTicketRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/repository/jdbc/JdbcTicketRepository.java): `findById`, `findByStatus`, `findQueue(status, assignee, agentId)`, `existsByCategory(label)`, `save` (upsert).
-- [`TicketCategoryRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/repository/TicketCategoryRepository.java) and [`JdbcTicketCategoryRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/repository/jdbc/JdbcTicketCategoryRepository.java): `findActive`, `findAll`, `findById`, `labelInUse(label, excludeCategoryId)`, `save`, `deleteById`.
-- [`MigrationRunner.migrate`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/infra/db/migration/MigrationRunner.java) applies the ordered V001–V008 migrations, or adopts a database that already has the foundation tables (such as the mock DB) by recording the baseline before applying later migrations.
+- [`TicketRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/repository/TicketRepository.java) and its adapter [`JdbcTicketRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/repository/jdbc/JdbcTicketRepository.java): `findById`, `findByStatus`, `findQueue(status, assignee, agentId)`, `existsByCategory(label)`, `save` (upsert).
+- [`TicketCategoryRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/repository/TicketCategoryRepository.java) and [`JdbcTicketCategoryRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/repository/jdbc/JdbcTicketCategoryRepository.java): `findActive`, `findAll`, `findById`, `labelInUse(label, excludeCategoryId)`, `save`, `deleteById`.
+- [`MigrationRunner.migrate`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/infra/db/migration/MigrationRunner.java) applies the ordered V001–V008 migrations, or adopts a database that already has the foundation tables (such as the mock DB) by recording the baseline before applying later migrations.
 
 ```mermaid
 erDiagram
@@ -427,7 +618,7 @@ erDiagram
 
 `raisedByRole` is limited to `GUEST` or `HOST`; `requestedRemedy` to `FULL_REFUND`, `PARTIAL_REFUND`,
 `HOST_PAYOUT`, `OTHER`; `status` to `OPEN`, `IN_REVIEW`, `RESOLVED_APPROVED`, `RESOLVED_REJECTED`
-(all `CHECK` constraints in [`db/schema.sql`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/db/schema.sql)).
+(all `CHECK` constraints in [`desktop/db/schema.sql`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/db/schema.sql)).
 
 **Depends on:** `infra.db.ConnectionFactory`, `JdbcCodecs` and `RowMappers` (`repository.jdbc.support`), `java.sql` (only here).
 
@@ -447,9 +638,9 @@ erDiagram
 
 **API**
 
-- [`MessageService`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/MessageService.java): `thread(ticketId, channel, viewerId, viewerRole)`, `post(ticketId, channel, authorId, authorRole, body)`, `conversationsFor(userId, role)`, `unreadCount(userId, role)`, `markRead(ticketId, channel, userId, role)`.
-- [`MessageServiceImpl`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/impl/MessageServiceImpl.java) and [`JdbcMessageRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/repository/jdbc/JdbcMessageRepository.java), over the `messages` and `message_reads` tables.
-- [`Message`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/domain/model/Message.java), [`ThreadChannel`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/domain/enums/ThreadChannel.java) (`GUEST`, `HOST`), [`ConversationSummary`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/ConversationSummary.java), [`MessagePostedEvent`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/infra/events/events/MessagePostedEvent.java), published after the insert commits.
+- [`MessageService`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/MessageService.java): `thread(ticketId, channel, viewerId, viewerRole)`, `post(ticketId, channel, authorId, authorRole, body)`, `conversationsFor(userId, role)`, `unreadCount(userId, role)`, `markRead(ticketId, channel, userId, role)`.
+- [`MessageServiceImpl`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/impl/MessageServiceImpl.java) and [`JdbcMessageRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/repository/jdbc/JdbcMessageRepository.java), over the `messages` and `message_reads` tables.
+- [`Message`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/domain/model/Message.java), [`ThreadChannel`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/domain/enums/ThreadChannel.java) (`GUEST`, `HOST`), [`ConversationSummary`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/ConversationSummary.java), [`MessagePostedEvent`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/infra/events/events/MessagePostedEvent.java), published after the insert commits.
 
 **Depends on:** `TicketRepository`, `BookingRepository`, `PropertyRepository`, `UserRepository`, `EventBus`, a `Clock`, `DomainValidation`.
 
@@ -467,9 +658,9 @@ erDiagram
 
 **API**
 
-- [`BookingConversationService`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/BookingConversationService.java): `thread(bookingId, viewerId, viewerRole)`, `post(bookingId, authorId, authorRole, body)`, `conversationsFor(userId, role)`, `unreadCount(userId, role)`, `markRead(bookingId, userId, role)`.
-- [`BookingConversationServiceImpl`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/impl/BookingConversationServiceImpl.java) and [`JdbcBookingMessageRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/repository/jdbc/JdbcBookingMessageRepository.java), over the `booking_messages` and `booking_message_reads` tables.
-- [`BookingMessage`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/domain/model/BookingMessage.java), [`BookingConversationSummary`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/BookingConversationSummary.java), [`BookingMessagePostedEvent`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/infra/events/events/BookingMessagePostedEvent.java).
+- [`BookingConversationService`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/BookingConversationService.java): `thread(bookingId, viewerId, viewerRole)`, `post(bookingId, authorId, authorRole, body)`, `conversationsFor(userId, role)`, `unreadCount(userId, role)`, `markRead(bookingId, userId, role)`.
+- [`BookingConversationServiceImpl`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/impl/BookingConversationServiceImpl.java) and [`JdbcBookingMessageRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/repository/jdbc/JdbcBookingMessageRepository.java), over the `booking_messages` and `booking_message_reads` tables.
+- [`BookingMessage`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/domain/model/BookingMessage.java), [`BookingConversationSummary`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/BookingConversationSummary.java), [`BookingMessagePostedEvent`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/infra/events/events/BookingMessagePostedEvent.java).
 
 **Depends on:** `BookingRepository`, `PropertyRepository`, `UserRepository`, `EventBus`, a `Clock`, `DomainValidation`.
 
@@ -485,7 +676,7 @@ erDiagram
 
 **Purpose:** the only class that moves money when an agent resolves a dispute.
 
-**API:** [`DisputeSettlementService.settle(ticketId, mode, guestRefund, agentId, reason)`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/DisputeSettlementService.java), implemented by [`DisputeSettlementServiceImpl`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/impl/DisputeSettlementServiceImpl.java). It returns a [`Settlement`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/Settlement.java) (ticket, booking, `SettlementBreakdown`, and the guest and host `WalletTransaction`, either of which is `null` when its amount was zero). [`ResolutionMode`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/domain/enums/ResolutionMode.java) is `ACCEPT`, `REJECT` or `MANUAL`.
+**API:** [`DisputeSettlementService.settle(ticketId, mode, guestRefund, agentId, reason)`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/DisputeSettlementService.java), implemented by [`DisputeSettlementServiceImpl`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/impl/DisputeSettlementServiceImpl.java). It returns a [`Settlement`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/Settlement.java) (ticket, booking, `SettlementBreakdown`, and the guest and host `WalletTransaction`, either of which is `null` when its amount was zero). [`ResolutionMode`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/domain/enums/ResolutionMode.java) is `ACCEPT`, `REJECT` or `MANUAL`.
 
 **Outcome by mode**
 
@@ -544,7 +735,7 @@ sequenceDiagram
 
 **Purpose:** the ticket lifecycle for agents (queue, assign, unassign, notes, resolve) and category administration.
 
-**API:** [`TicketService`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/TicketService.java), implemented by [`TicketServiceImpl`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/impl/TicketServiceImpl.java).
+**API:** [`TicketService`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/TicketService.java), implemented by [`TicketServiceImpl`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/impl/TicketServiceImpl.java).
 
 | Method | Behaviour |
 |---|---|
@@ -577,7 +768,7 @@ sequenceDiagram
 
 **Purpose:** read models for the agent screens, so controllers never touch repositories.
 
-**API:** [`DisputeQueryService`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/DisputeQueryService.java) with `queue(status, assignee, agentId)` returning [`DisputeSummary`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/DisputeSummary.java) rows and `detail(ticketId)` returning a [`DisputeDetail`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/DisputeDetail.java), implemented by [`DisputeQueryServiceImpl`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/impl/DisputeQueryServiceImpl.java).
+**API:** [`DisputeQueryService`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/DisputeQueryService.java) with `queue(status, assignee, agentId)` returning [`DisputeSummary`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/DisputeSummary.java) rows and `detail(ticketId)` returning a [`DisputeDetail`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/DisputeDetail.java), implemented by [`DisputeQueryServiceImpl`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/impl/DisputeQueryServiceImpl.java).
 
 - `DisputeSummary`: ticket id and label, title, category, listing title, guest, host and assignee names, status, `createdAt`.
 - `DisputeDetail`: the ticket, listing and dates, party names, booking status, `escrowAmount`, `escrowHeld` and `phaseLabel`.
@@ -759,11 +950,11 @@ breadcrumbs; create/edit retain their form titles while detail and calendar incl
 |---|---|
 | `HostShellController` + `host-shell.fxml` | Host navigation shell with Listings, Requests, Messages and Wallet tabs. |
 | `HostMessagesController` + `host-messages.fxml` | Merged Host inbox for ticket and private booking conversations; delegates to the appropriate persistent messaging service and disables replies after a thread becomes read-only. |
-| [`HostListingsController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/host/listings/HostListingsController.java) + `host-listings.fxml` | Host-scoped listing dashboard with listing cards, booking/rating metrics, Active/Inactive control, Edit and calendar entry. |
-| [`HostListingFormController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/host/listings/HostListingFormController.java) + `host-listing-form.fxml` | Shared create/edit form for details, location, capacity, pricing and amenities; validates checkout after check-in. |
-| [`HostListingDetailController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/host/listings/HostListingDetailController.java) + `host-listing-detail.fxml` | Host-facing detail page with Back, Edit and booking-calendar actions. |
-| [`ListingServiceImpl`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/impl/ListingServiceImpl.java) | Enforces host ownership, validates listing data, persists changes and emits audit records. |
-| [`ListingMetricsService`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/ListingMetricsService.java) | Supplies booking, occupancy and earnings metrics with zero-value fallbacks. |
+| [`HostListingsController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/host/listings/HostListingsController.java) + `host-listings.fxml` | Host-scoped listing dashboard with listing cards, booking/rating metrics, Active/Inactive control, Edit and calendar entry. |
+| [`HostListingFormController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/host/listings/HostListingFormController.java) + `host-listing-form.fxml` | Shared create/edit form for details, location, capacity, pricing and amenities; validates checkout after check-in. |
+| [`HostListingDetailController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/host/listings/HostListingDetailController.java) + `host-listing-detail.fxml` | Host-facing detail page with Back, Edit and booking-calendar actions. |
+| [`ListingServiceImpl`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/impl/ListingServiceImpl.java) | Enforces host ownership, validates listing data, persists changes and emits audit records. |
+| [`ListingMetricsService`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/ListingMetricsService.java) | Supplies booking, occupancy and earnings metrics with zero-value fallbacks. |
 
 **Host service surface**
 
@@ -821,7 +1012,7 @@ validation/ownership, metrics, navigation, layout and Host stylesheet ownership.
 
 **Purpose:** hosts inspect one listing's monthly availability and create or remove manual blocks.
 
-[`HostCalendarController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/host/calendar/HostCalendarController.java)
+[`HostCalendarController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/host/calendar/HostCalendarController.java)
 uses `AvailabilityService` to load the selected month, navigate months, add inclusive single-date or
 range blocks, and remove existing manual blocks. Booking blocks and manual blocks are shown with separate
 visual treatments. Validation rejects an end date before the start date and overlapping unavailable dates.
@@ -867,7 +1058,7 @@ overlap rejection, block history and removal rules.
 
 **Purpose:** hosts review pending requests, decide them, inspect earnings and see request history.
 
-[`HostBookingsController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/host/bookings/HostBookingsController.java)
+[`HostBookingsController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/host/bookings/HostBookingsController.java)
 uses `BookingService.pendingRequestRowsFor` and `historyRowsFor` for host-scoped projections. The request
 table includes guest, dates, nights, amount, estimated net earnings and guest rating. Approve and reject
 decisions use the shared host modal style; rejection may include the persisted `hostDecisionMessage`.
@@ -932,7 +1123,7 @@ machine coverage is exercised through the booking service tests.
 **Purpose:** provide hosts with the same native wallet capability and visual language as the guest wallet,
 while keeping the presentation owned by the common wallet module.
 
-The shared [`WalletDashboardController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/common/wallet/WalletDashboardController.java)
+The shared [`WalletDashboardController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/common/wallet/WalletDashboardController.java)
 and `wallet-dashboard.fxml` are loaded by both Guest and Host shells. The page includes the available
 balance, the amount currently held in escrow for pending bookings, top-up and withdrawal actions, and a
 five-column transaction statement. The statement uses compact type badges, aligned date/related/amount/
@@ -975,20 +1166,20 @@ and booking decision/calendar-block audit coverage is incomplete as recorded in 
 
 | File | Role |
 |---|---|
-| [`AdminShellController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/admin/AdminShellController.java) + [`admin-shell.fxml`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/resources/com/snoozeshare/ui/admin/admin-shell.fxml) | Top bar and tab strip (Disputes, Accounts, Audit Log, Categories); swaps the centre view and disposes the live views (queue, accounts) when it does. |
-| [`DisputeQueueController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/admin/tickets/DisputeQueueController.java) + `dispute-queue.fxml` | Oldest-first table, All / Unassigned / Mine chips, status filter (All statuses, Open, In review, Approved, Rejected), "N unassigned" badge; refreshes on `TicketResolvedEvent`. |
-| [`DisputeDetailController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/admin/tickets/DisputeDetailController.java) + `dispute-detail.fxml` | Booking summary, guest and host chat panes, one notes field, Assign to me / Unassign, Accept, Reject dispute, Manual adjustment. The Accept label follows the ticket raiser ("remedy guest" or "remedy host"). |
-| [`ResolutionDialogController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/admin/tickets/ResolutionDialogController.java) + `resolution-dialog.fxml` | One dialog for the three modes; reason required; live preview. |
-| [`ResolutionPreview`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/admin/tickets/ResolutionPreview.java) | Pure logic that turns a refund text into a preview or an error message, using `SettlementCalculator`. |
-| [`CategoryAdminController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/admin/categories/CategoryAdminController.java), [`CategoryDialogController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/admin/categories/CategoryDialogController.java) | Category table with active toggle, Add and Edit modals; Edit has Delete. |
-| [`AuditLogController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/admin/audit/AuditLogController.java) + [`audit-log.fxml`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/resources/com/snoozeshare/ui/admin/audit/audit-log.fxml) | The read-only Audit Log screen (below). |
-| [`AccountGovernanceController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/admin/accounts/AccountGovernanceController.java) + [`account-governance.fxml`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/resources/com/snoozeshare/ui/admin/accounts/account-governance.fxml) | The Accounts screen (below). Refreshes on `AccountStatusChangedEvent`. |
-| [`SuspensionDialogController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/admin/accounts/SuspensionDialogController.java) + `suspension-dialog.fxml` | The Suspend and Reactivate modal (one card, two modes). |
-| [`AccountText`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/admin/accounts/AccountText.java), [`AccountSearch`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/admin/accounts/AccountSearch.java) | Pure helpers: role and status labels, `DD MMM YYYY` dates, and the live-search match. |
-| [`MultiSelectMenu`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/admin/audit/MultiSelectMenu.java) | The action-type dropdown with a check per option; an empty selection means every action. |
-| [`AgentModal`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/admin/AgentModal.java) | Shared modal shell: transparent undecorated stage plus a light-grey scrim over the owner window. |
-| [`HeightGrip`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/ui/admin/HeightGrip.java) | Drag handle that resizes chat panes together and the notes box, within min and max heights. |
-| [`agent-theme.css`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/resources/com/snoozeshare/ui/admin/agent-theme.css) | The "Fall Light" palette, loaded on the agent scene root only. |
+| [`AdminShellController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/admin/AdminShellController.java) + [`admin-shell.fxml`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/resources/com/snoozeshare/ui/admin/admin-shell.fxml) | Top bar and tab strip (Disputes, Accounts, Audit Log, Categories); swaps the centre view and disposes the live views (queue, accounts) when it does. |
+| [`DisputeQueueController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/admin/tickets/DisputeQueueController.java) + `dispute-queue.fxml` | Oldest-first table, All / Unassigned / Mine chips, status filter (All statuses, Open, In review, Approved, Rejected), "N unassigned" badge; refreshes on `TicketResolvedEvent`. |
+| [`DisputeDetailController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/admin/tickets/DisputeDetailController.java) + `dispute-detail.fxml` | Booking summary, guest and host chat panes, one notes field, Assign to me / Unassign, Accept, Reject dispute, Manual adjustment. The Accept label follows the ticket raiser ("remedy guest" or "remedy host"). |
+| [`ResolutionDialogController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/admin/tickets/ResolutionDialogController.java) + `resolution-dialog.fxml` | One dialog for the three modes; reason required; live preview. |
+| [`ResolutionPreview`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/admin/tickets/ResolutionPreview.java) | Pure logic that turns a refund text into a preview or an error message, using `SettlementCalculator`. |
+| [`CategoryAdminController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/admin/categories/CategoryAdminController.java), [`CategoryDialogController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/admin/categories/CategoryDialogController.java) | Category table with active toggle, Add and Edit modals; Edit has Delete. |
+| [`AuditLogController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/admin/audit/AuditLogController.java) + [`audit-log.fxml`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/resources/com/snoozeshare/ui/admin/audit/audit-log.fxml) | The read-only Audit Log screen (below). |
+| [`AccountGovernanceController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/admin/accounts/AccountGovernanceController.java) + [`account-governance.fxml`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/resources/com/snoozeshare/ui/admin/accounts/account-governance.fxml) | The Accounts screen (below). Refreshes on `AccountStatusChangedEvent`. |
+| [`SuspensionDialogController`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/admin/accounts/SuspensionDialogController.java) + `suspension-dialog.fxml` | The Suspend and Reactivate modal (one card, two modes). |
+| [`AccountText`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/admin/accounts/AccountText.java), [`AccountSearch`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/admin/accounts/AccountSearch.java) | Pure helpers: role and status labels, `DD MMM YYYY` dates, and the live-search match. |
+| [`MultiSelectMenu`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/admin/audit/MultiSelectMenu.java) | The action-type dropdown with a check per option; an empty selection means every action. |
+| [`AgentModal`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/admin/AgentModal.java) | Shared modal shell: transparent undecorated stage plus a light-grey scrim over the owner window. |
+| [`HeightGrip`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/ui/admin/HeightGrip.java) | Drag handle that resizes chat panes together and the notes box, within min and max heights. |
+| [`agent-theme.css`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/resources/com/snoozeshare/ui/admin/agent-theme.css) | The "Fall Light" palette, loaded on the agent scene root only. |
 
 **Audit Log screen (W12).** A read-only table over `AuditService.search` ([4.14](#414-audit-trail)).
 
@@ -1021,10 +1212,10 @@ and booking decision/calendar-block audit coverage is incomplete as recorded in 
 
 **API**
 
-- [`AuditService`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/AuditService.java), implemented by [`AuditServiceImpl`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/impl/AuditServiceImpl.java): `record(AuditRecord)` and `search(AuditFilter, limit, offset)`. `AuditService.SYSTEM_ACTOR_ID` is the seeded System user. (W14 removed the `recordWalletTransaction` helper: every money row now goes through `LedgerWriter`, [4.16](#416-unified-ledger-ledgerwriter).)
-- [`AuditRecord`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/AuditRecord.java) is what a service asks to write; [`AuditLogEntry`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/domain/model/AuditLogEntry.java) is what a search returns; [`AuditAction`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/domain/enums/AuditAction.java) is the enum of action types (the column stores the constant's name).
-- [`AuditFilter`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/AuditFilter.java) (`text`, a set of `actions`, inclusive `from` / `to` dates) is the screen's filter; [`AuditCriteria`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/repository/AuditCriteria.java) is its repository form. [`AuditLogRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/repository/AuditLogRepository.java) and [`JdbcAuditLogRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/repository/jdbc/JdbcAuditLogRepository.java) store and query rows.
-- The schema change is [`V002__audit_trail.sql`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/resources/db/migration/V002__audit_trail.sql), which is also reflected in [`db/schema.sql`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/db/schema.sql).
+- [`AuditService`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/AuditService.java), implemented by [`AuditServiceImpl`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/impl/AuditServiceImpl.java): `record(AuditRecord)` and `search(AuditFilter, limit, offset)`. `AuditService.SYSTEM_ACTOR_ID` is the seeded System user. (W14 removed the `recordWalletTransaction` helper: every money row now goes through `LedgerWriter`, [4.16](#416-unified-ledger-ledgerwriter).)
+- [`AuditRecord`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/AuditRecord.java) is what a service asks to write; [`AuditLogEntry`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/domain/model/AuditLogEntry.java) is what a search returns; [`AuditAction`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/domain/enums/AuditAction.java) is the enum of action types (the column stores the constant's name).
+- [`AuditFilter`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/AuditFilter.java) (`text`, a set of `actions`, inclusive `from` / `to` dates) is the screen's filter; [`AuditCriteria`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/repository/AuditCriteria.java) is its repository form. [`AuditLogRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/repository/AuditLogRepository.java) and [`JdbcAuditLogRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/repository/jdbc/JdbcAuditLogRepository.java) store and query rows.
+- The schema change is [`V002__audit_trail.sql`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/resources/db/migration/V002__audit_trail.sql), which is also reflected in [`desktop/db/schema.sql`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/db/schema.sql).
 
 **Column layout.** One row is one change. Migration V002 added seven columns to the V001 `audit_log` table:
 
@@ -1056,7 +1247,7 @@ rolls back with the change.
 
 | Source | Rows written |
 |---|---|
-| `BookingServiceImpl` | Escrow holds and refunds through `LedgerWriter`; booking state changes and Host calendar blocks do not yet have complete audit coverage (see Known Limitations) |
+| Desktop `BookingServiceImpl` | Escrow holds and refunds through `LedgerWriter`; the desktop booking state changes and Host calendar blocks do not yet have complete audit coverage (see Known Limitations). The web Host API has its own decision/block audit writes ([4.21](#421-host-rest-api-backendapicontroller)). |
 | `DisputeSettlementServiceImpl` | `TICKET_RESOLVED`, `BOOKING_COMPLETED`, and the guest and host money rows (see the sequence diagram below) |
 | `TicketServiceImpl` | `TICKET_OPENED`, `TICKET_ASSIGNED`, `TICKET_UNASSIGNED`, `TICKET_NOTE_SAVED`, `TICKET_CATEGORY_CREATED`, `TICKET_CATEGORY_RENAMED`, `TICKET_CATEGORY_TOGGLED`, `TICKET_CATEGORY_DELETED` |
 | `ListingServiceImpl` | `LISTING_CREATED`, `LISTING_UPDATED`, `LISTING_STATUS_CHANGED` |
@@ -1118,7 +1309,7 @@ sequenceDiagram
 7. Rows 1 and 2 record status only; rows 3–5 record money only, each with its own `balanceAfter`. All carry the ticket and booking ids.
 8. If anything throws, the transaction rolls back and no audit row survives.
 
-**Data model: the whole schema.** Every table in [`db/schema.sql`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/db/schema.sql). To stay readable, each table other than `audit_log` lists only its keys and the columns that matter here; the full column lists are in the schema file, and [4.3](#43-persistence-tickets-and-ticket-categories) has the full `tickets` and `ticket_categories`. `audit_log` shows all its columns, with the V002 and V007 additions marked. `wallet_transactions` no longer exists — W14's V008 dropped it ([4.16](#416-unified-ledger-ledgerwriter)).
+**Data model: the whole schema.** Every table in [`desktop/db/schema.sql`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/db/schema.sql). To stay readable, each table other than `audit_log` lists only its keys and the columns that matter here; the full column lists are in the schema file, and [4.3](#43-persistence-tickets-and-ticket-categories) has the full `tickets` and `ticket_categories`. `audit_log` shows all its columns, with the V002 and V007 additions marked. `wallet_transactions` no longer exists — W14's V008 dropped it ([4.16](#416-unified-ledger-ledgerwriter)).
 
 ```mermaid
 erDiagram
@@ -1232,7 +1423,7 @@ erDiagram
 - Names are snapshotted onto each row when written, and text searches go by user id, so renames do not hide history.
 - A money row's `balanceAfter` is written in the same `LedgerWriter` call as its `walletAdjustment`; `wallets.balance` is a cache of the owner's newest `balanceAfter`, checked by `LedgerConservationTest` ([4.16](#416-unified-ledger-ledgerwriter)).
 
-**Deviations:** D13 (dual-write until W14 — historical, see [4.16](#416-unified-ledger-ledgerwriter)); D15 (the committed mock DB ships already migrated — now at `schema_history` v8 after W14, see 4.16; the System user has existed since V002, and `db/schema.sql` creates `schema_history`); D16 (seed `availability_blocks` ids were remapped to valid hex); D17 (the spec's `AuditService.query` became `search`, `CATEGORY_DELETED` became `TICKET_CATEGORY_DELETED`, and the search was corrected to a contains-match with a 4-character minimum for id fragments; the Audit Log's `REF` column was later replaced by `TARGET`, W14 follow-up).
+**Deviations:** D13 (dual-write until W14 — historical, see [4.16](#416-unified-ledger-ledgerwriter)); D15 (the committed mock DB ships already migrated — now at `schema_history` v8 after W14, see 4.16; the System user has existed since V002, and `desktop/db/schema.sql` creates `schema_history`); D16 (seed `availability_blocks` ids were remapped to valid hex); D17 (the spec's `AuditService.query` became `search`, `CATEGORY_DELETED` became `TICKET_CATEGORY_DELETED`, and the search was corrected to a contains-match with a 4-character minimum for id fragments; the Audit Log's `REF` column was later replaced by `TARGET`, W14 follow-up).
 
 ### 4.15 Account governance
 
@@ -1240,9 +1431,9 @@ erDiagram
 
 **API**
 
-- [`AccountGovernanceService`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/AccountGovernanceService.java), implemented by [`AccountGovernanceServiceImpl`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/impl/AccountGovernanceServiceImpl.java): `listAccounts()` (every account except the System user, as [`AccountSummary`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/AccountSummary.java) read models), `suspend(userId, agentId, reason)` and `reactivate(userId, agentId, reason)`.
-- `AccountStatusChangedEvent` ([`infra/events/events`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/infra/events/events/AccountStatusChangedEvent.java)) is published after commit; the Accounts screen refreshes on it.
-- Supporting changes: `User.suspensionReason`, `UserRepository.findAll`, `BookingRepository.findByListing`, migration [`V003__suspension_reason.sql`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/resources/db/migration/V003__suspension_reason.sql), and a guard in `BookingServiceImpl.submitRequest` that refuses a guest whose account is not ACTIVE. The old `UserService.suspend` stub was removed (D19).
+- [`AccountGovernanceService`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/AccountGovernanceService.java), implemented by [`AccountGovernanceServiceImpl`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/impl/AccountGovernanceServiceImpl.java): `listAccounts()` (every account except the System user, as [`AccountSummary`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/AccountSummary.java) read models), `suspend(userId, agentId, reason)` and `reactivate(userId, agentId, reason)`.
+- `AccountStatusChangedEvent` ([`infra/events/events`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/infra/events/events/AccountStatusChangedEvent.java)) is published after commit; the Accounts screen refreshes on it.
+- Supporting changes: `User.suspensionReason`, `UserRepository.findAll`, `BookingRepository.findByListing`, migration [`V003__suspension_reason.sql`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/resources/db/migration/V003__suspension_reason.sql), and a guard in `BookingServiceImpl.submitRequest` that refuses a guest whose account is not ACTIVE. The old `UserService.suspend` stub was removed (D19).
 
 **Depends on:** the user, booking, property, wallet, transaction and availability repositories, `TransactionManager`, `AuditService`, the event bus and `BookingStateMachine`.
 
@@ -1297,9 +1488,9 @@ shape of row and a balance can never drift from the rows that explain it.
 
 **API**
 
-- [`LedgerWriter`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/service/impl/LedgerWriter.java): `post(walletId, type, amount, actorId, bookingId, ticketId, reason, at)` moves a signed `amount` in one wallet and writes its `audit_log` money row; `postPayout(hostWalletId, net, fee, actorId, bookingId, ticketId, at)` writes the host's `BOOKING_PAYOUT` row (`net`) and, only when `fee` is positive, a second `PLATFORM_FEE` row crediting the System wallet. Neither method opens a transaction — the caller wraps the call (and the state change it belongs with) in its own `TransactionManager.inTransaction` block.
-- [`LedgerRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/repository/LedgerRepository.java), implemented by [`JdbcLedgerRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/repository/jdbc/JdbcLedgerRepository.java): `entriesForWallet(walletId)` and `entriesForBooking(bookingId)`, both newest-row-order reads of the money rows in `audit_log` (joined to `wallets` on `subjectUserId`). `EscrowPolicy` and the wallet statement/escrow-hint screens read through this instead of a dedicated ledger table.
-- [`WalletTransactionType`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/main/java/com/snoozeshare/domain/enums/WalletTransactionType.java) gained `PLATFORM_FEE` alongside `TOP_UP`, `WITHDRAWAL`, `ESCROW_HOLD`, `ESCROW_REFUND`, `BOOKING_PAYOUT`, `TICKET_REMEDY` and `AGENT_OVERRIDE`.
+- [`LedgerWriter`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/service/impl/LedgerWriter.java): `post(walletId, type, amount, actorId, bookingId, ticketId, reason, at)` moves a signed `amount` in one wallet and writes its `audit_log` money row; `postPayout(hostWalletId, net, fee, actorId, bookingId, ticketId, at)` writes the host's `BOOKING_PAYOUT` row (`net`) and, only when `fee` is positive, a second `PLATFORM_FEE` row crediting the System wallet. Neither method opens a transaction — the caller wraps the call (and the state change it belongs with) in its own `TransactionManager.inTransaction` block.
+- [`LedgerRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/repository/LedgerRepository.java), implemented by [`JdbcLedgerRepository`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/repository/jdbc/JdbcLedgerRepository.java): `entriesForWallet(walletId)` and `entriesForBooking(bookingId)`, both newest-row-order reads of the money rows in `audit_log` (joined to `wallets` on `subjectUserId`). `EscrowPolicy` and the wallet statement/escrow-hint screens read through this instead of a dedicated ledger table.
+- [`WalletTransactionType`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/main/java/com/snoozeshare/domain/enums/WalletTransactionType.java) gained `PLATFORM_FEE` alongside `TOP_UP`, `WITHDRAWAL`, `ESCROW_HOLD`, `ESCROW_REFUND`, `BOOKING_PAYOUT`, `TICKET_REMEDY` and `AGENT_OVERRIDE`.
 - Callers: `WalletServiceImpl`, `TransactionServiceImpl`, `BookingServiceImpl`, `DisputeSettlementServiceImpl` ([4.5](#45-disputesettlementservice)) and `AccountGovernanceServiceImpl` ([4.15](#415-account-governance)). `WalletService` and `TransactionService` stay separate interfaces (C3, narrowed rather than removed by C39) — both now write through `LedgerWriter` instead of each hand-rolling "read wallet, add, save, insert ledger row".
 
 **Events and the fee rule.** `LedgerWriter` queues a `WalletTransactionRecordedEvent` for every money row
@@ -1348,6 +1539,713 @@ sequenceDiagram
 
 **Deviations:** the spec's single ledger-fold migration was split into V006/V007/V008 so code could stop writing `wallet_transactions` (V006, V007) before it was dropped (V008), which the plan anticipated. C42: Task 8's review found a $0 or sub-cent listing rate crashed settlement once `LedgerWriter` rejected its zero-amount payout; the operator chose to forbid degenerate rates rather than build free-stay support end to end.
 
+
+### 4.17 Web skeletons (`backend/`, `frontend/`)
+
+**Purpose.** Prove that the web stack builds, deploys and talks to its database; no domain logic yet.
+
+**API.**
+- `GET /actuator/health` (backend): 200 with exactly `{"status":"UP"}`, or 503 with `{"status":"DOWN"}` when the database login fails. Every other actuator path is 404; details and probe groups are off. The authentication endpoints are in [4.18](#418-authentication-and-role-authorization-backendauth-frontend-providers).
+- `SnoozeShareApplication` (`backend/src/main/java/com/snoozeshare/`), `config/CorsConfig`, `config/CorsProperties`, `ProdEnvironmentGuard`.
+- `fetchBackendHealth(signal)` (`frontend/src/lib/api.ts`), `apiBaseUrl()` and `validateEnv()` (`frontend/src/lib/env.ts`), `BackendStatus` (`frontend/src/components/BackendStatus.tsx`).
+
+**Depends on.** PostgreSQL 17 through Spring JDBC/JPA and Flyway (`db/migration/V001__baseline.sql`, a comment-only baseline; `V002__auth_users_wallets.sql` belongs to [4.18](#418-authentication-and-role-authorization-backendauth-frontend-providers); `V003`–`V005` belong to [4.19](#419-domain-model-repositories-and-services-backend-domain-layer)); the frontend depends on the backend URL.
+
+**Invariants.**
+- The `prod` profile has no defaults for the database or the allowed origin; `ProdEnvironmentGuard` fails startup and names any of `SPRING_DATASOURCE_URL`, `_USERNAME`, `_PASSWORD` or `SNOOZESHARE_CORS_ALLOWED_ORIGIN` that is missing, and fails unless `snoozeshare.security.enabled` and `snoozeshare.firebase.enabled` are true ([4.18](#418-authentication-and-role-authorization-backendauth-frontend-providers)). It also fails unless `snoozeshare.ai.enabled` is set (naming `SNOOZESHARE_AI_ENABLED`), rejects `snoozeshare.ai.mock=true`, and, when the AI gateway is enabled, requires a non-blank `https` base URL and key ([4.20](#420-ai-gateway-backendai)). With no profile set the `dev` profile applies.
+- The allowed origin is one `http(s)` origin with no wildcard and no trailing slash, or the application does not start.
+- `src/lib/env.ts` is the only reader of `NEXT_PUBLIC_API_BASE_URL`, and a production build fails without it.
+- The health body must stay exactly `{"status":"UP"}`.
+
+**Deviations.** D39 (the guard exists because Spring's binder leaves an unresolved `${VAR}` in place); D40 (the request `Origin` is compared after Spring strips a trailing slash); D41 (Render runs on Kubernetes, so Spring's probe groups are disabled explicitly and `HealthOnKubernetesTest` simulates the platform).
+
+
+### 4.18 Authentication and role authorization (`backend/auth/`, frontend providers)
+
+**Purpose.** Establish who is calling the API and which role they hold, and keep Guest, Host and Support Agent access apart on the web. Firebase Authentication owns passwords and tokens; the backend owns each person's role and wallet. Host and Guest pages and REST endpoints are implemented; Agent feature pages/endpoints remain unbuilt.
+
+**API.** Every error body is `{"code", "message", "requestId"}`; `requestId` is logged with the status, code and path.
+
+| Endpoint | Caller | Result |
+|---|---|---|
+| `POST /api/auth/registration-code/validate` | Anyone; body `{role: HOST or AGENT, registrationCode (1-128 characters)}` | `204` for a correct code; `400 VALIDATION_ERROR`, `403 INVALID_REGISTRATION_CODE`, `429 REGISTRATION_RATE_LIMITED` |
+| `POST /api/auth/register` | Bearer ID token; body `{role, registrationCode? (at most 128 characters), displayName? (at most 80 characters)}` | `201` with the new profile, `200` for a same-role retry; `400`, `403 INVALID_REGISTRATION_CODE` or `PROFILE_INACTIVE`, `409 ROLE_ALREADY_ASSIGNED`, `429` |
+| `GET /api/auth/me` | Bearer ID token | The profile `{id, email, role, displayName, walletId}`; `404 PROFILE_NOT_REGISTERED`, `403 PROFILE_INACTIVE` |
+| `/api/host/**` | Bearer ID token and an active HOST profile | Host endpoints are listed in [4.21](#421-host-rest-api-backendapicontroller); identity is derived and cross-checked server-side |
+| `/api/guest/**`, `/api/agent/**` | Bearer ID token and the matching active role | `403 ROLE_MISMATCH` otherwise; the Guest endpoints are in [4.23](#423-guest-rest-api-and-web-pages) and the Agent endpoints in [4.25](#425-agent-rest-api-and-web-pages-backendapicontrolleragent-frontendsrcappagent) |
+
+At the security boundary a missing or invalid token is `401 INVALID_TOKEN` and an unreachable Firebase is `503 AUTH_PROVIDER_UNAVAILABLE`; an unexpected failure under `/api/auth` is `500 INTERNAL_ERROR`. Request bodies reject unknown fields, a code longer than 128 characters and a Guest request that carries a code.
+
+- Backend (`backend/src/main/java/com/snoozeshare/auth/`): `config/SecurityConfig`, `config/FirebaseConfig`; `security/FirebaseAuthFilter`, `security/RoleAuthorizationFilter`, `security/RoleAuthorizationService`, `security/FirebaseTokenVerifier` and `FirebaseAdminTokenVerifier`, `security/ClientIpResolver`, `security/AuthErrorWriter`; `controller/AuthController`; `service/AuthRegistrationService`, `AuthRegistrationWriter`, `RegistrationCodeValidationService`, `RegistrationRateLimiter`, `PublicRegistrationRateLimiter`; `repository/AuthUserRepository` and `WalletRepository` with their JDBC implementations; the request and response records in `api/`.
+- Frontend (`frontend/src/`): `lib/firebase.ts` (`signIn`, `registerWithEmail`, `signOutUser`, `observeAuth`, `resetPassword`), `lib/api.ts` (`authenticatedFetch`, `validateRegistrationCode`, `registerProfile`, `fetchCurrentProfile`, `BackendApiError`), `providers/AuthProvider.tsx` (`useAuth`), `components/auth/RouteGuard.tsx` (`RouteGuard`, `AuthOnly`), `components/auth/useRedirectAuthenticated.ts`, and shared role-shell components. Pages: `/login`, `/register`, `/forgot-password`; `/host/**` wraps its authenticated Host pages in `RouteGuard`, `HostApiProvider`, and `HostRoleShell` ([4.22](#422-host-web-pages-frontendsrcapphost)); Guest and Agent layouts still show their feature landing shells.
+
+**Depends on.** Firebase Authentication (Email/Password) through the Firebase JS SDK 12 in the browser and Firebase Admin 9.11 on the server, which takes credentials from Application Default Credentials; Spring Security; PostgreSQL through Spring JDBC and Flyway (`db/migration/V002__auth_users_wallets.sql`).
+
+**Data model.** `users` holds the role and status; `wallets` has one row per Guest or Host and none for an Agent.
+
+```mermaid
+erDiagram
+  users ||--o| wallets : "has (GUEST and HOST only)"
+  users {
+    uuid id PK
+    varchar firebase_uid UK
+    varchar email
+    varchar role "GUEST, HOST or AGENT"
+    varchar display_name
+    varchar status "ACTIVE or INACTIVE"
+    timestamptz created_at
+    timestamptz updated_at
+  }
+  wallets {
+    uuid id PK
+    uuid user_id FK
+    varchar currency "SGD"
+    numeric balance
+  }
+```
+
+**Registration flow.** The Host and Agent code is checked before the Firebase account exists, so a wrong code never creates one.
+
+```mermaid
+sequenceDiagram
+  actor U as User
+  participant P as register/page.tsx
+  participant FB as Firebase Authentication
+  participant F as FirebaseAuthFilter
+  participant C as AuthController
+  participant S as AuthRegistrationService
+  participant W as AuthRegistrationWriter
+  U->>P: role, code, email, password
+  P->>C: POST /api/auth/registration-code/validate (Host or Agent)
+  C-->>P: 204, or 403 / 429 (stop here)
+  P->>FB: createUserWithEmailAndPassword
+  FB-->>P: signed-in user
+  P->>F: POST /api/auth/register with Bearer ID token
+  F->>FB: verify ID token
+  F->>C: authenticated principal
+  C->>S: register(identity, request, ip)
+  S->>W: create(user)
+  W-->>P: 201 profile (users row, plus wallets row for Guest and Host)
+```
+
+1. For a Host or Agent, `validateRegistrationCode` asks the backend to check the code. The limiter is consulted before the comparison, and the comparison is constant-time. A wrong or rate-limited code stops the flow, so no Firebase account is created. A Guest skips this step.
+2. If nobody is signed in, `registerWithEmail` creates the Firebase account. A person who is already signed in after an earlier failed registration skips it.
+3. `registerProfile` sends the request through `authenticatedFetch`, which adds the ID token.
+4. `FirebaseAuthFilter` verifies the token (revocation checked, project ID matched) and sets the principal. The UID and email come only from this token.
+5. `AuthRegistrationService.register` checks the code again for Host and Agent, so a modified client cannot skip step 1, then looks the user up by `firebase_uid`. An existing profile with the same role returns `200` unchanged; a different role is `409`; a non-`ACTIVE` profile is `403`.
+6. For a new user, `AuthRegistrationWriter.create` inserts the `users` row and, for Guest and Host, a `wallets` row of SGD 0.00 in one transaction. Two simultaneous registrations for one UID leave one profile: the loser reads the winner and returns it.
+7. The page routes to `/guest`, `/host` or `/agent`.
+
+**Frontend states and guards.** `AuthProvider` loads `/api/auth/me` whenever Firebase reports a user and exposes one of six states. A profile response that arrives after a newer request or a sign-out is ignored.
+
+| State | Meaning | `RouteGuard` result |
+|---|---|---|
+| `loading` | Firebase or `/me` not resolved | "Loading…", no redirect |
+| `signed_out` | No Firebase user, or the backend rejected the token (`401` from `/me`), in which case the provider also ends the Firebase session | Redirect to `/login?returnTo=<path>` |
+| `registering` | Signed in, `PROFILE_NOT_REGISTERED` | Redirect to `/register` |
+| `authenticated` | Profile loaded | Render the page if the role matches; otherwise redirect to the person's own role page |
+| `inactive` | `PROFILE_INACTIVE` | "Profile unavailable" |
+| `error` | Any other failure, or incomplete Firebase configuration | Retry and Sign out buttons |
+
+**Invariants.**
+- The role is the `users.role` column, never a Firebase claim (C86), and one account has one role (`409 ROLE_ALREADY_ASSIGNED`). `RoleAuthorizationFilter` reads it from the database on every request and requires `ACTIVE`.
+- With security off (the `dev` default) every path is open and `AuthController` is not registered. The `prod` profile cannot start in that state (C95).
+- The Host and Agent codes are configuration secrets; they are never logged, returned or compared with `equals`. Both the public check and `/register` apply the limits first: 5 invalid attempts per IP and role (public) or per user and IP (register), and 20 per IP, within 10 minutes. A correct code resets only its own counter, and a Guest registration resets nothing.
+- The client address is the direct peer unless `SNOOZESHARE_TRUST_FORWARD_HEADERS=true`, and then `CF-Connecting-IP`; `X-Forwarded-For` is never read (C97). The limiters are process-local.
+- Email verification is not required (C89), so an unverified Firebase account can register and sign in.
+- A failed registration keeps the Firebase session and the `registering` state so the person can retry or sign out (C90). `returnTo` is followed only when it parses to a same-origin path.
+- Route guards run in the browser only. The backend filters are the authority.
+- Errors and logs never contain a token, a password or a code.
+
+**Deviations.** D44 (Firebase beans exist only when `FIREBASE_ENABLED` is true, so contexts without a database or credentials still start).
+
+
+### 4.19 Domain model, repositories and services (`backend/` domain layer)
+
+**Purpose.** Port the desktop app's domain model, repositories and core services to Spring Boot with Spring Data JPA on PostgreSQL. The Host and Guest REST APIs now call these services; the Agent feature API can build on the same layer.
+
+**Packages.**
+
+| Path | Contents |
+|---|---|
+| `backend/src/main/java/com/snoozeshare/domain/model/` | 12 JPA entity classes (`User`, `Wallet`, `Property`, `Booking`, `AvailabilityBlock`, `Ticket`, `TicketCategory`, `Review`, `AuditLogEntry`, `Message`, `BookingMessage`) + `AmenitySetConverter` (comma-separated `TEXT` ↔ `Set<AmenityType>`) + `WalletTransaction` record (a projection, not an entity) |
+| `domain/enums/` | 13 enums copied from desktop: `AccountStatus`, `AmenityType`, `AssigneeFilter`, `AuditAction`, `BookingStatus`, `ListingStatus`, `PropertyType`, `RemedyType`, `ResolutionMode`, `Role`, `ThreadChannel`, `TicketStatus`, `WalletTransactionType` |
+| `domain/statemachine/` | `BookingStateMachine`, `TicketStateMachine` — the single legality check for status transitions, copied from desktop |
+| `domain/policy/` | `StayDatePolicy`, `DisputeWindowPolicy` — date rules, updated for entity-style getters |
+| `domain/settlement/` | `SettlementCalculator`, `SettlementBreakdown`, `EscrowPolicy` — escrow split maths, copied from desktop |
+| `domain/validation/` | `DomainValidation` — field validation (postal codes, rates, required text), copied from desktop |
+| `repository/` | 12 Spring Data JPA repository interfaces (`UserRepository`, `WalletRepository`, `PropertyRepository`, `BookingRepository`, `AvailabilityBlockRepository`, `TicketRepository`, `TicketCategoryRepository`, `ReviewRepository`, `AuditLogRepository`, `MessageRepository`, `BookingMessageRepository`, `LedgerRepository`) plus custom query implementations (`PropertySearchRepositoryImpl`, `AuditLogSearchRepositoryImpl`, `TicketQueueRepositoryImpl`) and two `JdbcTemplate`-based repositories (`JdbcMessageReadRepository`, `JdbcBookingMessageReadRepository`, `JdbcLedgerRepository`) |
+| `service/` | 13 service interfaces (`BookingService`, `ListingService`, `TicketService`, `DisputeSettlementService`, `DisputeQueryService`, `AccountGovernanceService`, `AvailabilityService`, `MessageService`, `BookingConversationService`, `ReviewService`, `WalletService`, `TransactionService`, `AuditService`, `ListingMetricsService`, `UserService`) and 14 value-object records |
+| `service/impl/` | 15 service implementations + `AuthorizationService` utility + `LedgerWriter` |
+| `service/requests/` | `NewTicketRequest`, `ResolutionRequest` — internal request types used by services |
+| `api/request/` | 16 request DTOs (Java records with `@Valid` and `@JsonIgnoreProperties(ignoreUnknown = false)`) |
+| `api/response/` | 21 response DTOs (Java records with `static from()` factory methods) |
+| `api/mapper/` | 3 mapper utilities: `ListingMapper`, `TicketMapper`, `SearchMapper` |
+| `db/migration/V003__domain_tables.sql` | ALTERs W-AUTH's `users`/`wallets` tables and creates 11 domain tables |
+| `db/migration/V004__seed_system_user.sql` | Seeds the SYSTEM user and platform-fee wallet |
+| `db/migration/V005__tighten_nightly_rate_constraint.sql` | Rejects zero nightly rate and enforces two-decimal precision |
+
+**Depends on.** Spring Data JPA and Hibernate on PostgreSQL 17 (Flyway V003–V005 on top of V001–V002); Spring's `@Transactional` and `ApplicationEventPublisher` replace the desktop's `TransactionManager` and `InProcessEventBus`.
+
+**Data model.** The 14 tables managed by Flyway V002–V005 (V002 creates `users` and `wallets`; V003 ALTERs them and creates the rest). All primary keys are `id UUID`.
+
+```mermaid
+erDiagram
+  users ||--o| wallets : "has (GUEST, HOST)"
+  users ||--o{ properties : "hosts"
+  users ||--o{ bookings : "books as guest"
+  users ||--o{ tickets : "raises"
+  users ||--o{ reviews : "writes"
+  properties ||--o{ bookings : "booked on"
+  properties ||--o{ availability_blocks : "blocked on"
+  bookings ||--o| availability_blocks : "sourced block"
+  bookings ||--o{ tickets : "disputed by"
+  bookings ||--o{ booking_messages : "chat"
+  bookings ||--o{ booking_message_reads : "read markers"
+  tickets ||--o{ messages : "threads"
+  tickets ||--o{ message_reads : "read markers"
+  bookings ||--o{ reviews : "reviewed"
+  users ||--o{ audit_log : "actor"
+```
+
+Left out for clarity: the `ticket_categories` lookup table (no FK from `tickets`, which stores the label text — D8); the self-referencing `assigned_agent_id` on `tickets`; and the `subject_user_id`, `booking_id` and `ticket_id` FKs on `audit_log`.
+
+**Invariants.**
+
+- JPA is configured with `ddl-auto: validate` (Hibernate checks the entity mappings against the Flyway-managed schema at startup) and `open-in-view: false` (no lazy loading outside a transaction).
+- Every entity uses `id` as the PK column name, matching W-AUTH's `users` and `wallets` convention (C99). The getter is `getId()`, not an entity-specific name.
+- All service implementations and JDBC repositories carry `@ConditionalOnDatabase` (`config/ConditionalOnDatabase`), which matches unless `spring.autoconfigure.exclude` lists `DataSourceAutoConfiguration`, so test contexts that have no database (e.g. `ServerPortDefaultTest`) start without them. `DatabaseBeansTest` checks that they exist in the running application.
+- Service implementations use entity-style getters (`.getField()`) and mutation via setters + `repository.save()`, not record accessors or new-record construction.
+- `BookingServiceImpl.submitRequest` runs at `Isolation.SERIALIZABLE` to prevent double-booking the same dates.
+- `WalletRepository.findByIdForUpdate` uses `@Lock(LockModeType.PESSIMISTIC_WRITE)` so concurrent money operations on the same wallet are serialised.
+- Wallet balance uses `NUMERIC(19,2)` (from W-AUTH's V002); other money columns (rates, amounts, adjustments) use `NUMERIC(19,4)` (C100).
+- `WalletTransaction` is a record, not a JPA entity — it is a projection from `audit_log` rows, read by `JdbcLedgerRepository`.
+- The domain enums in `domain/enums/` are copied verbatim from the desktop, with only the package declaration changed.
+- `LedgerWriter` is the single class that changes a wallet balance on the web, just as on the desktop ([4.16](#416-unified-ledger-ledgerwriter)). It posts audit rows and publishes `WalletTransactionRecordedEvent` via Spring's `ApplicationEventPublisher` after the transaction commits.
+- `AuthorizationService` checks that the acting user exists, is `ACTIVE`, and holds the required role; services delegate to it instead of repeating the check.
+- Request DTOs use Jakarta Bean Validation (`@NotNull`, `@NotBlank`, `@Positive`, `@DecimalMin`, `@Size`) and reject unknown JSON fields. Response DTOs expose a `static from(entity)` factory.
+
+**Deviations.** D45 (W-AUTH's V002 used `id` as the PK for `users` and `wallets` instead of entity-specific names, so the plan's V002 migration was restructured as V003 ALTER + CREATE, and all entity PK fields were renamed to `id`). D46 (the Flyway version numbers shifted: domain tables to V003, seed to V004, constraint to V005). D51 records the original `@ConditionalOnBean(PropertyRepository.class)` registration bug and its resolution; database-dependent services and adapters now use the shared `@ConditionalOnDatabase` condition (C132).
+
+### 4.20 AI gateway (`backend/ai/`)
+
+**Purpose.** One backend entry point, `LlmGateway.run`, through which every role's AI feature calls the NUS SoCLaaS LLM, with guardrails, a shared request budget and an audit row. It adds no endpoint, table or migration, and contains no role feature: each role registers its own `AiFeature` and owns its prompt, output type and endpoint.
+
+**Packages.** All under `backend/src/main/java/com/snoozeshare/ai/`.
+
+| Path | Contents |
+|---|---|
+| `ai/` | `LlmGateway`, `AiFeature`, `AiFeatureRegistry`, `LlmCall`, `LlmResult`, `LlmErrorCode`, `OutputSpec`, `Turn`, `TurnRole`, `AuditContext`, `ModelTier` |
+| `ai/config/` | `LlmProperties` (the validated `snoozeshare.ai.*` settings), `AiConfig` (beans that need no database), `ModelCheck` (startup model check) |
+| `ai/guard/` | `InputSanitizer`, `PiiRedactor`, `InjectionDetector`, `PromptBuilder`, `OutputValidator` — pure classes: no Spring, no I/O, no clock |
+| `ai/limit/` | `SchedulerCore` and `LlmScheduler` (global rate, concurrency and priority queue), `UserThrottle`, `CircuitBreaker`, `BudgetBlock`, `Backoff`, and the seams `Sleeper` and `Jitter` |
+| `ai/client/` | `SoclaasClient` (one HTTP attempt) and `AttemptResult` |
+| `ai/audit/` | `AiAuditWriter` (audit rows, daily-cap counts and reservations) |
+| `config/ConditionalOnDatabase.java` | Registers a bean only when the application has a database ([4.19](#419-domain-model-repositories-and-services-backend-domain-layer)) |
+| `domain/enums/AuditAction.java` | Gains `AI_CALL` and `AI_CALL_REJECTED` |
+
+**API.** A role service registers an `AiFeature<T>` bean and calls the gateway:
+
+```java
+LlmResult<T> r = gateway.run(feature, new LlmCall(userId, role, turns, trustedContext, untrustedContext, auditContext));
+```
+
+| Type | Contents |
+|---|---|
+| `AiFeature<T>` | `id` (`^[a-z]+\.[a-zA-Z]+$`, at most 40 characters, unique), `allowedRoles` (a non-empty subset of GUEST, HOST, AGENT), `tier` (`FAST`, `STANDARD`, `STRONG`), `systemPrompt`, `maxTokens` (1–4,000), `temperature` (0.0–1.0), `priority` (0 for staff-facing features, up to 2), `perUserPerMinute`, `maxInputChars` (default 2,000), `maxTurns` (default 10), `output` (`OutputSpec.text(maxChars, allowLinks)` or `OutputSpec.json(RecordClass, allowLinks)`), `fallback` and `mockResponse` |
+| `LlmCall` | `userId`, `role`, `turns` (USER or ASSISTANT `Turn`s, the last one USER), `trustedContext` (server-built text only), `untrustedContext` (user- or host-authored text), `audit` (`AuditContext` with optional ticket, booking and subject ids) |
+| `LlmResult<T>` | `ok`, `value` (the validated output, or the feature's fallback), `code`, `flagged` (the input matched an injection pattern), `truncated`, `callId` |
+| `LlmErrorCode` | `DISABLED`, `ROLE_DENIED`, `USER_THROTTLED`, `BLOCKED_INPUT`, `DAILY_CAP`, `BUDGET_EXHAUSTED`, `CIRCUIT_OPEN`, `QUEUE_FULL`, `QUEUE_TIMEOUT`, `RATE_LIMITED`, `SERVER`, `TIMEOUT`, `NETWORK`, `BAD_REQUEST`, `AUTH`, `FORBIDDEN`, `INVALID_OUTPUT`, `REFUSED`, `AUDIT_FAILED` |
+
+`run` never throws for an expected failure: it returns the feature's fallback with a code. It throws `IllegalArgumentException` for a malformed call or feature and `IllegalStateException` when a database transaction is active. A bad `AiFeature` bean, or two with the same id, fails startup naming the feature id and the field.
+
+**Pipeline.** `run` applies a fixed order of checks, and the first that fails decides the code.
+
+```mermaid
+flowchart TD
+  A["LlmGateway.run(feature, call)"] --> B{"shape, no active transaction"}
+  B -- "malformed" --> X["IllegalArgumentException / IllegalStateException"]
+  B --> C{"enabled, role allowed, UserThrottle"}
+  C -- "no" --> F["fallback with a code, no audit row"]
+  C --> E["PromptBuilder: sanitize and assemble"]
+  E -- "last turn blank" --> R["AI_CALL_REJECTED row"]
+  E --> G{"AiAuditWriter.reserve: daily caps"}
+  G -- "over a cap" --> R
+  G --> H{"mock mode?"}
+  H -- "yes" --> K["mockResponse"]
+  H -- "no" --> I["attempt loop: BudgetBlock, CircuitBreaker, LlmScheduler, SoclaasClient"]
+  K --> J["OutputValidator"]
+  I --> J
+  J --> L["AiAuditWriter.write, release the reservation"]
+  R --> M["LlmResult"]
+  L --> M
+  F --> M
+```
+
+1. `run` rejects a malformed `LlmCall` or `AiFeature` and any call made inside a transaction (a call can take 45 s and must not hold a connection).
+2. A disabled gateway, a role outside `allowedRoles`, or an exhausted per-user minute or in-flight limit returns the fallback with `DISABLED`, `ROLE_DENIED` or `USER_THROTTLED`. These three write no row.
+3. `PromptBuilder` sanitizes every turn and the contexts, sets `flagged` and `truncated`, and assembles the messages. A last turn that is empty after sanitizing returns `BLOCKED_INPUT` with a rejected row.
+4. `AiAuditWriter.reserve` counts today's (UTC) `AI_CALL` rows plus in-flight reservations against the per-user and global caps; over a cap returns `DAILY_CAP` with a rejected row, and a failed count returns `AUDIT_FAILED`.
+5. Mock mode answers from the feature's `mockResponse`; otherwise the attempt loop runs (next diagram).
+6. `OutputValidator` checks the reply. `AiAuditWriter.write` then writes one row (`AI_CALL` when a request was sent or in mock mode, otherwise `AI_CALL_REJECTED`) and the reservation is released. If the row of an otherwise good result cannot be written, the result is `AUDIT_FAILED` with the fallback.
+
+**One call, with a retry.**
+
+```mermaid
+sequenceDiagram
+  participant S as Role service
+  participant G as LlmGateway
+  participant A as AiAuditWriter
+  participant Q as LlmScheduler
+  participant C as SoclaasClient
+  participant U as SoCLaaS
+  participant V as OutputValidator
+  S->>G: run(feature, call)
+  G->>A: reserve(userId, priority)
+  loop up to max-retries + 1 attempts
+    G->>G: BudgetBlock.tryAdmit, CircuitBreaker.tryAdmit
+    G->>Q: acquire(priority, arrival, maxWait)
+    Q-->>G: Permit
+    G->>C: attempt(request, timeout)
+    C->>U: POST /chat/completions
+    U-->>C: 503, then 200 on the retry
+    C-->>G: Failure(SERVER), then Success
+    G->>G: Backoff.delayMs, Sleeper.sleep
+  end
+  G->>V: validate(content, finishReason, output)
+  V-->>G: Outcome
+  G->>A: write(callId, ...), release
+  G-->>S: LlmResult
+```
+
+1. The gateway reserves one call against the daily caps before anything is sent.
+2. Every attempt, retries included, first asks the budget block and the circuit breaker; a rejection ends the loop with `BUDGET_EXHAUSTED` or `CIRCUIT_OPEN` (or the last failure's code if a request was already sent).
+3. The attempt takes a permit from the one global scheduler. Priority 0 jobs run first and may use every concurrency slot; other priorities may use all but one.
+4. `SoclaasClient.attempt` sends one request and classifies the response. `RATE_LIMITED`, `SERVER`, `TIMEOUT` and `NETWORK` are retried after a backoff (500 ms doubling, at most 8 s, jittered; the `Retry-After` value when present, at most 10 s); everything else ends the loop. The whole call stops at `deadline-ms`.
+5. After the loop the reply is validated and audited as above.
+
+**Defaults** (all overridable through `snoozeshare.ai.*`; an out-of-range value fails startup naming the key):
+
+| Setting | Default |
+|---|---|
+| `max-rpm` / `max-concurrent` / `max-queue` | 25 / 4 / 20 |
+| `queue-wait-ms` / `request-timeout-ms` / `deadline-ms` | 10,000 / 30,000 / 45,000 |
+| `max-retries` | 2 |
+| `breaker-failures` / `breaker-open-ms` | 5 (from at least 3 different users) / 30,000 |
+| `budget-block-ms` | 900,000 (15 minutes, never past 00:00 UTC) |
+| `per-user-max-in-flight` | 2 |
+| `daily-cap-per-user` / `global-daily-cap` | 200 / 3,000 per UTC day |
+| `priority-zero-reserve-percent` | 5 (the share of the global cap only priority 0 calls may use) |
+| `max-prompt-chars` | 40,000 |
+| `response-format-json` / `reasoning-effort` | `false` / `none` |
+| `model-fast` / `model-standard` / `model-strong` | `llama3.1:8b` / `qwen3.5:9b` / `gemma4:26b` |
+
+**Security measures.**
+
+- **Key.** The key comes only from the environment (`SOCLAAS_API_KEY`), development and production use separate keys, and it never appears in logs, errors, results, request bodies or the audit log. `LlmProperties.toString` prints it as `***`; `SecretScanTest` fails the build if a key-shaped string is committed; `AiLogLeakTest` checks the logs across failure scenarios.
+- **Transport.** The base URL must be `https` (loopback `http` is allowed outside `prod`) and redirects are never followed, so the key cannot be sent to another host. The whole response is read within the attempt timeout and capped at 262,144 bytes.
+- **Input.** Text is Unicode-normalised, control and format characters are stripped, card numbers, NRIC/FIN numbers, Singapore phone numbers and e-mail addresses are redacted, prompt delimiter tags are removed, and the result is wrapped in `<user_input>` and `<untrusted_data>` tags under a fixed security suffix. Phrases such as "ignore the previous instructions" set `flagged`; the role code decides what to do.
+- **Output.** A reply is rejected as `INVALID_OUTPUT` if it contains a link (unless the feature sets `allowLinks`), HTML, a Markdown image, key-shaped text or a leftover prompt tag, if the finish reason is not `stop`, or if it fails the length or JSON-schema check. JSON strings are checked after parsing, so escaped tricks do not pass. A reply that is only `{"refusal":true}` returns `REFUSED`.
+- **Abuse and cost.** Per-user minute and in-flight limits, daily caps counted from `audit_log` (so they survive a restart), a priority-0 share reserved for staff-facing features, and a circuit breaker that needs failures from three different users before it opens.
+- **Audit.** One metadata-only row per call (feature, model, tokens, latency, attempts, `flagged`, `truncated`, a hash of the prompt). No prompt or reply text is stored. The audit is fail-closed: an unwritable row withholds the answer.
+
+**Configuration.**
+
+| Variable | Notes |
+|---|---|
+| `SNOOZESHARE_AI_ENABLED` | Required in `prod` (no default); `render.yaml` sets it to `"false"`. In `dev` it defaults to `false` |
+| `SOCLAAS_BASE_URL`, `SOCLAAS_API_KEY` | Required only when enabled; the base URL ends in `/v1` |
+| `SNOOZESHARE_AI_MOCK` | Local only: answer from each feature's `mockResponse`; `prod` rejects `true` |
+| `SNOOZESHARE_AI_MODEL_FAST`, `_STANDARD`, `_STRONG` and other `snoozeshare.ai.*` keys | Optional overrides, for example `SNOOZESHARE_AI_MAX_RPM` |
+
+**Observed upstream behaviour** (T8 live checks, 2026-10-22, recorded in `docs/runbooks/dev-environment.md` § Evidence):
+
+| Item | Observed |
+|---|---|
+| Models | `llama3.1:8b`, `qwen3.5:9b` and `gemma4:26b` are offered as chat models to the development key |
+| `response_format` `json_object` | Accepted (HTTP 200) by all three |
+| `reasoning_effort` `none` | Accepted by all three; turns reasoning off on `qwen3.5:9b` and `gemma4:26b` |
+| `reasoning_effort` `low` | `llama3.1:8b` returns HTTP 400 ("does not support thinking"); the other two accept it but still reason |
+| Reasoning models without the option | `qwen3.5:9b` and `gemma4:26b` spend `max_tokens` on reasoning first, so a small limit returns empty `content` with `finish_reason` `length`; a one-word answer took 135 tokens on `qwen3.5:9b` |
+| Rate limit | The development key allows 30 requests a minute (hence the `max-rpm` default of 25). A burst of 100 requests produced no 429, so `Retry-After` and the budget-429 wording are unobserved |
+| Reachability | SoCLaaS is reachable from the Render dev service (confirmed by the owner) |
+
+**Rules for role code** (also in `docs/runbooks/dev-environment.md`):
+
+1. Take `userId` and `role` from the authorized principal, never from a request body (C79).
+2. Call `run` outside any transaction.
+3. Build ASSISTANT turns only from server-stored history; put only server-built text in `trustedContext`; put user- or host-authored text in `untrustedContext` or USER turns.
+4. Act on `flagged` and `truncated`.
+5. Render `value` as plain text, through a response DTO (C73); never as HTML or Markdown.
+6. Treat a degraded result as final: do not loop on it.
+
+**Depends on.** SoCLaaS `POST {base-url}/chat/completions` (and `GET {base-url}/models` once at startup, by `ModelCheck`) through one shared `java.net.http.HttpClient` and Jackson; `AuditService` and `AuditLogRepository` for the audit rows and cap counts. No new library. With the gateway disabled, or SoCLaaS unreachable, the backend and its health endpoint are unaffected.
+
+**Invariants.**
+
+- Nothing outside `com.snoozeshare.ai` imports `ai.config`, `ai.guard`, `ai.limit`, `ai.client` or `ai.audit`, and nothing outside `ai/client` uses `java.net.http` or the text `chat/completions` (`AiBoundaryTest`).
+- Daily boundaries use UTC; waiting and randomness go through `Sleeper` and `Jitter`, so tests need no real sleep.
+- Limiter, breaker and budget-block state is process-local and lost on restart (C69).
+- `LlmGateway`, `AiAuditWriter` and `ModelCheck` carry `@ConditionalOnDatabase`, so a datasource-free context starts without a gateway bean (`AiDatasourceFreeContextTest`).
+
+**Deviations.** D47–D56 (W-AI-GATEWAY). The ones that matter to a reader: D48 (output validation is stricter than the spec in three places), D51 (the `@ConditionalOnBean` registration bug found and fixed here, [4.19](#419-domain-model-repositories-and-services-backend-domain-layer)), D52 (`ModelCheck` makes its own executor, because any `Executor` bean would switch off Spring Boot's task executor) and D55 (the code-review fixes). Residual limits are listed in [Known Limitations](#known-limitations).
+
+### 4.21 Host REST API (`backend/api/controller/`)
+
+**Purpose.** Expose Host listing, availability, booking-request, messaging and wallet operations through authenticated REST controllers that delegate to the existing W-DOMAIN services.
+
+**Identity and ownership.** Every `/api/host/**` request passes Firebase token and active-role authorization. `HostIdentityResolver` maps the verified Firebase UID to the auth profile, then cross-checks the UUID, UID, HOST role and ACTIVE status against the domain `User`. Controllers never accept an acting Host UUID from the client. Listing, booking, conversation, ticket and wallet reads/mutations remain scoped to this resolved Host. Host controllers register only when `snoozeshare.security.enabled=true`; persistence-backed services and JDBC adapters use `@ConditionalOnDatabase` (C132).
+
+**API.** All endpoints use response/request DTOs and a safe error envelope `{code, message, requestId}`. The shared message is fixed text; logs contain the request ID, status, code and path, not request bodies or entity data.
+
+| Resource | Routes and behavior |
+|---|---|
+| Listings | `GET /api/host/listings` returns all owned listings in deterministic order, with batched booking-count and average-rating metrics. `GET /api/host/listings/{listingId}` returns detail metrics/reviews. `POST /api/host/listings` creates; `PUT /api/host/listings/{listingId}` updates; `PUT /api/host/listings/{listingId}/status` changes status. |
+| Calendar | `GET /api/host/listings/{listingId}/calendar?year=…&month=…` reads one month. `POST /api/host/listings/{listingId}/blocks` creates an inclusive manual range; `DELETE /api/host/blocks/{blockId}` removes an owned manual block. |
+| Booking requests | `GET /api/host/requests?view=pending|history` returns the complete selected collection. `POST /api/host/requests/{bookingId}/decision` approves or rejects a pending request once. |
+| Messages | `/api/host/messages/bookings/**` and `/api/host/messages/tickets/**` remain distinct resources for summary, complete history, read marking and posting. Hosts cannot create tickets; resolved tickets and closed booking conversations are read-only. |
+| Wallet | `GET /api/host/wallet` returns balance and the complete newest-first statement. `POST /api/host/wallet/top-up` and `/api/host/wallet/withdraw` are mocked operations through the existing wallet service. |
+
+**Collection contract.** Listings, pending/history requests, conversation summaries, message histories and wallet statements return the complete owner-scoped result in one response, with deterministic ordering and no pagination parameters, page envelope, or size cap (C131). The calendar remains month-bounded. The unbounded response and memory cost is an accepted limitation; do not add client-side slicing as a substitute for revisiting that decision.
+
+**Transactions and conflicts.** Booking decisions lock the booking row and allow one state transition. Calendar block changes check overlaps and write audit rows in a serializable transaction, retrying serialization failure once. Booking and ticket message events, wallet events and availability events publish only after commit. A calendar overlap returns 409 `BOOKING_OVERLAP` or `HOST_BLOCK_OVERLAP`; booking takes precedence when both apply. Both responses use the safe generic message, and the frontend selects explanatory copy from the code without exposing IDs or dates (C139–C140). Wallet top-up/withdraw remain mocked, have no request-idempotency key, and each accepted explicit request is a separate operation (C128).
+
+```mermaid
+sequenceDiagram
+  actor H as Host
+  participant UI as HostCalendarPanel
+  participant API as hostApi.createHostBlock
+  participant Auth as FirebaseAuthFilter and RoleAuthorizationFilter
+  participant C as HostCalendarController and HostIdentityResolver
+  participant S as AvailabilityService
+  participant DB as PostgreSQL
+  H->>UI: Submit inclusive range and reason
+  UI->>API: createHostBlock(listingId, range)
+  API->>Auth: authenticatedFetch with Firebase ID token
+  Auth->>C: verified active HOST principal
+  C->>C: resolve and verify Host UUID and listing ownership
+  C->>S: createHostBlock(listing, range, host, reason)
+  S->>DB: serializable overlap check and write
+  alt Existing booking or Host block overlaps
+    DB-->>S: conflict
+    S-->>C: AvailabilityConflictException
+    C-->>API: 409 with safe message and source code
+    API-->>UI: source-specific safe error copy
+  else Range is available
+    DB-->>S: committed block and audit row
+    S-->>C: created block
+    C-->>API: 201 response
+    API-->>UI: display updated calendar
+  end
+```
+
+1. The Host calendar calls the typed API wrapper, which uses `authenticatedFetch` to attach the current Firebase ID token.
+2. Security filters establish the active HOST principal; `HostIdentityResolver` verifies the domain identity and the controller checks listing ownership.
+3. `AvailabilityService` performs the overlap check and write in one serializable transaction, including the audit row.
+4. On conflict the controller returns a safe typed 409; on success the availability event is published after commit and the UI reloads the month.
+
+**Tests.** `HostSecurityIntegrationTest`, `HostIdentityResolverTest`, `HostListingsControllerTest`, `HostCalendarIntegrationTest`, `HostRequestsIntegrationTest`, `HostBookingMessagesIntegrationTest`, `HostTicketMessagesIntegrationTest`, `HostWalletIntegrationTest`, `HostApiExceptionHandlerTest` and `DatabaseBeansTest` cover role/tenant boundaries, DTOs, transaction behavior, stable errors and database-bean activation. Calendar tests verify conflict code and precedence; they do not assert the complete error body or explicitly assert the absence of conflicting IDs/dates (accepted coverage gap D90).
+
+**Since W-AGENT.** The listing, calendar and wallet controllers delegate to `api/host/HostListingViews`, `HostCalendarViews` and `HostWalletViews` and return response DTOs only, so `ApiLayerTest` covers them (D107); `HostApiExceptionHandler` is scoped to the six Host controller classes and has the highest precedence (D106). Behaviour is unchanged. See [4.24](#424-shared-web-api-foundation-backendapi).
+
+### 4.22 Host web pages (`frontend/src/app/host/`)
+
+**Purpose.** Provide the authenticated Host experience in Next.js, using the approved Fall Light presentation with backend-backed state in the running application and retained fixtures for deterministic presentation tests.
+
+**Routes.** `/host/listings` shows complete listing cards with server booking/rating metrics; status changes patch only the selected card. Listing detail and create/edit routes retain listing data and validate fields before submitting. A listing's calendar route loads listing detail separately from the selected month, keeps the page and block form mounted during month changes, and starts with no block-date range selected. `/host/requests` exposes pending/history decisions; `/host/messages` combines separate booking and ticket resources; `/host/wallet` shows the balance and complete statement with distinct mocked top-up and withdrawal dialogs. Existing internal scroll regions remain; no pagination or load-more controls are rendered.
+
+**Request state and errors.** `HostApiProvider` shares wallet state and keyed page resources, coalesces in-flight reads, and represents loading, empty, ready, not-found and error states. `hostApi.ts` wraps typed routes over `authenticatedFetch`; a 401 invokes the existing sign-out recovery. Listing route/load failures use the generic error page with **Back to Listings** (the listings index also offers retry). Form validation and mutation failures remain inline. Calendar overlap codes map to separate safe messages. Listing detail preserves the stored time without timezone conversion and displays it as zero-padded `hh:mm AM/PM`; occupancy uses two decimal places (C133, C136).
+
+```mermaid
+flowchart LR
+  P["Host Next.js page"] --> R["HostApiProvider resource state"]
+  R --> H["hostApi.ts typed endpoint wrapper"]
+  H --> A["authenticatedFetch and Firebase ID token"]
+  A --> B["/api/host/**"]
+  B --> R
+```
+
+1. A route component requests a typed resource through `HostApiProvider`; identical in-flight reads share the same request.
+2. `hostApi.ts` calls `authenticatedFetch`, which attaches the Firebase ID token and maps safe backend errors.
+3. The returned DTO updates the corresponding Host page state; mutations update or refresh only the affected resource, except wallet recovery which refreshes its balance and statement together.
+
+**Dependencies and fixtures.** `frontend/src/app/host/layout.tsx` composes `RouteGuard`, `HostApiProvider`, `HostFixtureProvider` and `HostRoleShell`. `HostFixtureProvider` supports fixture-based visual and interaction tests; authenticated production routes use the API provider. Guest pages use their own layout and API wrappers ([4.23](#423-guest-rest-api-and-web-pages)); Agent feature pages remain outside this component.
+
+**Tests.** `HostApiProvider.test.tsx`, `hostApi.test.ts`, `HostRoutes.test.tsx`, the listing/calendar/requests/messages/wallet route tests, and the Host component interaction/visual tests cover request coalescing, complete arrays, mutations, errors, date/time behavior and page states. The authenticated read-only browser acceptance checked all eight Host routes at desktop, tablet and mobile widths and confirmed one GET per collection dataset with no `page` or `size` parameters (T10, T17).
+
+**Since W-AGENT.** `RoleNavbar` is now fixed to the top of the page for every role, and the AGENT tabs link to their own routes (see [4.25](#425-agent-rest-api-and-web-pages-backendapicontrolleragent-frontendsrcappagent)).
+
+### 4.23 Guest REST API and web pages
+
+**Purpose.** Expose the Guest role's features — listing search, booking workflow, wallet, messaging and reviews — as authenticated REST endpoints under `/api/guest/**` and as Next.js pages under `/guest/`.
+
+**Backend controllers (`backend/src/main/java/com/snoozeshare/controller/guest/`).** Five controllers, all annotated with `@ConditionalOnDatabase`, covering 19 endpoints:
+
+| Controller | Base path | Endpoints |
+|---|---|---|
+| `GuestSearchController` | `/api/guest/listings` | `GET /` (search with optional `city`, `startDate`, `endDate`, `guests`, `maxNightlyRate`), `GET /{id}` (property detail with host info and metrics), `GET /{id}/estimate` (price estimate for a date range) |
+| `GuestBookingController` | `/api/guest/bookings` | `POST /` (create booking request), `GET /` (list trips with derived `canCancel`, `canFileDispute`, `hasReview` flags), `GET /{id}/cancel-preview` (refund preview), `POST /{id}/cancel` (cancel booking) |
+| `GuestWalletController` | `/api/guest/wallet` | `GET /` (wallet balance), `GET /transactions` (full transaction history), `POST /topup`, `POST /withdraw` |
+| `GuestMessageController` | — | `GET /tickets/categories`, `POST /tickets` (file dispute), `GET /tickets`, `GET /messages/conversations` (combined ticket + booking conversations with unread counts), `GET/POST /messages/tickets/{id}` (thread and post), `GET/POST /messages/bookings/{id}` (thread and post), `PUT /messages/tickets/{id}/read`, `PUT /messages/bookings/{id}/read` |
+| `GuestReviewController` | — | `POST /bookings/{id}/review` (star rating and comment) |
+
+**Shared infrastructure.** `ResolvedUser` reads the authenticated user ID from the `snoozeshare.userId` request attribute set by `RoleAuthorizationFilter`. `ForbiddenException` is thrown on ownership mismatches and maps to `403 FORBIDDEN`. `GuestExceptionHandler` (`@RestControllerAdvice` scoped to the guest package) maps `IllegalArgumentException`, `IllegalStateException`, `ForbiddenException` and validation errors to structured `{code, message, requestId}` JSON responses with specific error codes (`LISTING_NOT_FOUND`, `LISTING_INACTIVE`, `DATES_UNAVAILABLE`, `SELF_BOOKING`, `NOT_CANCELLABLE`, `DISPUTE_WINDOW_CLOSED`, `DUPLICATE_TICKET`, `DUPLICATE_REVIEW`, `THREAD_CLOSED`, `INSUFFICIENT_BALANCE`, etc.).
+
+**Frontend pages (`frontend/src/app/guest/`).** Four pages backed by typed API wrappers in `frontend/src/lib/guest-api.ts`:
+
+| Page | Route | Components | What it does |
+|---|---|---|---|
+| Search | `/guest/search` | `ListingCard`, `ListingDetailSheet` | Search active listings with filters; tap a card to open a detail sheet with property info, pricing and a booking action |
+| Trips | `/guest/trips` | `TripCard`, `CancelDialog`, `ReviewDialog` | Three collapsible sections (Upcoming/Active/Past); cancel with refund preview; submit a review for completed stays |
+| Messages | `/guest/messages` | `ConversationList`, `MessageThread`, `TicketFilingDialog` | Sidebar of ticket and booking conversations with unread counts; thread view with message bubbles; file a dispute ticket; `?booking={id}` deep link |
+| Wallet | `/guest/wallet` | — | Balance card, transaction history table with color-coded amounts and action type labels, top-up and withdraw forms |
+
+`/guest` redirects to `/guest/search`. All API calls use `authenticatedFetch` to attach the Firebase ID token.
+
+**Invariants.**
+
+- Every mutating endpoint checks ownership (booking, ticket, or booking conversation belongs to the calling guest); a mismatch throws `ForbiddenException`.
+- A `Clock` bean is injected for testable date comparisons (cancel eligibility, dispute window).
+- Self-booking is rejected at the service layer (`BookingServiceImpl`).
+- Guest controllers carry `@ConditionalOnDatabase`, matching the convention established by D51/D91.
+
+**Tests.** Five backend integration test classes (`GuestSearchControllerTest`, `GuestBookingControllerTest`, `GuestWalletControllerTest`, `GuestMessageControllerTest`, `GuestReviewControllerTest`) extend `PostgresIntegrationTest` with `FakeTokenVerifier` for auth bypass. They cover search/filter, booking creation and cancellation, wallet operations, messaging (both ticket and booking threads), review submission, role rejection (HOST → 403), ownership violations and concurrent booking/withdrawal. Four frontend test files cover the search, trips, messages and wallet pages. D91 records that `@ConditionalOnBean(PropertyRepository.class)` was removed from 20 domain beans during T1; D92 records the fix for the JDBC unread-count SQL type mismatch; D93 records that wallet withdrawal lacks locking (a known gap).
+
+**Since W-AGENT.** `agentNotes` is no longer on the Guest ticket response (D109; `AgentCrossRoleContractTest` asserts the Guest API never carries agent notes), and `GuestExceptionHandler` has the highest advice precedence so the shared handler in [4.24](#424-shared-web-api-foundation-backendapi) never replaces its codes (D106).
+
+**Since W-AI-GUEST.** The Guest search page also has an AI search bar that calls `POST /api/guest/ai/search` to extract structured filters from natural language; see [4.27](#427-guest-ai-search-assistant).
+
+**Since W-AI-AGENT.** Ticket threads can contain SYSTEM messages from the ticket assistant, labelled "Snoozy · Automated assistant", and ticket conversation entries show the last message text; see [4.28](#428-ticket-clarification-assistant-backendserviceassistant).
+
+---
+
+### 4.24 Shared web API foundation (`backend/api/`)
+
+**Purpose.** The cross-cutting rules every REST controller of the web API follows: one error body, the acting user taken from the verified token, decoded-path role checks, row locks, and the architecture test that keeps controllers thin. It was built for the Agent API (C145) and the Guest and Host controllers reuse the parts that apply to them.
+
+**API.**
+
+| Piece | File | Role |
+|---|---|---|
+| Error body and mapping | `api/ApiErrorResponse.java`, `api/ApiExceptionHandler.java` | A global `@RestControllerAdvice` (lowest precedence) returns `{code, message, requestId}` for everything the Guest and Host advices do not handle. An `IllegalArgumentException` or `IllegalStateException` message reaches the client only when the exception was thrown from `com.snoozeshare.service` or `com.snoozeshare.domain`; any other exception gets fixed text. The request id is generated per error and logged with the status, code, path and acting user id; reasons, notes, message bodies and exception messages are never logged |
+| Unmatched agent routes | `api/ApiNoRouteExceptionResolver.java` | Gives a JSON `404 NOT_FOUND` to unmatched `/api/agent/**` requests; Spring's default left an empty body (D98) |
+| Acting user | `api/CurrentUserId.java`, `api/CurrentUserIdResolver.java`, `api/ApiWebConfig.java`, `api/MissingActorException.java` | `@CurrentUserId UUID` reads the id that `RoleAuthorizationFilter` stored in a request attribute after it resolved an ACTIVE user with the right role; a missing attribute fails closed with `401 INVALID_TOKEN`. `RoleAuthorizationFilter` also sets the older `snoozeshare.userId` attribute that `ResolvedUser` reads for the Guest controllers. The resolver is registered only when `snoozeshare.security.enabled=true` |
+| Decoded paths | `auth/security/ProtectedRequestPath.java` | Collapses repeated slashes, then uses `UrlPathHelper` so `FirebaseAuthFilter`, `RoleAuthorizationFilter` and the two API filters match `/api/guest/`, `/api/host/` and `/api/agent/` on the decoded servlet path, not the raw URI (D96). `SecurityConfig` also adds `hasRole` rules for the three namespaces |
+| Response and size filters | `api/filter/NoStoreFilter.java`, `api/filter/RequestSizeFilter.java` | For `/api/agent/**` only: `Cache-Control: no-store` on every response including auth errors, and a 64 KB cap (`413 PAYLOAD_TOO_LARGE`; `411 LENGTH_REQUIRED` for a chunked body). The check reads the declared length, so a body with neither `Content-Length` nor `Transfer-Encoding` is bounded only by the container |
+| Row locks | `repository/RowLocks.java` | `timeout()` runs `SET LOCAL lock_timeout = '5000ms'` inside the caller's transaction; a lock wait that times out returns `409 CONFLICT` |
+| Not found | `service/NotFoundException.java` | Extends `IllegalArgumentException`; maps to `404 NOT_FOUND` with the service's own message |
+
+**Error codes the handler produces.**
+
+| Status | Code | When |
+|---|---|---|
+| 400 | `VALIDATION_ERROR` | A malformed body, an unknown property, a failed bean-validation rule, a bad query parameter or enum value |
+| 400 | `INVALID_REQUEST` | The service refused the input and its message is end-user text (for example "Category label already exists") |
+| 401 | `INVALID_TOKEN` | A missing or invalid bearer token, or a missing actor |
+| 403 | `PROFILE_INACTIVE`, `PROFILE_NOT_REGISTERED`, `ROLE_MISMATCH` | Written by the security filters |
+| 404 | `NOT_FOUND` | An unknown id or route |
+| 405, 415 | `METHOD_NOT_ALLOWED`, `UNSUPPORTED_MEDIA_TYPE` | Framework rejections |
+| 409 | `CONFLICT` | A state conflict ("Ticket is not open"), or a lock wait that timed out ("Another change is in progress. Try again.") |
+| 500 | `INTERNAL_ERROR` | Anything else; the message is the fixed text "Something went wrong" |
+
+**Three advices, one order.** `GuestExceptionHandler` and `HostApiExceptionHandler` carry `@Order(HIGHEST_PRECEDENCE)` and are scoped to their own controllers (the Host advice to its six controller classes by type), so each role keeps its own codes; `ApiExceptionHandler` has the lowest precedence and handles the rest. The Host advice used to be scoped to the whole `api.controller` package, which would have caught the Agent controllers (D106).
+
+**Architecture test (`ApiLayerTest`, ArchUnit).** For every class under `api.controller..`: no field, parameter, return type or dependency from `repository..`, `domain.model..` or `jakarta.persistence..`; every `UUID` parameter of a public handler method carries `@PathVariable` or `@CurrentUserId`. For `api.controller.agent..` additionally: no dependency on `LedgerWriter`, `WalletService` or `AuditService` (audit reads go through `AuditQueryService`). The rules are proved by deliberately wrong classes in `api/layerfixtures/`. The Host controllers satisfy the entity rule because their listing, calendar and wallet logic sits in the `api.host` view classes `HostListingViews`, `HostCalendarViews` and `HostWalletViews`, which return response DTOs and keep the owner-scoped 404 (D107). `controller.guest` is outside the test.
+
+**Invariants.**
+
+- A controller never opens a transaction, writes an audit row or calls a repository; the service does.
+- A service that changes a ticket or suspends or reactivates a user calls `RowLocks.timeout()` and then loads that row with `findByIdForUpdate` (`@Lock(PESSIMISTIC_WRITE)` on an explicit `@Query`) before reading anything derived from it, because Hibernate does not refresh an entity that is already loaded in the transaction (C146, C148).
+- Request records reject unknown properties (`fail-on-unknown-properties: true`) and carry `@Size` limits.
+
+**Depends on:** [4.18](#418-authentication-and-role-authorization-backendauth-frontend-providers) for the token and role filters and [4.19](#419-domain-model-repositories-and-services-backend-domain-layer) for the services.
+
+**Deviations:** D94 (the Agent work edits W-DOMAIN services for the locks and not-found types), D96, D98, D106, D107.
+
+---
+
+### 4.25 Agent REST API and web pages (`backend/api/controller/agent/`, `frontend/src/app/agent/`)
+
+**Purpose.** The Support Agent's web tools: a dispute queue and detail view with both ticket threads, internal notes and Accept, Reject and Manual resolution; account suspension and reactivation; the audit log; and the ticket categories. Behaviour follows the desktop screens (C154) and the look follows the design artifact. Force complete and force cancel do not exist (C22).
+
+**Backend controllers.** Five controllers carry `@ConditionalOnProperty(snoozeshare.security.enabled=true)` and `@ConditionalOnDatabase`, so they exist only when authentication and a database do. They convert through `api/mapper` (`AccountMapper`, `CategoryMapper`, `MessageMapper`) and take the actor from `@CurrentUserId`. 18 operations:
+
+| Operation | Path | Result | Notable errors |
+|---|---|---|---|
+| Queue | `GET /api/agent/disputes?assignee=ALL\|UNASSIGNED\|MINE&status=` | `{items, unassignedCount}`, oldest first; `unassignedCount` is always the global count of OPEN unassigned tickets | 400 on a bad enum |
+| Detail | `GET /api/agent/disputes/{ticketId}` | `DisputeDetailResponse`: ticket, `ticketLabel`, listing, dates, party names, `escrowAmount`, `escrowHeld`, `phaseLabel`, `agentNotes` | 404 |
+| Assign, unassign | `PUT /api/agent/disputes/{ticketId}/assign`, `/unassign` | The refreshed detail | 409 "Ticket is not open"; "Ticket is not in review"; "Ticket is not assigned to this agent" |
+| Notes | `PUT /api/agent/disputes/{ticketId}/notes` `{notes}` (at most 4,000 characters) | The refreshed detail | 409 unless the ticket is IN_REVIEW and assigned to the caller |
+| Resolve | `PUT /api/agent/disputes/{ticketId}/resolve` `{mode: ACCEPT\|REJECT\|MANUAL, guestRefund, reason}` (reason at most 1,000 characters) | The refreshed detail; the whole escrow is settled two-sided (C20) | 400 for a refund outside the escrow; 409 if not in review |
+| Threads | `GET`, `POST /api/agent/disputes/{ticketId}/messages/{GUEST\|HOST}` `{body}` (at most 2,000 code points) | A list, **newest first**; the POST returns `201` | 409 "Ticket is resolved" |
+| Accounts | `GET /api/agent/accounts`; `PUT /api/agent/accounts/{userId}/suspend`, `/reactivate` `{reason}` | Guests and Hosts only, oldest first; the updated account | 400 for an Agent or System target; 409 "Account is already suspended" / "Account is not suspended" |
+| Audit | `GET /api/agent/audit?text&actions&from&to&limit&offset`; `GET /api/agent/audit/actions` | Newest first; `limit` 1 to 200 (default 200); `text` at most 100 characters; `actions` a comma list of at most 40; `from` and `to` whole days in `snoozeshare.audit.zone` (default `Asia/Singapore`, C149); the second route lists every `AuditAction` name | 400 for `from` after `to` |
+| Categories | `GET`, `POST /api/agent/categories`; `PUT /{id}`, `PUT /{id}/active`, `DELETE /{id}` | The category; `DELETE` returns `204` | 400 "Category label already exists" (case and surrounding spaces ignored); 409 "Category is in use by tickets; deactivate it instead" |
+
+`AuditEntryResponse` carries names, not user ids, and rounds `walletAdjustment` and `balanceAfter` to two decimals. `agentNotes` exists only on `DisputeDetailResponse`, never on the shared `TicketResponse` the Guest and Host controllers use (C147, D109). Search text is matched literally: `%`, `_` and `!` are escaped with `ESCAPE '!'`.
+
+**Locking and settlement.** Assign, unassign, notes, resolve and settlement take the ticket row lock first; suspend and reactivate lock the target user first. Two agents racing for one ticket or one account get one success and one `409`, proved by two-thread tests. Money moves only through `TicketService.resolve` (which derives the refund for ACCEPT) and `AccountGovernanceService`; the API layer writes no audit or ledger row. The dispute queue loads bookings, listings and users in batches; it took 5.2 s at 300 tickets before that (D102).
+
+```mermaid
+sequenceDiagram
+  participant UI as ResolutionDialog
+  participant SEC as Security filters
+  participant AC as AgentDisputeController
+  participant TS as TicketServiceImpl
+  participant RL as RowLocks and TicketRepository
+  participant DS as DisputeSettlementServiceImpl
+  participant DB as PostgreSQL
+  UI->>SEC: PUT /api/agent/disputes/{id}/resolve
+  SEC->>SEC: FirebaseAuthFilter, RoleAuthorizationFilter, RequestSizeFilter
+  SEC->>AC: actor id in the request attribute
+  AC->>TS: resolve(ticketId, ResolutionRequest, agentId)
+  TS->>RL: timeout() then findByIdForUpdate
+  RL->>DB: SET LOCAL lock_timeout, SELECT ... FOR UPDATE
+  TS->>DS: settle (lock already held)
+  DS->>DB: ledger rows, audit rows, ticket and booking status
+  AC->>DB: DisputeQueryService.detail
+  AC-->>UI: 200 DisputeDetailResponse
+```
+
+1. The dialog sends the request with the Firebase ID token; the filters check the token, the ACTIVE AGENT role and the body size.
+2. The controller validates the body (`@Valid`), calls the service and never touches a repository.
+3. `TicketServiceImpl.resolve` locks the ticket row first, so a second agent waits (up to 5 s, then `409`) and then sees the committed state.
+4. The settlement runs in the same transaction; any failure rolls back wallets, ledger, ticket and audit rows together.
+5. The controller reads the refreshed detail back and returns it, so the page replaces its view with one response.
+
+**Frontend pages (`frontend/src/app/agent/`).** `/agent` redirects to `/agent/disputes`. Pages are thin; the components live in `frontend/src/components/agent/` over the typed helpers in `frontend/src/lib/agent-api/` (`disputes.ts`, `accounts.ts`, `audit.ts`, `categories.ts`, `types.ts`, `format.ts`), which call `apiJson` in `lib/api.ts` (a 204 resolves to `undefined`).
+
+| Route | Component | What it does |
+|---|---|---|
+| `/agent/disputes` | `DisputeQueue` | Title with the unassigned count, All / Unassigned / Mine chips, a status drop-down (`SelectMenu`), the queue in an `AgentGrid`; whole rows link to the detail page; polls every 30 s |
+| `/agent/disputes/{ticketId}` | `DisputeDetail`, `ThreadPanel`, `ResolutionDialogs` | Summary card, two chat boxes (oldest first, scrolled to the newest, one shared height between 240 and 900 px, and an opening-ticket bubble in the thread of the party who raised it), internal notes (own height grip, 56 to 400 px), Assign or Unassign, and the Accept, Reject and Manual dialogs. Resolution buttons need IN_REVIEW, assigned to the signed-in agent and escrow held. Polls every 10 s; unsaved notes survive a poll; any failed resolve refetches the detail |
+| `/agent/accounts` | `AccountsTable` | Search box, status pills, a reason dialog for Suspend and Reactivate |
+| `/agent/audit` | `AuditLogView`, `MultiSelectMenu`, `DateField` | Search, a multi-select Action type, From and To date pickers and Clear. There is no Apply button: filters apply live (text after 300 ms) and a bad date range sends nothing; Load more appears after a full page of 200 |
+| `/agent/categories` | `CategoriesTable` | Add and edit dialogs, an active switch that reverts with an inline error on failure, and an inline delete confirmation |
+
+```mermaid
+flowchart LR
+  P["app/agent pages"] --> C["components/agent"]
+  C --> G["AgentGrid and AgentDialog"]
+  C --> H["usePolling and SessionNotice"]
+  C --> L["lib/agent-api helpers"]
+  L --> A["apiJson and authenticatedFetch"]
+  A --> B["/api/agent/** on the backend"]
+```
+
+1. A page renders a component; list screens load through `usePolling` (30 s queue, 10 s detail and threads, `0` meaning on demand only).
+2. The component calls a `lib/agent-api` helper, which calls `apiJson`, which attaches the Firebase ID token.
+3. A 401, or a 403 with `PROFILE_INACTIVE`, `PROFILE_NOT_REGISTERED` or `ROLE_MISMATCH`, is a session failure: `SessionNotice` replaces the page body with a stable message and a Sign out button.
+
+**Layout rules shared by the agent screens.** `AgentGrid` is a table that fills the page: each column has a minimum width and a share of the spare width, the table scrolls sideways only when the minimums exceed the page, and the header sits outside the scrolling rows so the slim vertical scroll bar starts below it (the `.agent-scroll` rule in `globals.css`). The navbar stays fixed to the top (`RoleNavbar`, every role). Dialogs are 500 px cards (`AgentDialog`) with a focus trap, Escape and Cancel to close, and focus returned to the opener. The money display is `SGD` plus two decimals and the browser does no money arithmetic or comparison: it checks only the decimal format and the server enforces the escrow limit.
+
+**Depends on:** [4.24](#424-shared-web-api-foundation-backendapi), [4.18](#418-authentication-and-role-authorization-backendauth-frontend-providers), the services in [4.19](#419-domain-model-repositories-and-services-backend-domain-layer), and `RoleNavbar`, `RoleShell` and `AuthProvider` on the frontend.
+
+**Invariants.**
+
+- The acting agent comes only from the token; no path, query or body field can name the actor.
+- Every mutating endpoint leaves the audit rows its service writes (NFR3).
+- There is no Force Cancel or Force Complete control or endpoint (C22).
+- A thread is returned newest first; clients sort it oldest first for display.
+
+**Deviations from the spec (code wins):** the queue status filter and Unassign were added because the desktop has them (D111, C154); audit filters apply live with no Apply button (D111); the opening-ticket bubble exists only in the artifact and is kept so an agent can read the ticket text (D112); tables are ARIA grids (`role="table"`), not `<table>` elements (D111); `actions` is a `List` and the audit controller has no class-level `@Validated` (D103); `usePolling` accepts an interval of 0 (D104).
+
+**Tests.** Backend (extend `AgentApiIntegrationTest`, which turns security on, resets the database before and after every test and shares one `AuditService` and one `LedgerWriter` spy so the classes reuse a Spring context): `AgentDisputeControllerTest`, `AgentMessageControllerTest`, `AgentAccountControllerTest`, `AgentAuditControllerTest`, `AgentCategoryControllerTest`, the two-thread `AgentDisputeConcurrencyTest` and `AgentAccountConcurrencyTest`, `AgentListPerformanceTest` (300 tickets, 300 accounts and 2,000 audit rows; fails above 5 s per call and logs the 95th percentile), `AgentCrossRoleContractTest` (agent replies reach the Guest and Host threads, notes never reach the Guest API, resolving closes the threads, a deactivated category leaves the filing form), plus `ApiLayerTest`, `ApiFoundationIntegrationTest` and `ApiErrorMappingIntegrationTest`. Frontend (Vitest and Testing Library): `DisputeQueue`, `DisputeDetail`, `ResolutionDialogs`, `AccountsTable`, `AuditLogView`, `CategoriesTable`, `AgentDialog`, `AgentGrid`, `SessionNotice`, `usePolling`, `RoleNavbar` and `format` tests.
+
+**Since W-AI-AGENT.** Dispute detail also carries the nullable `assistant` projection and the Guest, AI assistant and Host chats share one resize height; see [4.28](#428-ticket-clarification-assistant-backendserviceassistant).
+
+### 4.26 Host AI listing optimisation assistant
+
+**Purpose.** Give an authenticated Host a human-reviewed way to evaluate an existing listing
+description or generate a grounded replacement while keeping listing persistence and the existing
+form layout under Host control.
+
+**Backend API.** `HostAiController` exposes `POST /api/host/ai/listing-description` when the Host
+security and database conditions are enabled. The request supports `EVALUATE` and `GENERATE`, and
+contains the current description, writing style, target audience, description focus and an optional
+listing id plus address-free draft listing details. `HostListingDescriptionService` verifies the
+Host identity and ownership, builds one bounded untrusted context, calls the shared
+`LlmGateway`, and returns the structured analysis and generated description without mutating a
+listing. Evaluate requires a non-empty description; Generate also works with an empty description.
+Successful responses contain the current and/or generated analysis; degraded gateway responses keep
+the result fields null and expose the stable gateway code for the UI to explain.
+
+**Frontend assistant.** `HostAiDescriptionAssistant` is opened beside the Description field in the
+New/Edit listing forms. Its modal has writing-style, target-audience and description-focus controls,
+a current-description editor, current and generated analysis panels, a read-only generated
+description, Evaluate/Generate actions and an Apply action. Apply copies only the generated text
+into the form and resets the assistant preferences and result state; closing and reopening retains
+the modal state except that the current description is refreshed from the form. Escape, the X and a
+backdrop click close the modal. Pending requests disable all controls and the UI restores them after
+success, degraded results or errors, displaying an actionable error above the actions.
+
+The generation prompt asks for a factually grounded 50–150-word description. The focus options are
+Balanced (equal main selling points), Comfort (living space, comfort and available facilities) and
+Practicality (functional features and everyday suitability), with Balanced as the default; All
+travellers is the first audience option. The assistant does not perform a post-response numeric
+word-band rejection (C158), and it does not add a free-text instruction field (C155).
+
+**Eligibility and safety.** The trigger is disabled until title, property type, maximum guests,
+bedrooms, bathrooms, check-in time and check-out time are present; its hover explanation tells the
+Host what is missing. Listing context excludes street address and postal code. The feature inherits
+the gateway's 8,000-character context cap, structured-output validation and error conventions; it
+does not amend the shared gateway (C157). AI output remains a suggestion rendered as plain text and
+is applied only by explicit Host action.
+
+**Paths.** `backend/src/main/java/com/snoozeshare/ai/host/` contains the feature contract and
+service; `backend/src/main/java/com/snoozeshare/api/controller/HostAiController.java` is the REST
+boundary; `frontend/src/components/host/HostAiDescriptionAssistant.tsx` contains the modal; and
+`frontend/src/lib/hostAiApi.ts` contains the typed adapter.
+
+**Tests.** `ListingDescriptionContractTest`, `ListingDescriptionFeatureConfigTest` and
+`HostAiListingDescriptionIntegrationTest` cover request/response contracts, Evaluate and Generate
+with empty and existing descriptions, ownership and validation, degraded gateway responses, address
+and prompt/log boundaries, transaction boundaries and datasource-free activation. `hostAiApi.test.ts`
+and `HostAiDescriptionAssistant.test.tsx` cover typed requests, stable error mapping, modal state,
+Apply-only updates, disabled controls, response recovery and minimum-detail eligibility. The
+operator also verified the modal at desktop, tablet and 390px widths.
+
+### 4.27 Guest AI search assistant
+
+**Purpose.** Let an authenticated Guest describe what they want in natural language — for example "apartment in Orchard for 2 under $80 next weekend" — and have the LLM extract structured search filters that run through the existing search infrastructure.
+
+**Backend API.** `GuestAiSearchController` exposes `POST /api/guest/ai/search` when the database condition is enabled. The request carries a `query` string (1–500 characters). `GuestAiSearchService` builds a trusted context containing today's date, calls `LlmGateway.run` with the `guest.search` feature, and maps the resulting `AiSearchFilters` record (city, startDate, endDate, guests, maxNightlyRate, explanation — all nullable except explanation) to the existing `PropertySearchRepository` search. The response contains the listing results, the AI explanation, the extracted filters and `aiAvailable: true`. A `Clock` bean is injected for deterministic date resolution in tests (C165).
+
+**Degraded responses.** When the gateway returns a non-ok result (disabled, throttled, blocked, refused, or failed), the endpoint returns a 200 with `aiAvailable: false`, the `LlmErrorCode` name, an empty results array and a user-friendly fallback explanation. If the LLM extracts invalid dates that cause `IllegalArgumentException` in the search layer, the controller catches it and returns a degraded 200 with `errorCode: "INVALID_SEARCH_DATES"` instead of a 400, because the AI made the date mistake, not the user (C165).
+
+**AiFeature registration.** `GuestAiConfig` registers a `guest.search` `AiFeature<AiSearchFilters>` bean: FAST model tier, GUEST role, priority 2, JSON output with `FAIL_ON_UNKNOWN_PROPERTIES` (C166), a system prompt instructing the model to return only a JSON object with the six filter fields. The system prompt is server-side only and never returned in a response (N2). The feature inherits all gateway protections: PII sanitization, injection detection, per-user throttle (5 calls/min), daily caps, circuit breaker and metadata-only audit (N3). The listing descriptions never enter the LLM context (C162).
+
+**Frontend AI search bar.** The Guest search page at `/guest/search` adds an AI text input above the existing manual filters. `aiSearch` in `frontend/src/lib/guest-api.ts` calls the endpoint. On success, an explanation card and filter chips appear above the results grid; on a degraded response, an alert explains the fallback. A Clear action resets the AI state. The manual filter fields and Search button remain fully functional alongside the AI bar (F7).
+
+**Paths.** `backend/src/main/java/com/snoozeshare/controller/guest/` contains `GuestAiConfig.java`, `GuestAiSearchController.java`, `GuestAiSearchService.java` and `AiSearchFilters.java`; `backend/src/main/java/com/snoozeshare/api/request/AiSearchRequest.java` and `backend/src/main/java/com/snoozeshare/api/response/AiSearchResponse.java` are the DTOs; `frontend/src/app/guest/search/page.tsx` contains the AI search bar; `frontend/src/lib/guest-api.ts` contains the typed `aiSearch` adapter.
+
+**Tests.** `GuestAiConfigTest` covers bean registration and `@ConditionalOnDatabase` activation. `GuestAiSearchControllerTest` covers 10 integration tests (happy path, validation, degraded gateway responses, auth, role rejection) and 21 edge-case tests (vague query, flagged input, null filters, invalid LLM output, partial dates, Unicode, blocked/refused/auth errors, throttling, concurrency). `frontend/src/app/guest/search/page.test.tsx` covers 7 Vitest tests for the AI search bar (renders, disabled states, explanation display, degraded alert, clear action, manual fallback).
+
+
+### 4.28 Ticket clarification assistant (`backend/service/assistant/`)
+
+**Purpose.** When a Guest files a ticket, gather the missing facts through a few bounded questions in the ticket's Guest thread and keep a structured draft report that the Support Agent reads and can copy into the ticket notes. The assistant never decides, never touches money and never writes the notes itself.
+
+**Flow.** `TicketOpenedListener` runs after the ticket commits, inserts a `ticket_assistants` row in `PENDING` (a conflict-safe insert) and hands an `AssistantJob` to `AssistantRunner`, a private bounded pool of daemon threads whose queue rejects when full. The job reads an immutable snapshot (`AssistantContextBuilder`) in a read-only transaction, calls the `ticket.clarify` feature on the shared gateway outside any transaction, and `AssistantApplier` applies the result in one `REQUIRES_NEW` transaction under ticket-then-assistant row locks. The prompt carries eight trusted facts (statuses, requested remedy, stay dates, total, days since check-out, today in Singapore, rounds asked) plus the Guest's own ticket text and replies and the stored questions; no names, emails, phone numbers, Host text, Agent text, listing titles or category labels are sent. `MessagePostedListener` moves a `WAITING_GUEST` row back to `PENDING` when the Guest replies (a compare-and-set, so duplicate events start one job) and stops the row when an Agent posts in the Guest thread. When a Guest reply arrives during a call, the follow-up call leaves out only the newest question if an unseen reply precedes it (C176), so the reply is analysed without being treated as an answer.
+
+**States.** `PENDING` (a call is running or queued), `WAITING_GUEST` (questions posted), `DONE`, `STOPPED` (an Agent spoke, the ticket was resolved, or the Guest is not active) and `UNAVAILABLE` (a degraded gateway result or a full queue). Rounds are capped by `snoozeshare.assistant.max-rounds` (default 3), so a ticket costs at most `max-rounds + 1` gateway calls. After the last round one final call refreshes the draft and a fixed closing message is posted. When the gateway is disabled the first call removes the row and nothing appears. There is no retry after `UNAVAILABLE` and no recovery sweep: a row left `PENDING` after a restart is shown as stale to the Agent.
+
+**Output and safety.** `ClarifyOutput` is a validated record (`enough`, up to three questions of at most 300 characters, a summary and capped timeline, claims, evidence, missing and host-point lists). `ClarifySafety` drops questions that promise or predict an outcome, ask for credentials, card or identity data, or give contact details, and drops host points that recommend a decision; `ClarifyRendering` renders the draft and the question message as fixed plain text. The one allowed contact is the model's `[supporting-documents]` marker, which the backend expands to the fixed support-email sentence using the ticket id read from the database (C180). Assistant messages are written by `MessageService.postAssistant` as the SYSTEM user, only to the Guest thread, so the Host never sees them. Every state change and message writes an `ASSISTANT_STATE` or `ASSISTANT_MESSAGE` audit row with metadata only; the gateway keeps its own `AI_CALL` rows.
+
+**Persistence.** Migration V006 creates `ticket_assistants` (one row per ticket, keyed by `ticket_id`: state, rounds, flagged, draft up to 6,000 characters, draft time, last Guest message cursor) and widens the `messages.author_role` CHECK to allow SYSTEM.
+
+**Agent screen.** Dispute detail returns a nullable `assistant` object with seven fields (state, rounds, maxRounds, flagged, stale, draft, draftUpdatedAt). The page shows the Guest chat, the AI assistant panel and the Host chat in a 40/20/40 row that shares one resize height. The panel shows a status line, an injection warning when the input was flagged, and the draft as bold section titles (Summary, Timeline, Guest claims, Evidence mentioned, Still unknown, Points to raise with the Host). "Insert into notes" copies the whole draft into the notes box for the assigned Agent only; nothing is saved until the Agent saves. Assistant messages appear in both the Guest and Agent threads labelled "Snoozy · Automated assistant", on the Agent side of the bubbles. The Guest sees the same label.
+
+**Configuration.** `SNOOZESHARE_ASSISTANT_ENABLED` (default true), `_MAX_ROUNDS` (3, range 1 to 5), `_THREADS` (2, 1 to 4), `_QUEUE` (50, 1 to 500) and `_STALE_AFTER_MINUTES` (10, 2 to 120). Out-of-range values stop startup with the key named. The assistant only calls the model while the AI gateway is enabled (`SNOOZESHARE_AI_ENABLED`); see the runbook for diagnosis, overload and migration rollback.
+
+**Prompt tuning.** `tools/prompt-tuning/ticket-clarify/` is a Node script and synthetic ticket set for comparing prompts against SoCLaaS by hand (`node run.mjs --selftest` runs offline). The committed `ClarifyPrompt` is the v3 examples prompt, pinned by `ClarifyFeatureTest` to `prompts/v3-snoozy-examples.txt` and recorded as KEEP in the kit's `CHANGELOG.md` (`prompts/v4-snoozy-support-documents.txt` is the earlier text it replaced).
+
+**Deviations.** Chronological replay alone could not satisfy the late-reply and defensive no-call rules, which led to the catch-up selection above (D119); a 6,000-character draft can exceed the 4,000-character notes limit (D118).
+
+**Paths.** `backend/src/main/java/com/snoozeshare/service/assistant/` holds the feature definition, screens, rendering, context builder, job, applier, runner and the two listeners; `backend/src/main/resources/db/migration/V006__ticket_assistant.sql` the schema; `frontend/src/components/agent/AssistantPanel.tsx`, `DisputeDetail.tsx` and `ThreadPanel.tsx` the Agent screen; `frontend/src/lib/message-role.ts` the shared role labels.
+
+**Tests.** Backend: `ClarifyFeatureTest`, `ClarifySafetyTest`, `ClarifyRenderingTest`, `AssistantPropertiesTest` (contract, screens, rendering, settings); `AssistantContextBuilderTest`, `AssistantFlowTest`, `AssistantConcurrencyTest`, `AssistantRunnerTest`, `AssistantBoundaryTest` (snapshot, lifecycle and degraded matrix, locking and cap chains, bounded runner, dependency boundary); `AssistantTriggerTest` and `AssistantSwitchTest` (real filing and posting commits, failure containment); `AssistantPostingTest`, `AssistantReadApiTest`, `TicketAssistantRepositoryTest`, `TicketAssistantMigrationTest`; `ClarifyGatewayContractTest` (real gateway with a stub transport) and `AssistantMockEndToEndTest` (whole feature in gateway mock mode, no credentials). Frontend: `DisputeDetail.test.tsx`, `ThreadPanel.test.tsx`, `MessageThread.test.tsx`, `ConversationList.test.tsx`, `message-role.test.ts` and `AuditLogView.test.tsx`.
+
 ---
 
 ## 5. Requirements
@@ -1357,8 +2255,22 @@ sequenceDiagram
 The list is ordered by the implemented feature progression and uses the backlog identifiers where
 they exist. It describes current behavior, including deliberate deferrals and coverage gaps.
 
-- **F0.1.1** Registration creates a Guest, Host or Agent account; Host and Agent registration requires the corresponding mocked registration code.
-- **F0.1.2** Mocked email login establishes the active `SessionContext` and routes the user to the Guest, Host or Agent shell; no real credential verification is performed.
+- **F0.1.1** (desktop) Registration creates a Guest, Host or Agent account; Host and Agent registration requires the corresponding mocked registration code.
+- **F0.1.2** (desktop) Mocked email login establishes the active `SessionContext` and routes the user to the Guest, Host or Agent shell; no real credential verification is performed.
+- **F0.1.3** (web) The `/login`, `/register` and `/forgot-password` pages call Firebase Email/Password sign-in, sign-up and password reset and show loading and error states.
+- **F0.1.4** (web) A protected request with a missing, malformed, expired, revoked or wrong-project token gets `401 INVALID_TOKEN` and never reaches a controller.
+- **F0.1.5** (web) A valid Firebase identity with no profile can register once, whether or not its email is verified; registration creates one backend profile and returns its role and ID.
+- **F0.1.6** (web) Host and Agent registration needs the matching registration code; a missing, wrong or cross-role code gets `403 INVALID_REGISTRATION_CODE` and creates no profile.
+- **F0.1.7** (web) A Guest or Host gets exactly one wallet at registration and an Agent gets none; a retry creates no second wallet.
+- **F0.1.8** (web) A request to another role's URL namespace gets `403 ROLE_MISMATCH`.
+- **F0.1.9** (web) `GET /api/auth/me` returns the profile keyed by the verified UID.
+- **F0.1.10** (web) The frontend exposes the six states of [4.18](#418-authentication-and-role-authorization-backendauth-frontend-providers) and applies its guard matrix for sign-in, registration, wrong-role access, sign-out and backend failure.
+- **F0.1.11** (web) For a Host or Agent, the register page asks the backend to validate the code before it creates the Firebase account.
+- **F0.1.12** (web) A wrong, blank, cross-role or malformed code fails validation with a stable error and the page does not create a Firebase account.
+- **F0.1.13** (web) A correct code passes validation without creating a database row, a Firebase account or a session.
+- **F0.1.14** (web) `/api/auth/register` validates the code again and keeps its profile, wallet, role, idempotency and rate-limit behavior, so a modified client cannot skip the first check.
+- **F0.1.15** (web) A Guest registration never calls code validation.
+- **F0.1.16** (web) The page tells a code-validation failure from a Firebase sign-up failure, and neither shows the configured code.
 - **F0.2.1** Successful Guest and Host registration provisions a zero-balance wallet.
 - **F1.1.1** Guests can search active listings by city, minimum guest capacity, check-in/check-out dates and an optional maximum nightly budget (`SearchCriteria.maxNightlyRate`); availability considers host blocks and pending or confirmed bookings.
 - **F1.2.1** Guests can open a listing detail view with property specifications, address, host name, amenities, check-in/out times and pricing.
@@ -1400,6 +2312,69 @@ they exist. It describes current behavior, including deliberate deferrals and co
 - **F12.1.2** Ticket messages persist, each party reads only its own thread, and the Agent reads both ticket threads.
 - **F12.1.3** Confirmed bookings also have a private persistent Host-to-Guest conversation. It is writable through checkout plus seven days, becomes read-only afterward, and is not visible to Agents; the Guest Messages UI provides the Guest-facing inbox.
 
+**Web Host requirements (W-HOST).** These IDs are scoped to the W-HOST experience spec.
+
+- **F1** Host listing rows include owner-scoped booking counts and average ratings.
+- **F2** A successful availability toggle updates only its listing card without reloading the collection.
+- **F3** Listing detail shows the saved check-in/out hour and minute without timezone shifting, in the current `hh:mm AM/PM` presentation (C136).
+- **F4** Occupancy is displayed with exactly two fractional digits.
+- **F5** Calendar month changes retain the page and block form, loading only the calendar grid and preserving unrelated form state.
+- **F6** The block-date range starts empty in both API and fixture modes.
+
+**Web Host API requirements (W-HOST-API).** These IDs are scoped to the W-HOST-API spec.
+
+- **F1** Authenticated listing read/write endpoints use existing services and enforce Host ownership.
+- **F2** Host calendar and manual-block operations expose inclusive date ranges and distinguish booking from Host-block overlap with safe typed errors.
+- **F3** Pending/history requests return complete lists; approval/rejection applies once through the booking state machine.
+- **F4** Booking conversations and ticket threads have separate, owner-scoped summary/history/read/post operations.
+- **F5** Wallet balance and complete statement use existing services; top-up and withdrawal remain mocked.
+- **F6** Production Host pages use API-backed loading, empty, error, not-found and read-only states while retaining fixtures for tests.
+- **F7** The frontend sends the current Firebase token and never supplies a client-selected Host ID.
+- **F8** Collection and history reads return all matching rows without pagination parameters or a response-size cap.
+
+**Web Host AI requirements (W-AI-HOST).** These IDs are scoped to the W-AI-HOST design spec.
+
+- **F1** An authenticated Host can evaluate the current listing description or generate a new description through `POST /api/host/ai/listing-description`; the operation does not save the listing.
+- **F2** Evaluate requires a current description; Generate works with an empty description and returns current analysis when a current description exists, generated text and generated analysis on success.
+- **F3** The assistant uses writing style, target audience and description focus controls; generation follows the fixed 50–150-word prompt guidance, with Balanced focus as the default and All travellers first.
+- **F4** The assistant uses only supplied, address-free listing details and treats current descriptions and listing fields as untrusted data; it does not add a free-text instruction surface.
+- **F5** A Host can Apply a successful generated description to the New/Edit form, but no AI action directly persists a listing or applies degraded/error output.
+- **F6** The frontend disables the assistant trigger until title, property type, max guests, bedrooms, bathrooms, check-in time and check-out time are present, and explains the disabled state on hover.
+- **F7** Evaluate and Generate show current/generated analysis for clarity, completeness and accuracy; degraded and error responses show user-facing feedback and restore controls after the response.
+
+**Web Agent requirements (W-AGENT).** These IDs are scoped to the W-AGENT design spec; the code wins where they differ (D103, D111).
+
+- **F1** Every `/api/agent/**` operation takes the acting agent from the verified token (`@CurrentUserId`); no path, query or body field can name the actor, bodies reject unknown properties and a missing actor fails closed with `401`.
+- **F2** Every agent failure, including an unknown route, `405`, `411`, `413` and `415`, returns `{code, message, requestId}` with no stack trace, SQL or class name.
+- **F3** The agent lists disputes by assignee (All, Unassigned, Mine) and by status, oldest first, and sees the global unassigned count.
+- **F4** The agent opens a dispute and sees the booking, parties, escrow, phase label, requested remedy, assignment and internal notes; `TicketResponse` carries no notes.
+- **F5** The agent assigns an OPEN ticket to themselves, and the assigned agent can unassign it; two simultaneous assigns produce one winner.
+- **F6** The assigned agent saves internal notes (at most 4,000 characters) on an IN_REVIEW ticket; notes are never shown to a Guest or Host.
+- **F7** The assigned agent resolves an IN_REVIEW ticket with ACCEPT, REJECT or MANUAL and a reason; the whole escrow is settled two-sided (C20) and a second settlement is impossible.
+- **F8** The agent reads both ticket threads of any ticket and posts to either while the ticket is open (at most 2,000 code points).
+- **F9** The agent lists Guest and Host accounts with status and suspension reason; Agent and System accounts are not listed.
+- **F10** The agent suspends an ACTIVE Guest or Host or reactivates a SUSPENDED one with a required reason; suspension cascades as in F10.1.2 and is all-or-nothing.
+- **F11** The agent searches the audit log by text, a set of action types and a Singapore-day date range, newest first in pages of at most 200, and reads the list of action types.
+- **F12** The agent lists, creates, renames, activates, deactivates and deletes ticket categories; deleting one a ticket uses is refused.
+- **F13** `/agent` redirects to `/agent/disputes`; each tab has its own route and the current tab is marked.
+- **F14** The dispute pages offer the actions above; the Accept, Reject and Manual dialogs require a reason, and any failed resolve makes the page refetch the detail.
+- **F15** The Accounts, Audit Log and Categories pages follow the desktop controls; the audit filters apply live.
+- **F16** A `401` or a `403` with `PROFILE_INACTIVE`, `PROFILE_NOT_REGISTERED` or `ROLE_MISMATCH` replaces the page body with a stable message and a Sign out button.
+
+**Web Agent AI requirements (W-AI-AGENT).** These IDs are scoped to the W-AI-AGENT design spec.
+
+- **F1** After a Guest files a ticket the assistant starts on its own bounded workers and never changes whether, when or how the ticket is filed, even when it is disabled, failing or its queue is full.
+- **F2** The first call analyses the ticket and, when key facts are missing, posts one SYSTEM message with one to three screened questions and records round 1.
+- **F3** Each Guest reply posted while the assistant is waiting triggers exactly one new call over the stored exchange.
+- **F4** The assistant never posts more than `max-rounds` question rounds (default 3); after the last answer one final call refreshes the draft and a closing message is posted.
+- **F5** After every successful call a draft report is rendered by the backend into a fixed plain-text template and stored in `ticket_assistants.draft` (at most 6,000 characters).
+- **F6** The Agent sees the assistant's state and draft on dispute detail and can insert the draft into the notes box; the system never writes the draft into `tickets.agent_notes`.
+- **F7** The Guest and the Agent see assistant messages labelled "Snoozy · Automated assistant"; the Host never sees them.
+- **F8** The assistant stops when an Agent posts in the Guest thread or the Guest account is not active, and takes no further step once the ticket is resolved; a call in flight at that moment has no effect.
+- **F9** A degraded gateway result ends the assistant in `UNAVAILABLE`, keeps any earlier draft and posts the closing message if a round was asked; `DISABLED` on the first call removes the row.
+- **F10** A flagged input stops further questions, marks the record flagged and shows the Agent a warning.
+- **F11** Every state change and every assistant message is audited with metadata only.
+
 ### Non-Functional Requirements
 
 - **NFR1** Settlement is atomic: wallet balances, ledger rows, ticket, booking and audit rows commit together or not at all, and no event is published on failure.
@@ -1410,6 +2385,30 @@ they exist. It describes current behavior, including deliberate deferrals and co
 - **NFR6** Ledger integrity: for each wallet, `balance` equals its newest `audit_log` money row's `balanceAfter`, and each row's `balanceAfter` equals the previous balance plus that row's `walletAdjustment` ([4.16](#416-unified-ledger-ledgerwriter)).
 - **NFR7** Role checks run in the service layer, not only in the UI.
 - **NFR8** Domain events are published only after the database transaction commits.
+- **NFR9** Credentials, bearer tokens, passwords and registration codes never appear in committed files, response bodies or application logs.
+- **NFR10** The backend auth tests use a token-verifier double and the frontend tests mock the Firebase client, so no test calls Firebase.
+- **NFR11** Repeated or concurrent registration for one UID leaves at most one profile and one required wallet.
+- **NFR12** The backend and frontend tests cover code-validation ordering, no sign-up on an invalid code, valid-code continuation, rate limiting and a modified client skipping the pre-check.
+- **NFR13** The SoCLaaS key comes only from the environment and never appears in committed files, logs, error messages, results, request bodies or the audit log.
+- **NFR14** An AI call is bounded: at most `deadline-ms` (45 s by default) plus its database calls, with the whole response read within the attempt timeout.
+- **NFR15** The AI audit row stores metadata only (feature, model, tokens, latency, attempts, flags, prompt hash); no prompt or reply text.
+- **NFR16** The backend and its health endpoint are unaffected when the AI gateway is disabled or SoCLaaS is unreachable, and no test contacts SoCLaaS.
+- **W-HOST N1–N2** Listing metrics use at most two grouped owner-scoped queries for a complete collection; listing data and metrics never cross Host ownership.
+- **W-HOST-API N1–N6** Enforce active Host identity and ownership server-side; preserve booking/wallet transaction invariants; use response DTOs and safe error envelopes; keep sensitive payloads out of logs; issue one read per dataset with unbounded result size; and activate persistence-backed beans deterministically. See the W-HOST-API requirements and tests in [4.21](#421-host-rest-api-backendapicontroller).
+- **W-AGENT N1–N8** Agent routes need an authenticated, ACTIVE AGENT and are absent when security is off (N1); money moves only through `TicketService.resolve` and `AccountGovernanceService`, and the browser does no money arithmetic (N2); the API layer writes no audit row (N3); logs carry only request id, status, code, path and agent id (N4); the queue, accounts and one audit page answer within 5 s at 300 tickets, 300 accounts and 2,000 audit rows, measured at about 70 ms for the queue after batching (N5, D102); `ApiLayerTest` keeps controllers thin (N6); dialogs have dialog semantics, a focus trap, Escape and focus return (N7); lists refresh by polling while the tab is visible (queue 30 s, detail and threads 10 s) and the other pages on demand (N8).
+- **W-AI-HOST N1–N4** Host AI is conditional on Host security and database activation; it uses the shared gateway's bounded context and structured-output/error conventions; it never includes street address or postal code in model context; and it never writes listing data or exposes prompt/response text in AI audit metadata (C155, C157, D113).
+- **W-AI-GUEST N1–N3** The AI search endpoint responds within the gateway deadline (45 s) plus the existing search query time, with only one LLM call per request (N1). The system prompt is server-side only and never returned in any response (N2). AI search inherits all gateway protections: PII sanitization, injection detection, per-user throttle (5 calls/min), daily caps, circuit breaker and metadata-only audit (N3).
+- **W-AI-AGENT N1–N6** No assistant failure reaches ticket filing or message posting (N1). At most `max-rounds + 1` gateway calls per ticket (N2). Model text reaches a Guest only as validated, screened questions and a fixed closing sentence, and reaches an Agent only as plain text rendered from the validated record (N3). The prompt contains no names, emails, phone numbers, Host text or Agent text (N4). A restart, outage or full queue leaves the ticket usable and blocks no Agent action (N5). All automated tests run without SoCLaaS credentials (N6).
+
+**Web Guest AI requirements (W-AI-GUEST).** These IDs are scoped to the W-AI-GUEST design spec.
+
+- **F1** A `guest.search` `AiFeature<AiSearchFilters>` bean is registered (FAST tier, GUEST role, priority 2, JSON output) that extracts structured search filters from a natural language query.
+- **F2** `POST /api/guest/ai/search` accepts a text query (1–500 characters), calls the gateway, runs the existing search with the extracted filters, and returns the results, AI explanation, extracted filters and `aiAvailable: true`.
+- **F3** The LLM system prompt instructs the model to return a JSON object with fields matching the existing search criteria (city, startDate, endDate, guests, maxNightlyRate) plus an explanation field.
+- **F4** When the gateway returns a degraded result, the endpoint returns a 200 with `aiAvailable: false`, the `LlmErrorCode` name, an empty results array and a user-friendly explanation.
+- **F5** The frontend Guest search page adds an AI search text input that calls the new endpoint and displays results in the same listing grid.
+- **F6** The frontend shows the AI explanation above the results when an AI search succeeds, with extracted filter values as read-only chips.
+- **F7** The frontend preserves the existing manual filter search — AI search is an alternative, not a replacement.
 
 ### Known Limitations
 
@@ -1418,7 +2417,32 @@ they exist. It describes current behavior, including deliberate deferrals and co
 - **Suspension refund is not checked against an escrow hold** — the cascade credits the booking's `totalAmount` without reading an `ESCROW_HOLD` row, as `BookingServiceImpl` does (D20).
 - **A stay checking in today counts as started** — a CONFIRMED booking with today's check-in is not cancelled by a suspension (C36). A suspended guest's in-progress stay is paid out by the normal settlement (`BookingService.completeEligibleBookings()`, run at startup, skipping bookings with an open ticket) or by an agent through a dispute ticket.
 - **Ticket categories are a lookup table, not a rules engine** — revisit only if workflow branching is needed (`PROJECT_STATE.md` § Known Gaps).
-- **Authentication is mocked** — login takes an email and checks no credential; role separation is enforced in service code (`PROJECT_STATE.md` § Known Gaps).
+- **The desktop app's authentication is mocked** — its login takes an email and checks no credential, and role separation is enforced in service code. The web app uses real Firebase authentication ([4.18](#418-authentication-and-role-authorization-backendauth-frontend-providers), C70).
+- **Web registration-code validation is a validity oracle** — the public check answers `204` or `403`, so the rate limits and long random codes are the protection (`PROJECT_STATE.md` § Known Gaps).
+- **Rate limits are process-local** — and the client address comes from `CF-Connecting-IP`, which is sound only while all traffic reaches Render through Cloudflare; re-check it if the hosting changes.
+- **Host and Agent codes are reusable configuration values** — rotating one means changing the deployment setting.
+- **Web route guards are client-side** — the backend filters are the authority.
+- **Each API request checks Firebase token revocation** — request latency and availability depend on Firebase.
+- **AI limiter, breaker and budget-block state is process-local** — it is lost on restart, and a Render redeploy briefly runs two instances on one shared key (C69).
+- **Many accounts can still use up the shared AI quota** — guest registration needs no code (C87), so enough accounts can exhaust the non-reserved 95% of the global daily cap and the queue, and a coordinated group can open the circuit breaker (it needs failures from three different users). The per-user and global daily caps bound the damage.
+- **Steered model text can pass output validation** — prose that matches no leak or link pattern is accepted, and a bare-domain link (no scheme) is not detected; role features keep AI output a suggestion the user confirms and render it as plain text (C80).
+- **A daily AI cap counts calls, not upstream requests** — the worst case is `global-daily-cap × (max-retries + 1)` requests a day. While audit writes fail, sent calls are counted in memory only until 00:00 UTC.
+- **Reasoning is one global setting** — `reasoning-effort` (default `none`) applies to every feature and tier; a feature that needs reasoning needs a gateway change. The 429 behaviour of SoCLaaS (`Retry-After`, budget wording) is unobserved.
+- **Agent lists are unpaginated** — the dispute queue and the accounts list return every row; the audit log pages by offset, so a row added between two pages can repeat or be skipped. There is no per-agent rate limit.
+- **One dispute with a missing booking or property fails the whole queue** — the service answers 400 for that ticket, so the page shows an error instead of the other rows.
+- **Host AI inherits gateway limits and advisory checks** — the serialized context is capped at 8,000 characters, gateway degradation is surfaced rather than converted into generated content, and factual-grounding feedback remains advisory unless the shared gateway rejects the result (C157).
+- **Host AI generation cannot guarantee an exact word count** — it requests 50–150 words as prompt guidance and does not reject an otherwise valid response solely for missing that range (C158).
+- **Guest AI search error codes are exposed in degraded responses** — `LlmErrorCode` names (DISABLED, THROTTLED, etc.) are returned to the client; minor information disclosure accepted for debugging value (C168).
+- **The ticket assistant has no recovery sweep and does not re-run after `UNAVAILABLE`** — a call lost at a restart leaves the row `PENDING`, shown to the Agent as stale.
+- **Assistant screens are a floor, not a proof** — they drop some harmless text and can miss phrasings they do not name; model questions are Guest-influenced; `flagged` is pattern-based; the feature shares the gateway budget with the other role features, and many throwaway Guest accounts could fill its two worker threads and fifty-job queue so that genuine tickets end `UNAVAILABLE`.
+- **Assistant data persists with the ticket** — drafts and assistant messages have no deletion path (retention is W-SECURITY's); a 6,000-character draft can exceed the 4,000-character notes limit, so the Agent may need to edit before saving (D118).
+- **Each filing can need a second database connection** — the ticket-opened listener inserts its row in a `REQUIRES_NEW` transaction during the after-commit phase; not load-tested.
+- **The agent request-size cap trusts the declared length** — a body with neither `Content-Length` nor `Transfer-Encoding` (HTTP/2) is bounded only by the container.
+- **The three roles answer the same conditions with different errors** — a closed ticket thread is `400 THREAD_CLOSED` for a Guest and `409` for a Host and an Agent; invalid input is `422 DOMAIN_RULE_VIOLATION` for a Host and `400` for a Guest and an Agent; a created message is `200` for a Guest and `201` for the others; Host messages are always generic and the Guest handler returns the raw service message. Each client works with its own codes. Converging them, and bringing `controller.guest` into `ApiLayerTest`, is handed over to W-GUEST and W-HOST (`PROJECT_STATE.md` § How to Resume).
+- **Wallet withdrawal lacks locking** — concurrent full-balance withdrawals can both succeed, resulting in a negative balance (D93). Recorded for a future wallet-locking workstream.
+- **Host collection responses are unbounded** — listing, booking-request, conversation, message-history and wallet-statement reads return every matching row with no response-size or concurrency cap (C131). Calendar reads remain month-bounded. Revisit the trade-off before substantially increasing dataset size or traffic.
+- **The hosted dev backend sleeps when idle** — Render's free plan stops the service after a pause; the first request is slow and the page shows `Backend: unreachable` until `Re-check` (C85; `PROJECT_STATE.md` § Known Gaps).
+- **Vercel deploys from `development`** — its Production Branch stays `development` until the production deployment work re-points it at `main` (`PROJECT_STATE.md` § Known Gaps).
 - **Single-process only** — no multi-instance or distributed deployment support (`PROJECT_STATE.md` § Known Gaps).
 - **Sub-second ticket ordering** — the queue orders by `createdAt` text, so tickets created in the same second can mis-order (D12 (a)).
 - **Migration adoption is shallow** — `MigrationRunner` adopts any database that has a `users` table (D12 (b)).
@@ -1438,6 +2462,31 @@ they exist. It describes current behavior, including deliberate deferrals and co
 
 ## 6. Glossary
 
+- **Actor id (`@CurrentUserId`):** the parameter annotation that injects the acting user's id, read from the request attribute `RoleAuthorizationFilter` sets after it resolves an ACTIVE user with the right role; controllers never take an actor id from the path, query or body.
+- **Audit zone:** the time zone (`snoozeshare.audit.zone`, default `Asia/Singapore`) whose midnights bound the audit log's From and To days.
+- **CF-Connecting-IP:** the request header Cloudflare sets to the real client address; with `SNOOZESHARE_TRUST_FORWARD_HEADERS=true` the backend uses it for rate limits and never reads `X-Forwarded-For`.
+- **Firebase ID token:** the signed token Firebase issues to a signed-in user; the frontend sends it as `Authorization: Bearer <token>` and the backend verifies it on each protected request.
+- **`@ConditionalOnDatabase`:** the annotation (`config/ConditionalOnDatabase`) on database-backed service, JDBC repository and AI gateway beans; it matches unless datasource auto-configuration is excluded, so no-database test contexts start without them. It replaced the ineffective repository-bean scan condition for these components (D51, C132).
+- **`ddl-auto: validate`:** the Hibernate setting that checks entity mappings against the Flyway-managed schema at startup without creating or altering tables.
+- **Flyway:** the database migration tool used by `backend/`; `V001__baseline.sql` through `V005__tighten_nightly_rate_constraint.sql` are its migrations (V001 baseline, V002 auth, V003 domain tables, V004 system-user seed, V005 nightly-rate constraint).
+- **Layering test (`ApiLayerTest`):** the ArchUnit test that keeps `api.controller..` classes free of repositories, entities and persistence types and requires every `UUID` handler parameter to say where it comes from.
+- **Neon:** the hosted PostgreSQL service; the hosted dev backend uses its `dev` branch.
+- **`open-in-view: false`:** disables Hibernate's Open Session in View pattern, so lazy loading outside a `@Transactional` boundary throws instead of silently issuing queries.
+- **Registration code:** the secret a person enters to register as a Host or an Agent, set by `SNOOZESHARE_HOST_REGISTRATION_CODE` and `SNOOZESHARE_AGENT_REGISTRATION_CODE`; a Guest needs none.
+- **Render:** the host for the backend's Docker image, configured by `render.yaml`.
+- **Row lock:** a `SELECT ... FOR UPDATE` taken through `findByIdForUpdate` after `RowLocks.timeout()` (5 s), so a second agent waits for the first and then sees the committed state.
+- **Role namespace:** a URL prefix reserved for one role: `/api/guest/**`, `/api/host/**` or `/api/agent/**`.
+- **Spring Data JPA:** the persistence framework used by `backend/` for the domain layer (C99); repository interfaces extend `JpaRepository` and Hibernate maps entity classes to the Flyway-managed schema.
+- **Testcontainers:** the library that starts a throwaway Postgres 17 container for the backend tests.
+- **Vercel:** the host for the Next.js frontend.
+- **`AuthorizationService`:** a utility in `service/impl/` that checks the acting user exists, is `ACTIVE` and holds the required role; services delegate to it instead of repeating the check.
+- **`AiFeature`:** a Spring bean a role registers to use the LLM gateway: its id, allowed roles, model tier, prompt, limits, output type, fallback and mock response ([4.20](#420-ai-gateway-backendai)).
+- **Budget block:** the 15-minute (never past 00:00 UTC) refusal of all AI calls after SoCLaaS reports its spend budget used up; one probe call then re-tests it.
+- **Circuit breaker:** stops AI calls for 30 seconds after five failed attempts from at least three different users, then lets one probe through.
+- **LLM gateway:** `LlmGateway.run`, the single backend entry point for every call to the NUS SoCLaaS model ([4.20](#420-ai-gateway-backendai)).
+- **PII redaction:** replacing card numbers, NRIC/FIN numbers, Singapore phone numbers and e-mail addresses with `[card]`, `[id-number]`, `[phone]` and `[email]` before text goes to the model.
+- **Reasoning effort:** the `reasoning_effort` request field; `none` stops `qwen3.5:9b` and `gemma4:26b` spending `max_tokens` on hidden reasoning before they answer.
+- **SoCLaaS:** the NUS School of Computing LLM service, an OpenAI-compatible API reached with a per-environment key; the only LLM provider the app may use (C80).
 - **Agent (Support Agent):** the platform-admin role. Agents triage tickets, settle disputes and maintain ticket categories.
 - **AGENT_OVERRIDE:** wallet transaction type written on the guest's wallet for a manual adjustment that refunds the guest.
 - **Action type:** the kind of change an audit row records, one `AuditAction` constant (for example `TICKET_RESOLVED`, `ESCROW_HOLD`). The Audit Log filters by a set of them.
@@ -1458,7 +2507,7 @@ they exist. It describes current behavior, including deliberate deferrals and co
 - **Ledger:** the money rows of `audit_log` — a row with a `walletAdjustment` and a `balanceAfter` — written through `LedgerWriter` (W14, [4.16](#416-unified-ledger-ledgerwriter)). Each wallet's `balance` is a cache of its owner's newest `balanceAfter`; before W14 the ledger was a separate `wallet_transactions` table (see Dual-write).
 - **LedgerWriter:** the single class that changes a wallet balance; every money-moving service calls `post` or `postPayout` on it, inside its own transaction ([4.16](#416-unified-ledger-ledgerwriter)).
 - **Manual adjustment:** an agent-chosen split of the held escrow (Full refund, Full payout or Custom), independent of the remedy the ticket asked for.
-- **Mock DB:** the committed reference database `db/snoozeshare-mock.db`, built from `db/schema.sql` and `db/seed-mock-data.sql`.
+- **Mock DB:** the committed reference database `desktop/db/snoozeshare-mock.db`, built from `desktop/db/schema.sql` and `desktop/db/seed-mock-data.sql`.
 - **PLATFORM_FEE:** wallet transaction type crediting the System wallet with the platform's 3% cut of a host payout; written by `LedgerWriter.postPayout` only when the fee is positive (W14).
 - **Post-commit events:** domain events queued by `PostCommitEvents` during a transaction and published only after it commits (discarded on rollback), so a listener never sees a change that was rolled back ([3.1](#31-shared-foundation)).
 - **Reactivation:** returning a SUSPENDED Guest or Host to ACTIVE and clearing the reason. It restores no bookings or listings.
@@ -1475,6 +2524,8 @@ they exist. It describes current behavior, including deliberate deferrals and co
 - **TICKET_REMEDY:** wallet transaction type written on the guest's wallet when an agent accepts a ticket and refunds the guest.
 - **W14 (unified ledger):** folded `wallet_transactions` into `audit_log` (a money row now carries `balanceAfter`) and gave the System user a real role and wallet that receives a `PLATFORM_FEE` row per payout. Built and operator-confirmed 2026-09-29 (C31, C39–C45; [4.16](#416-unified-ledger-ledgerwriter)).
 - **Wallet:** a user's balance holder (`wallets`, one per user, `balance` a cache); each change is one `audit_log` money row, written by `LedgerWriter` (W14).
+- **Ticket assistant (Snoozy):** the automated assistant that asks a Guest clarifying questions on a new ticket and keeps a draft report for the Agent; its messages are authored by the SYSTEM user and labelled "Snoozy · Automated assistant" ([4.28](#428-ticket-clarification-assistant-backendserviceassistant)).
+- **Catch-up replay:** the follow-up call made when a Guest reply arrived during a call; it leaves out the newest question if an unseen reply precedes it (C176).
 
 ---
 
@@ -1484,11 +2535,15 @@ they exist. It describes current behavior, including deliberate deferrals and co
 
 | Command | What it does |
 |---|---|
-| `.\gradlew test` | Runs every suite below (JUnit 5, TestFX on the classpath). |
-| `.\gradlew build` | Compiles, runs checkstyle (`config/checkstyle/checkstyle.xml`), then all tests. |
+| `cd desktop; .\gradlew test` | Runs every desktop suite below (JUnit 5, TestFX on the classpath). |
+| `cd desktop; .\gradlew build` | Compiles, runs checkstyle (`config/checkstyle/checkstyle.xml`), then all desktop tests. |
+| `cd backend; .\gradlew test` | Runs the backend suites (JUnit 5, Spring Boot Test, Testcontainers); needs Docker. |
+| `cd backend; .\gradlew build` | Compiles, runs Checkstyle (the same ruleset), then the backend tests. |
+| `cd frontend; npm test` | Runs the frontend unit tests (Vitest and Testing Library). |
+| `cd frontend; npm run lint` and `npm run build` | ESLint; a production build (needs `NEXT_PUBLIC_API_BASE_URL`). |
 | `.\gradlew test --tests "com.snoozeshare.service.DisputeFlowEndToEndTest"` | Runs one class. A pattern such as `--tests "*DisputeSettlement*"` also works. |
 
-The same commands run in CI (`.github/workflows/ci.yml`, see [Setting Up](#2-setting-up)). No credentials or external services are needed. Database-backed suites copy `db/snoozeshare-mock.db`
+The same commands run in CI (`.github/workflows/ci.yml`, see [Setting Up](#2-setting-up)). The desktop and frontend suites need no credentials or external services; the backend suites need Docker. Database-backed suites copy `desktop/db/snoozeshare-mock.db`
 to a temporary directory, so the committed file is never modified. Test run times were not
 measured for this guide.
 
@@ -1498,17 +2553,38 @@ measured for this guide.
 | Unit: `SettlementCalculatorTest`, `EscrowPolicyTest`, `StateMachineTest`, `AgentCompletionTest`, `ResolutionPreviewTest`, `HeightGripTest` | Split maths and fee rounding, the escrow-held rule, every legal and illegal transition per role, live preview text, drag-height bounds. |
 | Service, fakes: `TicketServiceTest`, `TicketServiceCategoryTest` | Queue order and filters, assign / unassign / notes rules, category rules including delete-when-used. |
 | Messaging, mock-DB: `MessageServiceTest`, `BookingConversationServiceTest`, `MessagingMigrationTest` | Ticket and booking chat party checks, resolved/closed-window rejection, ordering, unread counts and `markRead`, `MessagePostedEvent`/`BookingMessagePostedEvent` published once per post; the `messages`/`message_reads`/`booking_messages`/`booking_message_reads` migrations against a fresh and an adopted database. |
-| Mock-DB integration: `DisputeSettlementServiceTest`, `TicketServiceIntegrationTest`, `DisputeQueryServiceTest`, `JdbcTicketRepositoryTest`, `JdbcTicketCategoryRepositoryTest` | Exact ledger rows, wallet balances, ticket and booking end states, audit content, precondition rejections that leave the database unchanged, repository round trips, read models. Built on [`MockDbFixture`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/src/test/java/com/snoozeshare/testsupport/MockDbFixture.java) with `MockIds` and `SettlementFixtures`. |
+| Mock-DB integration: `DisputeSettlementServiceTest`, `TicketServiceIntegrationTest`, `DisputeQueryServiceTest`, `JdbcTicketRepositoryTest`, `JdbcTicketCategoryRepositoryTest` | Exact ledger rows, wallet balances, ticket and booking end states, audit content, precondition rejections that leave the database unchanged, repository round trips, read models. Built on [`MockDbFixture`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/desktop/src/test/java/com/snoozeshare/testsupport/MockDbFixture.java) with `MockIds` and `SettlementFixtures`. |
 | Audit trail, unit and service: `AuditActionTest`, `AuditRecordTest`, `AuditServiceTest`, `WalletLedgerAuditTest`, `AuditLogFormattingTest` | The enum and wallet-type mapping, the one-row-one-change rule and builder, status-only rows with name snapshots, search by name (surviving a rename), id fragment, action set, inclusive dates and ordering, top-up and withdrawal money rows and rollback when the audit write fails, and the screen's status, amount and TARGET text. |
-| Audit trail, database: `JdbcAuditLogRepositoryTest`, `AuditTrailMigrationTest`, `MockAuditSeedTest`, `CommittedMockDbTest` | Repository round trips and search clauses; V002 adds the columns and the System user and is idempotent; the seeded audit rows (one money row per ledger row, the four rows of ticket `#0004`, governance rows in the shape W11 will write). `CommittedMockDbTest` opens the committed `db/snoozeshare-mock.db` **directly and read-only** (not a copy, and without `MigrationRunner`) and checks it already has the audit columns, the System user and a migration version of at least 2 (now v8 after W14 — see the next row), so a stale committed file cannot hide behind a migrated copy (D15). |
+| Audit trail, database: `JdbcAuditLogRepositoryTest`, `AuditTrailMigrationTest`, `MockAuditSeedTest`, `CommittedMockDbTest` | Repository round trips and search clauses; V002 adds the columns and the System user and is idempotent; the seeded audit rows (one money row per ledger row, the four rows of ticket `#0004`, governance rows in the shape W11 will write). `CommittedMockDbTest` opens the committed `desktop/db/snoozeshare-mock.db` **directly and read-only** (not a copy, and without `MigrationRunner`) and checks it already has the audit columns, the System user and a migration version of at least 2 (now v8 after W14 — see the next row), so a stale committed file cannot hide behind a migrated copy (D15). |
 | Date rules and post-commit events (MP3-0): `DisputeWindowPolicyTest`, `StayDatePolicyTest`, `DisputeWindowBoundaryTest`, `PostCommitEventsTest`, `GuestVisualsDatePickerTest`, `TicketFilingControllerTest` | The day-7 filing and day-8 completion boundary, joined across the policy, the booking service and the sweep (including a second sweep settling nothing more); past and inverted ranges refused, today allowed; events published only after commit, in order, and discarded on rollback; a typed past date reported and kept while today and future dates pass; "Other" always last in the dispute categories. |
 | Unified ledger (W14): `LedgerWriterTest`, `JdbcLedgerRepositoryTest`, `LedgerConservationTest`, `MigrationForeignKeyTest`, `SystemRoleMigrationTest`, `SystemUserGuardTest`, `UnifiedLedgerMigrationTest`, `DropWalletTransactionsMigrationTest` | `LedgerWriter.post`/`postPayout` money rows, balances and the System `PLATFORM_FEE` credit; `LedgerRepository` queries; the conservation invariant (a wallet's `balance` equals its newest row, and a refund + host net + fee nets to the original escrow) against the mock DB and a real settlement; V006 rebuilding `users` with foreign keys off and restoring them; the System role and wallet; the System user guard (cannot authenticate, be suspended, or appear governable); V007's `balanceAfter` backfill and legacy `PLATFORM_FEE` rows; V008 dropping `wallet_transactions` ([4.16](#416-unified-ledger-ledgerwriter)). |
 | Audit screen layout (FX toolkit): `MultiSelectMenuTest`, `AdminTableLayoutTest` | The multi-select control's behaviour; fixed table headers, shared control heights, hover without a hand cursor and the date-picker styling on the agent tables. They skip when the toolkit cannot start. |
 | Account governance: `AccountGovernanceServiceTest`, `AccountGovernanceCascadeTest`, `AccountGovernanceAtomicityTest`, `SuspensionReasonMigrationTest`, `BookingServiceTest` | Validation, audit rows and events; the cascade scope (PENDING and not-yet-started CONFIRMED), refunds and listing deactivation; rollback on failure; V003; the suspended-guest booking guard |
 | Accounts UI: `AccountTextTest`, `AccountSearchTest`, `SuspensionDialogFlowTest`, `AccountGovernanceUiTest` | Labels and dates, live-search matching, the modal's required reason, the screen's rows, actions and refresh |
 | Atomicity: `DisputeSettlementAtomicityTest` | A forced failure after the guest row rolls back everything and publishes nothing; the connection stays usable. |
-| Schema and migration: `SchemaParityTest`, `MockDbFixtureTest`, `MigrationRunnerReferenceDbTest` | `V001__foundation.sql` matches `db/schema.sql`; the mock DB opens and passes the ledger invariant; baseline adoption. |
+| Schema and migration: `SchemaParityTest`, `MockDbFixtureTest`, `MigrationRunnerReferenceDbTest` | `V001__foundation.sql` matches `desktop/db/schema.sql`; the mock DB opens and passes the ledger invariant; baseline adoption. |
 | End to end: `DisputeFlowEndToEndTest` | `AppContext` on a mock DB copy: agent works an open ticket from queue to resolution through the real services. |
+| Backend (`backend/src/test/java/com/snoozeshare`): `HealthEndpointTest`, `HealthOnKubernetesTest`, `FlywayBaselineTest`, `StartupFailureTest`, `ProfileDefaultsTest`, `ServerPortDefaultTest`, `ServerPortOverrideTest`, `ProdProfileTest`, `CorsPropertiesTest`, `CorsIntegrationTest` | Health body and status, no other actuator paths, DOWN and recovery when the database login is blocked, the baseline migration, fail-fast on an unreachable or missing database, the default profile and port, `prod` naming a missing variable, exact-origin CORS on the actuator and application endpoints. |
+| Backend authentication: `AuthMigrationTest`, `FirebaseConfigTest`, `FirebaseTokenVerifierTest`, `AuthSecurityIntegrationTest`, `AuthRegistrationIntegrationTest`, `AuthContractTest`, `RegistrationCodeValidationTest`, `RegistrationRateLimiterTest`, `PublicRegistrationRateLimiterTest`, `ClientIpResolverTest` | The `users` and `wallets` constraints, blank Firebase settings refused, token and project checks, `401` and `403` per route and role, registration (one wallet for a Guest and none for an Agent, same-role retry, inactive profile, concurrent registration), stable error shapes that leak no secret, the public pre-check and its limits (a correct code cannot beat an exhausted limit), and the client address (a forged `X-Forwarded-For` is ignored). A token-verifier double replaces Firebase, so no network is needed. |
+| Backend domain unit: `BookingStateMachineTest`, `TicketStateMachineTest`, `StayDatePolicyTest`, `DisputeWindowPolicyTest`, `SettlementCalculatorTest`, `DomainValidationTest` | The web-side copies of the desktop domain logic: every legal and illegal booking/ticket transition, past-date and inverted-range rejection, the day-7/day-8 boundary, escrow split maths and fee rounding, and field validation (postal codes, rates, required text). Pure unit tests, no Spring context. |
+| Backend domain repository integration: `UserRepositoryTest`, `BookingRepositoryTest`, `WalletRepositoryTest`, `TicketRepositoryTest`, `AuditLogRepositoryTest` | `@DataJpaTest` with Testcontainers Postgres 17: entity round trips, custom query methods (`findByFirebaseUid`, `findByIdForUpdate`, `findByGuestIdAndStatus`), the V003 schema constraints, and the audit-log search and indexing. Each test class starts its own application context with only JPA and Flyway. |
+| Backend Host API integration: `HostSecurityIntegrationTest`, `HostIdentityResolverTest`, `HostListingsControllerTest`, `HostCalendarIntegrationTest`, `HostRequestsIntegrationTest`, `HostBookingMessagesIntegrationTest`, `HostTicketMessagesIntegrationTest`, `HostWalletIntegrationTest`, `HostApiExceptionHandlerTest`, `DatabaseBeansTest` | Authenticated Host identity and ownership, complete ordered collections (including 101-row and long-message histories), listing metrics, typed calendar-overlap conflicts, one-shot booking decisions, private booking/ticket message boundaries, wallet row locking and ledger behavior, safe errors, and database-dependent bean activation. `HostCalendarIntegrationTest` asserts overlap status/code and precedence; D90 records that it does not assert the full body or explicitly assert absent IDs/dates. |
+| Backend AI gateway (`backend/src/test/java/com/snoozeshare/ai`, plus `DatabaseBeansTest`): `LlmGatewayTest`, `LlmGatewayIntegrationTest`, `AiFeatureRegistryTest`, `LlmCallTest`, `LlmPropertiesTest`, `ProdEnvironmentGuardAiTest`, `ModelCheckTest`, `InputSanitizerTest`, `PiiRedactorTest`, `InjectionDetectorTest`, `PromptBuilderTest`, `OutputValidatorTest`, `SchedulerCoreTest`, `LlmSchedulerTest`, `UserThrottleTest`, `CircuitBreakerTest`, `BudgetBlockTest`, `BackoffTest`, `SoclaasClientTest`, `SoclaasClientStallTest`, `AiAuditWriterTest`, `AiBoundaryTest`, `SecretScanTest`, `AiHealthTest`, `AiDatasourceFreeContextTest`, `AiLogLeakTest` | The 14-step pipeline with a stub SoCLaaS server, a fake clock and a recording sleeper; real audit rows and cap counts on Postgres (including a parallel burst); sanitizing, output validation, scheduling, breaker and budget logic as pure classes; configuration ranges and the production guard; the package boundary, no committed key, no key or prompt in logs, a healthy backend with an unreachable service, and `DatabaseBeansTest` for the bean registration. No test contacts SoCLaaS. |
+| Backend Host AI: `ListingDescriptionContractTest`, `ListingDescriptionFeatureConfigTest`, `HostAiListingDescriptionIntegrationTest` | The Host request/response contract, feature registration and authenticated endpoint: Evaluate and Generate with empty/current descriptions, ownership and validation, degraded gateway responses, address-free context, prompt/log boundaries, transaction boundaries and datasource-free activation. |
+| Frontend (`frontend/src`): `env.test.ts`, `BackendStatus.test.tsx` | Environment validation (including the six Firebase variables), and the status page for UP, each failure, the 5-second timeout, the disabled `Re-check` button and aborting on unmount. |
+| Frontend authentication: `firebase.test.ts`, `api.test.ts`, `AuthProvider.test.tsx`, `route-guards.test.tsx`, the `login`, `register` and `forgot-password` `page.test.tsx` files, `AuthHeader.test.tsx`, `RoleNavbar.test.tsx`, `RoleShell.test.tsx` | Firebase initialisation once, the bearer header and stable error mapping, the six provider states (a stale profile response after sign-out is ignored, a failed registration stays on the registration step, missing Firebase configuration shows an error instead of crashing), guard redirects, the register page's validate-before-signup order, safe `returnTo` handling, and the role shell. The Firebase client is mocked. |
+| Frontend Host pages and API: `HostApiProvider.test.tsx`, `hostApi.test.ts`, `HostRoutes.test.tsx`, Host listing, calendar, request, message and wallet route/component tests | Typed authenticated requests, complete-array rendering, in-flight read sharing, listing metrics and in-place status changes, empty/loading/error/not-found states, form validation, exact time handling, calendar month transitions and empty initial date range, separate message channels, mocked wallet recovery, and no pagination/load-more controls. Firebase and backend requests are mocked. |
+| Frontend Host AI: `hostAiApi.test.ts`, `HostAiDescriptionAssistant.test.tsx` and Host listing-form tests | Typed Evaluate/Generate requests, stable error mapping, modal state persistence and reset rules, Apply-only updates, disabled controls during responses, degraded/error recovery, minimum-detail eligibility and the assistant's current/generated analysis presentation. |
+| Backend Guest API integration: `GuestSearchControllerTest`, `GuestBookingControllerTest`, `GuestWalletControllerTest`, `GuestMessageControllerTest`, `GuestReviewControllerTest` | Authenticated Guest search/filter, booking creation and cancellation, wallet balance and transactions, ticket and booking messaging (file, read, post, mark read), review submission, role-rejection tests (HOST → 403 on all five controllers), ownership-violation tests and concurrent booking/withdrawal tests. Extends `PostgresIntegrationTest` with `FakeTokenVerifier`. |
+| Backend Guest AI: `GuestAiConfigTest`, `GuestAiSearchControllerTest` | Bean registration and `@ConditionalOnDatabase` activation; 10 integration tests (happy path, validation, degraded gateway) and 21 edge-case tests (vague query, flagged input, null filters, invalid LLM output, partial dates, Unicode, blocked/refused/auth errors, throttling, concurrency). `GuestWalletControllerTest` has 10 pre-existing failures in the full suite due to a Testcontainers context-cache issue (D116); it passes in isolation. |
+| Backend ticket assistant: `ClarifyFeatureTest`, `ClarifySafetyTest`, `ClarifyRenderingTest`, `AssistantPropertiesTest`, `AssistantContextBuilderTest`, `AssistantFlowTest`, `AssistantConcurrencyTest`, `AssistantRunnerTest`, `AssistantBoundaryTest`, `AssistantTriggerTest`, `AssistantSwitchTest`, `AssistantPostingTest`, `AssistantReadApiTest`, `TicketAssistantRepositoryTest`, `TicketAssistantMigrationTest`, `ClarifyGatewayContractTest`, `AssistantMockEndToEndTest` | Output contract and screens, fixed rendering, settings, trusted context and replay order, lifecycle and degraded matrix, row locking and cap chains (late replies, Agent takeover, duplicate events), bounded runner, listener failure containment, SYSTEM posting and Host isolation, the seven-field Agent projection, V006 on a populated database, the real gateway against a stub transport, and the whole flow in mock mode without credentials |
+| Frontend ticket assistant: `DisputeDetail.test.tsx`, `ThreadPanel.test.tsx`, `MessageThread.test.tsx`, `ConversationList.test.tsx`, `message-role.test.ts`, `AuditLogView.test.tsx` | Every panel state and warning, headed draft sections, 40/20/40 layout and shared resize, insertion permissions and dirty-notes preservation, literal rendering of hostile text, SYSTEM labels and alignment, ticket previews, and the assistant audit actions |
+| Tuning kit: `node tools/prompt-tuning/ticket-clarify/run.mjs --selftest` | Offline checks of the runner, screens mirror and synthetic ticket set (no network) |
+| Frontend Guest pages: `search/page.test.tsx`, `trips/page.test.tsx`, `messages/page.test.tsx`, `wallet/page.test.tsx` | Listing search and detail sheet, trip cards with cancel/review dialogs, conversation list with message threads and ticket filing, wallet balance/transaction display, and 7 AI search bar tests (renders, disabled states, explanation display, degraded alert, clear action, manual fallback). Firebase and backend requests are mocked. |
+| Backend Agent API integration: `AgentDisputeControllerTest`, `AgentMessageControllerTest`, `AgentAccountControllerTest`, `AgentAuditControllerTest`, `AgentCategoryControllerTest`, `AgentCrossRoleContractTest` | Every agent operation, its validation and error rows, the audit rows, the Singapore-day boundary, literal `%` and `_` in search, the cascade and its rollback, and the contract with the Guest and Host APIs. They extend `AgentApiIntegrationTest` (security on, database reset before and after each test, shared service spies). |
+| Backend Agent concurrency and performance: `AgentDisputeConcurrencyTest`, `AgentAccountConcurrencyTest`, `AgentListPerformanceTest` | Two real threads race for one ticket or one account and exactly one wins (the tests fail without the row lock); the queue, accounts and audit lists stay under 5 s at 300 tickets, 300 accounts and 2,000 audit rows, with the 95th percentile logged. |
+| Backend API foundation: `ApiLayerTest`, `ApiFoundationIntegrationTest`, `ApiErrorMappingIntegrationTest` | The layering rules and their fixtures, the actor and path filters, the size and no-store filters, and the error table. |
+| Frontend Agent pages: the `DisputeQueue`, `DisputeDetail`, `ResolutionDialogs`, `AccountsTable`, `AuditLogView`, `CategoriesTable`, `AgentDialog`, `AgentGrid`, `SessionNotice` and `usePolling` tests, `RoleNavbar.test.tsx`, `format.test.ts` | States, polling, the resolution dialogs' request bodies, double-click and 409 handling, live audit filters, thread order, grips, session failures and hostile text rendered as text. |
 | Architecture: `LayerDependencyTest`, `UiDependencyTest` | `domain` has no JavaFX or `java.sql` imports; `ui` has no `com.snoozeshare.repository` or `java.sql` imports. |
 | Layout: `AdminFxmlLayoutTest`, `AdminShellInitialsTest`, `ShellLayoutTest`, `AuthLayoutTest` | FXML and CSS content checks; these need no display. |
 | FX smoke and flow: `AdminUiSmokeTest`, `AgentModalTest`, `ResolutionDialogFlowTest`, `CategoryDialogFlowTest` | Real JavaFX toolkit: screens render, dialogs validate and return results, the scrim is added and removed. They skip (`assumeTrue`) when the toolkit cannot start, for example on a headless machine. |
@@ -1523,7 +2599,7 @@ measured for this guide.
 - SQLite returns money columns as `REAL`, so a `BigDecimal` can come back at scale 1 (`150.0`). Assert money with `compareTo`, never `equals`.
 - Tests that match multi-line source text (CSS or FXML snippets) must read it with `testsupport/SourceText.read`, which normalises line endings; on Windows with `core.autocrlf=true` the working copy is CRLF and a raw `\n` match never succeeds.
 - Do not hard-code future calendar dates in booking or search tests: past dates are now rejected, so use dates relative to today (or a fixed `Clock`, as `AvailabilityServiceTest` does).
-- Rebuild `db/snoozeshare-mock.db` from `db/schema.sql` and `db/seed-mock-data.sql` after any seed edit, and keep the ledger invariant (NFR6) true.
+- Rebuild `desktop/db/snoozeshare-mock.db` from `desktop/db/schema.sql` and `desktop/db/seed-mock-data.sql` after any seed edit, and keep the ledger invariant (NFR6) true.
 
 ### Manual
 
@@ -1540,7 +2616,31 @@ measured for this guide.
   7. Open the Categories tab: add, rename and deactivate a category, try a duplicate label, and delete one that no ticket uses.
 - **Expected:** the agent screens use the canvas tab strip and "Fall Light" palette; every modal dims the window behind it with a light-grey scrim; the resolved ticket shows escrow as "Settled" and its actions are disabled; a duplicate category label shows an error; a category used by a ticket cannot be deleted; the Accounts modals show a red (Suspend) or green (Reactivate) banner and refuse an empty reason.
 
-**Host Portal check.**
+**Web authentication check.** A real Firebase sign-up is cheaper to judge by hand than to automate.
+
+- **Prerequisites:** a Firebase project with Email/Password enabled; the backend running with auth on and a local Postgres, and the frontend running with the Firebase values, both as in [Setting Up](#2-setting-up); the Host and Agent codes you chose.
+- **Steps:**
+  1. Signed out, open `/guest`. You should land on `/login?returnTo=%2Fguest`.
+  2. Open `/register`, choose GUEST and create an account. You should land on the Guest shell.
+  3. Sign out. Register a HOST with a wrong code: the page says "Registration code is invalid" and the Firebase console shows no new user.
+  4. Register the HOST with the right code. You should land on the Host shell.
+  5. While signed in as the Host, open `/guest`. You should be sent to `/host`.
+  6. Try to register an AGENT with the Host code. It should be refused.
+  7. Enter wrong codes six times in a row. The page says "Too many attempts. Try again later".
+  8. On `/forgot-password`, request a reset for a registered email and check the mail arrives.
+- **Expected:** each role reaches only its own shell, a wrong code never creates a Firebase user, and the limiter stops repeated guesses.
+
+**Web Host browser acceptance.** Use this for authenticated browser behavior and responsive layout; API contracts and state transitions are covered by automated tests.
+
+- **Prerequisites:** local PostgreSQL, backend and frontend running with auth enabled; an active Host profile and a normal signed-in browser session. Do not copy or share bearer tokens.
+- **Steps:**
+  1. Open `/host/listings`, `/host/listings/new`, an owned listing's detail, edit and calendar routes, `/host/requests`, `/host/messages` and `/host/wallet`.
+  2. Inspect loading, empty/populated and route-load failure states; confirm listing route/load errors offer **Back to Listings**, while field validation and mutation errors stay inline.
+  3. In browser Network tools, confirm each Host data set is fetched once, collection/history URLs contain no `page` or `size`, and no polling or duplicate GET loop occurs. Do not submit booking, message, block or wallet mutations during this read-only check.
+  4. Check the pages at desktop, tablet and narrow mobile widths; verify there is no horizontal document overflow and long tables scroll inside their page regions.
+- **Expected:** authenticated Host pages render API-backed state, the calendar remains mounted while changing months, and each collection appears complete in its existing scroll region. The W-HOST-API acceptance run recorded authenticated GET-only captures for all eight routes and no pagination parameters (T17).
+
+**Desktop Host Portal check (JavaFX).**
 
 - **Prerequisites:** as above; log in as `diego.fernandez@snoozeshare.test`.
 - **Steps:**
@@ -1558,7 +2658,7 @@ measured for this guide.
   subscriptions; Host pages use `host-theme.css`, not Agent styling; booking completion skips open
   or in-review tickets.
 
-**Host Messages check.**
+**Desktop Host Messages check (JavaFX).**
 
 - **Prerequisites:** as above.
 - **Steps:**
@@ -1580,6 +2680,30 @@ measured for this guide.
   6. Scroll the table: the header stays fixed; check the same on the Disputes and Categories tabs, and that hovering a row shows a grey background without a hand cursor.
 - **Expected:** filters combine as described in [4.14](#414-audit-trail); the red Clear button resets them; the ticket resolution appears as its ticket, booking and wallet rows; table headers stay put while rows scroll.
 
+
+**Host AI assistant check.** The assistant is a browser-specific interaction and visual check; repeat it after changing the Host listing form, modal layout, or AI response handling.
+
+- **Prerequisites:** local backend and frontend running with Host authentication and AI enabled as in [Setting Up](#2-setting-up), a Host account, and a New or Edit listing draft.
+- **Steps:**
+  1. Leave one of the seven required listing details empty. Confirm the AI Description Assistant trigger is disabled and hovering it explains which details are required.
+  2. Complete the required details and open the assistant. Check the listing-information subtitle, Host-style dropdowns, current description and generated-description panels.
+  3. Enter a current description and choose Evaluate. Confirm the current analysis shows clarity, completeness and accuracy without changing the form description.
+  4. Choose a writing style, target audience and focus, then choose Generate. Confirm the current and generated analyses are shown, the generated text is read-only, and all fields/actions are disabled only while the request is pending.
+  5. Trigger a degraded or error response. Confirm a user-facing message appears above the action buttons and all controls become usable again.
+  6. Close with Escape, the X and the backdrop. Reopen and confirm assistant preferences/results persist while the current description refreshes from the form. Apply a generated description and confirm only the form description changes and the assistant resets its defaults.
+  7. Repeat at desktop, tablet and 390px widths. Confirm the modal scrim fills the viewport, action buttons stay aligned at the bottom, descriptions and analyses remain paired, and the listing detail page preserves description line breaks.
+- **Expected:** the assistant never saves a listing directly; only explicit Apply updates the form, and incomplete drafts cannot invoke AI.
+
+**AI gateway live check.** Whether SoCLaaS behaves as the gateway assumes can only be judged against the real service, so repeat this after changing a model name, the base URL or a limit, and before a role feature relies on a model.
+
+- **Prerequisites:** your environment's own SoCLaaS key in `$env:SOCLAAS_API_KEY` in the shell you use (never in a file, and never printed); `curl.exe`.
+- **Steps:**
+  1. List the models: `curl.exe -sS https://soclaas-api.comp.nus.edu.sg/v1/models -H "Authorization: Bearer $env:SOCLAAS_API_KEY"`. Check that the three configured names appear and are chat models.
+  2. Post one chat request per model to `/v1/chat/completions` with a small `max_tokens`, then again with `"reasoning_effort":"none"` and with `"response_format":{"type":"json_object"}`. Note the status, `finish_reason` and whether `content` is empty.
+  3. Read your key's limits from `https://soclaas-portal.comp.nus.edu.sg/api-key/budget` and check that `max-rpm` is below `requests_per_minute_limit`.
+  4. On the Render dev service, set `SNOOZESHARE_AI_ENABLED=true`, `SOCLAAS_BASE_URL` and `SOCLAAS_API_KEY`, redeploy, and read the startup log.
+- **Expected:** the models are listed; `reasoning_effort` `none` returns a short non-empty `content` with `finish_reason` `stop`; the log shows `SoCLaaS reachable: N models listed, all configured models present`, or one warning naming a missing model or the failing status. The results of the first run are in [4.20](#420-ai-gateway-backendai).
+
 ---
 
 ## 8. Acknowledgements
@@ -1589,6 +2713,7 @@ measured for this guide.
 * [JUnit 5](https://junit.org/junit5/) provides the test framework, and [TestFX](https://github.com/TestFX/TestFX) drives the JavaFX smoke tests.
 * [Gradle](https://gradle.org/) and the [Gradle Wrapper](https://docs.gradle.org/current/userguide/gradle_wrapper.html) provide the build and dependency-management workflow. The project also uses the [Shadow](https://gradleup.com/shadow/) plugin to create a runnable fat JAR.
 * [Checkstyle](https://checkstyle.org/) enforces the source style checks run by `.\gradlew build`.
+* [Spring Boot](https://spring.io/projects/spring-boot), [Spring Data JPA](https://spring.io/projects/spring-data-jpa) with [Hibernate](https://hibernate.org/), [Flyway](https://flywaydb.org/) and [Testcontainers](https://testcontainers.com/) provide the backend; [Next.js](https://nextjs.org/) and [Vitest](https://vitest.dev/) the frontend; [Render](https://render.com/), [Vercel](https://vercel.com/) and [Neon](https://neon.tech/) host the dev environment.
 * [Jekyll](https://jekyllrb.com/) and [GitHub Pages](https://pages.github.com/) render the User Guide and this guide.
 * [Superpowers](https://github.com/obra/superpowers) supplied the agent skills for brainstorming, planning and subagent-driven development. The copies the project uses are committed in `.claude/skills/`.
 * Anthropic Claude (through Claude Code) and OpenAI Codex were the AI tools used during development. The project-specific conventions and constraints they worked under are recorded in `AGENTS.md`, and the session history is summarised in [Reflections](reflections/).

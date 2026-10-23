@@ -12,7 +12,7 @@ Two documents carry the project's memory:
 | | `PROJECT_STATE.md` | Branch state |
 |---|---|---|
 | **Path** | repo root | `docs/project-state/branch-states/<slug>.md` |
-| **Describes** | `main` — what is merged, decided and handed over | what **one branch** has added or changed |
+| **Describes** | `INT` — what is merged, decided and handed over | what **one branch** has added or changed |
 | **Written by** | the `sync-project-state` skill (the owner may edit it directly for a hotfix) | every agent working on that branch |
 | **Lives** | permanently | until the branch merges and is folded in, then archived |
 | **IDs** | permanent (`C14`) | provisional (`C~1`), numbered at fold |
@@ -25,7 +25,7 @@ these documents do. **Anything not written there did not happen.**
 
 Branches never edit `PROJECT_STATE.md`, so they cannot conflict on it or collide on its ID
 numbers. They read it for context and write to their own branch state. After the merge, the
-project owner runs `sync-project-state` by hand to fold the branch state in.
+agent asks the project owner and runs `sync-project-state` on their yes (`AGENTS.md` § 8) to fold the branch state in.
 
 `PROJECT_STATE.md` is an **index, not a library** — with one exception: a fact that contradicts
 or post-dates every spec and plan has nowhere else to live, so it lives in full. Everything else is
@@ -65,15 +65,16 @@ one-line fix still gets a Changes line, and if it diverges from a plan, contradi
 leaves a trap, it also gets a Deviations entry — that is where the detail belongs. Only pure
 no-ops (formatting, a typo in a comment) can pass unwritten.
 
-**The owner's hotfix exception.** The project owner may edit `main` directly for a hotfix or a
+**The owner's hotfix exception.** The project owner may edit `INT` directly for a hotfix or a
 tiny edit, with no branch state. They write `PROJECT_STATE.md` and the ledger by hand, and the
 change still gets its Done line.
 
 Ambiguous size? **Treat it as big.** A spec you did not need costs twenty minutes; a feature
 built without one costs a rewrite.
 
-Use `superpowers:brainstorming` for the spec and `superpowers:writing-plans` — or the
-`reviewed-plan` skill — for the plan.
+Use `writing-specs-lite` for the spec, `writing-plans-lite` for the plan and
+`executing-plans-lite` to implement it (the repo defaults). `brainstorming`, `writing-plans` and `reviewed-plan` remain available only when the
+operator asks for them by name.
 
 **If the operator asks to skip the spec or the plan on a big change:** say so once, then do as
 asked. It is their call. Record the skip as a decision, so the missing document is visible to
@@ -93,9 +94,24 @@ does not show they knew it overturns a recorded decision. This takes precedence 
 skip-the-spec rule above. If the operator is unavailable, stop and put the question in the
 branch state's Needs a Human.
 
+## Branch Model: `INT`
+
+The skills say `INT` for the **integration branch**: the branch feature branches merge into, where
+`PROJECT_STATE.md` and the developer guide are written and where a branch state is folded. Resolve it
+once per session, before anything that names it:
+
+1. Read `AGENTS.md` § 1 (Branches) or the `Branch:` line of `PROJECT_STATE.md`.
+2. If neither says, run `git symbolic-ref --short refs/remotes/origin/HEAD` (the default branch).
+3. If the project has an intermediate branch between feature branches and `main` (for example
+   `development`), `INT` is that branch and `main` is the **release branch**: it only receives `INT` by
+   pull request, and no state file or guide is written on it. If there is no such branch, `INT` is `main`.
+4. Still unclear: ask the owner once and record the answer in `AGENTS.md` § 1.
+
 ## Write Immediately When
 
-On a branch, **write to the branch state**; `PROJECT_STATE.md` is read-only there.
+On a branch, **write to the branch state**; `PROJECT_STATE.md` is read-only there. The branch state
+keeps every `PROJECT_STATE.md` heading; one with nothing to change says `No change.` (Architecture,
+Conventions and Known Gaps add a one-line reason), and you rewrite that line the moment it stops being true.
 
 1. **A workstream changes status, or a task starts, finishes, or blocks** — update its row and
    Progress cell. A guide-related note goes in the row too; the guide itself is handled at sync.
@@ -111,8 +127,8 @@ On a branch, **write to the branch state**; `PROJECT_STATE.md` is read-only ther
 7. **The session is ending, context is low, or you are about to compact** — reconcile your
    session row and § Remaining so a different session can take over cold. Anything that should
    outlive the branch is marked **Handover**.
-8. **You merge `main` into the branch** — diff `PROJECT_STATE.md` since the branch state's
-   `Base`, re-check every area and entry the branch edits, then move `Base` to the new `main` sha.
+8. **You merge `INT` into the branch** — diff `PROJECT_STATE.md` since the branch state's
+   `Base`, re-check every area and entry the branch edits, then move `Base` to the new `INT` sha.
 9. **The branch is finished** — empty the session table, set `Status: In review`, and tell the
    project owner. See below.
 
@@ -124,14 +140,14 @@ task is not complete until the branch state reflects it.**
 `Draft` → `In review` → `Approved` → `Folded`.
 
 - Agents set `Draft` (creating the file) and `In review` (spec, plan, build and review are done and
-  the session table is empty).
+  the session table is empty), then ask the owner to review (`AGENTS.md` § 8, gate 3).
 - **Only the project owner sets `Approved`**, with their name and the date. An agent never
   approves a branch, and never writes the `Approved` field on its own initiative.
-- **Do not merge a branch to `main` until it is `Approved` and its session table is empty.** If
+- **Do not merge a branch to `INT` until it is `Approved` and its session table is empty.** If
   you are asked to merge one that is not, say so and ask.
-- After the merge, the owner invokes `sync-project-state` — it refuses a state that is not
+- After the merge, the agent asks the owner and runs `sync-project-state` on their yes — it refuses a state that is not
   `Approved`, so approval can still be given at that point. A file left in `branch-states/` on
-  `main` means a fold is pending; reconciliation reports it.
+  `INT` means a fold is pending; reconciliation reports it.
 
 ## Two Things Agents Get Wrong
 
@@ -176,9 +192,16 @@ is in § Workstreams and § Changes.
 `—` · `Awaiting confirmation` · `Pending` · `Documented YYYY-MM-DD` · `N/A`, owned by the
 `update-documentation` skill. It tracks the guide, not the build.
 
+**On a branch the Guide cell stays `—` (or `N/A`, with the reason in Progress), even when the workstream
+is `Done` and the operator has confirmed the guide.** Only `sync-project-state` sets
+`Awaiting confirmation`, at fold on `development`; the update-documentation checkpoint then runs there.
+Record a branch-side confirmation as text in Progress (`guide confirmed by <owner> <date>`) and add
+`guide out of date: <what>`, so the fold carries both. Never write the guide itself on a branch.
+
 ## Red Flags — Stop and Write
 
 - "I'll update the branch state at the end" → you will run out of context first.
+- "The workstream is `Done` and the owner confirmed the guide, so I'll set Guide to `Awaiting confirmation` or `Pending`" → not on a branch. Leave `—`, write `guide confirmed by <owner> <date>` and `guide out of date: <what>` in Progress; the fold sets the value.
 - "It's a small change" → small changes are recorded too. Always.
 - "I'll just edit `PROJECT_STATE.md`, it's quicker" → on a branch it is read-only. Write the
   branch state; sync does the rest.
@@ -207,7 +230,7 @@ Read these on demand, not every session:
 
 | File | Read it when |
 |---|---|
-| [reconciliation.md](reconciliation.md) | Session start, after reading the files — verifying them against the repo, merging `main` into a branch, and resolving doc-vs-repo conflicts |
+| [reconciliation.md](reconciliation.md) | Session start, after reading the files — verifying them against the repo, merging `INT` into a branch, and resolving doc-vs-repo conflicts |
 | [branch-state-template.md](branch-state-template.md) | Creating a branch state — the skeleton to copy, and how to write How to Resume |
 | [document-structure.md](document-structure.md) | Writing a non-obvious entry — what each section is for, the branch-state rules, how to structure § Architecture, how terse the Progress cell must be, size and archive limits |
 | [worked-examples.md](worked-examples.md) | Writing a Next action, decision, deviation, session row or Changes line — good and bad versions of each |

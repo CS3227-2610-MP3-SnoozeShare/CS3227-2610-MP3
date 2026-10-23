@@ -1,0 +1,18 @@
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: snoozeshare
+      POSTGRES_USER: snoozeshare
+      POSTGRES_PASSWORD: snoozeshare
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - snoozeshare-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U snoozeshare -d snoozeshare"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+volumes:
+  snoozeshare-pgdata:

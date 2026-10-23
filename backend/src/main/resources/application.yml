@@ -1,0 +1,53 @@
+spring:
+  profiles:
+    default: dev
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+  config:
+    import: optional:classpath:application-local.yml
+  datasource:
+    hikari:
+      connection-timeout: 5000
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+server:
+  port: ${PORT:8080}
+snoozeshare:
+  persistence:
+    enabled: true
+  audit:
+    # Audit From/To dates are whole days in this zone
+    zone: Asia/Singapore
+  assistant:
+    # Ticket clarification assistant; the AI gateway switch (snoozeshare.ai.enabled) stays the production off switch
+    enabled: ${SNOOZESHARE_ASSISTANT_ENABLED:true}
+    max-rounds: ${SNOOZESHARE_ASSISTANT_MAX_ROUNDS:3}
+    threads: ${SNOOZESHARE_ASSISTANT_THREADS:2}
+    queue: ${SNOOZESHARE_ASSISTANT_QUEUE:50}
+    stale-after-minutes: ${SNOOZESHARE_ASSISTANT_STALE_AFTER_MINUTES:10}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+      discovery:
+        enabled: false
+      cors:
+        allowed-origins: ${snoozeshare.cors.allowed-origin}
+        allowed-methods: GET,OPTIONS
+        allowed-headers: Authorization,Content-Type
+        max-age: 3600s
+  endpoint:
+    health:
+      show-details: never
+      show-components: never
+      probes:
+        enabled: false
+  health:
+    defaults:
+      enabled: false
+    db:
+      enabled: true

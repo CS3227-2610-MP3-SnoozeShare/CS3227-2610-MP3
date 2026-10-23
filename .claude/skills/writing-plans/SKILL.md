@@ -1,6 +1,6 @@
 ---
 name: writing-plans
-description: Use when you have a spec or requirements for a multi-step task, before touching code
+description: NOT the repo default - use writing-plans-lite unless the operator names this skill. Use when you have a spec or requirements for a multi-step task, before touching code
 ---
 
 # Writing Plans

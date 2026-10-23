@@ -21,7 +21,7 @@ branch state), before acting on either.
    `Last touched` that predates recent git activity on the branch is a session that died without
    saying so — mark it `Paused` (or delete it if its work already landed) rather than leaving it
    looking live. Check that each **Next action** is still the right step.
-5. **On `main`: pending folds.** List the non-archived files in
+5. **On `INT`: pending folds.** List the non-archived files in
    `docs/project-state/branch-states/`. Each is a branch that merged without being folded in, or one
    still in flight. If its branch is merged, tell the project owner a `sync-project-state` run is
    due; do not fold it yourself unless asked.
@@ -30,8 +30,8 @@ branch state), before acting on either.
    verification, does its area in `PROJECT_STATE.md` § Architecture still describe the code? On a
    branch, does each proposed **Now** in the branch state describe what the branch's code does? A
    "Now" that describes last month's design is the same failure as a stale `Building` row.
-8. **On a branch: `Base`.** Compare the branch state's `Base` with the tip of `main`. If `main` has
-   moved, follow [After Merging `main` into a Branch](#after-merging-main-into-a-branch) when you
+8. **On a branch: `Base`.** Compare the branch state's `Base` with the tip of `INT`. If `INT` has
+   moved, follow [After Merging `INT` into a Branch](#after-merging-int-into-a-branch) when you
    next merge it; note it now if the areas you edit are among those that changed.
 9. **Guide column** — only if the project keeps a developer guide (`docs/DeveloperGuide.md`). List
    `PROJECT_STATE.md` rows whose Guide is `Awaiting confirmation` or `Pending`, or whose Progress
@@ -40,11 +40,11 @@ branch state), before acting on either.
    skill.
 10. **On a branch: your own session row.** If it is not there yet, add it before doing anything
     else — a different session may otherwise duplicate your work.
-11. **What to do next.** On `main`, the first row of § How to Resume → Upcoming. On a branch, the
+11. **What to do next.** On `INT`, the first row of § How to Resume → Upcoming. On a branch, the
     `Active` and `Paused` session rows and § Remaining. Still right, given 1–10?
 
 Correct what you find, then stamp `Last verified against repo` with today's date — in
-`PROJECT_STATE.md` on `main` only; on a branch, correct the branch state and note the date in its
+`PROJECT_STATE.md` on `INT` only; on a branch, correct the branch state and note the date in its
 `Last updated` line.
 
 Cheap version — the whole check is usually under a minute:
@@ -54,7 +54,7 @@ git log --oneline -20
 git status --short
 ls docs/superpowers/specs docs/superpowers/plans
 ls docs/project-state/branch-states
-git rev-parse origin/main        # compare with the branch state's Base
+git rev-parse origin/INT        # compare with the branch state's Base
 grep -E "Awaiting confirmation|Pending|guide out of date" PROJECT_STATE.md
 ```
 
@@ -75,20 +75,20 @@ unrecoverable.
 A well-written stale file looks exactly like a well-written current one. The check is cheap
 precisely so that it can be unconditional.
 
-## After Merging `main` into a Branch
+## After Merging `INT` into a Branch
 
-Merging `main` brings in other branches' folded work, and nothing in `PROJECT_STATE.md` is yours,
+Merging `INT` brings in other branches' folded work, and nothing in `PROJECT_STATE.md` is yours,
 so there is nothing to resolve there. The risk is that your branch state was written against an
-older `main`.
+older `INT`.
 
-1. `git diff <Base> main -- PROJECT_STATE.md` — what changed on `main` since your `Base`.
+1. `git diff <Base> INT -- PROJECT_STATE.md` — what changed on `INT` since your `Base`.
 2. For every area, Workstream row, Convention or Known Gap your branch state **edits** (not merely
    adds), check whether that entry changed. If it did, redraft your proposed text on top of the new
-   one, keeping what `main` added; if the two cannot both be true, put the question in Needs a
+   one, keeping what `INT` added; if the two cannot both be true, put the question in Needs a
    Human rather than guessing.
 3. Check your provisional IDs still make sense — an ID you cite as permanent (`C14`) may have been
    superseded.
-4. Move `Base` to the new `main` sha and update `Last updated`.
+4. Move `Base` to the new `INT` sha and update `Last updated`.
 
 If two people share the branch and collide inside the branch state itself, keep both session rows
 and both entries; the append-only sections never need one side dropped.

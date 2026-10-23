@@ -1,0 +1,218 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * SnoozeShare Fall Light
+ *
+ * The web design system follows the Claude artifact first, then the
+ * consolidated JavaFX Fall Light styles. Keep shared visual decisions here;
+ * role pages should add layout and behavior, not duplicate these tokens.
+ */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: "Segoe UI", system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+}
+
+:root {
+  /* Fall Light canvas and surfaces */
+  --background: #fdf8f0;
+  --foreground: #100604;
+  --card: #ffffff;
+  --card-foreground: #100604;
+  --popover: #ffffff;
+  --popover-foreground: #100604;
+  --muted: #f0e8d8;
+  --muted-foreground: #6c4434;
+  --secondary: #f0e8d8;
+  --secondary-foreground: #381a10;
+
+  /* Fall Light semantic colors */
+  --primary: #98300c;
+  --primary-foreground: #fdf8f0;
+  --accent: #fde8d8;
+  --accent-foreground: #98300c;
+  --destructive: #980c1c;
+  --border: #c0a080;
+  --input: #c0a080;
+  --ring: #98300c;
+
+  /* Additional tokens shared by future role pages */
+  --surface-overlay: #ffffff;
+  --surface-inset: #f0e8d8;
+  --text-muted: #381a10;
+  --text-subtle: #6c4434;
+  --border-muted: #d8c4a8;
+  --success: #40680c;
+  --success-subtle: #e8f8d0;
+  --warning: #7e5400;
+  --warning-subtle: #fff4d8;
+  --danger-subtle: #fcd8da;
+
+  /* Artifact spacing: 4 / 8 / 12 / 16 / 20 / 24px */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+
+  /* Artifact type scale: 28 / 20 / 15 / 13 / 11px. */
+  --text-display: 1.75rem;
+  --text-heading: 1.25rem;
+  --text-body: 0.9375rem;
+  --text-caption: 0.8125rem;
+  --text-label: 0.6875rem;
+
+  /* Artifact radii: controls, cards/dialogs, pills */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-pill: 999px;
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: #100604;
+  --sidebar-primary: #98300c;
+  --sidebar-primary-foreground: #fdf8f0;
+  --sidebar-accent: #fde8d8;
+  --sidebar-accent-foreground: #98300c;
+  --sidebar-border: #d8c4a8;
+  --sidebar-ring: #98300c;
+  --chart-1: #98300c;
+  --chart-2: #40680c;
+  --chart-3: #7e5400;
+  --chart-4: #980c1c;
+  --chart-5: #6c4434;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply font-sans;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    font-size: 13px;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [role="button"][aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* Shared component primitives from the artifact and JavaFX styles. */
+  .ss-card {
+    @apply rounded-md border bg-card;
+    box-shadow: 0 4px 14px rgb(16 6 4 / 8%);
+  }
+
+  .ss-pill {
+    @apply inline-flex items-center rounded-full px-3 py-1 text-[0.6875rem] font-bold;
+  }
+
+  .ss-status-active,
+  .ss-status-success {
+    @apply bg-[var(--success-subtle)] text-[var(--success)];
+  }
+
+  .ss-status-pending,
+  .ss-status-warning {
+    @apply bg-[var(--warning-subtle)] text-[var(--warning)];
+  }
+
+  .ss-status-danger {
+    @apply bg-[var(--danger-subtle)] text-destructive;
+  }
+
+  .ss-status-neutral {
+    @apply bg-muted text-muted-foreground;
+  }
+
+  /* Slim rounded scroll bar of the agent tables, chat boxes and lists (agent-theme.css .scroll-bar rules). */
+  .agent-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  @supports not (scrollbar-color: auto) {
+    .agent-scroll::-webkit-scrollbar { width: 10px; height: 10px; }
+    .agent-scroll::-webkit-scrollbar-track { background: transparent; }
+    .agent-scroll::-webkit-scrollbar-thumb {
+      background: var(--border);
+      background-clip: content-box;
+      border: 2px solid transparent;
+      border-radius: 999px;
+    }
+    .agent-scroll::-webkit-scrollbar-thumb:hover { background: var(--text-subtle); background-clip: content-box; }
+  }
+
+  button[class~="border"]:not(:disabled):hover,
+  button[class*="border-border"]:not(:disabled):hover,
+  a[href][class~="border"]:hover,
+  a[href][class*="border-border"]:hover {
+    background-color: var(--surface-inset);
+  }
+}
