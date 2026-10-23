@@ -7,9 +7,9 @@ after the branch merges.
 - **Branch:** W-AI-AGENT (from `development` at `4f87cfa`)
 - **Base:** `42128e6` (development tip after the W-AGENT fold and guide update; merged into this branch 2026-10-23, diff of `PROJECT_STATE.md` checked: only the Guide cell and the guide rows changed, nothing this branch edits)
 - **Owner:** Xiao-Congchen
-- **Status:** In review
-- **Approved:** — (v3-P13 prompt selection changed the previously approved prompt; fresh gate 3 review required)
-- **Last updated:** 2026-10-23 by Codex — selected v3-P13 pinned and live-evaluated; 690 backend tests pass, but full build could not be confirmed after JVM native-memory failure
+- **Status:** Approved
+- **Approved:** Xiao-Congchen 2026-10-23 (re-approved after the v3-P13 prompt selection; full backend build green)
+- **Last updated:** 2026-10-23 by Claude Sonnet 5.5 — gate 3 re-approved by the owner; Agent portal layout (three columns, assistant table) added
 
 ---
 
@@ -35,7 +35,6 @@ Row added to `PROJECT_STATE.md` § Orientation:
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| This session | 2026-10-23 | Codex | W-AI-AGENT | In progress | Pin operator-selected v3-P13 prompt; full 21-ticket evaluation and KEEP recorded | Retry full backend build when JVM memory is available; complete fresh code review and gate 3 | 2026-10-23 |
 
 **Remaining**
 
@@ -164,6 +163,7 @@ Accepted limitations are the spec's R12 list (conventions.md): a call lost at a 
 
 | Date | What changed | Workstream | Ref |
 |---|---|---|---|
+| 2026-10-23 | Gate 3 re-approved by Xiao-Congchen after the v3-P13 prompt change (full backend build green, session table emptied). Agent portal UI: assistant card moved between Guest and Host chats in a 40/20/40 grid sharing one resize height, rendered as a headed table; SYSTEM bubbles align with Agent bubbles; synthetic "ticket opened" bubble removed (remedy kept in the opening bubble); notes box uses the chat background | W-AI-AGENT | This session |
 | 2026-10-23 | Full backend build (tests, Checkstyle, package) passes on the tree with the v3-P13 `ClarifyPrompt` and its pin test, after the merge of `development`. Prompt and state committed | W-AI-AGENT | This session |
 | 2026-10-23 | Gate 3 approved by Xiao-Congchen (operator: "approve gate"); tuning-kit edits committed in two units (runner/corpus/README; v1–v3 prompts with the v3 KEEP row, C~20). The full backend build was left to the other session already running it, so none was started here. Push/PR not authorized | W-AI-AGENT | This session |
 | 2026-10-23 | Close-out: architecture 4.17, conventions and Known Gaps written; code review (7 findings): strengthened E44/E45/E8 assertions and imports, connection-pool risk recorded as a gap. Backend build/Checkstyle, frontend 351 tests/lint/build and kit selftest pass. Operator tuning KEEP (Q~4) not run | W-AI-AGENT | This session |
