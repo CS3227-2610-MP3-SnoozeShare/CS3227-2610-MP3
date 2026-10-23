@@ -115,6 +115,23 @@ describe('AuditLogView (F11, F15)', () => {
     expect(screen.getByRole('button', { name: 'Action type' })).toHaveTextContent('2 selected');
   });
 
+  it('lists, shows and filters the assistant actions (E62)', async () => {
+    api.actions = () => Promise.resolve(['ASSISTANT_STATE', 'ASSISTANT_MESSAGE', 'TOP_UP']);
+    audit.mockResolvedValue([
+      entry(1, { actionType: 'ASSISTANT_STATE', actorName: 'System', beforeState: 'PENDING', afterState: 'WAITING_GUEST' }),
+      entry(2, { actionType: 'ASSISTANT_MESSAGE', actorName: 'System', entityType: 'Message', beforeState: null, afterState: 'QUESTION' }),
+    ]);
+    render(<AuditLogView />);
+
+    expect(await screen.findByText('ASSISTANT_STATE')).toBeInTheDocument();
+    expect(screen.getByText('ASSISTANT_MESSAGE')).toBeInTheDocument();
+    expect(screen.getByText('Pending → Waiting guest')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Action type' }));
+    fireEvent.click(await screen.findByLabelText('ASSISTANT_STATE'));
+    await waitFor(() => expect(audit).toHaveBeenLastCalledWith({ ...EMPTY, actions: ['ASSISTANT_STATE'] }, 0));
+  });
+
   it('shows Load more only after a full page and appends the next one', async () => {
     const page = Array.from({ length: 200 }, (_, n) => entry(n));
     audit.mockResolvedValueOnce(page).mockResolvedValueOnce([entry(200)]);
