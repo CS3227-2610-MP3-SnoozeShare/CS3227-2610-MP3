@@ -9,7 +9,7 @@ after the branch merges.
 - **Owner:** Xiao-Congchen
 - **Status:** Draft
 - **Approved:** —
-- **Last updated:** 2026-10-23 by Codex — Wave 1 original scope committed; SD22 spec approved; revising plan
+- **Last updated:** 2026-10-23 by Codex — SD22 spec approved; revised plan lint clean/reviewed; gate 2 next
 
 ---
 
@@ -35,7 +35,6 @@ Row added to `PROJECT_STATE.md` § Orientation:
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S5 | 2026-10-23 | Codex | W-AI-AGENT | Building | Operator approved SD22 spec; revising plan to resume building | Add E89–E92, marker renderer/test changes and tuning parity to existing tasks, lint/review, then ask revised-plan gate 2 | 2026-10-23 |
 
 **Remaining**
 
@@ -44,7 +43,7 @@ Row added to `PROJECT_STATE.md` § Orientation:
 - [ ] The operator tunes the prompt with `tools/prompt-tuning/ticket-clarify/` in parallel with the build; the committed prompt needs a `KEEP` row in that kit's `CHANGELOG.md` before merge (spec conventions R15)
 - [ ] Tuning-kit gross-gap review completed (D~4); resolve Q~2, address evaluator parity/scoring gaps, then run matched repeated variants. No live eval yet; `SOCLAAS_API_KEY` is absent from the review shell.
 - [x] Gate 2: Approved (Xiao-Congchen, 2026-10-23); operator said "approve" to the plan approval question. Start executing-plans-lite without another implementation approval.
-- [ ] Resume executing-plans-lite after SD22 spec and revised-plan approvals. Original T1/T3/T8 are Done and committed; reopen T3/T8 as needed for SD22 test/marker changes before Wave 2. Do not start T2/T6 until amendment gates clear.
+- [ ] Revised-plan gate 2: ask approval of docs/superpowers/plans/2026-10-23-w-ai-agent.md (10 tasks/five waves; E89–E92, UUID builder, tuning parity). On yes write Approved (Xiao-Congchen, current date), run plan lint --approved and start T3 step 7; T8 step 5 can run concurrently. T1 remains Done; continue Wave 2 after reopened Wave 1 verifies.
 - [ ] **Handover:** `docs/DeveloperGuide.md` needs the assistant (data, flow, configuration) at its guide checkpoint
 - [ ] **Handover:** the live SoCLaaS check of the assistant (a real ticket, a real reply) is a post-merge step
 
@@ -54,7 +53,7 @@ Row added to `PROJECT_STATE.md` § Orientation:
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AI-AGENT | Ticket clarification assistant and draft report for the Support Agent | Building | [spec](docs/superpowers/specs/2026-10-23-w-ai-agent-design.md) | [plan](docs/superpowers/plans/2026-10-23-w-ai-agent.md) | Wave 1 original scope done; SD22 spec approval next | — |
+| W-AI-AGENT | Ticket clarification assistant and draft report for the Support Agent | Building | [spec](docs/superpowers/specs/2026-10-23-w-ai-agent-design.md) | [plan](docs/superpowers/plans/2026-10-23-w-ai-agent.md) | SD22 plan reviewed; gate 2 next, then T3 step 7 | — |
 
 ---
 
@@ -90,7 +89,7 @@ No new accepted limitations beyond the provisional prompt and existing screen/pr
 
 | ID | What is needed | What it blocks | Raised |
 |---|---|---|---|
-| Q~2 | SD22 spec approved; revise/review the implementation plan and obtain gate 2 approval before new behavior is built. Apology variants remain unapproved | New email adoption and resumed implementation | 2026-10-23 |
+| Q~2 | SD22 spec approved and revised plan reviewed without blockers; obtain gate 2 approval. On yes mark plan Approved, run approved lint, then execute T3 step 7 and T8 step 5 before Wave 2. Apology variants remain unapproved | Resumed implementation | 2026-10-23 |
 
 ---
 
@@ -128,6 +127,8 @@ No new accepted limitations beyond the provisional prompt and existing screen/pr
 
 | Date | What changed | Workstream | Ref |
 |---|---|---|---|
+| 2026-10-23 | SD22 revised plan ready: 10 tasks/five waves unchanged, all 89 E rows traced; T3/T8 reopened with historical steps retained. Read-only Implementer review has no blockers/questions/contradictions; plan lint zero errors/warnings. No application code changed this turn. Session/reviewer retired; revised-plan gate 2 next | W-AI-AGENT | This session |
+| 2026-10-23 | Revise SD22 plan without changing tasks/dependencies/waves: reopen T3/T8 continuation, trace E89–E92, define UUID builder/caller and replay tests, scope tuning marker parity and safe v4 variant. Plan lint zero errors/warnings; required read-only review in flight | W-AI-AGENT | This session |
 | 2026-10-23 | Record SD22 spec approval and begin the revised-plan update; original Wave 1 commits preserved | W-AI-AGENT | This session |
 | 2026-10-23 | SD22 amendment reviewed: Implementer/Tester/Maintainer round 1 and Attacker rounds 1–2; forged-subject finding fixed with subject/header/UUID screening and explicit R12 residual, normalized-marker and expanded-replay cases clarified. Spec lint: zero errors, one size warning. Plan intentionally awaits SD22 traceability/revision after spec approval. All implementation/reviewer sessions retired; gate 1 next | W-AI-AGENT | This session |
 | 2026-10-23 | T3 original scope done: six production/four test files; focused 22/22, full backend 604/604, Checkstyle and packaging pass; offline kit 35/35. Fix E6 test expectation for shifted newline, not renderer behavior. Provisional prompt excludes unapproved concurrent email/apology changes. SD22 unimplemented; agent retired | W-AI-AGENT | This session |
