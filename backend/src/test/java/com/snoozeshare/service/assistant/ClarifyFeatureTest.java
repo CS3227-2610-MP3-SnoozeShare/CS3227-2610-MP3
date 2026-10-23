@@ -127,13 +127,15 @@ class ClarifyFeatureTest {
         assertThat(validator.validate(json, "stop", feature.output(), "").ok()).as(json).isEqualTo(expected);
     }
 
-    /** The tuning kit's v4 file is the committed prompt; R15 requires them to stay identical. */
+    /** The tuning kit's selected v3 file is the committed prompt; R15 requires them to stay identical. */
     @Test
-    void committedPromptMatchesTheTuningKitV4File() throws IOException {
+    void committedPromptMatchesTheSelectedTuningKitFile() throws IOException {
         Path file = Path.of("..", "tools", "prompt-tuning", "ticket-clarify", "prompts",
-            "v4-snoozy-support-documents.txt");
+            "v3-snoozy-examples.txt");
         assumeTrue(Files.exists(file));
         String kit = Files.readString(file).replace("\r\n", "\n").trim();
         assertThat(ClarifyPrompt.TEXT.trim()).isEqualTo(kit);
+        assertThat(kit).contains("Set `enough` to false while another question round is available.");
+        assertThat(kit).contains("never put other text around the marker.");
     }
 }
