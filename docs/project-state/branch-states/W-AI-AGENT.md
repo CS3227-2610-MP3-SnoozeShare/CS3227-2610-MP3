@@ -29,7 +29,7 @@ Row added to `PROJECT_STATE.md` § Orientation:
 
 ## 2. How to Resume
 
-**Setup** — same as `PROJECT_STATE.md`, plus one local detail: this branch lives in a separate git worktree, `S:\CS3227\CS3227-2610-MP3-w-ai-agent` (sibling of the main checkout), because the main checkout stays on `development` while the W-AGENT fold and guide update run there. Do not switch the main checkout's branch.
+**Setup** — same as `PROJECT_STATE.md`. This branch is checked out in the main checkout (`S:\CS3227\CS3227-2610-MP3`). It was briefly kept in a sibling git worktree while the W-AGENT fold ran on `development`; the operator ended that on 2026-10-23 (C~9). A leftover empty folder `S:\CS3227\CS3227-2610-MP3-w-ai-agent` may remain on disk until a process releases it; it is not tracked and can be deleted.
 
 **Sessions**
 
@@ -92,6 +92,7 @@ No change: Q~1 was raised and resolved on this branch (C~7).
 | C~6 | 2026-10-23 | This branch is cut in a separate git worktree and the main checkout stays on `development` | Operator: switching the shared checkout would complicate the W-AGENT fold that another session is running there | Operator conversation |
 | C~7 | 2026-10-23 | Reverse the recorded "new `AI` author role": the assistant uses the existing `SYSTEM` role and user, and the frontend labels every `SYSTEM` message in a ticket thread "Snoozy · Automated assistant". Convention to fold: a SYSTEM-authored ticket-thread message means the automated assistant. Supersedes the Upcoming row "W-AI-AGENT scoping decisions" (its `AI` role part; amends C~2) | Operator, after `AGENTS.md` § 4 confirmation: the frontend can label the messages, and a new `Role` value would ripple through every switch on `Role`. Rejected: an `AI` value (second seeded user, widened `users.role` CHECK, desktop enum copy) | Operator conversation |
 | C~8 | 2026-10-23 | The assistant has a light persona: UI label "Snoozy · Automated assistant"; the prompt asks for a calm, plain, friendly voice for the questions only (no self-introduction, emojis, markdown, apologies or comfort promises) and neutral third-person wording in every other field; English only (the screens are English patterns). The prompt is tuned by the operator with a kit in `tools/prompt-tuning/ticket-clarify/` | Operator chose "named, light touch". Rejected: no persona; a full personality (a playful voice reads as dismissive in a dispute and widens roleplay jailbreaks; safety rests on the schema and the screens) | Operator conversation |
+| C~9 | 2026-10-23 | Work returns to the main checkout: the sibling worktree is retired and the main checkout switches from `development` to this branch. Ends C~6 | Operator: the W-AGENT fold on `development` is done, so the shared checkout is free. Rejected: keeping the worktree | Operator conversation |
 
 ---
 
