@@ -35,6 +35,9 @@ replay_pid*
 # ...except the shared mock reference DB the team commits and diffs together
 !desktop/db/snoozeshare-mock.db
 
+# Firebase service account key
+snoozeshare-firebase-admin-sdk.json
+
 # Agents
 .codex
 
