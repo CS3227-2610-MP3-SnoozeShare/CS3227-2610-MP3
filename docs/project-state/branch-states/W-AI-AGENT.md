@@ -9,7 +9,7 @@ after the branch merges.
 - **Owner:** Xiao-Congchen
 - **Status:** Draft
 - **Approved:** —
-- **Last updated:** 2026-10-23 by Claude Sonnet 5.5 — spec fixed after review round 2
+- **Last updated:** 2026-10-23 by Codex — gate 1 approved; plan writing started
 
 ---
 
@@ -35,11 +35,11 @@ Row added to `PROJECT_STATE.md` § Orientation:
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-23 | Claude Sonnet 5.5 (lead) + four `lite-reviewer` subagents | W-AI-AGENT | Paused | Spec review rounds 1 and 2 done and fixed; Q~1 resolved (C~7); persona decided (C~8); tuning kit built and self-tested | Ask gate 1 (spec approval) naming the spec path, High tier, the four lenses, the decisions and that the round-2 fixes were not re-reviewed; on yes write `Status: Approved (name, date)` in the spec index, run `lint.mjs spec ... --approved`, and start `writing-plans-lite` | 2026-10-23 |
+| S1 | 2026-10-23 | Codex | W-AI-AGENT | Building | Gate 1 approved by Xiao-Congchen; writing the High-risk plan with `writing-plans-lite` | Verify spec files and repository seams, write the T1–T10 plan, lint, dispatch read-only lite-reviewer, then ask gate 2 | 2026-10-23 |
 
 **Remaining**
 
-- [ ] Gate 1: spec reviewed and approved
+- [x] Gate 1: spec reviewed and Approved (Xiao-Congchen, 2026-10-23)
 - [ ] The operator tunes the prompt with `tools/prompt-tuning/ticket-clarify/` in parallel with the build; the committed prompt needs a `KEEP` row in that kit's `CHANGELOG.md` before merge (spec conventions R15)
 - [ ] Gate 2: plan written, reviewed and approved
 - [ ] Execute the plan (`executing-plans-lite`)
@@ -52,7 +52,7 @@ Row added to `PROJECT_STATE.md` § Orientation:
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AI-AGENT | Ticket clarification assistant and draft report for the Support Agent | Not started | [spec](docs/superpowers/specs/2026-10-23-w-ai-agent-design.md) | — | Spec reviewed twice and fixed; persona decided; gate 1 next | — |
+| W-AI-AGENT | Ticket clarification assistant and draft report for the Support Agent | Spec'd | [spec](docs/superpowers/specs/2026-10-23-w-ai-agent-design.md) | — | Gate 1 approved; verifying seams for the High-risk plan | — |
 
 ---
 
@@ -84,6 +84,7 @@ No change: Q~1 was raised and resolved on this branch (C~7).
 
 | ID | Date | Decision | Why / who asked | Source |
 |---|---|---|---|---|
+| C~10 | 2026-10-23 | Approved (Xiao-Congchen, 2026-10-23): retain High risk and approve the spec at gate 1; proceed to plan writing | Operator: "ok fine approve, proceed", after the High-risk rationale and explicit spec approval question. Medium rejected because personal data triggers C67 and feature-specific output and concurrency risks remain | Operator conversation |
 | C~1 | 2026-10-23 | The assistant's report is stored in a separate AI draft field, never written into `tickets.agent_notes` by the system; the Agent inserts it into notes on request | Operator: "most flexibility". Rejected: writing straight into `agent_notes`, which the Agent also edits | Operator conversation |
 | C~2 | 2026-10-23 | The assistant posts in the ticket's GUEST thread as the SYSTEM user, labelled as an automated assistant | Operator: "thats kinda like how apps do it anyway". The role value is Q~1 | Operator conversation |
 | C~3 | 2026-10-23 | Guest-raised tickets only. Host-raised tickets cannot exist (`TicketServiceImpl.fileTicket` rejects non-guests, C40) | Operator chose guest-only over also covering hosts | Operator conversation |
@@ -106,6 +107,8 @@ No change.
 
 | Date | What changed | Workstream | Ref |
 |---|---|---|---|
+| 2026-10-23 | Record gate 1 spec approval by Xiao-Congchen and start plan writing; implementation remains gated on plan approval | W-AI-AGENT | This session |
+| 2026-10-23 | Assess operator's proposed Medium tier: recommend retaining High because C67 covers personal data and the feature adds draft visibility, automated messages and transactional state; gateway controls leave steered-prose residual risk. Spec lint: zero errors/warnings. Gate 1 remains open; no plan written | W-AI-AGENT | This session |
 | 2026-10-23 | Open the branch state with the operator's scoping decisions (C~1 to C~6) | W-AI-AGENT | `ec5a98e` |
 | 2026-10-23 | Draft the ticket clarification assistant spec (index plus seven component files, High risk) | W-AI-AGENT | `78a517b` |
 | 2026-10-23 | Apply the persona (SD21, C~8) to the spec: label, prompt rules P8 to P12, conventions R15; contractions need their apostrophe in list A (`well` and `ill` are ordinary words) | W-AI-AGENT | `92f4163` |
