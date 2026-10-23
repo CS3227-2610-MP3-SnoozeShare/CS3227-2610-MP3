@@ -2,7 +2,7 @@
 
 - **Status:** Approved (Nathan, 2026-10-23)
 - **Risk tier:** Medium - untrusted user text is sent to an LLM via the existing gateway; no money, no permissions, no schema change. Attacker lens added: untrusted input crosses to the LLM.
-- **Workstream:** W-AI-GUEST | **Plan:** —
+- **Workstream:** W-AI-GUEST | **Plan:** [W-AI-GUEST plan](../plans/2026-10-23-w-ai-guest.md)
 - **Constraints consulted:** C80 (SOC LLM only, outputs are suggestions, key stays on backend, inputs sanitized, outputs validated, rate-limited, capped, audited), C101 (gateway is its own workstream, merged), C103 (generic gateway; role registers AiFeature), C104 (audit metadata only), C111 (reasoning-effort defaults to none), Known Gap "Steered prose that matches no leak or link pattern passes output validation", Known Gap "Reasoning cannot be chosen per feature or tier", Known Gap "429 behaviour is unobserved", § Conventions "Role code calls LlmGateway.run outside any transaction", § Conventions "Nothing outside com.snoozeshare.ai imports ai.config/guard/limit/client/audit", § Conventions "@ConditionalOnDatabase on beans that need the database"
 - **Reviewed by lenses:** Implementer, Tester, Attacker (untrusted input to LLM) - round 1 done and merged
 
