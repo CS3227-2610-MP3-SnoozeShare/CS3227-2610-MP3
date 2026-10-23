@@ -107,8 +107,8 @@ No change.
 |---|---|---|---|
 | 2026-10-23 | Open the branch state with the operator's scoping decisions (C~1 to C~6) | W-AI-AGENT | `ec5a98e` |
 | 2026-10-23 | Draft the ticket clarification assistant spec (index plus seven component files, High risk) | W-AI-AGENT | `78a517b` |
-| 2026-10-23 | Apply the persona (SD21, C~8) to the spec: label, prompt rules P8 to P12, conventions R15; contractions need their apostrophe in list A (`well` and `ill` are ordinary words) | W-AI-AGENT | spec commit below |
-| 2026-10-23 | Add the prompt tuning kit: runner that mirrors the gateway layout and the screens, 23 synthetic tickets, three prompt variants, README and changelog; offline self test (35 checks) and a mock-server end-to-end run pass | W-AI-AGENT | kit commit below |
+| 2026-10-23 | Apply the persona (SD21, C~8) to the spec: label, prompt rules P8 to P12, conventions R15; contractions need their apostrophe in list A (`well` and `ill` are ordinary words) | W-AI-AGENT | `92f4163` |
+| 2026-10-23 | Add the prompt tuning kit: runner that mirrors the gateway layout and the screens, 23 synthetic tickets, three prompt variants, README and changelog; offline self test (35 checks) and a mock-server end-to-end run pass | W-AI-AGENT | `c861943` |
 | 2026-10-23 | Record the reversal to the SYSTEM author role and close Q1 (SD20, C~7) | W-AI-AGENT | `15e2a7d` |
 | 2026-10-23 | Fix review round 2 findings: Host and Agent text removed from the prompt, NFKC-cleaned screens with wider lists, a job never runs on the submitting thread, stuck-row stop path, exact audit rows, test-harness rules, closing text made non-committal | W-AI-AGENT | `585cb15` |
 | 2026-10-23 | Revise the spec after review round 1: row inserted at submission, `REQUIRES_NEW` listener writes, Agent and Host text moved to the untrusted slot, draft and question screens, closing message on failure, test harness rules | W-AI-AGENT | `9921059` |
