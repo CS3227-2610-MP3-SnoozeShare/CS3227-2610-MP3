@@ -9,15 +9,16 @@ type SelectOption = {
 
 type SelectFieldProps = {
   'aria-label': string;
+  disabled?: boolean;
   name: string;
   value: string;
   options: SelectOption[];
   onValueChange: (value: string) => void;
 };
 
-export function SelectField({ 'aria-label': ariaLabel, name, value, options, onValueChange }: SelectFieldProps) {
+export function SelectField({ 'aria-label': ariaLabel, disabled = false, name, value, options, onValueChange }: SelectFieldProps) {
   return (
-    <Select.Root value={value} name={name} onValueChange={(nextValue) => { if (nextValue) onValueChange(nextValue); }}>
+    <Select.Root disabled={disabled} value={value} name={name} onValueChange={(nextValue) => { if (nextValue) onValueChange(nextValue); }}>
       <Select.Trigger
         aria-label={ariaLabel}
         className="flex h-9 w-full items-center justify-between rounded-lg border border-input bg-background px-3 py-1.5 text-sm font-normal shadow-xs outline-none transition-colors focus:border-ring focus:ring-3 focus:ring-ring/50"

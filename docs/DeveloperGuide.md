@@ -10,7 +10,7 @@ Handover brief for developers taking over this project. It describes **confirmed
 is updated at checkpoints, so it can lag behind the code. For current status, work in flight, and
 what to build next, read [`PROJECT_STATE.md`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/PROJECT_STATE.md) — that is the source of truth.
 
-**Last updated:** 2026-10-23 — covers W1 to W16, MP3-0, W-INFRA, W-AUTH, W-DOMAIN, W-AI-GATEWAY, W-HOST, W-HOST-API, W-GUEST and W-AGENT; the desktop sections were checked against the built app on 2026-10-19, the web platform and deployment on 2026-10-20, auth on 2026-10-21, domain and AI gateway on 2026-10-22, Host API/pages against merged backend/frontend code and tests plus authenticated read-only browser captures on 2026-10-22, and Guest controllers/pages against merged code and tests on 2026-10-22
+**Last updated:** 2026-10-23 — covers W1 to W16, MP3-0, W-INFRA, W-AUTH, W-DOMAIN, W-AI-GATEWAY, W-AI-HOST, W-HOST, W-HOST-API, W-GUEST and W-AGENT; the desktop sections were checked against the built app on 2026-10-19, the web platform and deployment on 2026-10-20, auth on 2026-10-21, domain and AI gateway on 2026-10-22, Host API/pages against merged backend/frontend code and tests plus authenticated read-only browser captures on 2026-10-22, Guest controllers/pages against merged code and tests on 2026-10-22, and Host AI against merged backend/frontend code, tests and operator browser verification on 2026-10-23
 
 ## Contents
 
@@ -39,7 +39,7 @@ and `frontend/` (a Next.js app). The web side has Firebase authentication with r
 ([4.18](#418-authentication-and-role-authorization-backendauth-frontend-providers)), the full domain
 model, repositories and core services ported to Spring Data JPA
 ([4.19](#419-domain-model-repositories-and-services-backend-domain-layer)), a shared SoCLaaS LLM
-gateway for future role AI features, off by default ([4.20](#420-ai-gateway-backendai)), authenticated
+shared SoCLaaS LLM gateway for role AI features, with the Host AI assistant built on it ([4.20](#420-ai-gateway-backendai), [4.26](#426-host-ai-listing-optimisation-assistant)), authenticated
 Host REST APIs and API-backed Host pages ([4.21](#421-host-rest-api-backendapicontroller),
 [4.22](#422-host-web-pages-frontendsrcapphost)), Guest REST controllers and Next.js pages
 ([4.23](#423-guest-rest-api-and-web-pages)), CI and a live dev deployment. The Agent REST API and
@@ -70,7 +70,9 @@ dispute-resolution tooling, messaging, wallets and the platform audit trail.
 | — (W14) | **Unified Ledger:** every wallet movement is a single `audit_log` money row (with the wallet's running balance); the System user gets a real role and wallet and receives the platform's 3% fee | [4.16](#416-unified-ledger-ledgerwriter) |
 | — (W-AUTH) | **Web authentication:** Firebase sign-up and sign-in, registration with Host and Agent codes, role-based API authorization, and client-side route guards | [4.18](#418-authentication-and-role-authorization-backendauth-frontend-providers) |
 | — (W-DOMAIN) | **Web domain layer:** 12 JPA entities, 12 Spring Data repositories, 15 service implementations, 16 request DTOs and 21 response DTOs ported from the desktop app to Spring Boot with Spring Data JPA on PostgreSQL | [4.19](#419-domain-model-repositories-and-services-backend-domain-layer) |
-| — (W-AI-GATEWAY) | **LLM gateway:** one backend entry point, `LlmGateway.run`, for every role's AI feature, with input and output guardrails, a shared rate and cost budget, per-user and daily caps, a metadata-only audit row, mock mode and fallbacks; off by default, no role feature yet | [4.20](#420-ai-gateway-backendai) |
+| — (W-AI-GATEWAY) | **LLM gateway:** one backend entry point, `LlmGateway.run`, for every role's AI feature, with input and output guardrails, a shared rate and cost budget, per-user and daily caps, a metadata-only audit row, mock mode and fallbacks; off by default | [4.20](#420-ai-gateway-backendai) |
+| — (W-AI-HOST) | **Host AI Listing Optimisation Assistant:** a grounded, Host-only description evaluator and generator with Apply-only updates, minimum-detail eligibility, and responsive modal behavior | [4.26](#426-host-ai-listing-optimisation-assistant) |
+| — (W-AI-GUEST) | **Guest AI Search Assistant:** natural language search via LLM — a text query is parsed into structured filters by the FAST-tier gateway and run through the existing search | [4.27](#427-guest-ai-search-assistant) |
 | — (W-HOST) | **Web Host experience:** authenticated Next.js listings, listing detail/forms, calendar, requests, messages and wallet pages, preserving the approved Host presentation | [4.22](#422-host-web-pages-frontendsrcapphost) |
 | — (W-HOST-API) | **Host backend integration:** owner-scoped REST endpoints over existing services, complete collection/history responses, transactional booking/calendar/message/wallet operations | [4.21](#421-host-rest-api-backendapicontroller) |
 | — (W-GUEST) | **Guest web experience:** 5 REST controllers with 19 endpoints for search, bookings, wallet, messaging and reviews; 4 Next.js pages with typed API wrappers, components and integration tests | [4.23](#423-guest-rest-api-and-web-pages) |
@@ -417,7 +419,7 @@ change back. See [4.14](#414-audit-trail).
 
 ### 3.2 Web platform and deployment
 
-The web side has authentication and the ported domain layer: a Spring Boot API with Firebase auth, JPA entities, Spring Data repositories and service implementations; a Next.js app with sign-in, registration, authenticated Host pages backed by Host REST endpoints, Guest pages backed by Guest REST controllers, and Agent pages backed by Agent REST controllers; a shared LLM gateway for future role AI features, off by default; and a hosted dev environment that tracks `development`. Agent REST controllers and pages (with the shared API foundation in [4.24](#424-shared-web-api-foundation-backendapi)). Host and Guest pages use the same REST boundary locally and in the hosted environment.
+The web side has authentication and the ported domain layer: a Spring Boot API with Firebase auth, JPA entities, Spring Data repositories and service implementations; a Next.js app with sign-in, registration, authenticated Host pages backed by Host REST endpoints, Guest pages backed by Guest REST controllers, and Agent pages backed by Agent REST controllers; a shared LLM gateway for role AI features, with the Host AI listing assistant and the Guest AI search assistant built on it and the gateway still off by default; and a hosted dev environment that tracks `development`. Agent REST controllers and pages (with the shared API foundation in [4.24](#424-shared-web-api-foundation-backendapi)). Host and Guest pages use the same REST boundary locally and in the hosted environment.
 
 ```mermaid
 flowchart LR
@@ -503,6 +505,8 @@ Order: Render first, then Vercel, then Render again, because the frontend needs 
 | `agentNotes` lives only on the Agent detail response; the Agent API caps request bodies at 64 KB with a filter | The Guest and Host controllers reuse `TicketResponse` and must not be able to leak notes | A global Jackson string limit (it would also cap the AI gateway) | C147 |
 | The audit log's From and To days use `Asia/Singapore` by default | The operator chose it; the server zone is UTC on Render | The server default zone; changing the shared `Clock` | C149 |
 | The desktop screens are the source of truth for the agent pages; where the design artifact differs, ask the operator | The artifact is derived and can be stale | | C144, C154 |
+| Single-phase AI search: the LLM extracts filters only, no second call to rank or explain individual results; listing descriptions never enter LLM context | Avoids indirect injection from host-authored content and halves token cost | Two-phase search+rank | C162 |
+| AI search returns degraded 200 with `INVALID_SEARCH_DATES` when the LLM extracts bad dates, not a 400 | The AI made the date mistake, not the user | Propagating the 400 | C165 |
 
 ---
 
@@ -2001,6 +2005,8 @@ flowchart LR
 
 **Since W-AGENT.** `agentNotes` is no longer on the Guest ticket response (D109; `AgentCrossRoleContractTest` asserts the Guest API never carries agent notes), and `GuestExceptionHandler` has the highest advice precedence so the shared handler in [4.24](#424-shared-web-api-foundation-backendapi) never replaces its codes (D106).
 
+**Since W-AI-GUEST.** The Guest search page also has an AI search bar that calls `POST /api/guest/ai/search` to extract structured filters from natural language; see [4.27](#427-guest-ai-search-assistant).
+
 ---
 
 ### 4.24 Shared web API foundation (`backend/api/`)
@@ -2136,6 +2142,73 @@ flowchart LR
 
 **Tests.** Backend (extend `AgentApiIntegrationTest`, which turns security on, resets the database before and after every test and shares one `AuditService` and one `LedgerWriter` spy so the classes reuse a Spring context): `AgentDisputeControllerTest`, `AgentMessageControllerTest`, `AgentAccountControllerTest`, `AgentAuditControllerTest`, `AgentCategoryControllerTest`, the two-thread `AgentDisputeConcurrencyTest` and `AgentAccountConcurrencyTest`, `AgentListPerformanceTest` (300 tickets, 300 accounts and 2,000 audit rows; fails above 5 s per call and logs the 95th percentile), `AgentCrossRoleContractTest` (agent replies reach the Guest and Host threads, notes never reach the Guest API, resolving closes the threads, a deactivated category leaves the filing form), plus `ApiLayerTest`, `ApiFoundationIntegrationTest` and `ApiErrorMappingIntegrationTest`. Frontend (Vitest and Testing Library): `DisputeQueue`, `DisputeDetail`, `ResolutionDialogs`, `AccountsTable`, `AuditLogView`, `CategoriesTable`, `AgentDialog`, `AgentGrid`, `SessionNotice`, `usePolling`, `RoleNavbar` and `format` tests.
 
+### 4.26 Host AI listing optimisation assistant
+
+**Purpose.** Give an authenticated Host a human-reviewed way to evaluate an existing listing
+description or generate a grounded replacement while keeping listing persistence and the existing
+form layout under Host control.
+
+**Backend API.** `HostAiController` exposes `POST /api/host/ai/listing-description` when the Host
+security and database conditions are enabled. The request supports `EVALUATE` and `GENERATE`, and
+contains the current description, writing style, target audience, description focus and an optional
+listing id plus address-free draft listing details. `HostListingDescriptionService` verifies the
+Host identity and ownership, builds one bounded untrusted context, calls the shared
+`LlmGateway`, and returns the structured analysis and generated description without mutating a
+listing. Evaluate requires a non-empty description; Generate also works with an empty description.
+Successful responses contain the current and/or generated analysis; degraded gateway responses keep
+the result fields null and expose the stable gateway code for the UI to explain.
+
+**Frontend assistant.** `HostAiDescriptionAssistant` is opened beside the Description field in the
+New/Edit listing forms. Its modal has writing-style, target-audience and description-focus controls,
+a current-description editor, current and generated analysis panels, a read-only generated
+description, Evaluate/Generate actions and an Apply action. Apply copies only the generated text
+into the form and resets the assistant preferences and result state; closing and reopening retains
+the modal state except that the current description is refreshed from the form. Escape, the X and a
+backdrop click close the modal. Pending requests disable all controls and the UI restores them after
+success, degraded results or errors, displaying an actionable error above the actions.
+
+The generation prompt asks for a factually grounded 50–150-word description. The focus options are
+Balanced (equal main selling points), Comfort (living space, comfort and available facilities) and
+Practicality (functional features and everyday suitability), with Balanced as the default; All
+travellers is the first audience option. The assistant does not perform a post-response numeric
+word-band rejection (C158), and it does not add a free-text instruction field (C155).
+
+**Eligibility and safety.** The trigger is disabled until title, property type, maximum guests,
+bedrooms, bathrooms, check-in time and check-out time are present; its hover explanation tells the
+Host what is missing. Listing context excludes street address and postal code. The feature inherits
+the gateway's 8,000-character context cap, structured-output validation and error conventions; it
+does not amend the shared gateway (C157). AI output remains a suggestion rendered as plain text and
+is applied only by explicit Host action.
+
+**Paths.** `backend/src/main/java/com/snoozeshare/ai/host/` contains the feature contract and
+service; `backend/src/main/java/com/snoozeshare/api/controller/HostAiController.java` is the REST
+boundary; `frontend/src/components/host/HostAiDescriptionAssistant.tsx` contains the modal; and
+`frontend/src/lib/hostAiApi.ts` contains the typed adapter.
+
+**Tests.** `ListingDescriptionContractTest`, `ListingDescriptionFeatureConfigTest` and
+`HostAiListingDescriptionIntegrationTest` cover request/response contracts, Evaluate and Generate
+with empty and existing descriptions, ownership and validation, degraded gateway responses, address
+and prompt/log boundaries, transaction boundaries and datasource-free activation. `hostAiApi.test.ts`
+and `HostAiDescriptionAssistant.test.tsx` cover typed requests, stable error mapping, modal state,
+Apply-only updates, disabled controls, response recovery and minimum-detail eligibility. The
+operator also verified the modal at desktop, tablet and 390px widths.
+
+### 4.27 Guest AI search assistant
+
+**Purpose.** Let an authenticated Guest describe what they want in natural language — for example "apartment in Orchard for 2 under $80 next weekend" — and have the LLM extract structured search filters that run through the existing search infrastructure.
+
+**Backend API.** `GuestAiSearchController` exposes `POST /api/guest/ai/search` when the database condition is enabled. The request carries a `query` string (1–500 characters). `GuestAiSearchService` builds a trusted context containing today's date, calls `LlmGateway.run` with the `guest.search` feature, and maps the resulting `AiSearchFilters` record (city, startDate, endDate, guests, maxNightlyRate, explanation — all nullable except explanation) to the existing `PropertySearchRepository` search. The response contains the listing results, the AI explanation, the extracted filters and `aiAvailable: true`. A `Clock` bean is injected for deterministic date resolution in tests (C165).
+
+**Degraded responses.** When the gateway returns a non-ok result (disabled, throttled, blocked, refused, or failed), the endpoint returns a 200 with `aiAvailable: false`, the `LlmErrorCode` name, an empty results array and a user-friendly fallback explanation. If the LLM extracts invalid dates that cause `IllegalArgumentException` in the search layer, the controller catches it and returns a degraded 200 with `errorCode: "INVALID_SEARCH_DATES"` instead of a 400, because the AI made the date mistake, not the user (C165).
+
+**AiFeature registration.** `GuestAiConfig` registers a `guest.search` `AiFeature<AiSearchFilters>` bean: FAST model tier, GUEST role, priority 2, JSON output with `FAIL_ON_UNKNOWN_PROPERTIES` (C166), a system prompt instructing the model to return only a JSON object with the six filter fields. The system prompt is server-side only and never returned in a response (N2). The feature inherits all gateway protections: PII sanitization, injection detection, per-user throttle (5 calls/min), daily caps, circuit breaker and metadata-only audit (N3). The listing descriptions never enter the LLM context (C162).
+
+**Frontend AI search bar.** The Guest search page at `/guest/search` adds an AI text input above the existing manual filters. `aiSearch` in `frontend/src/lib/guest-api.ts` calls the endpoint. On success, an explanation card and filter chips appear above the results grid; on a degraded response, an alert explains the fallback. A Clear action resets the AI state. The manual filter fields and Search button remain fully functional alongside the AI bar (F7).
+
+**Paths.** `backend/src/main/java/com/snoozeshare/controller/guest/` contains `GuestAiConfig.java`, `GuestAiSearchController.java`, `GuestAiSearchService.java` and `AiSearchFilters.java`; `backend/src/main/java/com/snoozeshare/api/request/AiSearchRequest.java` and `backend/src/main/java/com/snoozeshare/api/response/AiSearchResponse.java` are the DTOs; `frontend/src/app/guest/search/page.tsx` contains the AI search bar; `frontend/src/lib/guest-api.ts` contains the typed `aiSearch` adapter.
+
+**Tests.** `GuestAiConfigTest` covers bean registration and `@ConditionalOnDatabase` activation. `GuestAiSearchControllerTest` covers 10 integration tests (happy path, validation, degraded gateway responses, auth, role rejection) and 21 edge-case tests (vague query, flagged input, null filters, invalid LLM output, partial dates, Unicode, blocked/refused/auth errors, throttling, concurrency). `frontend/src/app/guest/search/page.test.tsx` covers 7 Vitest tests for the AI search bar (renders, disabled states, explanation display, degraded alert, clear action, manual fallback).
+
 ---
 
 ## 5. Requirements
@@ -2222,6 +2295,16 @@ they exist. It describes current behavior, including deliberate deferrals and co
 - **F7** The frontend sends the current Firebase token and never supplies a client-selected Host ID.
 - **F8** Collection and history reads return all matching rows without pagination parameters or a response-size cap.
 
+**Web Host AI requirements (W-AI-HOST).** These IDs are scoped to the W-AI-HOST design spec.
+
+- **F1** An authenticated Host can evaluate the current listing description or generate a new description through `POST /api/host/ai/listing-description`; the operation does not save the listing.
+- **F2** Evaluate requires a current description; Generate works with an empty description and returns current analysis when a current description exists, generated text and generated analysis on success.
+- **F3** The assistant uses writing style, target audience and description focus controls; generation follows the fixed 50–150-word prompt guidance, with Balanced focus as the default and All travellers first.
+- **F4** The assistant uses only supplied, address-free listing details and treats current descriptions and listing fields as untrusted data; it does not add a free-text instruction surface.
+- **F5** A Host can Apply a successful generated description to the New/Edit form, but no AI action directly persists a listing or applies degraded/error output.
+- **F6** The frontend disables the assistant trigger until title, property type, max guests, bedrooms, bathrooms, check-in time and check-out time are present, and explains the disabled state on hover.
+- **F7** Evaluate and Generate show current/generated analysis for clarity, completeness and accuracy; degraded and error responses show user-facing feedback and restore controls after the response.
+
 **Web Agent requirements (W-AGENT).** These IDs are scoped to the W-AGENT design spec; the code wins where they differ (D103, D111).
 
 - **F1** Every `/api/agent/**` operation takes the acting agent from the verified token (`@CurrentUserId`); no path, query or body field can name the actor, bodies reject unknown properties and a missing actor fails closed with `401`.
@@ -2262,6 +2345,18 @@ they exist. It describes current behavior, including deliberate deferrals and co
 - **W-HOST N1–N2** Listing metrics use at most two grouped owner-scoped queries for a complete collection; listing data and metrics never cross Host ownership.
 - **W-HOST-API N1–N6** Enforce active Host identity and ownership server-side; preserve booking/wallet transaction invariants; use response DTOs and safe error envelopes; keep sensitive payloads out of logs; issue one read per dataset with unbounded result size; and activate persistence-backed beans deterministically. See the W-HOST-API requirements and tests in [4.21](#421-host-rest-api-backendapicontroller).
 - **W-AGENT N1–N8** Agent routes need an authenticated, ACTIVE AGENT and are absent when security is off (N1); money moves only through `TicketService.resolve` and `AccountGovernanceService`, and the browser does no money arithmetic (N2); the API layer writes no audit row (N3); logs carry only request id, status, code, path and agent id (N4); the queue, accounts and one audit page answer within 5 s at 300 tickets, 300 accounts and 2,000 audit rows, measured at about 70 ms for the queue after batching (N5, D102); `ApiLayerTest` keeps controllers thin (N6); dialogs have dialog semantics, a focus trap, Escape and focus return (N7); lists refresh by polling while the tab is visible (queue 30 s, detail and threads 10 s) and the other pages on demand (N8).
+- **W-AI-HOST N1–N4** Host AI is conditional on Host security and database activation; it uses the shared gateway's bounded context and structured-output/error conventions; it never includes street address or postal code in model context; and it never writes listing data or exposes prompt/response text in AI audit metadata (C155, C157, D113).
+- **W-AI-GUEST N1–N3** The AI search endpoint responds within the gateway deadline (45 s) plus the existing search query time, with only one LLM call per request (N1). The system prompt is server-side only and never returned in any response (N2). AI search inherits all gateway protections: PII sanitization, injection detection, per-user throttle (5 calls/min), daily caps, circuit breaker and metadata-only audit (N3).
+
+**Web Guest AI requirements (W-AI-GUEST).** These IDs are scoped to the W-AI-GUEST design spec.
+
+- **F1** A `guest.search` `AiFeature<AiSearchFilters>` bean is registered (FAST tier, GUEST role, priority 2, JSON output) that extracts structured search filters from a natural language query.
+- **F2** `POST /api/guest/ai/search` accepts a text query (1–500 characters), calls the gateway, runs the existing search with the extracted filters, and returns the results, AI explanation, extracted filters and `aiAvailable: true`.
+- **F3** The LLM system prompt instructs the model to return a JSON object with fields matching the existing search criteria (city, startDate, endDate, guests, maxNightlyRate) plus an explanation field.
+- **F4** When the gateway returns a degraded result, the endpoint returns a 200 with `aiAvailable: false`, the `LlmErrorCode` name, an empty results array and a user-friendly explanation.
+- **F5** The frontend Guest search page adds an AI search text input that calls the new endpoint and displays results in the same listing grid.
+- **F6** The frontend shows the AI explanation above the results when an AI search succeeds, with extracted filter values as read-only chips.
+- **F7** The frontend preserves the existing manual filter search — AI search is an alternative, not a replacement.
 
 ### Known Limitations
 
@@ -2283,6 +2378,9 @@ they exist. It describes current behavior, including deliberate deferrals and co
 - **Reasoning is one global setting** — `reasoning-effort` (default `none`) applies to every feature and tier; a feature that needs reasoning needs a gateway change. The 429 behaviour of SoCLaaS (`Retry-After`, budget wording) is unobserved.
 - **Agent lists are unpaginated** — the dispute queue and the accounts list return every row; the audit log pages by offset, so a row added between two pages can repeat or be skipped. There is no per-agent rate limit.
 - **One dispute with a missing booking or property fails the whole queue** — the service answers 400 for that ticket, so the page shows an error instead of the other rows.
+- **Host AI inherits gateway limits and advisory checks** — the serialized context is capped at 8,000 characters, gateway degradation is surfaced rather than converted into generated content, and factual-grounding feedback remains advisory unless the shared gateway rejects the result (C157).
+- **Host AI generation cannot guarantee an exact word count** — it requests 50–150 words as prompt guidance and does not reject an otherwise valid response solely for missing that range (C158).
+- **Guest AI search error codes are exposed in degraded responses** — `LlmErrorCode` names (DISABLED, THROTTLED, etc.) are returned to the client; minor information disclosure accepted for debugging value (C168).
 - **The agent request-size cap trusts the declared length** — a body with neither `Content-Length` nor `Transfer-Encoding` (HTTP/2) is bounded only by the container.
 - **The three roles answer the same conditions with different errors** — a closed ticket thread is `400 THREAD_CLOSED` for a Guest and `409` for a Host and an Agent; invalid input is `422 DOMAIN_RULE_VIOLATION` for a Host and `400` for a Guest and an Agent; a created message is `200` for a Guest and `201` for the others; Host messages are always generic and the Guest handler returns the raw service message. Each client works with its own codes. Converging them, and bringing `controller.guest` into `ApiLayerTest`, is handed over to W-GUEST and W-HOST (`PROJECT_STATE.md` § How to Resume).
 - **Wallet withdrawal lacks locking** — concurrent full-balance withdrawals can both succeed, resulting in a negative balance (D93). Recorded for a future wallet-locking workstream.
@@ -2414,11 +2512,14 @@ measured for this guide.
 | Backend domain repository integration: `UserRepositoryTest`, `BookingRepositoryTest`, `WalletRepositoryTest`, `TicketRepositoryTest`, `AuditLogRepositoryTest` | `@DataJpaTest` with Testcontainers Postgres 17: entity round trips, custom query methods (`findByFirebaseUid`, `findByIdForUpdate`, `findByGuestIdAndStatus`), the V003 schema constraints, and the audit-log search and indexing. Each test class starts its own application context with only JPA and Flyway. |
 | Backend Host API integration: `HostSecurityIntegrationTest`, `HostIdentityResolverTest`, `HostListingsControllerTest`, `HostCalendarIntegrationTest`, `HostRequestsIntegrationTest`, `HostBookingMessagesIntegrationTest`, `HostTicketMessagesIntegrationTest`, `HostWalletIntegrationTest`, `HostApiExceptionHandlerTest`, `DatabaseBeansTest` | Authenticated Host identity and ownership, complete ordered collections (including 101-row and long-message histories), listing metrics, typed calendar-overlap conflicts, one-shot booking decisions, private booking/ticket message boundaries, wallet row locking and ledger behavior, safe errors, and database-dependent bean activation. `HostCalendarIntegrationTest` asserts overlap status/code and precedence; D90 records that it does not assert the full body or explicitly assert absent IDs/dates. |
 | Backend AI gateway (`backend/src/test/java/com/snoozeshare/ai`, plus `DatabaseBeansTest`): `LlmGatewayTest`, `LlmGatewayIntegrationTest`, `AiFeatureRegistryTest`, `LlmCallTest`, `LlmPropertiesTest`, `ProdEnvironmentGuardAiTest`, `ModelCheckTest`, `InputSanitizerTest`, `PiiRedactorTest`, `InjectionDetectorTest`, `PromptBuilderTest`, `OutputValidatorTest`, `SchedulerCoreTest`, `LlmSchedulerTest`, `UserThrottleTest`, `CircuitBreakerTest`, `BudgetBlockTest`, `BackoffTest`, `SoclaasClientTest`, `SoclaasClientStallTest`, `AiAuditWriterTest`, `AiBoundaryTest`, `SecretScanTest`, `AiHealthTest`, `AiDatasourceFreeContextTest`, `AiLogLeakTest` | The 14-step pipeline with a stub SoCLaaS server, a fake clock and a recording sleeper; real audit rows and cap counts on Postgres (including a parallel burst); sanitizing, output validation, scheduling, breaker and budget logic as pure classes; configuration ranges and the production guard; the package boundary, no committed key, no key or prompt in logs, a healthy backend with an unreachable service, and `DatabaseBeansTest` for the bean registration. No test contacts SoCLaaS. |
+| Backend Host AI: `ListingDescriptionContractTest`, `ListingDescriptionFeatureConfigTest`, `HostAiListingDescriptionIntegrationTest` | The Host request/response contract, feature registration and authenticated endpoint: Evaluate and Generate with empty/current descriptions, ownership and validation, degraded gateway responses, address-free context, prompt/log boundaries, transaction boundaries and datasource-free activation. |
 | Frontend (`frontend/src`): `env.test.ts`, `BackendStatus.test.tsx` | Environment validation (including the six Firebase variables), and the status page for UP, each failure, the 5-second timeout, the disabled `Re-check` button and aborting on unmount. |
 | Frontend authentication: `firebase.test.ts`, `api.test.ts`, `AuthProvider.test.tsx`, `route-guards.test.tsx`, the `login`, `register` and `forgot-password` `page.test.tsx` files, `AuthHeader.test.tsx`, `RoleNavbar.test.tsx`, `RoleShell.test.tsx` | Firebase initialisation once, the bearer header and stable error mapping, the six provider states (a stale profile response after sign-out is ignored, a failed registration stays on the registration step, missing Firebase configuration shows an error instead of crashing), guard redirects, the register page's validate-before-signup order, safe `returnTo` handling, and the role shell. The Firebase client is mocked. |
 | Frontend Host pages and API: `HostApiProvider.test.tsx`, `hostApi.test.ts`, `HostRoutes.test.tsx`, Host listing, calendar, request, message and wallet route/component tests | Typed authenticated requests, complete-array rendering, in-flight read sharing, listing metrics and in-place status changes, empty/loading/error/not-found states, form validation, exact time handling, calendar month transitions and empty initial date range, separate message channels, mocked wallet recovery, and no pagination/load-more controls. Firebase and backend requests are mocked. |
+| Frontend Host AI: `hostAiApi.test.ts`, `HostAiDescriptionAssistant.test.tsx` and Host listing-form tests | Typed Evaluate/Generate requests, stable error mapping, modal state persistence and reset rules, Apply-only updates, disabled controls during responses, degraded/error recovery, minimum-detail eligibility and the assistant's current/generated analysis presentation. |
 | Backend Guest API integration: `GuestSearchControllerTest`, `GuestBookingControllerTest`, `GuestWalletControllerTest`, `GuestMessageControllerTest`, `GuestReviewControllerTest` | Authenticated Guest search/filter, booking creation and cancellation, wallet balance and transactions, ticket and booking messaging (file, read, post, mark read), review submission, role-rejection tests (HOST → 403 on all five controllers), ownership-violation tests and concurrent booking/withdrawal tests. Extends `PostgresIntegrationTest` with `FakeTokenVerifier`. |
-| Frontend Guest pages: `search/page.test.tsx`, `trips/page.test.tsx`, `messages/page.test.tsx`, `wallet/page.test.tsx` | Listing search and detail sheet, trip cards with cancel/review dialogs, conversation list with message threads and ticket filing, and wallet balance/transaction display. Firebase and backend requests are mocked. |
+| Backend Guest AI: `GuestAiConfigTest`, `GuestAiSearchControllerTest` | Bean registration and `@ConditionalOnDatabase` activation; 10 integration tests (happy path, validation, degraded gateway) and 21 edge-case tests (vague query, flagged input, null filters, invalid LLM output, partial dates, Unicode, blocked/refused/auth errors, throttling, concurrency). `GuestWalletControllerTest` has 10 pre-existing failures in the full suite due to a Testcontainers context-cache issue (D116); it passes in isolation. |
+| Frontend Guest pages: `search/page.test.tsx`, `trips/page.test.tsx`, `messages/page.test.tsx`, `wallet/page.test.tsx` | Listing search and detail sheet, trip cards with cancel/review dialogs, conversation list with message threads and ticket filing, wallet balance/transaction display, and 7 AI search bar tests (renders, disabled states, explanation display, degraded alert, clear action, manual fallback). Firebase and backend requests are mocked. |
 | Backend Agent API integration: `AgentDisputeControllerTest`, `AgentMessageControllerTest`, `AgentAccountControllerTest`, `AgentAuditControllerTest`, `AgentCategoryControllerTest`, `AgentCrossRoleContractTest` | Every agent operation, its validation and error rows, the audit rows, the Singapore-day boundary, literal `%` and `_` in search, the cascade and its rollback, and the contract with the Guest and Host APIs. They extend `AgentApiIntegrationTest` (security on, database reset before and after each test, shared service spies). |
 | Backend Agent concurrency and performance: `AgentDisputeConcurrencyTest`, `AgentAccountConcurrencyTest`, `AgentListPerformanceTest` | Two real threads race for one ticket or one account and exactly one wins (the tests fail without the row lock); the queue, accounts and audit lists stay under 5 s at 300 tickets, 300 accounts and 2,000 audit rows, with the 95th percentile logged. |
 | Backend API foundation: `ApiLayerTest`, `ApiFoundationIntegrationTest`, `ApiErrorMappingIntegrationTest` | The layering rules and their fixtures, the actor and path filters, the size and no-store filters, and the error table. |
@@ -2518,6 +2619,19 @@ measured for this guide.
   6. Scroll the table: the header stays fixed; check the same on the Disputes and Categories tabs, and that hovering a row shows a grey background without a hand cursor.
 - **Expected:** filters combine as described in [4.14](#414-audit-trail); the red Clear button resets them; the ticket resolution appears as its ticket, booking and wallet rows; table headers stay put while rows scroll.
 
+
+**Host AI assistant check.** The assistant is a browser-specific interaction and visual check; repeat it after changing the Host listing form, modal layout, or AI response handling.
+
+- **Prerequisites:** local backend and frontend running with Host authentication and AI enabled as in [Setting Up](#2-setting-up), a Host account, and a New or Edit listing draft.
+- **Steps:**
+  1. Leave one of the seven required listing details empty. Confirm the AI Description Assistant trigger is disabled and hovering it explains which details are required.
+  2. Complete the required details and open the assistant. Check the listing-information subtitle, Host-style dropdowns, current description and generated-description panels.
+  3. Enter a current description and choose Evaluate. Confirm the current analysis shows clarity, completeness and accuracy without changing the form description.
+  4. Choose a writing style, target audience and focus, then choose Generate. Confirm the current and generated analyses are shown, the generated text is read-only, and all fields/actions are disabled only while the request is pending.
+  5. Trigger a degraded or error response. Confirm a user-facing message appears above the action buttons and all controls become usable again.
+  6. Close with Escape, the X and the backdrop. Reopen and confirm assistant preferences/results persist while the current description refreshes from the form. Apply a generated description and confirm only the form description changes and the assistant resets its defaults.
+  7. Repeat at desktop, tablet and 390px widths. Confirm the modal scrim fills the viewport, action buttons stay aligned at the bottom, descriptions and analyses remain paired, and the listing detail page preserves description line breaks.
+- **Expected:** the assistant never saves a listing directly; only explicit Apply updates the form, and incomplete drafts cannot invoke AI.
 
 **AI gateway live check.** Whether SoCLaaS behaves as the gateway assumes can only be judged against the real service, so repeat this after changing a model name, the base URL or a limit, and before a role feature relies on a model.
 

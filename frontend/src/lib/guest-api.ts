@@ -161,6 +161,22 @@ export type ReviewResponse = {
   createdAt: string;
 };
 
+export type AiSearchFiltersResponse = {
+  city: string | null;
+  startDate: string | null;
+  endDate: string | null;
+  guests: number | null;
+  maxNightlyRate: number | null;
+};
+
+export type AiSearchResponse = {
+  results: SearchResult[];
+  explanation: string;
+  filters: AiSearchFiltersResponse | null;
+  aiAvailable: boolean;
+  errorCode?: string;
+};
+
 /* ─── Search ─── */
 
 export async function searchListings(params?: {
@@ -178,6 +194,14 @@ export async function searchListings(params?: {
   if (params?.maxNightlyRate) query.set('maxNightlyRate', String(params.maxNightlyRate));
   const qs = query.toString();
   const res = await authenticatedFetch(`/api/guest/listings${qs ? `?${qs}` : ''}`);
+  return res.json();
+}
+
+export async function aiSearch(query: string): Promise<AiSearchResponse> {
+  const res = await authenticatedFetch('/api/guest/ai/search', {
+    method: 'POST',
+    body: JSON.stringify({ query }),
+  });
   return res.json();
 }
 

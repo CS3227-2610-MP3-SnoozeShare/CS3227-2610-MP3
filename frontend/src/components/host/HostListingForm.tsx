@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Info, Sparkles } from 'lucide-react';
 import type { ListingDetail } from './hostTypes';
 import { validateListing, type ListingFormValues } from './hostListingValidation';
 import { useOptionalHostApi } from './HostApiProvider';
@@ -9,6 +10,7 @@ import { hostSafeErrorMessage } from '@/lib/hostApi';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Field } from '@/components/ui/input';
 import { SelectField } from '@/components/ui/select';
+import { HostAiDescriptionAssistant } from './HostAiDescriptionAssistant';
 
 const blank: ListingFormValues = { title: '', description: '', propertyType: 'House', status: 'active', streetAddress: '', city: '', region: '', postalCode: '', maxGuests: '', bedrooms: '', bathrooms: '', rate: '', checkIn: '', checkOut: '' };
 const propertyTypes = ['House', 'Apartment', 'Condo', 'Private room'];
@@ -41,6 +43,11 @@ export function HostListingForm({ listing }: { listing?: ListingDetail }) {
   const [errors, setErrors] = useState<Partial<Record<keyof ListingFormValues, string>>>({});
   const [requestError, setRequestError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [selectedAmenities, setSelectedAmenities] = useState<string[]>(() => listing?.amenities.map((amenity) => amenity.toUpperCase().replaceAll(' ', '_')) ?? []);
+  const aiEligibilityMessage = 'Add title, property type, max guests, bedrooms, bathrooms, check-in time, and check-out time to use AI assistance.';
+  const aiEligible = Boolean(values.title.trim() && values.propertyType.trim() && values.maxGuests.trim()
+    && values.bedrooms.trim() && values.bathrooms.trim() && values.checkIn.trim() && values.checkOut.trim());
   const update = (key: keyof ListingFormValues, value: string) => setValues((current) => ({ ...current, [key]: value }));
   const submit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -90,7 +97,7 @@ export function HostListingForm({ listing }: { listing?: ListingDetail }) {
             <CardHeader><CardTitle className="text-sm font-bold leading-tight text-primary">BASIC DETAILS</CardTitle></CardHeader>
             <CardContent className="space-y-2">
               {field('title', 'Title')}
-              <label className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--text-muted)]" htmlFor="description"><span>Description</span><textarea className="min-h-28 rounded-lg border border-input bg-background p-3 text-sm font-normal outline-none focus:border-ring focus:ring-3 focus:ring-ring/20" id="description" name="description" placeholder={fieldPlaceholders.description} value={values.description} onChange={(event) => update('description', event.target.value)} /></label>
+              <div className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--text-muted)]"><div className="flex items-center justify-between gap-2"><label htmlFor="description">Description</label><span aria-describedby={!aiEligible ? 'ai-eligibility-tooltip' : undefined} className="group relative inline-flex" tabIndex={aiEligible ? -1 : 0}><button aria-label="Open AI assistant" className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs font-semibold text-primary disabled:cursor-not-allowed disabled:opacity-50" disabled={!aiEligible} onClick={() => setAiOpen(true)} type="button"><Sparkles aria-hidden="true" size={14} />AI Description Assistant</button>{!aiEligible && <span className="pointer-events-none absolute right-0 top-full z-20 mt-2 w-72 rounded-lg border border-border bg-popover p-3 text-xs font-normal leading-relaxed text-popover-foreground opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus:opacity-100" id="ai-eligibility-tooltip" role="tooltip"><span className="flex items-start gap-2"><Info aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" /><span>{aiEligibilityMessage}</span></span></span>}</span></div><textarea className="min-h-28 rounded-lg border border-input bg-background p-3 text-sm font-normal outline-none focus:border-ring focus:ring-3 focus:ring-ring/20" id="description" name="description" placeholder={fieldPlaceholders.description} value={values.description} onChange={(event) => update('description', event.target.value)} /></div>
               <p className="-mt-2 min-h-4 text-xs text-destructive">{errors.description}</p>
               <div className="grid gap-2 sm:grid-cols-2">
                 <label className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--text-muted)]"><span>Property type</span><SelectField aria-label="Property type" name="propertyType" value={values.propertyType} options={propertyTypes.map((value) => ({ value, label: value }))} onValueChange={(value) => update('propertyType', value)} /></label>
@@ -118,11 +125,19 @@ export function HostListingForm({ listing }: { listing?: ListingDetail }) {
           <Card className="order-4 w-full">
             <CardHeader><CardTitle className="text-sm font-bold leading-tight text-primary">AMENITIES</CardTitle></CardHeader>
             <CardContent className="grid gap-2 sm:grid-cols-2">
-              {amenities.map((amenity) => <label className="flex min-h-9 items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm" key={amenity}><input type="checkbox" name="amenities" value={amenity.toUpperCase().replaceAll(' ', '_')} defaultChecked={listing?.amenities.includes(amenity) ?? false} />{amenity}</label>)}
+              {amenities.map((amenity) => { const value = amenity.toUpperCase().replaceAll(' ', '_'); return <label className="flex min-h-9 items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm" key={amenity}><input checked={selectedAmenities.includes(value)} name="amenities" onChange={(event) => setSelectedAmenities((current) => event.target.checked ? [...current, value] : current.filter((item) => item !== value))} type="checkbox" value={value} />{amenity}</label>; })}
             </CardContent>
           </Card>
         </div>
       </div>
+      <HostAiDescriptionAssistant
+        description={values.description}
+        listing={{ title: values.title, propertyType: values.propertyType.toUpperCase().replaceAll(' ', '_'), city: values.city, region: values.region, maxGuests: Number(values.maxGuests) || 0, bedrooms: Number(values.bedrooms) || 0, bathrooms: Number(values.bathrooms) || 0, amenities: selectedAmenities, checkInTime: values.checkIn, checkOutTime: values.checkOut }}
+        listingId={listing?.id}
+        onApply={(description) => update('description', description)}
+        onClose={() => setAiOpen(false)}
+        open={aiOpen}
+      />
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex gap-2">
           <button className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground" disabled={saving} type="submit">{saving ? 'Saving…' : 'Save listing'}</button>

@@ -1,0 +1,129 @@
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
+import { Check, CircleAlert, X } from 'lucide-react';
+import { postHostAiListingDescription, hostAiGatewayMessage, hostAiSafeErrorMessage, type AiAnalysis, type AiDescriptionFocus, type AiMode, type AiTargetAudience, type AiWritingStyle, type HostAiListingDescriptionResponse, type ListingFactsPayload } from '@/lib/hostAiApi';
+import { SelectField } from '@/components/ui/select';
+
+type Props = {
+  open: boolean;
+  listingId?: string;
+  listing: ListingFactsPayload;
+  description: string;
+  onApply: (description: string) => void;
+  onClose: () => void;
+};
+
+const styles: { value: AiWritingStyle; label: string }[] = [
+  { value: 'FRIENDLY', label: 'Friendly' }, { value: 'PROFESSIONAL', label: 'Professional' }, { value: 'PERSUASIVE', label: 'Persuasive' },
+];
+const audiences: { value: AiTargetAudience; label: string }[] = [
+  { value: 'ALL_TRAVELLERS', label: 'All travellers' }, { value: 'FAMILIES', label: 'Families' }, { value: 'COUPLES', label: 'Couples' }, { value: 'BUSINESS_TRAVELLERS', label: 'Business travellers' },
+];
+const focuses: { value: AiDescriptionFocus; label: string }[] = [
+  { value: 'BALANCED', label: 'Balanced' }, { value: 'COMFORT', label: 'Comfort' }, { value: 'PRACTICALITY', label: 'Practicality' },
+];
+
+export function HostAiDescriptionAssistant({ open, listingId, listing, description, onApply, onClose }: Props) {
+  const [draft, setDraft] = useState(description);
+  const [style, setStyle] = useState<AiWritingStyle>('FRIENDLY');
+  const [audience, setAudience] = useState<AiTargetAudience>('ALL_TRAVELLERS');
+  const [focus, setFocus] = useState<AiDescriptionFocus>('BALANCED');
+  const [pending, setPending] = useState<AiMode | null>(null);
+  const [response, setResponse] = useState<HostAiListingDescriptionResponse | null>(null);
+  const [error, setError] = useState('');
+  const mounted = useRef(true);
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    setDraft(description);
+    setResponse((current) => current ? { ...current, currentAnalysis: null } : null);
+  }, [open, description]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !pending) {
+        event.preventDefault();
+        onClose();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [open, onClose, pending]);
+
+  if (!open) return null;
+  const run = async (mode: AiMode) => {
+    if (pending || (mode === 'EVALUATE' && !draft.trim())) return;
+    setPending(mode);
+    setResponse(null);
+    setError('');
+    try {
+      const next = await postHostAiListingDescription({ listingId, mode, writingStyle: style, targetAudience: audience, descriptionFocus: focus, currentDescription: draft, listing });
+      if (!mounted.current) return;
+      if (next.outcome === 'DEGRADED') setError(hostAiGatewayMessage(next.gatewayCode ?? 'AI_ERROR'));
+      else setResponse(next);
+    } catch (caught) {
+      if (mounted.current) setError(hostAiSafeErrorMessage(caught));
+    } finally {
+      if (mounted.current) setPending(null);
+    }
+  };
+  const applyGeneratedDescription = () => {
+    if (!response?.generatedDescription) return;
+    const generatedDescription = response.generatedDescription;
+    setDraft(generatedDescription);
+    setResponse(null);
+    setError('');
+    setStyle('FRIENDLY');
+    setAudience('ALL_TRAVELLERS');
+    setFocus('BALANCED');
+    onApply(generatedDescription);
+    onClose();
+  };
+  const disabled = pending !== null;
+  return (
+    <div className="fixed inset-0 z-50 flex min-h-dvh w-screen items-center justify-center bg-black/30 p-4" onClick={(event) => { if (!disabled && event.target === event.currentTarget) onClose(); }} role="presentation">
+      <div aria-describedby="host-ai-description" aria-labelledby="host-ai-title" aria-modal="true" className="ss-card flex max-h-[calc(100dvh-2rem)] w-full max-w-5xl flex-col overflow-hidden p-5" role="dialog">
+        <div className="flex items-start justify-between gap-4">
+          <div><h2 className="text-lg font-semibold" id="host-ai-title">AI Description Assistant ✨</h2><p className="mt-1 text-sm text-[var(--text-subtle)]" id="host-ai-description">Your listing details help the assistant create a grounded description based on the property information you provide.</p></div>
+          <button aria-label="Close AI Description Assistant" className="rounded-md p-1 text-[var(--text-subtle)] hover:bg-muted hover:text-foreground" disabled={disabled} onClick={onClose} title="Close" type="button"><X aria-hidden="true" className="size-5" /></button>
+        </div>
+        <div className="mt-5 min-h-0 flex-1 overflow-y-auto pr-1">
+          <div className="space-y-5">
+          <section aria-label="Writing preferences" className="rounded-lg border border-border bg-[var(--surface-inset)] p-4">
+            <h3 className="text-sm font-semibold">Writing preferences</h3>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <label className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--text-muted)]"><span>Writing style</span><SelectField aria-label="Writing style" disabled={disabled} name="ai-writing-style" options={styles} value={style} onValueChange={(value) => setStyle(value as AiWritingStyle)} /></label>
+              <label className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--text-muted)]"><span>Target audience</span><SelectField aria-label="Target audience" disabled={disabled} name="ai-target-audience" options={audiences} value={audience} onValueChange={(value) => setAudience(value as AiTargetAudience)} /></label>
+              <label className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--text-muted)]"><span>Description focus</span><SelectField aria-label="Description focus" disabled={disabled} name="ai-description-focus" options={focuses} value={focus} onValueChange={(value) => setFocus(value as AiDescriptionFocus)} /></label>
+            </div>
+          </section>
+          <div className="grid gap-5 lg:grid-cols-2">
+            <section aria-label="Current description and analysis" className="space-y-4 rounded-lg border border-border bg-[var(--surface-inset)] p-4">
+              <label className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--text-muted)]"><span>Current description</span><textarea aria-label="Current description" className="min-h-44 rounded-lg border border-input bg-background p-3 text-sm font-normal outline-none focus:border-ring focus:ring-3 focus:ring-ring/20" disabled={disabled} value={draft} onChange={(event) => setDraft(event.target.value)} /></label>
+              <AnalysisPanel emptyMessage="Evaluate the current description to see feedback." heading="Current analysis" analysis={response?.currentAnalysis ?? null} />
+            </section>
+            <section aria-label="Generated description and analysis" className="space-y-4 rounded-lg border border-border bg-[var(--surface-inset)] p-4">
+              <label className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--text-muted)]"><span>Generated description</span><textarea aria-label="Generated description" className="min-h-44 rounded-lg border border-input bg-background p-3 text-sm font-normal" readOnly value={response?.generatedDescription ?? ''} /></label>
+              <AnalysisPanel emptyMessage="Generate a description to see its analysis." heading="Generated analysis" analysis={response?.generatedAnalysis ?? null} />
+            </section>
+          </div>
+          {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
+          </div>
+        </div>
+        <div aria-label="AI assistant actions" className="-mx-5 -mb-5 mt-4 flex shrink-0 flex-col gap-2 bg-card/95 px-5 pb-5 pt-4 backdrop-blur sm:flex-row sm:items-center sm:justify-end" role="group"><button className="w-full rounded-lg border border-border px-4 py-2 text-sm font-semibold sm:w-auto" disabled={disabled || !draft.trim()} onClick={() => void run('EVALUATE')} type="button">{pending === 'EVALUATE' ? 'Evaluating…' : 'Evaluate'}</button><button className="w-full rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground sm:w-auto" disabled={disabled} onClick={() => void run('GENERATE')} type="button">{pending === 'GENERATE' ? 'Generating…' : 'Generate description'}</button><button className="w-full rounded-lg bg-[var(--success)] px-4 py-2 text-sm font-semibold text-white sm:w-auto" disabled={disabled || !response?.generatedDescription} onClick={applyGeneratedDescription} type="button">Apply generated description</button></div>
+        </div>
+      </div>
+  );
+}
+
+function AnalysisPanel({ emptyMessage, heading, analysis }: { emptyMessage: string; heading: string; analysis: AiAnalysis | null }) {
+  const rows: [string, keyof AiAnalysis][] = [['Clarity', 'clarity'], ['Completeness', 'completeness'], ['Accuracy', 'accuracy']];
+  return <div><h3 className="text-xs font-semibold text-[var(--text-muted)]">{heading}</h3>{analysis ? <div className="mt-2 divide-y rounded-lg border border-border bg-background">{rows.map(([label, key]) => { const criterion = analysis[key]; const passes = criterion.status === 'PASS'; return <div className="grid gap-2 p-3 text-sm sm:grid-cols-[7rem_1fr]" key={key}><span className="font-medium">{label}</span><span className="flex items-start gap-2"><span aria-hidden="true" className="mt-0.5 shrink-0">{passes ? <Check className="size-4 text-emerald-600" data-testid="analysis-pass-icon" /> : <CircleAlert className="size-4 text-orange-500" data-testid="analysis-improve-icon" />}</span><span className={criterion.status === 'IMPROVE' ? 'text-orange-700' : 'text-[var(--text-subtle)]'}>{criterion.feedback}</span></span></div>; })}</div> : <p className="mt-2 rounded-lg border border-dashed border-border p-3 text-sm text-[var(--text-subtle)]">{emptyMessage}</p>}</div>;
+}
