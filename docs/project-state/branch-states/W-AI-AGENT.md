@@ -31,11 +31,11 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-23 | Claude Sonnet 5.5 (lead) + four `lite-reviewer` subagents | W-AI-AGENT | Paused | Spec review rounds 1 and 2 done and fixed; waiting on Q~1 | Ask the operator Q~1 (keep `AI` or reverse to `SYSTEM`); if reverse, record it as a decision and the SYSTEM-label Convention; then ask gate 1 (spec approval) naming the spec path, High tier, the four lenses, the decisions and that the round-2 fixes were not re-reviewed; on yes write `Status: Approved (name, date)` in the spec index, run `lint.mjs spec ... --approved`, and start `writing-plans-lite` | 2026-10-23 |
+| S1 | 2026-10-23 | Claude Sonnet 5.5 (lead) + four `lite-reviewer` subagents | W-AI-AGENT | Paused | Spec review rounds 1 and 2 done and fixed; Q~1 resolved (C~7); persona question open | Settle the assistant's persona and tone with the operator (it changes the prompt requirements P1 to P8 of api.md and the UI label), then ask gate 1 (spec approval) naming the spec path, High tier, the four lenses, the decisions and that the round-2 fixes were not re-reviewed; on yes write `Status: Approved (name, date)` in the spec index, run `lint.mjs spec ... --approved`, and start `writing-plans-lite` | 2026-10-23 |
 
 **Remaining**
 
-- [ ] Gate 1: spec reviewed and approved (Q~1 open)
+- [ ] Gate 1: spec reviewed and approved (the persona question is open)
 - [ ] Gate 2: plan written, reviewed and approved
 - [ ] Execute the plan (`executing-plans-lite`)
 - [ ] **Handover:** `docs/DeveloperGuide.md` needs the assistant (data, flow, configuration) at its guide checkpoint
@@ -47,7 +47,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AI-AGENT | Ticket clarification assistant and draft report for the Support Agent | Not started | [spec](docs/superpowers/specs/2026-10-23-w-ai-agent-design.md) | — | Spec reviewed twice and fixed; waiting on Q~1, then gate 1 | — |
+| W-AI-AGENT | Ticket clarification assistant and draft report for the Support Agent | Not started | [spec](docs/superpowers/specs/2026-10-23-w-ai-agent-design.md) | — | Spec reviewed twice and fixed; persona question, then gate 1 | — |
 
 ---
 
@@ -71,9 +71,7 @@ No change: nothing is built yet.
 
 ## 7. Needs a Human
 
-| ID | What is needed | What it blocks | Raised |
-|---|---|---|---|
-| Q~1 | Keep or reverse a recorded decision (`AGENTS.md` § 4): `PROJECT_STATE.md` § Upcoming records "a new `AI` author role"; the spec uses the existing `SYSTEM` role (recommended: `Role.SYSTEM` exists and a new `Role` value would ripple through every switch on `Role`). Keep = add `AI`; reverse = use `SYSTEM` | Spec approval (gate 1) | 2026-10-23 |
+No change: Q~1 was raised and resolved on this branch (C~7).
 
 ---
 
@@ -87,6 +85,7 @@ No change: nothing is built yet.
 | C~4 | 2026-10-23 | The assistant asks at submission, then answers each Guest reply, up to a fixed round cap. Rejected: submission only; Agent-requested follow-ups | Operator | Operator conversation |
 | C~5 | 2026-10-23 | The shared LLM gateway is a separate workstream (W-AI-GATEWAY, done, C101); this feature registers one `AiFeature` on it | Operator | Operator conversation |
 | C~6 | 2026-10-23 | This branch is cut in a separate git worktree and the main checkout stays on `development` | Operator: switching the shared checkout would complicate the W-AGENT fold that another session is running there | Operator conversation |
+| C~7 | 2026-10-23 | Reverse the recorded "new `AI` author role": the assistant uses the existing `SYSTEM` role and user, and the frontend labels every `SYSTEM` message in a ticket thread "Automated assistant". Convention to fold: a SYSTEM-authored ticket-thread message means the automated assistant. Supersedes the Upcoming row "W-AI-AGENT scoping decisions" (its `AI` role part; amends C~2) | Operator, after `AGENTS.md` § 4 confirmation: the frontend can label the messages, and a new `Role` value would ripple through every switch on `Role`. Rejected: an `AI` value (second seeded user, widened `users.role` CHECK, desktop enum copy) | Operator conversation |
 
 ---
 
