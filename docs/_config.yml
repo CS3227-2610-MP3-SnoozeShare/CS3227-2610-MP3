@@ -26,7 +26,3 @@ defaults:
 exclude:
   - Gemfile
   - Gemfile.lock
-  - MP2-feedback-triage.md
-  - project-history
-  - project-state
-  - superpowers
