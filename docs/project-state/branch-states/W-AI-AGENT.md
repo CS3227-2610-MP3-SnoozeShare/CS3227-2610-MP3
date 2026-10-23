@@ -9,7 +9,7 @@ after the branch merges.
 - **Owner:** Xiao-Congchen
 - **Status:** Draft
 - **Approved:** —
-- **Last updated:** 2026-10-23 by Codex — paused at Wave 3 blocker per operator; SD23 reviewed, gate 1 pending
+- **Last updated:** 2026-10-23 by Claude Sonnet 5.5 — SD23 approved (C~18); plan revised, gate 2 pending
 
 ---
 
@@ -106,7 +106,7 @@ No new accepted limitations beyond the provisional prompt and existing screen/pr
 
 | ID | What is needed | What it blocks | Raised |
 |---|---|---|---|
-| Q~3 | On resumption approve reviewed SD23 catch-up selection plus explicit E49/E94 burst schedules; then revise/reapprove plan before fixing E8/E49. High-risk Implementer/Tester rounds 1–2 and Maintainer/Attacker round 1 have no remaining blockers. Spec lint 0 errors/1 near-cap warning | T4 completion and Waves 4–5; operator paused C~17 | 2026-10-23 |
+| — | None open. Q~3 resolved: SD23 (C~18) and the revised plan (C~19) approved | — | 2026-10-23 |
 
 ---
 
@@ -114,6 +114,8 @@ No new accepted limitations beyond the provisional prompt and existing screen/pr
 
 | ID | Date | Decision | Why / who asked | Source |
 |---|---|---|---|---|
+| C~19 | 2026-10-23 | Approved (Xiao-Congchen, 2026-10-23): revised plan with T4 step 4a, E93/E94, staged E49; resume T4 and continue Waves 4–5. No push/PR/live-service action authorized | Operator: "Approve plan" at gate 2. Ends the C~17 pause | Operator conversation |
+| C~18 | 2026-10-23 | Approved (Xiao-Congchen, 2026-10-23): SD23 catch-up replay selection (C~16 accepted); spec gate 1. Plan gets step 4a and E93/E94/staged E49 traceability; revised-plan gate 2 still pending | Operator: "Approve SD23" in reply to the explicit gate-1 question after asking to continue and finish the feature. Supersedes the pause C~17 for the spec part only | Operator conversation |
 | C~17 | 2026-10-23 | Pause before Wave 4; T4 catch-up conflict prevents finishing current Wave 3 without SD23 approval. Finish independent checks and prepare the amendment for review, then leave the resume point | Operator: "pause after the current wave". No SD23 behavior change, further wave, push or PR authorized by this request | Operator conversation |
 | C~16 | 2026-10-23 | Proposed, not approved: SD23 omits only the newest question from one catch-up replay when a newer-than-cursor Guest reply precedes it. Preserve stored order/body, round/call caps and E84 otherwise | Codex proposes after E8/E49 failed: chronological replay ends ASSISTANT, preventing required follow-up. Proposal rejects fabricated/reordered Guest turns, uncounted question rounds and silently dropping catch-up. Operator decision pending | T4 concurrency evidence; D~5 |
 | C~14 | 2026-10-23 | Approved (Xiao-Congchen, 2026-10-23): revised SD22 plan, including current scoped T10 tuning-kit adjustment; resume execution | Operator: "approve and resume building" to revised-plan gate 2. Reopened Wave 1 precedes Wave 2; no push/PR or live-service authorization | Operator conversation |
