@@ -31,7 +31,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-23 16:00 | Claude Opus 4.6 (lead) | W-AI-GUEST | Active | T2 done; starting T3/T4 (wave 3) | T3 step 1: edge-case tests | 2026-10-23 |
+| S1 | 2026-10-23 16:00 | Claude Opus 4.6 (lead) | W-AI-GUEST | Active | T3/T4 done; starting T5 | T5 step 1: frontend tests | 2026-10-23 |
 
 **Remaining**
 
@@ -45,7 +45,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AI-GUEST | AI Search Assistant — Guest natural language search via LLM | Building | [spec](docs/superpowers/specs/2026-10-23-w-ai-guest-design.md) | [plan](docs/superpowers/plans/2026-10-23-w-ai-guest.md) | T4 done; T3 in progress, T5 next | — |
+| W-AI-GUEST | AI Search Assistant — Guest natural language search via LLM | Building | [spec](docs/superpowers/specs/2026-10-23-w-ai-guest-design.md) | [plan](docs/superpowers/plans/2026-10-23-w-ai-guest.md) | T3/T4 done; T5 next | — |
 
 ---
 
@@ -103,4 +103,5 @@ No change.
 | 2026-10-23 | W-AI-GUEST implementation plan written and approved — 5 tasks, 4 waves, 21 edge-case tests in T3, reviewed by lite-reviewer | W-AI-GUEST | plan commit |
 | 2026-10-23 | T1: AiSearchFilters record, GuestAiConfig bean (guest.search), unit test — @ConditionalOnDatabase added to avoid datasource-free context failure | W-AI-GUEST | T1 commit |
 | 2026-10-23 | T2: POST /api/guest/ai/search — DTOs, GuestAiSearchService, GuestAiSearchController, 10 integration tests (happy path, validation, degraded, auth, role) | W-AI-GUEST | T2 commit |
+| 2026-10-23 | T3: 21 edge-case tests — vague query, flagged input, null filters, invalid output, partial dates, Unicode, blocked/refused/auth, throttling, concurrency | W-AI-GUEST | T3 commit |
 | 2026-10-23 | T4: AI search bar on Guest search page — types, aiSearch function, AI form, explanation card, filter chips, clear action | W-AI-GUEST | T4 commit |

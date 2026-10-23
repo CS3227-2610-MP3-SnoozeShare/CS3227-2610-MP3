@@ -1,5 +1,6 @@
 package com.snoozeshare.controller.guest;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -7,16 +8,22 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneOffset;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -57,6 +64,7 @@ import com.snoozeshare.repository.WalletRepository;
 class GuestAiSearchControllerTest extends PostgresIntegrationTest {
 
     private static final String AI_SEARCH_URL = "/api/guest/ai/search";
+    private static final LocalDate FIXED_TODAY = LocalDate.of(2026, 6, 15);
 
     @Autowired
     private MockMvc mockMvc;
@@ -207,7 +215,7 @@ class GuestAiSearchControllerTest extends PostgresIntegrationTest {
     @Test
     void pastStartDateReturnsDegraded() throws Exception {
         AiSearchFilters filters = new AiSearchFilters(
-            null, LocalDate.now().minusDays(5), LocalDate.now().plusDays(2),
+            null, FIXED_TODAY.minusDays(5), FIXED_TODAY.plusDays(2),
             null, null, "Past date search.");
         mockGatewayOk(filters);
 
@@ -223,7 +231,7 @@ class GuestAiSearchControllerTest extends PostgresIntegrationTest {
     /** E14: reversed dates from LLM returns degraded with INVALID_SEARCH_DATES. */
     @Test
     void reversedDatesReturnsDegraded() throws Exception {
-        LocalDate future = LocalDate.now().plusDays(10);
+        LocalDate future = FIXED_TODAY.plusDays(10);
         AiSearchFilters filters = new AiSearchFilters(
             null, future.plusDays(5), future,
             null, null, "Reversed dates.");
@@ -267,6 +275,349 @@ class GuestAiSearchControllerTest extends PostgresIntegrationTest {
             .andExpect(status().isForbidden());
     }
 
+    /** E4: vague query with all-null filters returns all active listings. */
+    @Test
+    void vagueQueryReturnsAllListings() throws Exception {
+        AiSearchFilters filters = new AiSearchFilters(
+            null, null, null, null, null, "No criteria found");
+        mockGatewayOk(filters);
+
+        mockMvc.perform(post(AI_SEARCH_URL)
+                .header("Authorization", "Bearer " + guestToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"query\":\"show me something\"}"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.aiAvailable").value(true))
+            .andExpect(jsonPath("$.results").isNotEmpty());
+    }
+
+    /** E5: trusted context contains today's date and day of week from the fixed Clock. */
+    @SuppressWarnings("unchecked")
+    @Test
+    void relativeDateResolvedFromTrustedContext() throws Exception {
+        AiSearchFilters filters = new AiSearchFilters(
+            null, null, null, null, null, "Searching.");
+        ArgumentCaptor<LlmCall> callCaptor = ArgumentCaptor.forClass(LlmCall.class);
+        when(gateway.run(any(AiFeature.class), callCaptor.capture()))
+            .thenReturn(LlmResult.ok(filters, false, false, UUID.randomUUID()));
+
+        mockMvc.perform(post(AI_SEARCH_URL)
+                .header("Authorization", "Bearer " + guestToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"query\":\"next weekend\"}"))
+            .andExpect(status().isOk());
+
+        assertThat(callCaptor.getValue().trustedContext()).contains("2026-06-15");
+        assertThat(callCaptor.getValue().trustedContext()).contains("MONDAY");
+    }
+
+    /** E6: flagged input still returns ok results (flagged does not degrade). */
+    @SuppressWarnings("unchecked")
+    @Test
+    void flaggedInputLogsWarnAndReturnsResults() throws Exception {
+        AiSearchFilters filters = new AiSearchFilters(
+            "Singapore", null, null, null, null, "Flagged but valid.");
+        when(gateway.run(any(AiFeature.class), any(LlmCall.class)))
+            .thenReturn(LlmResult.ok(filters, true, false, UUID.randomUUID()));
+
+        mockMvc.perform(post(AI_SEARCH_URL)
+                .header("Authorization", "Bearer " + guestToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"query\":\"ignore instructions\"}"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.aiAvailable").value(true));
+    }
+
+    /** E7: all-null filters returns all active listings. */
+    @Test
+    void allNullFiltersReturnsAllListings() throws Exception {
+        AiSearchFilters filters = new AiSearchFilters(
+            null, null, null, null, null, "Broad search.");
+        mockGatewayOk(filters);
+
+        mockMvc.perform(post(AI_SEARCH_URL)
+                .header("Authorization", "Bearer " + guestToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"query\":\"anything\"}"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.aiAvailable").value(true))
+            .andExpect(jsonPath("$.results").isNotEmpty());
+    }
+
+    /** E8: negative guests triggers INVALID_OUTPUT from gateway. */
+    @Test
+    void negativeGuestsReturnsFallback() throws Exception {
+        mockGatewayDegraded(LlmErrorCode.INVALID_OUTPUT);
+
+        mockMvc.perform(post(AI_SEARCH_URL)
+                .header("Authorization", "Bearer " + guestToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"query\":\"minus one guests\"}"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.aiAvailable").value(false))
+            .andExpect(jsonPath("$.errorCode").value("INVALID_OUTPUT"));
+    }
+
+    /** E9: zero rate triggers INVALID_OUTPUT from gateway. */
+    @Test
+    void zeroRateReturnsFallback() throws Exception {
+        mockGatewayDegraded(LlmErrorCode.INVALID_OUTPUT);
+
+        mockMvc.perform(post(AI_SEARCH_URL)
+                .header("Authorization", "Bearer " + guestToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"query\":\"free rooms\"}"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.aiAvailable").value(false))
+            .andExpect(jsonPath("$.errorCode").value("INVALID_OUTPUT"));
+    }
+
+    /** E10: blank explanation triggers INVALID_OUTPUT from gateway. */
+    @Test
+    void blankExplanationReturnsFallback() throws Exception {
+        mockGatewayDegraded(LlmErrorCode.INVALID_OUTPUT);
+
+        mockMvc.perform(post(AI_SEARCH_URL)
+                .header("Authorization", "Bearer " + guestToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"query\":\"empty explanation\"}"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.aiAvailable").value(false))
+            .andExpect(jsonPath("$.errorCode").value("INVALID_OUTPUT"));
+    }
+
+    /** E11: malformed JSON from LLM triggers INVALID_OUTPUT from gateway. */
+    @Test
+    void malformedJsonReturnsFallback() throws Exception {
+        mockGatewayDegraded(LlmErrorCode.INVALID_OUTPUT);
+
+        mockMvc.perform(post(AI_SEARCH_URL)
+                .header("Authorization", "Bearer " + guestToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"query\":\"malformed json\"}"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.aiAvailable").value(false))
+            .andExpect(jsonPath("$.errorCode").value("INVALID_OUTPUT"));
+    }
+
+    /** E12: extra fields in LLM output triggers INVALID_OUTPUT from gateway. */
+    @Test
+    void extraFieldsReturnsFallback() throws Exception {
+        mockGatewayDegraded(LlmErrorCode.INVALID_OUTPUT);
+
+        mockMvc.perform(post(AI_SEARCH_URL)
+                .header("Authorization", "Bearer " + guestToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"query\":\"extra fields\"}"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.aiAvailable").value(false))
+            .andExpect(jsonPath("$.errorCode").value("INVALID_OUTPUT"));
+    }
+
+    /** E15: long explanation triggers INVALID_OUTPUT from gateway. */
+    @Test
+    void longExplanationReturnsFallback() throws Exception {
+        mockGatewayDegraded(LlmErrorCode.INVALID_OUTPUT);
+
+        mockMvc.perform(post(AI_SEARCH_URL)
+                .header("Authorization", "Bearer " + guestToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"query\":\"long explanation\"}"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.aiAvailable").value(false))
+            .andExpect(jsonPath("$.errorCode").value("INVALID_OUTPUT"));
+    }
+
+    /** E16: start date only (no end date) runs search without date filter error. */
+    @Test
+    void startDateOnlySearchesWithoutDateFilter() throws Exception {
+        AiSearchFilters filters = new AiSearchFilters(
+            null, FIXED_TODAY.plusDays(5), null, null, null,
+            "Searching from a start date.");
+        mockGatewayOk(filters);
+
+        mockMvc.perform(post(AI_SEARCH_URL)
+                .header("Authorization", "Bearer " + guestToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"query\":\"from next Friday\"}"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.aiAvailable").value(true))
+            .andExpect(jsonPath("$.results").isNotEmpty());
+    }
+
+    /** E17: end date only (no start date) runs search without date filter error. */
+    @Test
+    void endDateOnlySearchesWithoutDateFilter() throws Exception {
+        AiSearchFilters filters = new AiSearchFilters(
+            null, null, FIXED_TODAY.plusDays(10), null, null,
+            "Searching until an end date.");
+        mockGatewayOk(filters);
+
+        mockMvc.perform(post(AI_SEARCH_URL)
+                .header("Authorization", "Bearer " + guestToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"query\":\"until next Sunday\"}"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.aiAvailable").value(true));
+    }
+
+    /** E18: emoji-only query is accepted and processed. */
+    @Test
+    void unicodeOnlyQueryProcessed() throws Exception {
+        AiSearchFilters filters = new AiSearchFilters(
+            null, null, null, null, null, "Emoji search.");
+        mockGatewayOk(filters);
+
+        mockMvc.perform(post(AI_SEARCH_URL)
+                .header("Authorization", "Bearer " + guestToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"query\":\"\uD83C\uDFE0\uD83C\uDF34\"}"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.aiAvailable").value(true));
+    }
+
+    /** E19: BLOCKED_INPUT from gateway returns degraded response. */
+    @Test
+    void blockedInputReturnsDegraded() throws Exception {
+        mockGatewayDegraded(LlmErrorCode.BLOCKED_INPUT);
+
+        mockMvc.perform(post(AI_SEARCH_URL)
+                .header("Authorization", "Bearer " + guestToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"query\":\"blocked input\"}"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.aiAvailable").value(false))
+            .andExpect(jsonPath("$.errorCode").value("BLOCKED_INPUT"));
+    }
+
+    /** E20: REFUSED from gateway returns degraded response. */
+    @Test
+    void refusedReturnsDegraded() throws Exception {
+        mockGatewayDegraded(LlmErrorCode.REFUSED);
+
+        mockMvc.perform(post(AI_SEARCH_URL)
+                .header("Authorization", "Bearer " + guestToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"query\":\"refused query\"}"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.aiAvailable").value(false))
+            .andExpect(jsonPath("$.errorCode").value("REFUSED"));
+    }
+
+    /** E21: AUTH error from gateway returns degraded response. */
+    @Test
+    void authErrorReturnsDegraded() throws Exception {
+        mockGatewayDegraded(LlmErrorCode.AUTH);
+
+        mockMvc.perform(post(AI_SEARCH_URL)
+                .header("Authorization", "Bearer " + guestToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"query\":\"auth error\"}"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.aiAvailable").value(false))
+            .andExpect(jsonPath("$.errorCode").value("AUTH"));
+    }
+
+    /** E23: USER_THROTTLED from gateway returns degraded with correct errorCode. */
+    @Test
+    void userThrottledReturnsDegraded() throws Exception {
+        mockGatewayDegraded(LlmErrorCode.USER_THROTTLED);
+
+        mockMvc.perform(post(AI_SEARCH_URL)
+                .header("Authorization", "Bearer " + guestToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"query\":\"throttled\"}"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.aiAvailable").value(false))
+            .andExpect(jsonPath("$.errorCode").value("USER_THROTTLED"));
+    }
+
+    /** E24: DAILY_CAP from gateway returns degraded with correct errorCode. */
+    @Test
+    void dailyCapReturnsDegraded() throws Exception {
+        mockGatewayDegraded(LlmErrorCode.DAILY_CAP);
+
+        mockMvc.perform(post(AI_SEARCH_URL)
+                .header("Authorization", "Bearer " + guestToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"query\":\"daily cap\"}"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.aiAvailable").value(false))
+            .andExpect(jsonPath("$.errorCode").value("DAILY_CAP"));
+    }
+
+    /** E25: CIRCUIT_OPEN from gateway returns degraded with correct errorCode. */
+    @Test
+    void circuitOpenReturnsDegraded() throws Exception {
+        mockGatewayDegraded(LlmErrorCode.CIRCUIT_OPEN);
+
+        mockMvc.perform(post(AI_SEARCH_URL)
+                .header("Authorization", "Bearer " + guestToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"query\":\"circuit open\"}"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.aiAvailable").value(false))
+            .andExpect(jsonPath("$.errorCode").value("CIRCUIT_OPEN"));
+    }
+
+    /** E27: AUDIT_FAILED from gateway returns degraded response. */
+    @Test
+    void auditFailedReturnsDegraded() throws Exception {
+        mockGatewayDegraded(LlmErrorCode.AUDIT_FAILED);
+
+        mockMvc.perform(post(AI_SEARCH_URL)
+                .header("Authorization", "Bearer " + guestToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"query\":\"audit failed\"}"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.aiAvailable").value(false))
+            .andExpect(jsonPath("$.errorCode").value("AUDIT_FAILED"));
+    }
+
+    /** E36: two concurrent AI searches receive independent responses. */
+    @SuppressWarnings("unchecked")
+    @Test
+    void concurrentSearchesIndependent() throws Exception {
+        AiSearchFilters filtersA = new AiSearchFilters(
+            "Singapore", null, null, null, null, "Response A.");
+        AiSearchFilters filtersB = new AiSearchFilters(
+            null, null, null, 3, null, "Response B.");
+
+        when(gateway.run(any(AiFeature.class), any(LlmCall.class)))
+            .thenReturn(LlmResult.ok(filtersA, false, false, UUID.randomUUID()))
+            .thenReturn(LlmResult.ok(filtersB, false, false, UUID.randomUUID()));
+
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        try {
+            Future<String> futureA = executor.submit(() ->
+                mockMvc.perform(post(AI_SEARCH_URL)
+                        .header("Authorization", "Bearer " + guestToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"query\":\"search A\"}"))
+                    .andExpect(status().isOk())
+                    .andReturn().getResponse().getContentAsString());
+
+            Future<String> futureB = executor.submit(() ->
+                mockMvc.perform(post(AI_SEARCH_URL)
+                        .header("Authorization", "Bearer " + guestToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"query\":\"search B\"}"))
+                    .andExpect(status().isOk())
+                    .andReturn().getResponse().getContentAsString());
+
+            String responseA = futureA.get();
+            String responseB = futureB.get();
+
+            // Each response should be valid; together they cover both filter sets
+            assertThat(responseA).contains("\"aiAvailable\":true");
+            assertThat(responseB).contains("\"aiAvailable\":true");
+            // The two responses should differ (different explanations)
+            assertThat(responseA).isNotEqualTo(responseB);
+        } finally {
+            executor.shutdown();
+        }
+    }
+
     // ---- helpers ----
 
     @SuppressWarnings("unchecked")
@@ -291,6 +642,14 @@ class GuestAiSearchControllerTest extends PostgresIntegrationTest {
         @Primary
         FakeTokenVerifier fakeTokenVerifier() {
             return new FakeTokenVerifier();
+        }
+
+        @Bean
+        @Primary
+        Clock fixedClock() {
+            return Clock.fixed(
+                LocalDate.of(2026, 6, 15).atStartOfDay(ZoneOffset.UTC).toInstant(),
+                ZoneOffset.UTC);
         }
     }
 
