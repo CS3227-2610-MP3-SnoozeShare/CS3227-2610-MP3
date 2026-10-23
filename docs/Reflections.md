@@ -119,77 +119,91 @@ As for evidence, each stage leaves something a person can check without replayin
 Order is still the most crucial element as we move towards more agentic workflows. Only by clarifying and setting requirements early can we take full advantage of multi-agent concurrency. This time, blockers like the migration and API standards were major bottlenecks, and I would like those cleared even earlier. As for LLM security, I am just starting to experiment, and there is a lot more that can go into this as I integrate LLMs into the applications I build.
 
 ## Nathan's Reflections
-What tasks were the AI agent customized to perform and how to determine the appropriate skill set for each task?
+ AI Security
+Attack Surfaces and Prompt Injection
+Our AI features expose three attack surfaces: direct user input (the Guest search query, Host listing descriptions), indirect injection via stored content (host-written listing data becomes untrusted context when the LLM summarises it for guests), and output exfiltration (the model could be steered into leaking system prompts, API keys, or PII in its response).
 
-I used Claude Code as my AI agent for building the Guest role features in SnoozeShare, specifically F1 (Listing Search & Property Discovery), F2 (Booking Execution & Trip Hub with escrow), F3 (Guest Feedback, Disputes & Reviews), and F4 (Guest Wallet Management). These mapped to workstreams W2 through W5 in our project tracker.
+Security Features Implemented
 
-The agent was customized through a skills package called "superpowers" which provided structured workflows for different stages of development. The three skills I relied on most were:
+The gateway implements defence in depth across a 14-step pipeline (LlmGateway.java):
 
-1. Brainstorming: Before any code was written, this skill would walk through the requirements with me, clarify what I actually meant, explore edge cases, and make sure we were aligned on the design. It essentially forced a proper planning phase before jumping into implementation.
+1. Input sanitisation (InputSanitizer.java)
+2. Prompt layout enforcement (PromptBuilder.java)
+3. Output validation (OutputValidator.java)
+4. PII redaction (PiiRedactor.java): 
 
-2. Maintaining Project State: This skill kept PROJECT_STATE.md as the single source of truth across all sessions and agents. Since our team had multiple people working across different branches and even different AI models, this was critical for making sure no context was lost between sessions.
+Limits Applied
 
-3. Test-Driven Development: The agent followed a TDD-first approach when building each feature slice. Tests were written before the implementation code, which caught issues early and gave me confidence that the logic was sound before moving on.
+The AI agents are constrained at multiple levels:
 
-Determining the right skill set came down to matching the task's complexity to the workflow. For feature-level work (like building an entire booking system), I needed the full pipeline: brainstorming, then a spec, then a plan, then TDD implementation. For smaller fixes, the agent could just go ahead and do it without all the ceremony.
+- Per-user: rolling 60-second rate window, max 2 concurrent in-flight calls, 200 calls/day (UserThrottle, AiAuditWriter)
+- Global: 25 RPM (under the shared SoCLaaS key limit of 90), 4 concurrent slots, 20-job queue, 3,000 calls/day with 5% reserved for staff priority (LlmScheduler, SchedulerCore)
+- Resilience: circuit breaker opens after failures from 3+ distinct users, blocking all calls for 30 seconds with a single probe to test recovery (CircuitBreaker); budget block detects upstream spend-cap 429s and pauses for 15 minutes (BudgetBlock)
+- Token limits: maxInputChars (2,000 per user turn, 8,000 for trusted context), maxOutputChars, maxTurnsKept (10, preventing context exhaustion), reasoning_effort defaulting to none
+- Role isolation: each AiFeature declares its allowedRoles; the gateway checks that the caller's role (from the server-side authenticated principal, never the client) is in the allowed set
 
+Approval Gates and Human Oversight
 
-How did you define a specific skill and make sure that it is working?
+Every AI feature went through the full spec → plan → implementation → review gate cycle (AGENTS.md § 8). The W-AI-GATEWAY spec was reviewed by the lite reviewer agent under four lenses (Implementer, Tester, Attacker, Maintainer) and approved by the project owner before any code was written. The Attacker lens specifically asked: "Can I replay, race, forge, or access wrong-tenant data?" 
+The AI gateway itself defaults to off (enabled=false). Production startup fails if the setting is missing (ProdEnvironmentGuard). Mock mode is rejected in production. The gateway runs fail-closed: any error like audit write failure, daily cap reached, circuit open, budget blocked will return the feature's fallback response plus an error code, never an uncontrolled failure. The audit trail records metadata only (SHA-256 prompt hash, no text), with coalescing to prevent log flooding from repeated rejections.
 
-Each skill was defined as a markdown file in .claude/skills/ with clear instructions on when to trigger, what steps to follow, and what output to produce. The superpowers package came with pre-built skills that covered most of what I needed. To make sure they were working, I would observe whether the agent actually followed the skill's workflow during a task For example, whether it stopped to brainstorm before coding, or whether it updated PROJECT_STATE.md after completing a task. If it skipped a step, I would prompt it to follow through, and over time the agent got better at triggering the right skills without me having to remind it.
+We ensured these are not compromised by testing the guards themselves: ProdEnvironmentGuardAiTest verifies that startup fails on missing keys, blank URLs, non-HTTPS URLs, and mock mode. The daily cap uses atomic reservation under a single lock to prevent parallel burst overflow. The output validator normalises Unicode before checking, so fullwidth character encoding cannot bypass leak detection.
 
+---
+Spec-Driven Development
 
-What tasks were handled effectively by the agent and helped to improve productivity, code quality, or testing efficiency?
+What a Good Specification Makes Clear
 
-The agent was surprisingly good at implementing business logic and functionality. After a solid brainstorming session where we aligned on the design, the agent would produce code that was very close to what I had envisioned. The booking flow with escrow, wallet transactions, and the dispute/review system all came together well through this process. The TDD approach also meant that by the time a feature was "done," it already had meaningful test coverage. This means that I did not have to go back and write tests after the fact.
+A good specification settles the decisions that would otherwise be made ad-hoc during implementation. In our project, every spec (written with writing-specs-lite) decomposes into component files: requirements.md (functional F1–Fn and non-functional N1–Nn requirements), data-model.md, api.md, conventions.md, edge-cases.md (every E1–En scenario with exact expected behaviour), and implementation-order.md (tasks, dependencies, and waves).
 
-Planning was another area where the agent really shone. It would produce detailed specs and implementation plans, then verify them with me before writing a single line of code. This front-loaded the thinking and reduced the amount of rework needed downstream.
+Precision for Agent-Buildable Specs
 
+The lint script (lint.mjs) enforces a concrete precision standard: it bans vague wording — appropriate, as needed, should, etc., TODO, if possible — forcing the spec author to make explicit decisions. It verifies that every functional requirement (F-ID) and non-functional requirement (N-ID) appears in at least one edge-case row, that task dependencies form a DAG with no cycles, and that dependencies reference earlier waves. If a spec passes the linter with --approved, it means: no open questions remain, every requirement is covered by an edge case, and the implementation order is mechanically sound.
 
-Where did the agent require additional guidance or correction? Were there situations where using the agent created additional work rather than reducing it?
+A spec is precise enough for an agent to build from when the lite-reviewer agent, reading it under the Implementer lens, reports zero BLOCKING findings and zero QUESTIONS, meaning "I could build this with no questions." In practice, reviewers found ambiguities: the W-AGENT spec needed 4 questions resolved (Q~1 through Q~4) before the plan could begin.
 
-The biggest weakness was UI/UX work. The agent struggled with getting layouts, spacing, and visual elements right. I suspect this is because agents cannot actually see the rendered output. They are essentially working blind when it comes to how a JavaFX layout actually looks on screen. I tried pointing the agent to screenshots of the current state, and sometimes that helped, but it was inconsistent. A lot of the time, UI changes I requested were not visually reflected in the way I expected despite the code being modified. This meant I had to do more manual tweaking on the frontend side.
+Changes Flowing Through Spec, Implementation, and Tests
 
-There were also cases where corrections were needed even after the brainstorming phase. In hindsight, some of this was probably a prompting issue on my end. I may not have been specific enough about certain details, and the agent filled in the gaps with its own assumptions. Getting better at writing precise prompts is something I would focus on if I did this again.
+Changes flow through a strict gate order (AGENTS.md § 8): Spec → Plan → Code → Review → Merge → Fold → Guide. The plan's traceability table maps every spec requirement ID to its implementing task(s) and verifier (the test that proves it). For example, in W-AUTH: F1 (frontend Firebase flows) maps to tasks T6, T7, T8 and is verified by "Firebase client tests and auth UI tests"; E8 (concurrent registration uniqueness) maps to T1, T4, T5 and is verified by a concurrent-registration integration test.
 
-
-What would you change in the agent's instructions or skill set if you repeated the task? What additional skills or tools would make the agent more useful?
-
-If I repeated this, I would invest more in tooling for UI work. The agent's inability to see rendered layouts was a consistent pain point. Something like a skill that takes a screenshot of the current UI, compares it to a mockup, and identifies the differences would go a long way. Even a simple feedback loop where the agent runs the app, captures the window, and checks its own work would help.
-
-I would also refine my own prompting habits. The agent is only as good as the instructions it receives, and I think I left too much ambiguity in some of my requests early on. Being more explicit about expected behaviour upfront, especially for visual elements that I found the most problems with would reduce the back-and-forth.
-
-
-What did you learn about designing an effective single AI agent for software engineering tasks?
-
-The biggest lesson was that planning matters more than coding speed. In past projects where I jumped straight into implementation with the agent, I ended up with a lot of corrections and lower quality output. The brainstorming skill in this project forced a proper design conversation before any code was written, and while it used up more context window, the output was significantly better.
-
-Agents are naturally inclined towards action and they want to start writing code immediately. A well-designed skill that slows them down and makes them think first is genuinely valuable, even if it feels like overhead in the moment. The context spent on planning pays for itself many times over in reduced rework.
-
-The other insight is that agents excel at structured, logic-heavy tasks but struggle with anything that requires visual judgement. Knowing this boundary helps you allocate work more effectively. Let the agent handle the service layer, the data access, the business rules, and the tests, but expect to do more hands-on work for anything the user actually sees.
+When reality diverges from a plan, it is recorded as a Deviation in the branch state — not silently absorbed. The W-AGENT branch recorded 19 deviations (D~1 through D~19), each explaining what changed and why it was acceptable. This ensures the next agent reading the branch state knows the spec is no longer the full truth.
 
 
-### Supporting Evidence from Project Artifacts
+Basic Multi-Agent SE
 
-The following project files illustrate the points made above.
+Which Parts Benefit from Specialised Agents
 
-**Brainstorming and planning before code:**
-- `docs/superpowers/specs/mp2 archive/2026-09-24-w2-listing-search-design.md` — the W2 spec header reads "Approved via brainstorming session, 2026-09-24", showing design was validated before implementation began. Decision W2-D2 in the same file records a requirement I revised during spec review ("guests should still see unavailable listings for awareness, but available ones take priority"), demonstrating how brainstorming caught design issues before any code was written.
+Our project assigns four distinct roles through the skill system:
 
-**TDD-first workflow:**
-- `docs/superpowers/plans/mp2 archive/2026-09-24-w2-listing-search.md` — Task 1 explicitly follows a red-green-refactor cycle: "Step 1: Write tests for SearchCriteria", then "Step 2: Run test to verify it fails" with the expected compilation failure documented upfront.
-- `docs/superpowers/plans/mp2 archive/2026-09-26-w4-guest-feedback-disputes-reviews.md` — Task 1, Step 4 reads "Write the failing tests for `fileTicket()`" before any implementation code, with 8 validation rules specified in the design spec (`docs/superpowers/specs/mp2 archive/2026-09-26-w4-guest-feedback-disputes-reviews-design.md`, § 3.1) and all 8 implemented exactly as spec'd.
+- Analyst/Architect (writing-specs-lite): decomposes a feature into requirements, data model, API, edge cases, and implementation order. This requires breadth and understanding the existing architecture, conventions, and known gaps, rather than depth in any one file.
+- Developer/Executor (executing-plans-lite): implements tasks in wave order, ticking the plan's checklist, running tests per task. 
+- Reviewer (lite-reviewer): a read-only agent (tools: Read, Grep, Glob only) that checks specs and plans under multiple lenses (Implementer, Tester, Attacker,
+  Maintainer). Separating this from the author prevents confirmation bias.                                                                                     - Integrator (sync-project-state, update-documentation): folds branch state into PROJECT_STATE.md after merge, reconciles ID maps, and updates the developer guide at checkpoints.
+The reviewer is deliberately read-only and it cannot edit files, only report findings. This is a design choice: if the reviewer could fix issues, it might silently patch over  ambiguities instead of surfacing them. Its structured output format (BLOCKING, QUESTIONS, NON-BLOCKING, UNVERIFIED) forces it to categorise findings by severity, and the spec author must resolve every BLOCKING item before the gate advances.                                                                                                                             
+Building and Testing Specialised Agents                                                                                                                                                                            
+The specialised agents are defined as skill files (.claude/skills/) with explicit instructions, not just prompts. The lite-reviewer has a three-pass protocol: logic first (requirements testable, no contradictions, state transitions legal), then seams and integration (layering rules, existing callers, transaction boundaries, identity/tenancy), then lens-specific checks. The number of lenses scales with risk tier: two for Low/Medium, three for High, with the Attacker lens added dynamically for security-sensitive specs.                                                                                                                                                                                     
+Testing these agents is indirect but effective: the lint script (lint.mjs) provides a mechanical check that the spec/plan structure is correct (no open questions, task parity, dependency DAG), and the CI pipeline (check-branch-states.sh) enforces that no branch merges without an Approved state and an empty session table. The reviewer's findings are recorded in the branch state, so a human can audit whether the reviewer caught real issues or missed them.
 
-**UI/UX struggles and screenshot-driven corrections:**
-- `logs/2026-09-26_22-10-00_w8.md` — I had to attach screenshots of the wallet page and booking modals to get padding and layout consistent, because the agent could not see the rendered output itself.
-- `logs/2026-09-27_01-57-00_w9.md` — wallet UI required mockup screenshots for top-up and withdrawal modals; the agent implemented the layout but the CSS was overridden by shell-level styles that only became visible after I ran the app and verified.
-- `logs/2026-09-27_12-32-00_host-ui-touchup.md` and `logs/2026-09-29_00-58-00_host-ui-touchup.md` — multiple rounds of UI touch-up sessions were needed to correct visual issues the agent could not detect on its own.
+Context Passing Between Agents                                                                                                                                The critical mechanism is the branch state (docs/project-state/branch-states/<slug>.md). It mirrors every section of PROJECT_STATE.md but holds only what the branch changes. Each branch state includes:                                                                                                                    
 
-**PROJECT_STATE.md as cross-session source of truth:**
-- `PROJECT_STATE.md`, § How to Resume — the sessions table tracked 8+ concurrent sessions across different agents (Claude Opus, Claude Sonnet, Codex) on different branches, ensuring no context was lost when switching between sessions or models.
+- A session table with columns for agent, workstream, status, "Doing" (current position), and "Next action" (concrete enough for a cold agent to start without asking). This is the handoff contract.                           
+- Architecture sections with proposed "Now" text which is the replacement paragraph for PROJECT_STATE.md, not a description of the diff.                       
+- Decisions with provisional IDs, recording who asked, why, and what was rejected.                                                                             - Handover items explicitly marked for the next agent or session.
 
-**Planning reducing rework:**
-- `docs/project-state/done-ledger.md` — W2 through W5 each have clean single entries in the done ledger ("All 4/9/8/6 tasks complete") with no follow-up rework entries, compared to later workstreams like W6 which required multiple refinement rounds. This suggests the upfront spec and plan investment paid off in fewer surprises during implementation.
+The acid test (AGENTS.md § 2) is "Could a fresh agent, given only PROJECT_STATE.md and this branch's state, take over any session in How to Resume and take its Next action correctly, without asking a question?" If not, the file is wrong. This forces agents to write context at the granularity needed for handoff, not at the granularity convenient for their current task.                                                                                                                                                                                             
+The most vulnerable seam is between the spec author and the implementer: if the spec contains an ambiguity, the implementer resolves it silently, and the reviewer checks the code against the spec (which was ambiguous), the error propagates. Our mitigation is the lint script banning vague language, and the reviewer's Implementer lens asking "Could I build this with no questions?" but a sufficiently precise-sounding ambiguity could still slip through.                                                                     
+A second risk is stale context: if an agent reads PROJECT_STATE.md at session start but doesn't re-read after a concurrent merge, it may act on outdated decisions. The reconciliation protocol (.claude/skills/maintaining-project-state/reconciliation.md) requires checking git log against the state file and correcting drift before acting, but this depends on the agent following the protocol.                                                                                                                              
+A third risk is prompt injection through agent-typed content: support agents type audit reasons, notes, and messages that will become LLM input in the W-AI-AGENT feature. This is recorded as a handover item ("agent-typed text is untrusted LLM input") for that spec to address. The current system treats it as a known future risk, not a solved problem.                                                                                                                       
+  
+Evidence Each Agent Leaves Behind                                                                                                                                              
+Every agent leaves a layered audit trail:                                                                                                                      
+1. Branch state: records decisions (with provisional IDs and rationale), deviations (what diverged from the plan and why), changes (one line per change with commit SHA), and session history.
+2. Commit messages: typed (feat:, fix:, refactor:, docs:, test:) with the area and task ID, so git log reads as a narrative.
+3. Spec and plan files: the lint script enforces structural completeness; the traceability table maps every requirement to a task and verifier.
+4. Reviewer output: structured findings (BLOCKING, QUESTIONS, NON-BLOCKING) with file and section references, preserved in the review record.
+5. Done ledger (docs/project-state/done-ledger.md): chronological record of every change across all workstreams, with dates and references.
+6. CI checks: checkstyle on every push, build on PRs, check-branch-states.sh verifying approval status. These are automated evidence that the gates were respected, not just claimed.                                                                                                                                                                       
+A human verifier can trace any feature from its done-ledger entry → branch state changes → commit SHAs → plan task → spec requirement → edge case → test, without relying on any agent's claim about what it did. The state files and git history are the evidence; the agents are the authors, not the authorities.
 
 ## Trevor's Reflections
 
