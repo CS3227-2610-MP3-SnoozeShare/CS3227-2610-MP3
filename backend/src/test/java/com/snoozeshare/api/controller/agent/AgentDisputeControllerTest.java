@@ -328,6 +328,8 @@ class AgentDisputeControllerTest extends AgentApiIntegrationTest {
                 .andExpect(jsonPath("$.escrowHeld").value(true))
                 .andExpect(jsonPath("$.escrowAmount").isNumber())
                 .andExpect(jsonPath("$", hasKey("agentNotes")))
+                .andExpect(jsonPath("$", hasKey("assistant")))
+                .andExpect(jsonPath("$.assistant").isEmpty())
                 .andExpect(jsonPath("$.ticket.agentNotes").doesNotExist())
                 .andExpect(jsonPath("$.ticket.assignedAgentId").value(agent.id().toString()));
     }

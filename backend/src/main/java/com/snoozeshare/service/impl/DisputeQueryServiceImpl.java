@@ -1,6 +1,7 @@
 package com.snoozeshare.service.impl;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -11,7 +12,10 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.springframework.boot.context.properties.bind.Binder;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.snoozeshare.config.ConditionalOnDatabase;
 import com.snoozeshare.domain.enums.AssigneeFilter;
@@ -20,11 +24,13 @@ import com.snoozeshare.domain.enums.TicketStatus;
 import com.snoozeshare.domain.model.Booking;
 import com.snoozeshare.domain.model.Property;
 import com.snoozeshare.domain.model.Ticket;
+import com.snoozeshare.domain.model.TicketAssistant;
 import com.snoozeshare.domain.model.User;
 import com.snoozeshare.domain.settlement.EscrowPolicy;
 import com.snoozeshare.repository.BookingRepository;
 import com.snoozeshare.repository.LedgerRepository;
 import com.snoozeshare.repository.PropertyRepository;
+import com.snoozeshare.repository.TicketAssistantRepository;
 import com.snoozeshare.repository.TicketRepository;
 import com.snoozeshare.repository.UserRepository;
 import com.snoozeshare.service.DisputeDetail;
@@ -44,16 +50,25 @@ public class DisputeQueryServiceImpl implements DisputeQueryService {
     private final UserRepository users;
     private final LedgerRepository ledgerEntries;
     private final Clock clock;
+    private final TicketAssistantRepository assistants;
+    private final int maxRounds;
+    private final int staleMinutes;
 
+    @SuppressWarnings("checkstyle:ParameterNumber")
     public DisputeQueryServiceImpl(TicketRepository tickets, BookingRepository bookings,
                                    PropertyRepository properties, UserRepository users,
-                                   LedgerRepository ledgerEntries, Clock clock) {
+                                   LedgerRepository ledgerEntries, Clock clock,
+                                   TicketAssistantRepository assistants, Environment environment) {
         this.tickets = tickets;
         this.bookings = bookings;
         this.properties = properties;
         this.users = users;
         this.ledgerEntries = ledgerEntries;
         this.clock = clock;
+        this.assistants = assistants;
+        Binder binder = Binder.get(environment);
+        maxRounds = binder.bind("snoozeshare.assistant.max-rounds", Integer.class).orElse(3);
+        staleMinutes = binder.bind("snoozeshare.assistant.stale-after-minutes", Integer.class).orElse(10);
     }
 
     @Override
@@ -109,6 +124,7 @@ public class DisputeQueryServiceImpl implements DisputeQueryService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public DisputeDetail detail(UUID ticketId) {
         Ticket ticket = tickets.findById(ticketId)
                 .orElseThrow(() -> new NotFoundException("Ticket does not exist"));
@@ -119,7 +135,17 @@ public class DisputeQueryServiceImpl implements DisputeQueryService {
                 booking.getStartDate(), booking.getEndDate(), name(booking.getGuestId()),
                 name(property.getHostId()), name(ticket.getRaisedByUserId()),
                 agentName(ticket), booking.getStatus(), booking.getTotalAmount(), held,
-                phase(booking, held, LocalDate.now(clock)));
+                phase(booking, held, LocalDate.now(clock)), assistant(ticket));
+    }
+
+    private DisputeDetail.AssistantSnapshot assistant(Ticket ticket) {
+        return assistants.findById(ticket.getId()).map(row -> {
+            boolean open = ticket.getStatus() == TicketStatus.OPEN || ticket.getStatus() == TicketStatus.IN_REVIEW;
+            boolean stale = row.getState() == TicketAssistant.State.PENDING && open
+                    && row.getUpdatedAt().isBefore(clock.instant().minus(Duration.ofMinutes(staleMinutes)));
+            return new DisputeDetail.AssistantSnapshot(row.getState().name(), row.getRounds(), maxRounds,
+                    row.isFlagged(), stale, row.getDraft(), row.getDraftUpdatedAt());
+        }).orElse(null);
     }
 
     private Booking booking(Ticket ticket) {
