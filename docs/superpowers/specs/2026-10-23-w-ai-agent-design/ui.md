@@ -29,7 +29,7 @@ Navigation: reached through the existing dispute detail route `/agent/disputes/{
 | State | What the user sees | Controls | Copy | Visible to roles |
 |---|---|---|---|---|
 | Empty / Loading / Error | unchanged | unchanged | unchanged | Guest |
-| Populated, with assistant messages | A message whose `authorRole` is `SYSTEM` is drawn like another party's message (left-aligned) with the label `Automated assistant` where the raw role name is shown today | the existing reply box | the stored message body | Guest |
+| Populated, with assistant messages | A message whose `authorRole` is `SYSTEM` is drawn like another party's message (left-aligned) with the label `Snoozy · Automated assistant` where the raw role name is shown today | the existing reply box | the stored message body | Guest |
 
 Question message body (stored, fixed wording): `To help our support team review your ticket, please answer these in one message:` followed by one line per question, `1. {question}`, `2. {question}`, up to 3. Closing message body: `Thank you. Your answers have been added to your ticket for the support team.` The closing message is posted when the exchange ends after at least one question round, whether the state becomes `DONE` (including a flagged ticket) or `UNAVAILABLE`; it is not posted when no question was ever asked. When a Guest replies after the assistant has ended, nothing is shown or posted; the thread works as a normal Guest-to-Agent thread.
 
@@ -40,9 +40,9 @@ Navigation: unchanged.
 ## Agent thread panel (`frontend/src/components/agent/ThreadPanel.tsx`), GUEST channel
 | State | What the user sees | Controls | Copy | Visible to roles |
 |---|---|---|---|---|
-| Populated, with assistant messages | A `SYSTEM` message is drawn left-aligned like a Guest message, with the label `Automated assistant` | the existing reply box; posting in this thread stops the assistant | the stored body | Agent |
+| Populated, with assistant messages | A `SYSTEM` message is drawn left-aligned like a Guest message, with the label `Snoozy · Automated assistant` | the existing reply box; posting in this thread stops the assistant | the stored body | Agent |
 
 The HOST channel of the Agent's thread panel never contains assistant messages and is unchanged.
 
 ## Shared rule
-One helper maps an author role to its label: `GUEST` to `Guest`, `HOST` to `Host`, `AGENT` to `Support agent`, `SYSTEM` to `Automated assistant`; both thread components use it. The `Role` type in the frontend API types gains `SYSTEM`.
+One helper maps an author role to its label: `GUEST` to `Guest`, `HOST` to `Host`, `AGENT` to `Support agent`, `SYSTEM` to `Snoozy · Automated assistant`; both thread components use it. The `Role` type in the frontend API types gains `SYSTEM`.
