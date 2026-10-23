@@ -7,6 +7,14 @@ Iteration 2 started; earlier entries: [docs/project-history/iteration-1/done-led
 
 | Date | What changed | Workstream | Ref |
 |---|---|---|---|
+| 2026-10-23 | Folded the W-AI-GUEST branch state into `PROJECT_STATE.md` (decisions C162–C168, deviation D116, workstream row); W-AI-GUEST is Done, guide confirmation pending | W-AI-GUEST | [archive](branch-states/archive/2026-10-23-W-AI-GUEST.md) |
+| 2026-10-23 | T5: 7 Vitest tests for AI search bar (renders, disabled states, explanation, degraded alert, clear, manual fallback) + checkstyle import order fix in GuestAiSearchController | W-AI-GUEST | T5 commit |
+| 2026-10-23 | T4: AI search bar on Guest search page — types, aiSearch function, AI form, explanation card, filter chips, clear action | W-AI-GUEST | T4 commit |
+| 2026-10-23 | T3: 21 edge-case tests — vague query, flagged input, null filters, invalid output, partial dates, Unicode, blocked/refused/auth, throttling, concurrency | W-AI-GUEST | T3 commit |
+| 2026-10-23 | T2: POST /api/guest/ai/search — DTOs, GuestAiSearchService, GuestAiSearchController, 10 integration tests (happy path, validation, degraded, auth, role) | W-AI-GUEST | T2 commit |
+| 2026-10-23 | T1: AiSearchFilters record, GuestAiConfig bean (guest.search), unit test — @ConditionalOnDatabase added to avoid datasource-free context failure | W-AI-GUEST | T1 commit |
+| 2026-10-23 | W-AI-GUEST design spec written and approved — 7 functional requirements, 3 non-functional, 36 edge cases, 5 tasks across 4 waves. Three review lenses (Implementer, Tester, Attacker) run and findings merged | W-AI-GUEST | `086588b` |
+| 2026-10-23 | W-AI-GUEST implementation plan written and approved — 5 tasks, 4 waves, 21 edge-case tests in T3, reviewed by lite-reviewer | W-AI-GUEST | plan commit |
 | 2026-10-23 | Updated the Developer Guide for confirmed W-AI-HOST: Host AI component/API behavior, requirements, gateway limitations, automated coverage and manual browser verification | W-AI-HOST | `docs/DeveloperGuide.md` § 4.26, W-AI-HOST requirements and testing |
 | 2026-10-23 | W-AI-HOST Host AI Listing Optimisation Assistant: conditional Host endpoint, grounded Evaluate/Generate modal, Apply-only updates, minimum-detail eligibility, responsive modal refinements; backend/frontend verification and live modal verification pass | W-AI-HOST | [spec](../superpowers/specs/2026-10-22-w-ai-host-design.md), [plan](../superpowers/plans/2026-10-22-w-ai-host.md), PR #20 |
 | 2026-10-23 | Folded the W-AI-HOST branch state into `PROJECT_STATE.md` (decisions C155–C161, deviations D113–D115, new § 4.17 Host AI assistant); W-AI-HOST is Done and documented | W-AI-HOST | [archive](branch-states/archive/2026-10-23-W-AI-HOST.md) |
