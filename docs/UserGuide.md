@@ -27,10 +27,9 @@ real payment provider is connected.
 
 ## Quick start
 
-1. Open the current frontend deployment: [SnoozeShare](https://cs3227-snoozeshare.vercel.app).
+1. Open the current frontend deployment: [SnoozeShare](https://cs3227-snoozeshare.vercel.app/login).
 2. Choose **Create account** or sign in with an existing account.
 3. Select the workspace for your role from the header.
-4. If the app reports that the backend is unreachable, wait briefly and choose **Re-check**.
 
 > **Startup warning:** Because of hosting-platform limitations, the backend may take **one to
 > two minutes** to boot on the first launch or after a period of inactivity. During this time,
@@ -45,8 +44,6 @@ and the [development environment runbook](../runbooks/dev-environment.html). The
 runs at `http://localhost:3000` and expects the API at `http://localhost:8080` unless
 `NEXT_PUBLIC_API_BASE_URL` is configured. Local development requires the backend and its
 PostgreSQL environment; this is not a standalone desktop mode.
-
-![Quick-start image](../images/quickstart-db-folder.png)
 
 
 ## Account access

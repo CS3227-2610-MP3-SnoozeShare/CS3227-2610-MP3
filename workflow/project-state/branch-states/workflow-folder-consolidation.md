@@ -7,9 +7,9 @@ after the branch merges.
 - **Branch:** workflow-folder-consolidation (from `INT` at `2f83c4e`)
 - **Base:** 2f83c4e
 - **Owner:** Xiao-Congchen
-- **Status:** In review
-- **Approved:** —
-- **Last updated:** 2026-10-23 by Claude Sonnet 5.5 — consolidation done, review requested
+- **Status:** Approved
+- **Approved:** Xiao-Congchen 2026-10-23
+- **Last updated:** 2026-10-23 by Claude Sonnet 5.5 — owner approval recorded
 
 ---
 
@@ -48,7 +48,7 @@ The rows for `docs/superpowers/…`, `docs/project-state/`, `docs/project-histor
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W~1 | Consolidate the agentic-workflow files into `workflow/`, add Developer Guide § 0, fix Pages links | In review | — (skipped, C~1) | — (skipped, C~1) | Moves, references, guide § 0 and Pages fix done; awaiting owner review | N/A: § 0 was written on this branch at the operator's request (C~2) |
+| W~1 | Consolidate the agentic-workflow files into `workflow/`, add Developer Guide § 0, fix Pages links | Done | — (skipped, C~1) | — (skipped, C~1) | Moves, references, guide § 0 and Pages fix done; awaiting owner review | N/A: § 0 was written on this branch at the operator's request (C~2) |
 
 ---
 
