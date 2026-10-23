@@ -102,42 +102,46 @@ export default function MessagesPage() {
   const isOpen = selectedItem?.data.open ?? true;
 
   return (
-    <main aria-label="Messages" className="flex min-h-[calc(100vh-4rem)]">
-      {/* Sidebar */}
-      <aside className="w-72 shrink-0 border-r bg-background">
-        <div className="flex items-center justify-between border-b px-3 py-2">
-          <h2 className="text-sm font-semibold">Messages</h2>
-          <button type="button" onClick={() => setTicketBookingId('pick')}
-            className="rounded bg-primary px-2 py-1 text-xs font-medium text-primary-foreground hover:opacity-90">
-            File Ticket
-          </button>
-        </div>
-        {loading && <p className="p-3 text-sm text-muted-foreground">Loading...</p>}
-        {error && <p className="p-3 text-sm text-red-600">{error}</p>}
-        {!loading && !error && (
-          <ConversationList items={items} selectedId={selectedId} onSelect={handleSelect} />
-        )}
-      </aside>
-
-      {/* Thread */}
-      <div className="flex flex-1 flex-col">
-        {!selectedItem && (
-          <div className="flex flex-1 items-center justify-center text-muted-foreground">
-            <p data-testid="select-prompt">Select a conversation to view messages</p>
-          </div>
-        )}
-        {selectedItem && threadLoading && (
-          <p className="p-4 text-sm text-muted-foreground">Loading messages...</p>
-        )}
-        {selectedItem && !threadLoading && (
-          <MessageThread
-            messages={messages}
-            currentUserId={user?.uid ?? ''}
-            onSend={handleSend}
-            disabled={!isOpen}
-          />
-        )}
+    <main aria-label="Messages" className="flex min-h-[calc(100vh-4rem)] flex-col p-6">
+      <div className="mb-5 flex shrink-0 items-center justify-between">
+        <h2 className="text-2xl font-bold">Messages</h2>
+        <button type="button" onClick={() => setTicketBookingId('pick')}
+          className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90">
+          File Ticket
+        </button>
       </div>
+
+      {loading && <div className="ss-card h-64 animate-pulse bg-[var(--surface-inset)]" />}
+      {error && <div className="ss-card p-8 text-center text-destructive">{error}</div>}
+
+      {!loading && !error && (
+        <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,0.8fr)_minmax(0,1.2fr)] gap-0 overflow-hidden rounded-md border border-[var(--border-muted)] bg-card lg:grid-cols-[minmax(280px,27fr)_minmax(0,73fr)] lg:grid-rows-1">
+          {/* Sidebar */}
+          <aside className="min-h-0 overflow-y-auto border-b border-[var(--border-muted)] bg-card lg:border-b-0 lg:border-r" aria-label="Conversation list">
+            <ConversationList items={items} selectedId={selectedId} onSelect={handleSelect} />
+          </aside>
+
+          {/* Thread */}
+          <section className="flex min-h-0 min-w-0 flex-col bg-background">
+            {!selectedItem && (
+              <div className="flex flex-1 items-center justify-center text-[var(--text-subtle)]">
+                <p data-testid="select-prompt">Select a conversation to view messages</p>
+              </div>
+            )}
+            {selectedItem && threadLoading && (
+              <p className="p-4 text-sm text-[var(--text-subtle)]">Loading messages…</p>
+            )}
+            {selectedItem && !threadLoading && (
+              <MessageThread
+                messages={messages}
+                currentUserId={user?.uid ?? ''}
+                onSend={handleSend}
+                disabled={!isOpen}
+              />
+            )}
+          </section>
+        </div>
+      )}
 
       <TicketFilingDialog
         bookingId={ticketBookingId === 'pick' ? null : ticketBookingId}

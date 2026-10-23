@@ -86,10 +86,10 @@ export default function TripsPage() {
     <main aria-label="My trips" className="min-h-[calc(100vh-4rem)] p-6">
       <h2 className="mb-6 text-2xl font-bold">My Trips</h2>
 
-      {loading && <p className="text-muted-foreground">Loading trips...</p>}
-      {error && <p className="text-red-600">{error}</p>}
+      {loading && <div className="space-y-3">{[1, 2, 3].map((id) => <div className="ss-card h-28 animate-pulse bg-[var(--surface-inset)]" key={id} />)}</div>}
+      {error && <div className="ss-card p-8 text-center text-destructive">{error}</div>}
       {!loading && !error && trips.length === 0 && (
-        <p data-testid="empty-state" className="text-muted-foreground">No trips yet. Search for a listing to book your first stay!</p>
+        <div data-testid="empty-state" className="ss-card p-12 text-center text-[var(--text-subtle)]">No trips yet. Search for a listing to book your first stay!</div>
       )}
 
       {!loading && !error && trips.length > 0 && (
