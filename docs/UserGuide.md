@@ -92,9 +92,15 @@ interaction pattern. A displayed balance is an application balance, not a bank b
 rate. Select a result to open its detail sheet, review availability and pricing, and choose
 **Book**. A booking places the stay cost on escrow and starts as pending until the Host responds.
 
-You can also enter a natural-language request in **Search with AI**. The app displays the
-interpreted city, dates, guest count, or rate filters and an explanation with the results. If AI
-search is unavailable, use the manual filters.
+You can also enter a natural-language request in **Search with AI**. Describe the stay you want,
+such as a city, dates, guest count, or budget. The assistant interprets the request into search
+filters, displays those filters and an explanation, and returns matching listings. It only
+assists with discovery: it does not book a stay, change your wallet, or modify your account.
+
+Review the interpreted filters before choosing a listing, especially when the request is vague
+or contains conflicting details. The request is limited in length and the assistant can be
+temporarily unavailable or return a degraded result. If that happens, use the manual City,
+Check-in, Check-out, Guests, and Max rate filters instead.
 
 ![Guest search](images/guest-search.png)
 ![Guest listing detail](images/guest-listing-detail.png)
@@ -151,12 +157,18 @@ washer, and work desk. Save the listing after required fields are valid. A listi
 
 ### AI Description Assistant
 
-The **AI Description Assistant** becomes available from the Description field after title,
-property type, maximum guests, bedrooms, bathrooms, check-in time, and check-out time are
-entered. **Evaluate** reviews the current description; **Generate description** creates a
-description and analysis; **Apply generated description** copies the generated text into the
-form. Review it before applying it, and save the listing separately. If the assistant is
-unavailable, edit the description manually.
+The **AI Description Assistant** helps a Host evaluate and improve listing copy. It becomes
+available from the Description field after title, property type, maximum guests, bedrooms,
+bathrooms, check-in time, and check-out time are entered. It uses the listing details supplied
+in the form as context and is intended to avoid inventing property facts.
+
+**Evaluate** reviews the current description; **Generate description** creates a description and
+analysis; **Apply generated description** copies the generated text into the form. Review the
+result before applying it. Applying changes only the form field, while saving the listing is a
+separate action; the assistant cannot publish a listing by itself.
+
+The assistant may return a degraded response, reject invalid output, or be temporarily
+unavailable. If that happens, edit the description manually and save the listing without AI.
 
 ### Requests, messages, and wallet
 
@@ -211,8 +223,29 @@ Agent access is intended for authorized staff.
   ![Ticket categories](images/admin3.png)
 
 
-Agent AI functionality is not part of the current supported workspace and is not documented as
-available here.
+### Ticket clarification assistant
+
+When a Guest files a ticket, the **AI assistant** gathers facts by asking follow-up questions in
+the Guest ticket thread and prepares an unverified draft report for the Support Agent. It uses
+the ticket and Guest conversation as context; it does not use the Host conversation to generate
+the Guest questions. Assistant messages appear in the Guest thread as **Snoozy · Automated
+assistant**. The assistant gathers facts only: it does not decide who is right, approve a
+remedy, issue a refund, change a ticket, or modify a wallet.
+
+Open a ticket's detail view to see the assistant panel between the Guest and Host conversations.
+The panel can show whether the assistant is working, waiting for the Guest's answer, finished,
+stopped, or unavailable. It can also show an injection warning when suspicious input was flagged.
+The draft is labelled unverified and is presented as headed sections for review.
+
+If the draft is useful, choose **Insert into notes**. This copies the draft into the Agent's
+editable internal notes; it does not resolve the ticket or apply a remedy. Review and edit the
+notes before saving, then use the normal dispute resolution controls. Treat the draft as a
+summary aid, not as evidence or a decision.
+
+The assistant may stop after its question-round limit, become unavailable, or remain stale if a
+background job is interrupted. Treat its draft as a summary aid, not as evidence or a decision.
+In those cases, continue the ticket manually using the Guest and Host conversations and available
+booking evidence. Agent messages stop the assistant, and resolved tickets are read-only.
 
 ## Shared rules
 
@@ -248,8 +281,9 @@ filters or write the description manually.
 - The hosted backend may sleep on the free Render plan, so the first request can be slow or
   require **Re-check**.
 - AI features depend on backend availability and have manual fallbacks.
+- The ticket clarification assistant is asynchronous and may be unavailable or stale; it does
+  not automatically recover every interrupted background job.
 - Privileged registration codes are administrator-managed and are not published here.
-- Agent AI features are not currently available.
 
 ## Troubleshooting
 
