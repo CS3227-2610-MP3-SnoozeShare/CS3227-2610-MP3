@@ -100,6 +100,7 @@ export default function SearchPage() {
           value={aiQuery}
           onChange={(e) => setAiQuery(e.target.value)}
           placeholder="Describe what you're looking for..."
+          maxLength={500}
           disabled={aiLoading}
           className="flex-1 rounded border px-3 py-2 text-sm"
         />

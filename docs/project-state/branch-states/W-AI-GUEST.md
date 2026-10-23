@@ -7,9 +7,9 @@ after the branch merges.
 - **Branch:** W-AI-GUEST (from `development` at `f50f437`)
 - **Base:** f50f437
 - **Owner:** Nathan
-- **Status:** Draft
+- **Status:** In review
 - **Approved:** —
-- **Last updated:** 2026-10-23 by Claude Opus 4.6 — plan approved
+- **Last updated:** 2026-10-23 by Claude Opus 4.6 — all tasks done, close-out complete
 
 ---
 
@@ -31,13 +31,12 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-23 16:00 | Claude Opus 4.6 (lead) | W-AI-GUEST | Active | T5 done; close-out next | Close-out: lint, build, code review | 2026-10-23 |
 
 **Remaining**
 
 - [x] Write the implementation plan (`writing-plans-lite`)
 - [x] Implement T1-T5 (`executing-plans-lite`)
-- [ ] Close-out and review
+- [x] Close-out and review
 
 ---
 
@@ -45,7 +44,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AI-GUEST | AI Search Assistant — Guest natural language search via LLM | Building | [spec](docs/superpowers/specs/2026-10-23-w-ai-guest-design.md) | [plan](docs/superpowers/plans/2026-10-23-w-ai-guest.md) | T5 done; close-out next; guide out of date: AI search assistant | — |
+| W-AI-GUEST | AI Search Assistant — Guest natural language search via LLM | In review | [spec](docs/superpowers/specs/2026-10-23-w-ai-guest-design.md) | [plan](docs/superpowers/plans/2026-10-23-w-ai-guest.md) | T1-T5 done; guide out of date: AI search assistant | — |
 
 ---
 
