@@ -44,6 +44,8 @@ describe('Host messages page', () => {
     postBookingMessage.mockRejectedValue(new Error('private backend data'));
     render(<HostApiProvider><HostFixtureProvider><HostMessagesPage /></HostFixtureProvider></HostApiProvider>);
     await screen.findByPlaceholderText('Write a message…');
+    await waitFor(() => expect(fetchBookingMessages).toHaveBeenCalledWith('booking-1'));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Send' })).toBeEnabled());
     fireEvent.change(screen.getByPlaceholderText('Write a message…'), { target: { value: 'Please confirm.' } });
     fireEvent.click(screen.getByRole('button', { name: 'Send' }));
 
