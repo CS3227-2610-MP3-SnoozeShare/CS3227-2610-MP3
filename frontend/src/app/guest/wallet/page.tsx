@@ -23,7 +23,7 @@ function formatMoney(amount: number) {
 }
 
 function transactionTypeClass(type: string) {
-  if (type === 'BOOKING_HOLD') return 'bg-[var(--warning-subtle)] text-[var(--warning)]';
+  if (type === 'BOOKING_HOLD' || type === 'ESCROW_HOLD') return 'bg-[var(--warning-subtle)] text-[var(--warning)]';
   if (type === 'WITHDRAWAL') return 'bg-[var(--surface-inset)] text-[var(--text-subtle)]';
   return 'bg-[var(--success-subtle)] text-[var(--success)]';
 }
@@ -89,8 +89,7 @@ export default function WalletPage() {
   };
 
   return (
-    <main aria-label="Wallet" className="flex min-h-[calc(100vh-4rem)] flex-col p-6">
-      <h2 className="mb-5 text-2xl font-bold">Wallet</h2>
+    <main aria-label="Wallet" className="w-full max-w-none px-6 py-6 flex min-h-0 flex-1 flex-col overflow-hidden">
 
       {loading && <div className="ss-card h-64 animate-pulse bg-[var(--surface-inset)]" />}
       {error && <div className="ss-card p-8 text-center text-destructive">{error}</div>}
@@ -114,7 +113,7 @@ export default function WalletPage() {
 
           {/* Transaction statement */}
           <section className="flex min-h-0 flex-1 flex-col">
-            <h3 className="mb-3 shrink-0 text-base font-semibold">Transaction statement</h3>
+            <h2 className="mb-3 shrink-0 text-base font-semibold">Transaction statement</h2>
             {transactions.length === 0 && (
               <div data-testid="no-transactions" className="ss-card p-8 text-center text-[var(--text-subtle)]">No transactions yet.</div>
             )}

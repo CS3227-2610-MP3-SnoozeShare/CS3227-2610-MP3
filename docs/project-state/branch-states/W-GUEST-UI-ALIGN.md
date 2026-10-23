@@ -8,8 +8,8 @@ after the branch merges.
 - **Base:** 73cbebe
 - **Owner:** Nathan
 - **Status:** Approved
-- **Approved:** Nathan 2026-10-23
-- **Last updated:** 2026-10-23 by Claude Opus 4.6 — Guest UI aligned to Host
+- **Approved:** Trevor 2026-10-23
+- **Last updated:** 2026-10-23 by Codex — Guest wallet alignment approved
 
 ---
 
@@ -32,7 +32,7 @@ No change.
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
 
-**Remaining** — none.
+**Remaining** — none; awaiting branch review.
 
 ---
 
@@ -44,7 +44,7 @@ No new workstream. This is a small visual refactor of the existing W-GUEST pages
 
 ## 4. Architecture
 
-No change: this branch only changes CSS classes and component wiring in existing Guest frontend files.
+Guest wallet behavior will use the existing Guest API through a Guest-specific shell loader; the Host wallet implementation remains the presentation reference and is not extracted into a new shared component.
 
 ---
 
@@ -74,7 +74,9 @@ No change.
 
 ## 9. Deviations
 
-No change.
+| ID | What diverged | Why | Action |
+|---|---|---|---|
+| D~1 | The backend uses `ESCROW_HOLD`, while the earlier Guest UI mapping only recognized `BOOKING_HOLD`. | The Guest page fell through to the green default for real escrow rows. | Treat both names as warning-colored; regression test covers the canonical backend value. |
 
 ---
 
@@ -83,3 +85,6 @@ No change.
 | Date | What changed | Workstream | Ref |
 |---|---|---|---|
 | 2026-10-23 | Align Guest UI to Host design: skeleton loading states, card-wrapped error/empty states, design token colors (text-destructive, var(--success), var(--surface-inset)), rounded-lg buttons, shared Modal for CancelDialog/ReviewDialog/TicketFilingDialog, shared Table for wallet transactions, Host-style bordered message panel and conversation list. 12 files, all 330 tests pass. | W-GUEST | `cb634c6` |
+| 2026-10-23 | Started follow-up to make the Guest wallet page match the Host wallet presentation and load the Guest balance into the header wallet pill. | W-GUEST-UI-ALIGN | resolved |
+| 2026-10-23 | Added Guest header wallet loading (`$X.XX`, loading dash, unavailable fallback), Host-style Guest wallet viewport/layout, and regression tests. Frontend verification: 334 tests, lint, and production build pass with placeholder public environment values. | W-GUEST-UI-ALIGN | uncommitted working-tree changes |
+| 2026-10-23 | Corrected Guest transaction badge coloring for canonical backend `ESCROW_HOLD`; added a regression test. Verification now passes with 335 frontend tests, lint, and production build. | W-GUEST-UI-ALIGN | uncommitted working-tree changes |
