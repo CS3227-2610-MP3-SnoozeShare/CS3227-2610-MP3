@@ -217,7 +217,7 @@ Plus 6 categories (all active), and the guest/host/agent users and wallets. Scen
 
 ## 8. Follow-up artifacts
 
-- Implementation plan: `docs/superpowers/plans/mp2 archive/2026-09-25-w10-agent-dispute-resolution.md` (next, via `writing-plans`).
+- Implementation plan: `workflow/plans/mp2 archive/2026-09-25-w10-agent-dispute-resolution.md` (next, via `writing-plans`).
 - W13 Messaging spec (separate workstream; consumes the `MessageService` interface defined here).
 - `docs/ProductBacklog.md` updated 2026-09-25 (operator approved): F9.2.1 dropped, F9.2.2 / F9.1.1 / F7.3.1 reworded, new epic F12 Messaging.
 - W3 handoffs are recorded in `PROJECT_STATE.md` § Workstreams → *Handoffs into W3*.

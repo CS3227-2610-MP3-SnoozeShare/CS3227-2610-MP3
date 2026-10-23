@@ -8,7 +8,7 @@
 
 **Tech Stack:** Java 25, JavaFX 25, FXML, existing shared `theme.css`, JUnit 5/TestFX, Gradle.
 
-**Spec:** `docs/superpowers/specs/mp2 archive/2026-09-27-w9-host-wallet-management-design.md`
+**Spec:** `workflow/specs/mp2 archive/2026-09-27-w9-host-wallet-management-design.md`
 
 ## Global Constraints
 
@@ -157,7 +157,7 @@
 - Modify: `src/test/java/com/snoozeshare/service/WalletLedgerTest.java`
 - Modify: `src/test/java/com/snoozeshare/ui/WalletDashboardControllerTest.java`
 - Modify: `PROJECT_STATE.md`
-- Modify: `docs/project-state/done-ledger.md`
+- Modify: `workflow/project-state/done-ledger.md`
 
 **Interfaces:**
 - Consumes: completed common wallet UI and existing `WalletService` implementation.
@@ -181,12 +181,12 @@
 
 - [ ] **Step 4: Reconcile project state and Done ledger**
 
-  Mark W9 `Done`, record the verification commands and any deviations in `PROJECT_STATE.md`, and add the newest W9 entry to `docs/project-state/done-ledger.md`. Leave the Developer Guide at `—` until the operator confirms the completed workstream and approves the feature checkpoint.
+  Mark W9 `Done`, record the verification commands and any deviations in `PROJECT_STATE.md`, and add the newest W9 entry to `workflow/project-state/done-ledger.md`. Leave the Developer Guide at `—` until the operator confirms the completed workstream and approves the feature checkpoint.
 
 - [ ] **Step 5: Commit verification and project-state records**
 
   ```bash
-  git add src/test/java/com/snoozeshare/service/WalletLedgerTest.java src/test/java/com/snoozeshare/ui/WalletDashboardControllerTest.java PROJECT_STATE.md docs/project-state/done-ledger.md
+  git add src/test/java/com/snoozeshare/service/WalletLedgerTest.java src/test/java/com/snoozeshare/ui/WalletDashboardControllerTest.java PROJECT_STATE.md workflow/project-state/done-ledger.md
   git commit -m "test: verify W9 host wallet management"
   ```
 

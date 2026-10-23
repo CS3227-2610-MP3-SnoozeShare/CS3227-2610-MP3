@@ -37,7 +37,7 @@ Answers to the two questions: the seam is the in-memory chat ("In-memory chat (R
 
 ### Outcomes
 
-- Files changed: `docs/superpowers/specs/2026-09-27-w13-messaging-service-design.md`, `docs/superpowers/plans/2026-09-27-w13-messaging-service.md`, `PROJECT_STATE.md`, `docs/project-state/done-ledger.md`, `db/schema.sql`, `db/seed-mock-data.sql`, `db/snoozeshare-mock.db`, `MigrationRunner`, `MessageService`, `MessageServiceImpl`, `JdbcMessageRepository`, `TicketRepository`/`JdbcTicketRepository`, `AppContext`, `DisputeDetailController`, `dispute-detail.fxml`, `ChatBubbles`, and matching tests
+- Files changed: `workflow/specs/2026-09-27-w13-messaging-service-design.md`, `workflow/plans/2026-09-27-w13-messaging-service.md`, `PROJECT_STATE.md`, `workflow/project-state/done-ledger.md`, `db/schema.sql`, `db/seed-mock-data.sql`, `db/snoozeshare-mock.db`, `MigrationRunner`, `MessageService`, `MessageServiceImpl`, `JdbcMessageRepository`, `TicketRepository`/`JdbcTicketRepository`, `AppContext`, `DisputeDetailController`, `dispute-detail.fxml`, `ChatBubbles`, and matching tests
 - Tests: `.\gradlew build`; 406 tests, 2 failing (`FileTicketTest.successfullyFilesTicketAndPublishesEvent`, `ShellLayoutTest.hostWalletPageUsesTheSamePageInsetAsListingsAndBookings`, both failing on `main` per D21)
 - Blockers: none
 - Follow-up: pull request when requested
@@ -110,7 +110,7 @@ No, agents shouldn't read the host-guest chat.
 
 ### Outcomes
 
-- Files changed: `docs/superpowers/specs/2026-09-27-w13-messaging-service-design.md`, `PROJECT_STATE.md`
+- Files changed: `workflow/specs/2026-09-27-w13-messaging-service-design.md`, `PROJECT_STATE.md`
 - Tests: `not run` (documentation only)
 - Blockers: none
 - Follow-up: none

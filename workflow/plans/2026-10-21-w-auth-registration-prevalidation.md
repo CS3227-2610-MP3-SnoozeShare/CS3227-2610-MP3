@@ -135,8 +135,8 @@
 
 | Action | Path | What changes |
 |---|---|---|
-| Modify | `docs/superpowers/plans/2026-10-21-w-auth-registration-prevalidation.md` | Tick completed T1–T3 checklists and mark task statuses after evidence is collected. |
-| Modify | `docs/project-state/branch-states/W-AUTH.md` | Record verification commands, Changes, Deviations, and the next handoff action. |
+| Modify | `workflow/plans/2026-10-21-w-auth-registration-prevalidation.md` | Tick completed T1–T3 checklists and mark task statuses after evidence is collected. |
+| Modify | `workflow/project-state/branch-states/W-AUTH.md` | Record verification commands, Changes, Deviations, and the next handoff action. |
 
 **Checklist**
 
@@ -154,8 +154,8 @@
 
 | Action | Path | What changes |
 |---|---|---|
-| Modify | `docs/superpowers/plans/2026-10-21-w-auth-registration-prevalidation.md` | Mark all tasks done and complete the close-out checklist. |
-| Modify | `docs/project-state/branch-states/W-AUTH.md` | Empty the session row, set workstream/branch status to `In review`, and record the handoff. |
+| Modify | `workflow/plans/2026-10-21-w-auth-registration-prevalidation.md` | Mark all tasks done and complete the close-out checklist. |
+| Modify | `workflow/project-state/branch-states/W-AUTH.md` | Empty the session row, set workstream/branch status to `In review`, and record the handoff. |
 
 **Checklist**
 

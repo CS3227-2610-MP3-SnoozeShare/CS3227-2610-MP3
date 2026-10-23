@@ -119,7 +119,7 @@ tests.
 
 **Files:**
 - Modify: `PROJECT_STATE.md`
-- Modify: `docs/project-state/done-ledger.md`
+- Modify: `workflow/project-state/done-ledger.md`
 - Modify: `docs/ProductBacklog.md` only if the implementation changes the F12 wording
 
 - [ ] **Step 1: Run focused service and UI tests** for all new/changed classes.

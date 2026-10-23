@@ -344,7 +344,7 @@
 
 | Action | Path | What changes |
 |---|---|---|
-| Modify | `docs/superpowers/plans/2026-10-22-w-host-backend-integration.md` | Tick verified checklists and task statuses; keep plan status aligned with approval and execution. |
+| Modify | `workflow/plans/2026-10-22-w-host-backend-integration.md` | Tick verified checklists and task statuses; keep plan status aligned with approval and execution. |
 | Modify | `frontend/src/app/host/listings/[listingId]/calendar/page.tsx` | Render a safe unavailable/not-found state when the calendar or listing request returns 404 instead of leaving a breadcrumb-only page. |
 | Test | `frontend/src/app/host/listings/[listingId]/calendar/page.test.tsx` | Verify a missing listing shows a user-visible not-found state and no blank calendar page. |
 | Modify | `frontend/src/components/host/HostApiProvider.tsx` | Coalesce same-key page-resource and wallet-summary reads while they are in flight, including React Strict Mode effect replay. |
@@ -498,7 +498,7 @@
 
 | Action | Path | What changes |
 |---|---|---|
-| Modify | `docs/superpowers/plans/2026-10-22-w-host-backend-integration.md` | Record T11-T17 evidence and tick amendment checklists/status only after each task passes. |
+| Modify | `workflow/plans/2026-10-22-w-host-backend-integration.md` | Record T11-T17 evidence and tick amendment checklists/status only after each task passes. |
 | Verify | Backend and frontend Host API in local environment | Confirm all relevant endpoints return complete owner-scoped arrays, no pagination JSON or request parameters, stable ordering, one fetch per dataset, and calendar remains month-bounded. Use read-only browser/network inspection; do not invoke mutations. |
 
 **Checklist**
@@ -515,7 +515,7 @@ The checked items below document the original approved implementation and verifi
 
 - [x] Every Traceability row is verified; all backend and frontend builds are green.
 - [x] Spec status and plan task statuses reflect the delivered behavior; record any deviation in the branch state.
-- [x] Update `docs/project-state/branch-states/W-HOST.md`: W-HOST-API In review, concise Progress, Changes/Deviations complete, guide out-of-date note, and no completed session rows. Do not edit `PROJECT_STATE.md` or `docs/DeveloperGuide.md` on this feature branch.
+- [x] Update `workflow/project-state/branch-states/W-HOST.md`: W-HOST-API In review, concise Progress, Changes/Deviations complete, guide out-of-date note, and no completed session rows. Do not edit `PROJECT_STATE.md` or `docs/DeveloperGuide.md` on this feature branch.
 - [x] Commit the close-out record with the final implementation task's documentation changes.
 - [x] GATE: Hand off for operator branch review; do not push, open a PR, or merge until the operator approves.
 

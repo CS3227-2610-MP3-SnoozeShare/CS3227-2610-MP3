@@ -21,7 +21,7 @@ bottom holds the record. **Cite sections by name** — `§ Known Gaps` — never
 | 7 | **Needs a Human** | Anything an agent cannot do: credentials, deploys, accounts, judgement calls | Stalling silently, or pretending a blocker is solvable |
 | 8 | **Decisions & Context** | Decisions that do *not* shape the architecture: process, priorities, scope, tooling | Re-litigating settled questions |
 | 9 | **Deviations & Discoveries** | Where reality diverged from a spec or plan, and why | Re-deriving why the code differs from the document describing it |
-| 10 | **Record** | A pointer to `docs/project-state/done-ledger.md`, plus the latest entry's date and the entry count | Re-doing work, or wondering when something changed — without the ledger crowding out §§ 1–3 |
+| 10 | **Record** | A pointer to `workflow/project-state/done-ledger.md`, plus the latest entry's date and the entry count | Re-doing work, or wondering when something changed — without the ledger crowding out §§ 1–3 |
 
 § Architecture, § Known Gaps and § Deviations are the ones agents skip and then regret.
 § Known Gaps in particular is load-bearing: without it, every session re-discovers the same
@@ -91,7 +91,7 @@ them.
 ## The Branch State
 
 `PROJECT_STATE.md` describes `INT`. Everything still in flight lives in a branch state,
-`docs/project-state/branch-states/<slug>.md`, copied from
+`workflow/project-state/branch-states/<slug>.md`, copied from
 [branch-state-template.md](branch-state-template.md). It exists so that branches never edit
 `PROJECT_STATE.md` — no shared counters, no shared insertion points, no ID collisions — and so
 that an interrupted session on the branch can be resumed by anyone.
@@ -200,13 +200,13 @@ design detail into the root file.
 - Target ~300 lines for Orientation, How to Resume, Workstreams and Needs a Human taken
   together — the part read every session. § Architecture grows with the system;
   §§ Decisions, Deviations and Done grow with its history. That is expected.
-- **The Done ledger is a separate file** — `docs/project-state/done-ledger.md` — from the
+- **The Done ledger is a separate file** — `workflow/project-state/done-ledger.md` — from the
   first entry, not once it gets long. One line per change, newest first, written there and
   nowhere else; § Record in the state file carries the link, the latest entry's date and the
   count. Deviations stay in the state file: they are read every session, while the ledger is
   opened only to answer "when did this change, and why?".
 - When the ledger passes ~100 entries, or a Deviation stops being live, move it to
-  `docs/project-state/archive-<YYYY>-Q<N>.md` and link it from the ledger. Archive, never
+  `workflow/project-state/archive-<YYYY>-Q<N>.md` and link it from the ledger. Archive, never
   delete — a deviation that is no longer live still explains why the code looks the way it
   does.
 - Update `Last updated` (date, model or agent, and five words on what changed) on every write.

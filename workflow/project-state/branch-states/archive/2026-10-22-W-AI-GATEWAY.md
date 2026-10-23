@@ -46,7 +46,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W~1 | W-AI-GATEWAY: shared SoCLaaS LLM gateway | Done | [spec](docs/superpowers/specs/2026-10-22-w-ai-gateway-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-ai-gateway.md) | T1-T8 done; merged (PR #17); T8 recorded; Render reachable (owner) | — |
+| W~1 | W-AI-GATEWAY: shared SoCLaaS LLM gateway | Done | [spec](../../../specs/2026-10-22-w-ai-gateway-design.md) | [plan](../../../plans/2026-10-22-w-ai-gateway.md) | T1-T8 done; merged (PR #17); T8 recorded; Render reachable (owner) | — |
 
 ---
 

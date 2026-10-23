@@ -8,7 +8,7 @@ description: Use when the project owner wants to start a new iteration with a fr
 ## Overview
 
 `PROJECT_STATE.md` accumulates a record nobody needs every session. **This skill closes an
-iteration: it archives the whole record to `docs/project-history/iteration-<n>/` and writes a new,
+iteration: it archives the whole record to `workflow/project-history/iteration-<n>/` and writes a new,
 short `PROJECT_STATE.md` that keeps only the system's shape and what still binds.**
 
 Treat the project as if you were taking it over cold. A new owner learns *what was decided and why*
@@ -28,13 +28,13 @@ structure), `sync-project-state` (folds branch states), `update-documentation` (
   sitting in the archive.
 - Never **reuse an ID**. Counters continue (step 6).
 - Never **push**. Commit locally and report.
-- Never move `docs/superpowers/specs|plans`. They stay put (links into them must keep working).
+- Never move `workflow/specs|plans`. They stay put (links into them must keep working).
 
 ## Procedure
 
 **1. Preconditions.** Stop and report if any fails. Work on `INT` or a fresh `refresh/<n>`, clean tree.
 
-- No non-archived files in `docs/project-state/branch-states/` (unfolded work would be lost). The directory may not exist in projects that don't use branch states; that passes.
+- No non-archived files in `workflow/project-state/branch-states/` (unfolded work would be lost). The directory may not exist in projects that don't use branch states; that passes.
 - The Sessions table in `PROJECT_STATE.md` § How to Resume is empty, or the owner discards each row.
 - `git log --oneline -20` agrees with the file's header; reconcile drift first
   (`maintaining-project-state` → `reconciliation.md`).
@@ -63,33 +63,33 @@ over a failure by marking a row `N/A`.
 **4. Disposition table.** Apply `disposition-rules.md` to every entry in every section and produce
 the table: each entry → **Carry** (condensed into the new file), **Archive** (original kept in the
 history only), or **Guide** (already woven there; cite the guide section). Write it to
-`docs/project-history/iteration-<n>/REFRESH.md` ([history-layout.md](history-layout.md)) and show it
+`workflow/project-history/iteration-<n>/REFRESH.md` ([history-layout.md](history-layout.md)) and show it
 to the owner. **Wait for approval.** They may move entries between columns; redo the table, then ask again. If the owner approved in advance ("I pre-approve whatever you produce"), still write the full table to `REFRESH.md` first and record `Approved by: <owner>, in advance, YYYY-MM-DD` in it; the pre-approval covers the table, never the guide gate.
 
 **5. Archive.** On approval, `git mv` the three records:
 
 ```bash
-mkdir -p docs/project-history/iteration-<n>
-git mv PROJECT_STATE.md docs/project-history/iteration-<n>/PROJECT_STATE.md
-git mv docs/project-state/done-ledger.md docs/project-history/iteration-<n>/done-ledger.md
-git mv docs/project-state/branch-states/archive docs/project-history/iteration-<n>/branch-states   # if it exists
-node .claude/skills/refresh-project-state/rebase-links.mjs PROJECT_STATE.md docs/project-history/iteration-<n>/PROJECT_STATE.md
-node .claude/skills/refresh-project-state/rebase-links.mjs docs/project-state/done-ledger.md docs/project-history/iteration-<n>/done-ledger.md
+mkdir -p workflow/project-history/iteration-<n>
+git mv PROJECT_STATE.md workflow/project-history/iteration-<n>/PROJECT_STATE.md
+git mv workflow/project-state/done-ledger.md workflow/project-history/iteration-<n>/done-ledger.md
+git mv workflow/project-state/branch-states/archive workflow/project-history/iteration-<n>/branch-states   # if it exists
+node .claude/skills/refresh-project-state/rebase-links.mjs PROJECT_STATE.md workflow/project-history/iteration-<n>/PROJECT_STATE.md
+node .claude/skills/refresh-project-state/rebase-links.mjs workflow/project-state/done-ledger.md workflow/project-history/iteration-<n>/done-ledger.md
 ```
 
-Add the archive banner to the moved state file and update `docs/project-history/README.md`
+Add the archive banner to the moved state file and update `workflow/project-history/README.md`
 ([history-layout.md](history-layout.md)). Check every relative link in the moved files resolves.
 
 **6. Write the new `PROJECT_STATE.md`** from `maintaining-project-state/project-state-template.md`,
 holding only the **Carry** entries from the approved table. Check every carried *Now* and Paths row against the code: paths and module names from before a rewrite (deleted directories, removed frameworks) are corrected or dropped, not copied. Additions:
 
-- Header: `Iteration: <n+1>` and `History: [docs/project-history/](docs/project-history/README.md)`.
+- Header: `Iteration: <n+1>` and `History: [workflow/project-history/](../../../workflow/project-history/README.md)`.
 - § Conventions: an **ID high-water** line, e.g. `Highest IDs used before this iteration: W11, C53,
   D21, Q16. Numbering continues; never reuse.` (`sync-project-state` reads it; resolved Questions no
   longer appear anywhere else.)
 - § Needs a Human: open Questions only. § Deviations: live traps only, short, same IDs.
-- § Record: a fresh `docs/project-state/done-ledger.md` from the template, whose first line says
-  `Iteration <n+1> started; earlier entries: docs/project-history/iteration-<n>/done-ledger.md`.
+- § Record: a fresh `workflow/project-state/done-ledger.md` from the template, whose first line says
+  `Iteration <n+1> started; earlier entries: workflow/project-history/iteration-<n>/done-ledger.md`.
   Counters restart at 1 entry.
 - Developer guide header: carry the line, update its date.
 
@@ -103,7 +103,7 @@ table lists every carried open workstream, no standing decision from the table w
 Compare the new file's decision IDs against `REFRESH.md` mechanically.
 
 **8. Wire the pointers** (one time per project; skip if present): `AGENTS.md` says never to read
-`docs/project-history/` at session start, only to answer "why was X decided?".
+`workflow/project-history/` at session start, only to answer "why was X decided?".
 
 **9. Commit** `docs: refresh PROJECT_STATE into iteration <n+1>`. Do not push. **Report** briefly:
 line counts before and after, what carried, the ID high-water mark, any open workstreams carried,

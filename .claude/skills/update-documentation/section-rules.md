@@ -90,7 +90,7 @@ two sentences each.
 
 ## Changes to Documented Work
 
-- **Small changes since the last checkpoint.** Scan the Done ledger (`docs/project-state/done-ledger.md`) for
+- **Small changes since the last checkpoint.** Scan the Done ledger (`workflow/project-state/done-ledger.md`) for
   entries after the newest `Documented` date that touch documented sections, and include the
   corrections in the proposal.
 - **A documented workstream is abandoned or reversed.** Propose removing or rewriting its

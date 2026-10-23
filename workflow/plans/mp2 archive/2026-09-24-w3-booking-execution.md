@@ -3,7 +3,7 @@
 **Goal:** Enable guests to book properties (with atomic escrow), view trips in a tabbed dashboard,
 and cancel with policy-based refunds.
 
-**Spec:** `docs/superpowers/specs/mp2 archive/2026-09-24-w3-booking-execution-design.md`
+**Spec:** `workflow/specs/mp2 archive/2026-09-24-w3-booking-execution-design.md`
 
 ## Global Constraints
 

@@ -1,6 +1,6 @@
 ---
 name: sync-project-state
-description: Use when folding a merged, approved branch state into PROJECT_STATE.md - after a branch that has a docs/project-state/branch-states/<slug>.md file has been merged to the integration branch (INT), when reconciliation reports a pending fold, or when the project owner says sync, fold, land or archive a branch state. Started on the project owner's yes in chat: the agent asks after the merge (AGENTS.md § 8), never runs it unasked. Keywords - sync-project-state, branch state, fold, provisional IDs, archive branch state, PROJECT_STATE.md, handover, Upcoming.
+description: Use when folding a merged, approved branch state into PROJECT_STATE.md - after a branch that has a workflow/project-state/branch-states/<slug>.md file has been merged to the integration branch (INT), when reconciliation reports a pending fold, or when the project owner says sync, fold, land or archive a branch state. Started on the project owner's yes in chat: the agent asks after the merge (AGENTS.md § 8), never runs it unasked. Keywords - sync-project-state, branch state, fold, provisional IDs, archive branch state, PROJECT_STATE.md, handover, Upcoming.
 ---
 
 # Sync Project State
@@ -8,7 +8,7 @@ description: Use when folding a merged, approved branch state into PROJECT_STATE
 ## Overview
 
 `PROJECT_STATE.md` describes `INT`. Branches never edit it; each records what it changed in a
-branch state, `docs/project-state/branch-states/<slug>.md`
+branch state, `workflow/project-state/branch-states/<slug>.md`
 (see `maintaining-project-state`). **This skill folds one merged, approved branch state into
 `PROJECT_STATE.md` and the Done ledger, then archives the branch state.** It is the only thing that
 writes `PROJECT_STATE.md`, apart from the owner's hand-edited hotfixes.
@@ -36,7 +36,7 @@ branch edits `PROJECT_STATE.md`, so two open at once would conflict.
 ## Procedure
 
 **0. Pick the state.** If the owner named a branch, use it. Otherwise list the non-archived files
-in `docs/project-state/branch-states/` and ask which. Fold one at a time, oldest merge first.
+in `workflow/project-state/branch-states/` and ask which. Fold one at a time, oldest merge first.
 
 **1. Preconditions.** Stop and report if any fails.
 
@@ -48,7 +48,7 @@ in `docs/project-state/branch-states/` and ask which. Fold one at a time, oldest
   whether to discard them (note it in the archive) or whether the branch is not really finished.
 - **Remaining** has no unmarked open items. Ask the owner to drop each or mark it **Handover**.
 
-**2. Read** `PROJECT_STATE.md`, the head of `docs/project-state/done-ledger.md`, and the branch
+**2. Read** `PROJECT_STATE.md`, the head of `workflow/project-state/done-ledger.md`, and the branch
 state, in full.
 
 **2a. Check the `No change` claims.** Every heading should be present. A missing heading is a gap: ask
@@ -96,7 +96,7 @@ dangling provisional IDs (`grep -n "[WCDQ]~[0-9]" PROJECT_STATE.md` is empty), l
 areas read as one coherent description. Stamp `Last verified against repo`.
 
 **7. Archive.** Move the file with `git mv` to
-`docs/project-state/branch-states/archive/<YYYY-MM-DD>-<slug>.md`. In it set `Status: Folded`, and
+`workflow/project-state/branch-states/archive/<YYYY-MM-DD>-<slug>.md`. In it set `Status: Folded`, and
 append the fold record:
 
 ```markdown

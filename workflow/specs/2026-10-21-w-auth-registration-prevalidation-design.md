@@ -3,7 +3,7 @@
 - **Status:** Approved (project owner, 2026-10-21)
 - **Risk tier:** High — changes the authentication and privileged-role registration boundary
 - **Workstream:** W-AUTH | **Plan:** [implementation plan](../plans/2026-10-21-w-auth-registration-prevalidation.md)
-- **Extends:** [W-AUTH Firebase authentication and role authorization](../2026-10-20-w-auth-design.md)
+- **Extends:** [W-AUTH Firebase authentication and role authorization](2026-10-20-w-auth-design.md)
 - **Reviewed by lenses:** Implementer, Tester/QA, Attacker, Maintainer (rounds 1–3; findings incorporated)
 
 ## 1. Problem

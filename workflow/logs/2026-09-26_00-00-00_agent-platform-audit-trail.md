@@ -18,7 +18,7 @@ in a new branch "agent-platform-audit-trail", begin w12. Ensure UI consistency w
 
 ### Outcomes
 
-- Files changed: `PROJECT_STATE.md`, `docs/project-state/done-ledger.md`, W12 spec and plan under `docs/superpowers/`
+- Files changed: `PROJECT_STATE.md`, `workflow/project-state/done-ledger.md`, W12 spec and plan under `workflow/`
 - Tests: `not run`
 - Blockers: `none`
 - Follow-up: operator answers design questions
@@ -59,7 +59,7 @@ account governance should also be logged. the database should accomodate it, but
 
 ### Outcomes
 
-- Files changed: `docs/superpowers/specs/2026-09-26-w12-platform-audit-trail-design.md`, `docs/superpowers/plans/2026-09-26-w12-platform-audit-trail.md`, `PROJECT_STATE.md`, `docs/project-state/done-ledger.md`
+- Files changed: `workflow/specs/2026-09-26-w12-platform-audit-trail-design.md`, `workflow/plans/2026-09-26-w12-platform-audit-trail.md`, `PROJECT_STATE.md`, `workflow/project-state/done-ledger.md`
 - Tests: `not run`
 - Blockers: `none`
 - Follow-up: operator picks the execution mode and commit authorisation
@@ -138,7 +138,7 @@ W12 is done, confirm it
 
 ### Outcomes
 
-- Files changed: `PROJECT_STATE.md`, `docs/project-state/done-ledger.md`
+- Files changed: `PROJECT_STATE.md`, `workflow/project-state/done-ledger.md`
 - Tests: `not run`
 - Blockers: `none`
 - Follow-up: operator approves the guide proposal
@@ -157,7 +157,7 @@ ER diagram show the whole schema. Approve
 
 ### Outcomes
 
-- Files changed: `docs/DeveloperGuide.md`, `PROJECT_STATE.md`, `docs/project-state/done-ledger.md`
+- Files changed: `docs/DeveloperGuide.md`, `PROJECT_STATE.md`, `workflow/project-state/done-ledger.md`
 - Tests: `not run` (nothing references the guide)
 - Blockers: `none`
 - Follow-up: open the PR
@@ -177,7 +177,7 @@ D14 is verified. open a pr for this branch
 
 ### Outcomes
 
-- Files changed: `PROJECT_STATE.md`, `docs/project-state/done-ledger.md`, `agent-theme.css`, `ShellLayoutTest.java`, `ShellNavigationTest.java`, merge commit `550c28b`
+- Files changed: `PROJECT_STATE.md`, `workflow/project-state/done-ledger.md`, `agent-theme.css`, `ShellLayoutTest.java`, `ShellNavigationTest.java`, merge commit `550c28b`
 - Tests: `./gradlew.bat build --rerun-tasks` green, 315 tests
 - Blockers: `none`
 - Follow-up: confirm the host `Messages` tab removal with the PR #8 author; merge PR #10 on operator instruction

@@ -22,7 +22,7 @@ branch state), before acting on either.
    saying so — mark it `Paused` (or delete it if its work already landed) rather than leaving it
    looking live. Check that each **Next action** is still the right step.
 5. **On `INT`: pending folds.** List the non-archived files in
-   `docs/project-state/branch-states/`. Each is a branch that merged without being folded in, or one
+   `workflow/project-state/branch-states/`. Each is a branch that merged without being folded in, or one
    still in flight. If its branch is merged, tell the project owner a `sync-project-state` run is
    due; do not fold it yourself unless asked.
 6. **Links.** Every spec and plan path resolves. A dead link is worse than no link.
@@ -52,8 +52,8 @@ Cheap version — the whole check is usually under a minute:
 ```bash
 git log --oneline -20
 git status --short
-ls docs/superpowers/specs docs/superpowers/plans
-ls docs/project-state/branch-states
+ls workflow/specs workflow/plans
+ls workflow/project-state/branch-states
 git rev-parse origin/INT        # compare with the branch state's Base
 grep -E "Awaiting confirmation|Pending|guide out of date" PROJECT_STATE.md
 ```

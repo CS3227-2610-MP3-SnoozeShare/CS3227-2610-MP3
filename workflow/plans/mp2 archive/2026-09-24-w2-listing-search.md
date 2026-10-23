@@ -8,7 +8,7 @@
 
 **Tech Stack:** Java 25, SQLite via `org.xerial:sqlite-jdbc`, JavaFX 25, JUnit 5
 
-**Spec:** `docs/superpowers/specs/mp2 archive/2026-09-24-w2-listing-search-design.md`
+**Spec:** `workflow/specs/mp2 archive/2026-09-24-w2-listing-search-design.md`
 
 ## Global Constraints
 
@@ -2263,7 +2263,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 
 **Files:**
 - Modify: `PROJECT_STATE.md`
-- Modify: `docs/project-state/done-ledger.md`
+- Modify: `workflow/project-state/done-ledger.md`
 
 **Interfaces:**
 - Consumes: nothing
@@ -2274,12 +2274,12 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 Change W2 row to:
 
 ```
-| W2 | F1 — Listing Search & Property Discovery | Done | [listing-search design](docs/superpowers/specs/mp2%20archive/2026-09-24-w2-listing-search-design.md) | [listing-search plan](docs/superpowers/plans/mp2%20archive/2026-09-24-w2-listing-search.md) | Implementation complete: search/filter, detail modal, price breakdown | Awaiting confirmation |
+| W2 | F1 — Listing Search & Property Discovery | Done | [listing-search design](workflow/specs/mp2%20archive/2026-09-24-w2-listing-search-design.md) | [listing-search plan](workflow/plans/mp2%20archive/2026-09-24-w2-listing-search.md) | Implementation complete: search/filter, detail modal, price breakdown | Awaiting confirmation |
 ```
 
 - [ ] **Step 2: Add done ledger entry**
 
-Prepend to `docs/project-state/done-ledger.md`:
+Prepend to `workflow/project-state/done-ledger.md`:
 
 ```markdown
 ### 2026-09-24 — W2: Listing Search & Property Discovery (F1)
@@ -2299,7 +2299,7 @@ Prepend to `docs/project-state/done-ledger.md`:
 - [ ] **Step 3: Commit**
 
 ```bash
-git add PROJECT_STATE.md docs/project-state/done-ledger.md
+git add PROJECT_STATE.md workflow/project-state/done-ledger.md
 git commit -m "docs: mark W2 as Done and update done ledger
 
 Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"

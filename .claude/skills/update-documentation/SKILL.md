@@ -91,7 +91,7 @@ asking, under any setting; the first write — [first-write.md](first-write.md).
    On amend, restate the amended proposal and wait for a yes.
 4. **Write** exactly what was approved — [section-rules.md](section-rules.md),
    [diagrams.md](diagrams.md).
-5. **Record** in `PROJECT_STATE.md`: Guide → `Documented YYYY-MM-DD`, and a line in `docs/project-state/done-ledger.md`; remove
+5. **Record** in `PROJECT_STATE.md`: Guide → `Documented YYYY-MM-DD`, and a line in `workflow/project-state/done-ledger.md`; remove
    any `guide out of date` notes this update resolved.
 
 **Operator unavailable:** nothing blocks. Leave the rows as they are; the next session's

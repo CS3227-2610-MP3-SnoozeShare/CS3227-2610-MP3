@@ -1,7 +1,7 @@
 # Branch State Template
 
-Copy to `docs/project-state/branch-states/<slug>.md`, where `<slug>` is the branch name with `/`
-replaced by `-`. Create `docs/project-state/branch-states/archive/` once per project.
+Copy to `workflow/project-state/branch-states/<slug>.md`, where `<slug>` is the branch name with `/`
+replaced by `-`. Create `workflow/project-state/branch-states/archive/` once per project.
 
 A branch state is a **lean "what has changed" file**. It mirrors `PROJECT_STATE.md` section for
 section, but each section holds only what **this branch adds or changes**. **Keep every
@@ -91,7 +91,7 @@ the reason); the guide is never edited on a branch.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W~1 | <name> | Building | [spec](docs/superpowers/specs/....md) | [plan](docs/superpowers/plans/....md) | Task 6/9 in flight: conflict engine | — |
+| W~1 | <name> | Building | [spec](workflow/specs/....md) | [plan](workflow/plans/....md) | Task 6/9 in flight: conflict engine | — |
 
 ---
 

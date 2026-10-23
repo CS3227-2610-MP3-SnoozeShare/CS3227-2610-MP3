@@ -114,7 +114,7 @@ branches). They keep their IDs; the rows below name which meaning each is. IDs a
 | § Conventions | Integration merges stay small and run ./gradlew build each time (MP2 f… | Carry | Binding rule |
 | § Conventions | ID namespaces: W = workstream, C = decision, D = deviation, Q = needs … | Carry | Binding rule |
 | § Conventions | Iterations. When the owner declares an iteration finished and the Deve… | Carry | Binding rule |
-| § Conventions | Branches never edit this file. Each branch writes docs/project-state/b… | Carry | Binding rule |
+| § Conventions | Branches never edit this file. Each branch writes workflow/project-state/b… | Carry | Binding rule |
 | § Conventions | Agent interaction logs are append-only, one file per session under log… | Carry | Binding rule |
 | § Known Gaps | No multi-instance / distributed deployment support — single-process de… | Carry | Decision, not history (AGENTS.md § 4) |
 | § Known Gaps | Ticket categories/remedy types are a status enum + a simple ticket_cat… | Carry | Decision, not history (AGENTS.md § 4) |

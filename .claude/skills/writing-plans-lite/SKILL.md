@@ -33,7 +33,7 @@ A plan turns an **approved spec** into **tasks an agent can execute and tick off
 
 Start from `templates/plan.md` in this skill folder.
 
-`docs/superpowers/plans/YYYY-MM-DD-<topic>.md`, one file. If it passes ~600 lines, the spec's feature is probably two workstreams.
+`workflow/plans/YYYY-MM-DD-<topic>.md`, one file. If it passes ~600 lines, the spec's feature is probably two workstreams.
 
 ```markdown
 # <Topic> Implementation Plan

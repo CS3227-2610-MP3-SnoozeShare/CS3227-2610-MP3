@@ -6,7 +6,7 @@
 
 **Architecture:** Pure `domain.policy` classes own the date and dispute-window rules. A `PostCommitEvents` queue (implements a new `TransactionListener`) is flushed by `TransactionManager` after commit and discarded on rollback; `LedgerWriter` enqueues every wallet event, so services no longer publish wallet events. One shared `TransactionManager` is built in `AppContext` and injected; listing, review and ticket mutations run in it so their audit rows are atomic with them.
 
-**Tech Stack:** Java 25, JavaFX 25 (UI only touched in Task 2), Gradle, SQLite via JDBC, JUnit 5. Spec: [`docs/superpowers/specs/2026-10-18-mp3-correctness-cluster-design.md`](../specs/2026-10-18-mp3-correctness-cluster-design.md).
+**Tech Stack:** Java 25, JavaFX 25 (UI only touched in Task 2), Gradle, SQLite via JDBC, JUnit 5. Spec: [`workflow/specs/2026-10-18-mp3-correctness-cluster-design.md`](../specs/2026-10-18-mp3-correctness-cluster-design.md).
 
 **Commands (Git Bash, repo root `S:/CS3227/CS3227-2610-MP3`):** single test `./gradlew test --tests "com.snoozeshare.<fqcn>"`; full `./gradlew build` (runs Checkstyle + all tests, ~526 tests before this plan).
 
@@ -1525,7 +1525,7 @@ git commit -m "refactor(settlement): define the platform fee once in SettlementC
 
 **Files:**
 - Modify: `src/test/java/com/snoozeshare/service/DisputeWindowBoundaryTest.java`
-- Modify: `PROJECT_STATE.md`, `docs/project-state/done-ledger.md`, `docs/MP2-feedback-triage.md`
+- Modify: `PROJECT_STATE.md`, `workflow/project-state/done-ledger.md`, `workflow/MP2-feedback-triage.md`
 
 - [ ] **Step 1: Add the idempotency test**
 
@@ -1566,16 +1566,16 @@ Then run the app against a copy of the mock DB and check the two user-visible fi
 - [ ] **Step 3: Update the records**
 
 `PROJECT_STATE.md`:
-- § Workstreams row `MP3-0`: status `Building` → set to `In review` when Step 2 passes; Progress `Tasks 1-8 done; awaiting operator review`; add the plan link in the Plan cell (`docs/superpowers/plans/2026-10-18-mp3-correctness-cluster.md`).
+- § Workstreams row `MP3-0`: status `Building` → set to `In review` when Step 2 passes; Progress `Tasks 1-8 done; awaiting operator review`; add the plan link in the Plan cell (`workflow/plans/2026-10-18-mp3-correctness-cluster.md`).
 - § Architecture: update § 4.3 (Service) and § 4.5/4.6 (events) "Now" text — `PostCommitEvents`/`TransactionListener`, `LedgerWriter` queues wallet events, shared `TransactionManager`, `domain.policy`; update § 4.4 Domain with the two policies. Update the stale statement "Callers publish events after their commit" wherever it appears.
 - § Conventions: add "Wallet events are queued by `LedgerWriter`; never publish `WalletTransactionRecordedEvent` by hand", "Dispute window and stay-date rules live only in `domain.policy`", "Integration commits stay small and run `./gradlew build` at each merge (P3 convention from MP2 feedback)".
 - § Deviations: add the six plan-level refinements listed at the top of this plan and the changed settlement event order.
 - § How to Resume: update your session row.
 - § Known Gaps: note under the single-process entry that `PostCommitEvents` is a single shared queue by that assumption.
 
-`docs/project-state/done-ledger.md`: add newest-first lines for B1, B3/D1, B4/B5, D2, D3/D5 with the commit SHAs.
+`workflow/project-state/done-ledger.md`: add newest-first lines for B1, B3/D1, B4/B5, D2, D3/D5 with the commit SHAs.
 
-`docs/MP2-feedback-triage.md`: mark B1, B3, B4, B5, D1, D2, D3, D5, P5 as fixed (add a "Status" note at the top listing them with the commit SHAs); leave the rest open.
+`workflow/MP2-feedback-triage.md`: mark B1, B3, B4, B5, D1, D2, D3, D5, P5 as fixed (add a "Status" note at the top listing them with the commit SHAs); leave the rest open.
 
 - [ ] **Step 4: Commit**
 

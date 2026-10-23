@@ -1,7 +1,7 @@
 # History Layout
 
 ```text
-docs/project-history/
+workflow/project-history/
   README.md                      index of iterations (newest first)
   iteration-1/
     PROJECT_STATE.md             the old file, with an archive banner, links rebased
@@ -10,7 +10,7 @@ docs/project-history/
     REFRESH.md                   the disposition record for the refresh that closed it
 ```
 
-Iterations are numbered from 1 and never renumbered. Specs and plans stay in `docs/superpowers/`.
+Iterations are numbered from 1 and never renumbered. Specs and plans stay in `workflow/`.
 
 ## Archive banner
 
@@ -59,7 +59,7 @@ Create it on the first refresh; add a row at each later one.
 After the moves, every relative link in the moved files must resolve:
 
 ```bash
-node -e "const fs=require('fs'),p=require('path');for(const f of process.argv.slice(1)){const d=p.dirname(f);for(const m of fs.readFileSync(f,'utf8').matchAll(/\]\(([^)#\s]+)/g)){if(/^([a-z]+:|\/)/i.test(m[1]))continue;if(!fs.existsSync(p.join(d,m[1])))console.log(f,'->',m[1])}}" docs/project-history/iteration-<n>/*.md PROJECT_STATE.md
+node -e "const fs=require('fs'),p=require('path');for(const f of process.argv.slice(1)){const d=p.dirname(f);for(const m of fs.readFileSync(f,'utf8').matchAll(/\]\(([^)#\s]+)/g)){if(/^([a-z]+:|\/)/i.test(m[1]))continue;if(!fs.existsSync(p.join(d,m[1])))console.log(f,'->',m[1])}}" workflow/project-history/iteration-<n>/*.md PROJECT_STATE.md
 ```
 
 The check is crude: it also reports link-shaped text inside code spans and fences. Judge each hit.

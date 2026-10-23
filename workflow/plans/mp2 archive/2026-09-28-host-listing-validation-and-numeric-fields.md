@@ -8,7 +8,7 @@
 
 **Tech Stack:** Java 25, JavaFX 25, JDBC/SQLite, FXML/CSS, JUnit 5, Gradle Checkstyle.
 
-**Spec:** `docs/superpowers/specs/mp2 archive/2026-09-28-host-listing-validation-and-numeric-fields-design.md`
+**Spec:** `workflow/specs/mp2 archive/2026-09-28-host-listing-validation-and-numeric-fields-design.md`
 
 ## Global Constraints
 
@@ -94,7 +94,7 @@
 
 **Files:**
 - Modify: `PROJECT_STATE.md`
-- Modify: `docs/project-state/done-ledger.md`
+- Modify: `workflow/project-state/done-ledger.md`
 
 - [ ] **Step 1: Run focused repository, service, and Host UI tests plus Checkstyle.**
 - [ ] **Step 2: Run the full Gradle test suite** and record any unrelated baseline failure.

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Java 25, JavaFX 25 + FXML, SQLite via plain JDBC, Gradle, JUnit 5 (FX toolkit tests use the existing `Platform.startup` pattern).
 
-**Spec:** `docs/superpowers/specs/mp2 archive/2026-09-26-w12-platform-audit-trail-design.md` (approved; decisions C28–C32 in `PROJECT_STATE.md`).
+**Spec:** `workflow/specs/mp2 archive/2026-09-26-w12-platform-audit-trail-design.md` (approved; decisions C28–C32 in `PROJECT_STATE.md`).
 
 ## Global Constraints
 
@@ -2814,7 +2814,7 @@ git commit -m "test(audit): Audit Log screen layout, filter and snapshot tests"
 ### Task 11: Documentation, project state, and full verification
 
 **Files:**
-- Modify: `PROJECT_STATE.md`, `docs/project-state/done-ledger.md`, `docs/ProductBacklog.md`, `docs/superpowers/specs/mp2 archive/2026-09-26-w12-platform-audit-trail-design.md` (three small corrections)
+- Modify: `PROJECT_STATE.md`, `workflow/project-state/done-ledger.md`, `docs/ProductBacklog.md`, `workflow/specs/mp2 archive/2026-09-26-w12-platform-audit-trail-design.md` (three small corrections)
 
 - [ ] **Step 1: Spec corrections** (the implementation refined three details)
 
@@ -2839,7 +2839,7 @@ Confirm `git status` shows no stray files (only `build/` is ignored).
 - § 6 Known Gaps: unchanged (platform wallet still open; C31 reverses it in W14).
 - § 10 Record: update latest date/entry count.
 
-- [ ] **Step 5: Ledger** — add one line per meaningful change, newest first, to `docs/project-state/done-ledger.md` (columns/migration, service API + instrumentation, mock DB reseed, Audit Log screen, tests), each referencing this plan.
+- [ ] **Step 5: Ledger** — add one line per meaningful change, newest first, to `workflow/project-state/done-ledger.md` (columns/migration, service API + instrumentation, mock DB reseed, Audit Log screen, tests), each referencing this plan.
 
 - [ ] **Step 6: Guide checkpoint** — per AGENTS.md § 5, ask the operator to confirm W12 `Done`; on yes set Guide `Awaiting confirmation` → `Pending` and propose the DeveloperGuide update; write nothing to the guide until approved.
 

@@ -18,7 +18,7 @@ in a new branch "agent-account-governance", begin w11. Ensure UI consistency wit
 
 ### Outcomes
 
-- Files changed: `docs/superpowers/specs/2026-09-26-w11-account-governance-design.md`, `PROJECT_STATE.md`
+- Files changed: `workflow/specs/2026-09-26-w11-account-governance-design.md`, `PROJECT_STATE.md`
 - Tests: `not run`
 - Blockers: none
 - Follow-up: operator answers to the design questions
@@ -107,7 +107,7 @@ Spec approved, write the implementation plan
 
 ### Outcomes
 
-- Files changed: `docs/superpowers/plans/2026-09-26-w11-account-governance.md`, `PROJECT_STATE.md`
+- Files changed: `workflow/plans/2026-09-26-w11-account-governance.md`, `PROJECT_STATE.md`
 - Tests: `not run`
 - Blockers: none
 - Follow-up: choose execution mode
@@ -203,7 +203,7 @@ Confirmed, mark W11 Done
 
 ### Outcomes
 
-- Files changed: `PROJECT_STATE.md`, `docs/project-state/done-ledger.md`
+- Files changed: `PROJECT_STATE.md`, `workflow/project-state/done-ledger.md`
 - Tests: `not run`
 - Blockers: none
 - Follow-up: guide confirmation
@@ -238,7 +238,7 @@ Approved, fold real-app check into manual check section
 
 ### Outcomes
 
-- Files changed: `docs/DeveloperGuide.md`, `PROJECT_STATE.md`, `docs/project-state/done-ledger.md`
+- Files changed: `docs/DeveloperGuide.md`, `PROJECT_STATE.md`, `workflow/project-state/done-ledger.md`
 - Tests: `not run`
 - Blockers: none
 - Follow-up: none

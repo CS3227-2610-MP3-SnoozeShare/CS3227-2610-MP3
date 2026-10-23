@@ -8,7 +8,7 @@
 
 **Tech Stack:** Java 25, JavaFX 25/FXML, SQLite/JDBC, Gradle, JUnit 5, existing EventBus and Fall Light `agent-theme.css`.
 
-**Spec:** `docs/superpowers/specs/mp2 archive/2026-09-26-w8-host-requests-earnings-design.md`
+**Spec:** `workflow/specs/mp2 archive/2026-09-26-w8-host-requests-earnings-design.md`
 
 ## Global Constraints
 
@@ -170,7 +170,7 @@
 
 **Files:**
 - Modify: `PROJECT_STATE.md`
-- Modify: `docs/project-state/done-ledger.md`
+- Modify: `workflow/project-state/done-ledger.md`
 - Test: all existing tests
 
 - [ ] **Step 1: Run `./gradlew checkstyleMain checkstyleTest`** and fix only W8 violations.

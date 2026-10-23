@@ -33,7 +33,7 @@ Merged `development` into `W-HOST` successfully.
 
 ### Outcomes
 
-- Files changed: `docs/project-state/branch-states/W-HOST.md`
+- Files changed: `workflow/project-state/branch-states/W-HOST.md`
 - Tests / blockers / follow-up: Verification and any stated blockers/follow-up are summarized above; consult the chat transcript for full details.
 
 ## 2026-10-22_01-34-58_w-host-to-development__03 — interaction
@@ -93,7 +93,7 @@ The UI plan is now marked complete as scoped in commit `348777d`.
 
 ### Outcomes
 
-- Files changed: `docs/project-state/branch-states/W-HOST.md`, `docs/superpowers/plans/2026-10-21-w-host-ui.md`, `docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md`, `docs/superpowers/specs/2026-10-22-w-host-backend-integration-design/api.md`, `docs/superpowers/specs/2026-10-22-w-host-backend-integration-design/conventions.md`, and 4 more path(s)
+- Files changed: `workflow/project-state/branch-states/W-HOST.md`, `workflow/plans/2026-10-21-w-host-ui.md`, `workflow/specs/2026-10-22-w-host-backend-integration-design.md`, `workflow/specs/2026-10-22-w-host-backend-integration-design/api.md`, `workflow/specs/2026-10-22-w-host-backend-integration-design/conventions.md`, and 4 more path(s)
 - Tests / blockers / follow-up: Verification and any stated blockers/follow-up are summarized above; consult the chat transcript for full details.
 
 ## 2026-10-22_01-34-58_w-host-to-development__07 — interaction
@@ -123,7 +123,7 @@ The revised W-HOST backend spec is complete and committed as `618b97d`. The spec
 
 ### Outcomes
 
-- Files changed: `docs/superpowers/specs/2026-10-22-w-host-backend-integration-design/api.md`, `docs/superpowers/specs/2026-10-22-w-host-backend-integration-design/data-model.md`, `docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md`, `docs/superpowers/specs/2026-10-22-w-host-backend-integration-design/requirements.md`, `docs/superpowers/specs/2026-10-22-w-host-backend-integration-design/edge-cases.md`, and 4 more path(s)
+- Files changed: `workflow/specs/2026-10-22-w-host-backend-integration-design/api.md`, `workflow/specs/2026-10-22-w-host-backend-integration-design/data-model.md`, `workflow/specs/2026-10-22-w-host-backend-integration-design.md`, `workflow/specs/2026-10-22-w-host-backend-integration-design/requirements.md`, `workflow/specs/2026-10-22-w-host-backend-integration-design/edge-cases.md`, and 4 more path(s)
 - Tests / blockers / follow-up: No code verification was stated; consult the chat transcript for any follow-up.
 
 ## 2026-10-22_01-34-58_w-host-to-development__09 — interaction
@@ -138,7 +138,7 @@ The merge was safe and is complete. Local `development` was two commits ahead of
 
 ### Outcomes
 
-- Files changed: `docs/project-state/branch-states/W-HOST.md`
+- Files changed: `workflow/project-state/branch-states/W-HOST.md`
 - Tests / blockers / follow-up: No code verification was stated; consult the chat transcript for any follow-up.
 
 ## 2026-10-22_01-34-58_w-host-to-development__10 — interaction
@@ -183,7 +183,7 @@ Removed wallet idempotency from the W-HOST spec and recorded the reversal in bra
 
 ### Outcomes
 
-- Files changed: `docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md`, `docs/superpowers/specs/2026-10-22-w-host-backend-integration-design/conventions.md`, `docs/superpowers/specs/2026-10-22-w-host-backend-integration-design/data-model.md`, `docs/superpowers/specs/2026-10-22-w-host-backend-integration-design/requirements.md`, `docs/superpowers/specs/2026-10-22-w-host-backend-integration-design/api.md`, and 4 more path(s)
+- Files changed: `workflow/specs/2026-10-22-w-host-backend-integration-design.md`, `workflow/specs/2026-10-22-w-host-backend-integration-design/conventions.md`, `workflow/specs/2026-10-22-w-host-backend-integration-design/data-model.md`, `workflow/specs/2026-10-22-w-host-backend-integration-design/requirements.md`, `workflow/specs/2026-10-22-w-host-backend-integration-design/api.md`, and 4 more path(s)
 - Tests / blockers / follow-up: Verification and any stated blockers/follow-up are summarized above; consult the chat transcript for full details.
 
 ## 2026-10-22_01-34-58_w-host-to-development__13 — interaction
@@ -198,7 +198,7 @@ The 10-task plan is approved, and T1 is complete in commit `478c914`. Its focuse
 
 ### Outcomes
 
-- Files changed: `docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md`, `docs/superpowers/plans/2026-10-22-w-host-backend-integration.md`, `docs/project-state/branch-states/W-HOST.md`, `backend/src/test/java/com/snoozeshare/HostSecurityIntegrationTest.java`, `backend/src/test/java/com/snoozeshare/api/error/HostApiExceptionHandlerTest.java`, and 14 more path(s)
+- Files changed: `workflow/specs/2026-10-22-w-host-backend-integration-design.md`, `workflow/plans/2026-10-22-w-host-backend-integration.md`, `workflow/project-state/branch-states/W-HOST.md`, `backend/src/test/java/com/snoozeshare/HostSecurityIntegrationTest.java`, `backend/src/test/java/com/snoozeshare/api/error/HostApiExceptionHandlerTest.java`, and 14 more path(s)
 - Tests / blockers / follow-up: Verification and any stated blockers/follow-up are summarized above; consult the chat transcript for full details.
 
 ## 2026-10-22_01-34-58_w-host-to-development__14 — interaction
@@ -228,7 +228,7 @@ T0 and T2 are implemented, and the backend checks pass: the 15 persistence-backe
 
 ### Outcomes
 
-- Files changed: `docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md`, `docs/superpowers/specs/2026-10-22-w-host-backend-integration-design/conventions.md`, `docs/superpowers/specs/2026-10-22-w-host-backend-integration-design/edge-cases.md`, `docs/superpowers/specs/2026-10-22-w-host-backend-integration-design/implementation-order.md`, `docs/superpowers/specs/2026-10-22-w-host-backend-integration-design/requirements.md`, and 20 more path(s)
+- Files changed: `workflow/specs/2026-10-22-w-host-backend-integration-design.md`, `workflow/specs/2026-10-22-w-host-backend-integration-design/conventions.md`, `workflow/specs/2026-10-22-w-host-backend-integration-design/edge-cases.md`, `workflow/specs/2026-10-22-w-host-backend-integration-design/implementation-order.md`, `workflow/specs/2026-10-22-w-host-backend-integration-design/requirements.md`, and 20 more path(s)
 - Tests / blockers / follow-up: Verification and any stated blockers/follow-up are summarized above; consult the chat transcript for full details.
 
 ## 2026-10-22_01-34-58_w-host-to-development__16 — interaction
@@ -243,7 +243,7 @@ Committed on `W-HOST`:
 
 ### Outcomes
 
-- Files changed: `docs/project-state/branch-states/W-HOST.md`, `docs/superpowers/plans/2026-10-22-w-host-backend-integration.md`
+- Files changed: `workflow/project-state/branch-states/W-HOST.md`, `workflow/plans/2026-10-22-w-host-backend-integration.md`
 - Tests / blockers / follow-up: Verification and any stated blockers/follow-up are summarized above; consult the chat transcript for full details.
 
 ## 2026-10-22_01-34-58_w-host-to-development__17 — interaction
@@ -258,7 +258,7 @@ T9 is complete and committed as `837151c` (`feat: connect Host messages and wall
 
 ### Outcomes
 
-- Files changed: `docs/project-state/branch-states/W-HOST.md`, `docs/superpowers/plans/2026-10-22-w-host-backend-integration.md`, `backend/src/test/java/com/snoozeshare/api/host/HostCalendarIntegrationTest.java`, `backend/src/main/java/com/snoozeshare/domain/enums/AuditAction.java`, `backend/src/main/java/com/snoozeshare/repository/AvailabilityBlockRepository.java`, and 66 more path(s)
+- Files changed: `workflow/project-state/branch-states/W-HOST.md`, `workflow/plans/2026-10-22-w-host-backend-integration.md`, `backend/src/test/java/com/snoozeshare/api/host/HostCalendarIntegrationTest.java`, `backend/src/main/java/com/snoozeshare/domain/enums/AuditAction.java`, `backend/src/main/java/com/snoozeshare/repository/AvailabilityBlockRepository.java`, and 66 more path(s)
 - Tests / blockers / follow-up: Verification and any stated blockers/follow-up are summarized above; consult the chat transcript for full details.
 
 ## 2026-10-22_01-34-58_w-host-to-development__18 — interaction
@@ -288,7 +288,7 @@ Yes—I completed the live browser checks. All eight Host routes rendered at des
 
 ### Outcomes
 
-- Files changed: `docs/project-state/branch-states/W-HOST.md`, `docs/superpowers/plans/2026-10-22-w-host-backend-integration.md`, `frontend/src/app/host/listings/[listingId]/calendar/page.test.tsx`, `frontend/src/app/host/listings/[listingId]/calendar/page.tsx`, `frontend/src/components/role/RoleNavbar.test.tsx`, and 1 more path(s)
+- Files changed: `workflow/project-state/branch-states/W-HOST.md`, `workflow/plans/2026-10-22-w-host-backend-integration.md`, `frontend/src/app/host/listings/[listingId]/calendar/page.test.tsx`, `frontend/src/app/host/listings/[listingId]/calendar/page.tsx`, `frontend/src/components/role/RoleNavbar.test.tsx`, and 1 more path(s)
 - Tests / blockers / follow-up: Verification and any stated blockers/follow-up are summarized above; consult the chat transcript for full details.
 
 ## 2026-10-22_01-34-58_w-host-to-development__20 — interaction
@@ -303,7 +303,7 @@ T10 is mostly verified. The remaining required item is **N5’s live browser net
 
 ### Outcomes
 
-- Files changed: `docs/project-state/branch-states/W-HOST.md`
+- Files changed: `workflow/project-state/branch-states/W-HOST.md`
 - Tests / blockers / follow-up: Verification and any stated blockers/follow-up are summarized above; consult the chat transcript for full details.
 
 ## 2026-10-22_01-34-58_w-host-to-development__21 — interaction
@@ -318,7 +318,7 @@ T10 is blocked on N5. The local Host route is open, but Chrome DevTools reports 
 
 ### Outcomes
 
-- Files changed: `docs/project-state/branch-states/W-HOST.md`
+- Files changed: `workflow/project-state/branch-states/W-HOST.md`
 - Tests / blockers / follow-up: Verification and any stated blockers/follow-up are summarized above; consult the chat transcript for full details.
 
 ## 2026-10-22_01-34-58_w-host-to-development__22 — interaction
@@ -333,7 +333,7 @@ T10 is **not closed yet**. I fixed and committed the duplicate-read issue as `fc
 
 ### Outcomes
 
-- Files changed: `frontend/src/components/host/HostApiProvider.test.tsx`, `frontend/src/components/host/HostApiProvider.tsx`, `docs/project-state/branch-states/W-HOST.md`, `docs/superpowers/plans/2026-10-22-w-host-backend-integration.md`
+- Files changed: `frontend/src/components/host/HostApiProvider.test.tsx`, `frontend/src/components/host/HostApiProvider.tsx`, `workflow/project-state/branch-states/W-HOST.md`, `workflow/plans/2026-10-22-w-host-backend-integration.md`
 - Tests / blockers / follow-up: Verification and any stated blockers/follow-up are summarized above; consult the chat transcript for full details.
 
 ## 2026-10-22_01-34-58_w-host-to-development__23 — interaction
@@ -348,7 +348,7 @@ T10 is complete and committed on `W-HOST` as `c0ccb08` (`fix: coalesce Host wall
 
 ### Outcomes
 
-- Files changed: `docs/project-state/branch-states/W-HOST.md`, `frontend/src/components/host/HostApiProvider.test.tsx`, `frontend/src/components/host/HostApiProvider.tsx`, `docs/superpowers/plans/2026-10-22-w-host-backend-integration.md`
+- Files changed: `workflow/project-state/branch-states/W-HOST.md`, `frontend/src/components/host/HostApiProvider.test.tsx`, `frontend/src/components/host/HostApiProvider.tsx`, `workflow/plans/2026-10-22-w-host-backend-integration.md`
 - Tests / blockers / follow-up: Verification and any stated blockers/follow-up are summarized above; consult the chat transcript for full details.
 
 ## 2026-10-22_01-34-58_w-host-to-development__24 — interaction
@@ -408,7 +408,7 @@ Listing collection, detail, edit, and calendar load failures now use the same ge
 
 ### Outcomes
 
-- Files changed: `docs/project-state/branch-states/W-HOST.md`, `frontend/src/app/host/listings/[listingId]/calendar/page.test.tsx`, `frontend/src/app/host/listings/[listingId]/edit/page.test.tsx`, `frontend/src/app/host/listings/[listingId]/page.test.tsx`, `frontend/src/app/host/listings/page.test.tsx`, and 5 more path(s)
+- Files changed: `workflow/project-state/branch-states/W-HOST.md`, `frontend/src/app/host/listings/[listingId]/calendar/page.test.tsx`, `frontend/src/app/host/listings/[listingId]/edit/page.test.tsx`, `frontend/src/app/host/listings/[listingId]/page.test.tsx`, `frontend/src/app/host/listings/page.test.tsx`, and 5 more path(s)
 - Tests / blockers / follow-up: Verification and any stated blockers/follow-up are summarized above; consult the chat transcript for full details.
 
 ## 2026-10-22_01-34-58_w-host-to-development__28 — interaction
@@ -449,11 +449,11 @@ Remove pagination and return whole collections
 
 ### Agent response summary
 
-The pagination reversal is recorded as C~19, and the amended [W-HOST backend spec](/Users/trevortan/Documents/CS3227-2610-MP3/docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md) is ready for approval.
+The pagination reversal is recorded as C~19, and the amended [W-HOST backend spec](../specs/2026-10-22-w-host-backend-integration-design.md) is ready for approval.
 
 ### Outcomes
 
-- Files changed: `docs/project-state/branch-states/W-HOST.md`, `docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md`, `docs/superpowers/specs/2026-10-22-w-host-backend-integration-design/api.md`, `docs/superpowers/specs/2026-10-22-w-host-backend-integration-design/conventions.md`, `docs/superpowers/specs/2026-10-22-w-host-backend-integration-design/data-model.md`, and 4 more path(s)
+- Files changed: `workflow/project-state/branch-states/W-HOST.md`, `workflow/specs/2026-10-22-w-host-backend-integration-design.md`, `workflow/specs/2026-10-22-w-host-backend-integration-design/api.md`, `workflow/specs/2026-10-22-w-host-backend-integration-design/conventions.md`, `workflow/specs/2026-10-22-w-host-backend-integration-design/data-model.md`, and 4 more path(s)
 - Tests / blockers / follow-up: Verification and any stated blockers/follow-up are summarized above; consult the chat transcript for full details.
 
 ## 2026-10-22_01-34-58_w-host-to-development__31 — interaction
@@ -464,11 +464,11 @@ Approve
 
 ### Agent response summary
 
-The spec amendment is approved, and the revised plan is ready for your review: [W-HOST backend integration plan](/Users/trevortan/Documents/CS3227-2610-MP3/docs/superpowers/plans/2026-10-22-w-host-backend-integration.md).
+The spec amendment is approved, and the revised plan is ready for your review: [W-HOST backend integration plan](../plans/2026-10-22-w-host-backend-integration.md).
 
 ### Outcomes
 
-- Files changed: `docs/project-state/branch-states/W-HOST.md`, `docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md`, `docs/superpowers/plans/2026-10-22-w-host-backend-integration.md`, `docs/superpowers/specs/2026-10-22-w-host-backend-integration-design/implementation-order.md`
+- Files changed: `workflow/project-state/branch-states/W-HOST.md`, `workflow/specs/2026-10-22-w-host-backend-integration-design.md`, `workflow/plans/2026-10-22-w-host-backend-integration.md`, `workflow/specs/2026-10-22-w-host-backend-integration-design/implementation-order.md`
 - Tests / blockers / follow-up: No code verification was stated; consult the chat transcript for any follow-up.
 
 ## 2026-10-22_01-34-58_w-host-to-development__32 — interaction
@@ -483,7 +483,7 @@ T17 is complete and committed as `d988fd9` (`test: verify complete Host collecti
 
 ### Outcomes
 
-- Files changed: `docs/project-state/branch-states/W-HOST.md`, `docs/superpowers/plans/2026-10-22-w-host-backend-integration.md`, `backend/src/test/java/com/snoozeshare/api/host/HostListingsControllerTest.java`, `backend/src/test/java/com/snoozeshare/api/host/HostRequestsIntegrationTest.java`, `backend/src/main/java/com/snoozeshare/api/controller/HostListingController.java`, and 43 more path(s)
+- Files changed: `workflow/project-state/branch-states/W-HOST.md`, `workflow/plans/2026-10-22-w-host-backend-integration.md`, `backend/src/test/java/com/snoozeshare/api/host/HostListingsControllerTest.java`, `backend/src/test/java/com/snoozeshare/api/host/HostRequestsIntegrationTest.java`, `backend/src/main/java/com/snoozeshare/api/controller/HostListingController.java`, and 43 more path(s)
 - Tests / blockers / follow-up: Verification and any stated blockers/follow-up are summarized above; consult the chat transcript for full details.
 
 ## 2026-10-22_01-34-58_w-host-to-development__33 — interaction
@@ -528,7 +528,7 @@ Merged `development` into `W-HOST` in commit `31d3ba4`. The merge adopts `@Condi
 
 ### Outcomes
 
-- Files changed: `docs/project-state/branch-states/W-HOST.md`, `backend/src/main/java/com/snoozeshare/domain/enums/AuditAction.java`, `backend/src/main/java/com/snoozeshare/repository/JdbcBookingMessageReadRepository.java`, `backend/src/main/java/com/snoozeshare/repository/JdbcLedgerRepository.java`, `backend/src/main/java/com/snoozeshare/repository/JdbcMessageReadRepository.java`, and 16 more path(s)
+- Files changed: `workflow/project-state/branch-states/W-HOST.md`, `backend/src/main/java/com/snoozeshare/domain/enums/AuditAction.java`, `backend/src/main/java/com/snoozeshare/repository/JdbcBookingMessageReadRepository.java`, `backend/src/main/java/com/snoozeshare/repository/JdbcLedgerRepository.java`, `backend/src/main/java/com/snoozeshare/repository/JdbcMessageReadRepository.java`, and 16 more path(s)
 - Tests / blockers / follow-up: Verification and any stated blockers/follow-up are summarized above; consult the chat transcript for full details.
 
 ## 2026-10-22_01-34-58_w-host-to-development__36 — interaction
@@ -558,7 +558,7 @@ W-HOST is now marked **Approved (Trevor, 2026-10-22)** in the branch state and c
 
 ### Outcomes
 
-- Files changed: `docs/project-state/branch-states/W-HOST.md`
+- Files changed: `workflow/project-state/branch-states/W-HOST.md`
 - Tests / blockers / follow-up: No code verification was stated; consult the chat transcript for any follow-up.
 
 ## 2026-10-22_01-34-58_w-host-to-development__38 — interaction
@@ -692,7 +692,7 @@ Your Gate 1 approval is recorded: the spec is approved by Trevor. The four-task 
 
 ### Outcomes
 
-- Files changed: `docs/project-state/branch-states/W-HOST.md`, `docs/superpowers/specs/2026-10-22-w-host-experience-corrections-design.md`, `docs/superpowers/specs/2026-10-22-w-host-experience-corrections-design/api.md`, `docs/superpowers/specs/2026-10-22-w-host-experience-corrections-design/conventions.md`, `docs/superpowers/specs/2026-10-22-w-host-experience-corrections-design/edge-cases.md`, and 4 more path(s)
+- Files changed: `workflow/project-state/branch-states/W-HOST.md`, `workflow/specs/2026-10-22-w-host-experience-corrections-design.md`, `workflow/specs/2026-10-22-w-host-experience-corrections-design/api.md`, `workflow/specs/2026-10-22-w-host-experience-corrections-design/conventions.md`, `workflow/specs/2026-10-22-w-host-experience-corrections-design/edge-cases.md`, and 4 more path(s)
 - Tests / blockers / follow-up: Verification and any stated blockers/follow-up are summarized above; consult the chat transcript for full details.
 
 ## 2026-10-22_01-34-58_w-host-to-development__46 — interaction
@@ -707,7 +707,7 @@ The approved W-HOST corrections are implemented and ready for Gate 3 review. Lis
 
 ### Outcomes
 
-- Files changed: `docs/project-state/branch-states/W-HOST.md`, `docs/superpowers/plans/2026-10-22-w-host-experience-corrections.md`, `backend/src/test/java/com/snoozeshare/service/impl/ListingMetricsServiceImplTest.java`, `backend/src/main/java/com/snoozeshare/service/ListingMetricsService.java`, `backend/src/main/java/com/snoozeshare/service/ListingSummaryMetrics.java`, and 19 more path(s)
+- Files changed: `workflow/project-state/branch-states/W-HOST.md`, `workflow/plans/2026-10-22-w-host-experience-corrections.md`, `backend/src/test/java/com/snoozeshare/service/impl/ListingMetricsServiceImplTest.java`, `backend/src/main/java/com/snoozeshare/service/ListingMetricsService.java`, `backend/src/main/java/com/snoozeshare/service/ListingSummaryMetrics.java`, and 19 more path(s)
 - Tests / blockers / follow-up: Verification and any stated blockers/follow-up are summarized above; consult the chat transcript for full details.
 
 ## 2026-10-22_01-34-58_w-host-to-development__47 — interaction
@@ -727,7 +727,7 @@ Implemented and committed as `e8348f9` (`fix: validate Host listing form fields`
 
 ### Outcomes
 
-- Files changed: `docs/project-state/branch-states/W-HOST.md`, `frontend/src/components/host/HostListings.test.tsx`, `frontend/src/components/host/HostListingForm.api.test.tsx`, `frontend/src/components/host/HostListingForm.tsx`, `frontend/src/components/host/hostListingValidation.ts`
+- Files changed: `workflow/project-state/branch-states/W-HOST.md`, `frontend/src/components/host/HostListings.test.tsx`, `frontend/src/components/host/HostListingForm.api.test.tsx`, `frontend/src/components/host/HostListingForm.tsx`, `frontend/src/components/host/hostListingValidation.ts`
 - Tests / blockers / follow-up: Verification and any stated blockers/follow-up are summarized above; consult the chat transcript for full details.
 
 ## 2026-10-22_01-34-58_w-host-to-development__48 — interaction
@@ -749,7 +749,7 @@ Implemented and committed as `8ec86b7` (`fix: refine Host listing times and cale
 
 ### Outcomes
 
-- Files changed: `docs/project-state/branch-states/W-HOST.md`, `backend/src/test/java/com/snoozeshare/api/host/HostCalendarIntegrationTest.java`, `frontend/src/components/host/HostCalendarRequests.test.tsx`, `frontend/src/lib/hostApi.test.ts`, `frontend/src/components/host/HostCalendarPanel.tsx`, and 9 more path(s)
+- Files changed: `workflow/project-state/branch-states/W-HOST.md`, `backend/src/test/java/com/snoozeshare/api/host/HostCalendarIntegrationTest.java`, `frontend/src/components/host/HostCalendarRequests.test.tsx`, `frontend/src/lib/hostApi.test.ts`, `frontend/src/components/host/HostCalendarPanel.tsx`, and 9 more path(s)
 - Tests / blockers / follow-up: Verification and any stated blockers/follow-up are summarized above; consult the chat transcript for full details.
 
 ## 2026-10-22_01-34-58_w-host-to-development__49 — interaction
@@ -781,7 +781,7 @@ Resolved the wallet modal differences to match the artifact: top-up now has bala
 
 ### Outcomes
 
-- Files changed: `docs/project-state/branch-states/W-HOST.md`, `frontend/src/components/host/HostMessagesWallet.test.tsx`, `frontend/src/components/host/HostWalletPanel.tsx`, `frontend/src/app/host/wallet/page.test.tsx`
+- Files changed: `workflow/project-state/branch-states/W-HOST.md`, `frontend/src/components/host/HostMessagesWallet.test.tsx`, `frontend/src/components/host/HostWalletPanel.tsx`, `frontend/src/app/host/wallet/page.test.tsx`
 - Tests / blockers / follow-up: Verification and any stated blockers/follow-up are summarized above; consult the chat transcript for full details.
 
 ## 2026-10-22_01-34-58_w-host-to-development__51 — interaction
@@ -797,7 +797,7 @@ Fixed the duplicate key warning. Wallet rows now use the transaction ID from the
 
 ### Outcomes
 
-- Files changed: `docs/project-state/branch-states/W-HOST.md`, `frontend/src/components/host/HostMessagesWallet.test.tsx`, `frontend/src/components/host/HostWalletPanel.tsx`, `frontend/src/components/host/hostTypes.ts`, `frontend/src/lib/hostApi.test.ts`
+- Files changed: `workflow/project-state/branch-states/W-HOST.md`, `frontend/src/components/host/HostMessagesWallet.test.tsx`, `frontend/src/components/host/HostWalletPanel.tsx`, `frontend/src/components/host/hostTypes.ts`, `frontend/src/lib/hostApi.test.ts`
 - Tests / blockers / follow-up: Verification and any stated blockers/follow-up are summarized above; consult the chat transcript for full details.
 
 ## 2026-10-22_01-34-58_w-host-to-development__52 — interaction
@@ -845,7 +845,7 @@ The frontend audit found the doubled `#` in ticket Messages and a potential for 
 
 ### Outcomes
 
-- Files changed: `docs/project-state/branch-states/W-HOST.md`, `frontend/src/lib/hostApi.test.ts`, `frontend/src/components/host/hostTypes.ts`
+- Files changed: `workflow/project-state/branch-states/W-HOST.md`, `frontend/src/lib/hostApi.test.ts`, `frontend/src/components/host/hostTypes.ts`
 - Tests / blockers / follow-up: Verification and any stated blockers/follow-up are summarized above; consult the chat transcript for full details.
 
 ## 2026-10-22_01-34-58_w-host-to-development__55 — interaction
@@ -860,7 +860,7 @@ Messages now shows the booking ID in both the conversation list and selected-thr
 
 ### Outcomes
 
-- Files changed: `docs/project-state/branch-states/W-HOST.md`, `frontend/src/app/host/messages/page.test.tsx`, `frontend/src/app/host/wallet/page.test.tsx`, `frontend/src/components/host/hostTypes.ts`
+- Files changed: `workflow/project-state/branch-states/W-HOST.md`, `frontend/src/app/host/messages/page.test.tsx`, `frontend/src/app/host/wallet/page.test.tsx`, `frontend/src/components/host/hostTypes.ts`
 - Tests / blockers / follow-up: Verification and any stated blockers/follow-up are summarized above; consult the chat transcript for full details.
 
 ## 2026-10-22_01-34-58_w-host-to-development__56 — interaction
@@ -950,7 +950,7 @@ Calendar block errors now identify the conflict source:
 
 ### Outcomes
 
-- Files changed: `docs/project-state/branch-states/W-HOST.md`, `backend/src/test/java/com/snoozeshare/api/host/HostCalendarIntegrationTest.java`, `frontend/src/lib/hostApi.test.ts`, `frontend/src/components/host/HostCalendarRequests.test.tsx`, `backend/src/main/java/com/snoozeshare/api/error/HostApiExceptionHandler.java`, and 4 more path(s)
+- Files changed: `workflow/project-state/branch-states/W-HOST.md`, `backend/src/test/java/com/snoozeshare/api/host/HostCalendarIntegrationTest.java`, `frontend/src/lib/hostApi.test.ts`, `frontend/src/components/host/HostCalendarRequests.test.tsx`, `backend/src/main/java/com/snoozeshare/api/error/HostApiExceptionHandler.java`, and 4 more path(s)
 - Tests / blockers / follow-up: Verification and any stated blockers/follow-up are summarized above; consult the chat transcript for full details.
 
 ## 2026-10-22_01-34-58_w-host-to-development__62 — interaction
@@ -995,7 +995,7 @@ Resolved and approved. The spec and T3 plan now match the implementation: bookin
 
 ### Outcomes
 
-- Files changed: `docs/superpowers/plans/2026-10-22-w-host-backend-integration.md`, `docs/superpowers/specs/2026-10-22-w-host-backend-integration-design.md`, `docs/superpowers/specs/2026-10-22-w-host-backend-integration-design/api.md`, `docs/superpowers/specs/2026-10-22-w-host-backend-integration-design/edge-cases.md`, `docs/superpowers/specs/2026-10-22-w-host-backend-integration-design/requirements.md`, and 1 more path(s)
+- Files changed: `workflow/plans/2026-10-22-w-host-backend-integration.md`, `workflow/specs/2026-10-22-w-host-backend-integration-design.md`, `workflow/specs/2026-10-22-w-host-backend-integration-design/api.md`, `workflow/specs/2026-10-22-w-host-backend-integration-design/edge-cases.md`, `workflow/specs/2026-10-22-w-host-backend-integration-design/requirements.md`, and 1 more path(s)
 - Tests / blockers / follow-up: Verification and any stated blockers/follow-up are summarized above; consult the chat transcript for full details.
 
 ## 2026-10-22_01-34-58_w-host-to-development__65 — interaction
@@ -1025,7 +1025,7 @@ The W-HOST fold is committed on `development` as `e6c917e` (`docs: sync W-HOST b
 
 ### Outcomes
 
-- Files changed: `docs/project-state/branch-states/archive/2026-10-22-W-HOST.md`, `PROJECT_STATE.md`
+- Files changed: `workflow/project-state/branch-states/archive/2026-10-22-W-HOST.md`, `PROJECT_STATE.md`
 - Tests / blockers / follow-up: No code verification was stated; consult the chat transcript for any follow-up.
 
 ## 2026-10-22_01-34-58_w-host-to-development__67 — interaction
@@ -1070,6 +1070,6 @@ The approved Developer Guide update is complete and committed as `c66b195` (`doc
 
 ### Outcomes
 
-- Files changed: `docs/DeveloperGuide.md`, `PROJECT_STATE.md`, `docs/project-state/done-ledger.md`
+- Files changed: `docs/DeveloperGuide.md`, `PROJECT_STATE.md`, `workflow/project-state/done-ledger.md`
 - Tests / blockers / follow-up: Verification and any stated blockers/follow-up are summarized above; consult the chat transcript for full details.
 

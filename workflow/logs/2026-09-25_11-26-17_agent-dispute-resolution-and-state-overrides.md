@@ -103,7 +103,7 @@ For testing, can make use of the mock database, and in the spec be sure to detai
 
 ### Outcomes
 
-- Files changed: `docs/superpowers/specs/2026-09-25-w10-agent-dispute-resolution-design.md`
+- Files changed: `workflow/specs/2026-09-25-w10-agent-dispute-resolution-design.md`
 - Tests: not run
 - Blockers: none
 - Follow-up: reconcile mockups against decisions
@@ -192,7 +192,7 @@ Spec approved, write the implementation plan
 
 ### Outcomes
 
-- Files changed: `docs/superpowers/plans/2026-09-25-w10-agent-dispute-resolution.md`, `PROJECT_STATE.md`
+- Files changed: `workflow/plans/2026-09-25-w10-agent-dispute-resolution.md`, `PROJECT_STATE.md`
 - Tests: not run
 - Blockers: none
 - Follow-up: choose execution mode
@@ -340,7 +340,7 @@ Mark W10 In review and confirm Done
 
 ### Outcomes
 
-- Files changed: `PROJECT_STATE.md`, `docs/project-state/done-ledger.md`
+- Files changed: `PROJECT_STATE.md`, `workflow/project-state/done-ledger.md`
 - Tests: not run
 - Blockers: none
 - Follow-up: developer guide checkpoint

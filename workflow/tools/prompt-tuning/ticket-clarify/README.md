@@ -2,7 +2,7 @@
 
 This kit lets you tune the system prompt of the ticket clarification assistant ("Snoozy") by calling SoCLaaS directly from your terminal, while the backend is still being built. It does not touch the backend, the database or the repository's build.
 
-The text you settle on becomes `ClarifyPrompt` in the backend (spec: `docs/superpowers/specs/2026-10-23-w-ai-agent-design/`, `api.md` P1 to P13 and `conventions.md` R15). The backend owns prompt-injection defenses; this kit measures question and summary quality.
+The text you settle on becomes `ClarifyPrompt` in the backend (spec: `workflow/specs/2026-10-23-w-ai-agent-design/`, `api.md` P1 to P13 and `conventions.md` R15). The backend owns prompt-injection defenses; this kit measures question and summary quality.
 
 ## What is here
 
@@ -31,7 +31,7 @@ PowerShell:
 ```powershell
 $env:SOCLAAS_API_KEY = "clsk_..."          # your development key, this terminal only
 $env:SOCLAAS_BASE_URL = "https://soclaas-api.comp.nus.edu.sg/v1"   # optional, this is the default
-cd tools/prompt-tuning/ticket-clarify
+cd workflow/tools/prompt-tuning/ticket-clarify
 node run.mjs --selftest                      # offline: checks the screens and validators, no key needed
 node run.mjs --list-models                   # which model ids your key may use
 ```

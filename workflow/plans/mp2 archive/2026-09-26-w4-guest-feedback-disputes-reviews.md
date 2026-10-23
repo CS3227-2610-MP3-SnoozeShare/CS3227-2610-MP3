@@ -8,7 +8,7 @@
 
 **Tech Stack:** Java 25, JavaFX 25, SQLite via JDBC, JUnit 5
 
-**Spec:** `docs/superpowers/specs/mp2 archive/2026-09-26-w4-guest-feedback-disputes-reviews-design.md`
+**Spec:** `workflow/specs/mp2 archive/2026-09-26-w4-guest-feedback-disputes-reviews-design.md`
 
 ## Global Constraints
 
@@ -1877,7 +1877,7 @@ without an existing review. Both open modal overlays."
 
 **Files:**
 - Modify: `PROJECT_STATE.md`
-- Modify: `docs/project-state/done-ledger.md`
+- Modify: `workflow/project-state/done-ledger.md`
 
 **Interfaces:**
 - Consumes: none (documentation only)
@@ -1888,12 +1888,12 @@ without an existing review. Both open modal overlays."
 Change the W4 workstream row status from `Spec'd` to `Building` (or `Done` if all tasks pass), link the plan, and update progress:
 
 ```
-| W4 | F3 — Guest Feedback, Disputes & Reviews | Done | [guest-feedback design](docs/superpowers/specs/mp2%20archive/2026-09-26-w4-guest-feedback-disputes-reviews-design.md) | [guest-feedback plan](docs/superpowers/plans/mp2%20archive/2026-09-26-w4-guest-feedback-disputes-reviews.md) | All 7 tasks complete: fileTicket, ReviewService, AppContext wiring, filing modal, review modal, Support tab, Trip Hub buttons | Awaiting confirmation |
+| W4 | F3 — Guest Feedback, Disputes & Reviews | Done | [guest-feedback design](workflow/specs/mp2%20archive/2026-09-26-w4-guest-feedback-disputes-reviews-design.md) | [guest-feedback plan](workflow/plans/mp2%20archive/2026-09-26-w4-guest-feedback-disputes-reviews.md) | All 7 tasks complete: fileTicket, ReviewService, AppContext wiring, filing modal, review modal, Support tab, Trip Hub buttons | Awaiting confirmation |
 ```
 
 - [ ] **Step 2: Add done ledger entries**
 
-Prepend to `docs/project-state/done-ledger.md`:
+Prepend to `workflow/project-state/done-ledger.md`:
 
 ```markdown
 ### 2026-09-26
@@ -1910,6 +1910,6 @@ Prepend to `docs/project-state/done-ledger.md`:
 - [ ] **Step 3: Commit**
 
 ```bash
-git add PROJECT_STATE.md docs/project-state/done-ledger.md
+git add PROJECT_STATE.md workflow/project-state/done-ledger.md
 git commit -m "Update PROJECT_STATE.md and done ledger for W4 completion"
 ```

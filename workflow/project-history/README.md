@@ -2,7 +2,7 @@
 
 Archived records of earlier iterations. **Not read at session start.** The current state is
 [`PROJECT_STATE.md`](../../PROJECT_STATE.md); the handover brief is
-[`DeveloperGuide.md`](../DeveloperGuide.md).
+[`DeveloperGuide.md`](../../docs/DeveloperGuide.md).
 
 | Iteration | Closed | Covers | Contents |
 |---|---|---|---|

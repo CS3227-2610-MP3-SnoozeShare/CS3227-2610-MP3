@@ -8,7 +8,7 @@
 
 **Tech Stack:** Java 25, JavaFX 25/FXML, SQLite via plain JDBC, Gradle, JUnit 5, source/FXML UI tests, existing CSS.
 
-**Spec:** docs/superpowers/specs/mp2 archive/2026-09-26-w7-host-calendar-design.md
+**Spec:** workflow/specs/mp2 archive/2026-09-26-w7-host-calendar-design.md
 
 ## Global Constraints
 
@@ -248,8 +248,8 @@ Expected: PASS.
 
 **Files:**
 - Modify: PROJECT_STATE.md
-- Modify: docs/project-state/done-ledger.md
-- Modify: docs/superpowers/specs/mp2 archive/2026-09-26-w7-host-calendar-design.md only if implementation makes a documented deviation
+- Modify: workflow/project-state/done-ledger.md
+- Modify: workflow/specs/mp2 archive/2026-09-26-w7-host-calendar-design.md only if implementation makes a documented deviation
 
 - [ ] Step 1: Run the complete test suite
 
@@ -273,5 +273,5 @@ Set W7 to In review, link this plan, summarize the implemented calendar/override
 
 - [ ] Step 5: Commit the verification record
 
-    git add PROJECT_STATE.md docs/project-state/done-ledger.md
+    git add PROJECT_STATE.md workflow/project-state/done-ledger.md
     git commit -m "docs: record W7 calendar completion"

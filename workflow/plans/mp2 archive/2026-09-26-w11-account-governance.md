@@ -8,7 +8,7 @@
 
 **Tech Stack:** Java 25, JavaFX 25 (FXML), SQLite via plain JDBC, JUnit 5, Gradle + Checkstyle (line length 120; import order: static, `java.*`, `org.*`, `com.*`, then `javafx.*`, each block alphabetical).
 
-**Spec:** [`docs/superpowers/specs/mp2 archive/2026-09-26-w11-account-governance-design.md`](../../specs/mp2%20archive/2026-09-26-w11-account-governance-design.md). Decisions C34, C35, C36 in `PROJECT_STATE.md`.
+**Spec:** [`workflow/specs/mp2 archive/2026-09-26-w11-account-governance-design.md`](../../specs/mp2%20archive/2026-09-26-w11-account-governance-design.md). Decisions C34, C35, C36 in `PROJECT_STATE.md`.
 
 **Conventions for every task**
 - Working directory `S:\CS3227\CS3227-2610-MP2`, branch `agent-account-governance`. Commands are POSIX shell (Git Bash). Gradle: `./gradlew`.
@@ -39,7 +39,7 @@
 | `ui/admin/AdminShellController.java` | Modify | `showAccounts()` loads the screen; disposes its subscription |
 | `ui/admin/agent-theme.css` | Modify | Banner name/email lines, dialog info note, row hover, status cell |
 | tests (listed per task) | Create/Modify | TDD |
-| `PROJECT_STATE.md`, `docs/project-state/done-ledger.md` | Modify | State, ledger |
+| `PROJECT_STATE.md`, `workflow/project-state/done-ledger.md` | Modify | State, ledger |
 
 ---
 
@@ -53,7 +53,7 @@
 
 - [ ] **Step 1: Record the plan in PROJECT_STATE.md**
 
-In the `W11` row of § Workstreams set the Plan cell to `[W11 plan](docs/superpowers/plans/mp2%20archive/2026-09-26-w11-account-governance.md)`, Status to `Planned`, Progress to `Plan written; Task 0/14`. Update session row S9 Doing to `Plan written; executing Task 1`.
+In the `W11` row of § Workstreams set the Plan cell to `[W11 plan](2026-09-26-w11-account-governance.md)`, Status to `Planned`, Progress to `Plan written; Task 0/14`. Update session row S9 Doing to `Plan written; executing Task 1`.
 
 - [ ] **Step 2: Write the failing migration test**
 
@@ -2873,7 +2873,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 ### Task 14: Full build, real-app check, state and ledger
 
 **Files:**
-- Modify: `PROJECT_STATE.md`, `docs/project-state/done-ledger.md`
+- Modify: `PROJECT_STATE.md`, `workflow/project-state/done-ledger.md`
 
 - [ ] **Step 1: Full verification**
 
@@ -2896,9 +2896,9 @@ Log in as `amy.tanaka@snoozeshare.test`, open Accounts, search `mar`, suspend a 
 - § Deviations: mark D19 RESOLVED; add D20 — "the Accounts list hides the System user; `BookingServiceImpl` gained a `UserRepository` constructor parameter and a suspended-guest guard; `MigrationRunner` now handles V003".
 - Session row S9: Doing → `W11 implemented; awaiting operator review`; Last touched today.
 
-- [ ] **Step 4: Add the ledger entry** at the top of the table in `docs/project-state/done-ledger.md`:
+- [ ] **Step 4: Add the ledger entry** at the top of the table in `workflow/project-state/done-ledger.md`:
 
-`| 2026-09-26 | Implemented W11 Agent Account Governance (F10.1.1, F10.1.2; Reactivate added): `users.suspensionReason` (V003), `AccountGovernanceService` (atomic suspend + cascade of pending and upcoming bookings with refund, listings deactivated, W12 audit rows), suspended-guest booking guard, Accounts tab with live search, fixed header and Suspend/Reactivate modal; `gradlew clean build` green with N tests | W11 | plan `docs/superpowers/plans/mp2 archive/2026-09-26-w11-account-governance.md`, spec `docs/superpowers/specs/mp2 archive/2026-09-26-w11-account-governance-design.md` |` (replace N with the real count) and bump the § Record entry count and latest date.
+`| 2026-09-26 | Implemented W11 Agent Account Governance (F10.1.1, F10.1.2; Reactivate added): `users.suspensionReason` (V003), `AccountGovernanceService` (atomic suspend + cascade of pending and upcoming bookings with refund, listings deactivated, W12 audit rows), suspended-guest booking guard, Accounts tab with live search, fixed header and Suspend/Reactivate modal; `gradlew clean build` green with N tests | W11 | plan `workflow/plans/mp2 archive/2026-09-26-w11-account-governance.md`, spec `workflow/specs/mp2 archive/2026-09-26-w11-account-governance-design.md` |` (replace N with the real count) and bump the § Record entry count and latest date.
 
 - [ ] **Step 4b: Log the session** if the operator ends here: invoke the `logging-agent-interactions` skill (manual, at session end).
 

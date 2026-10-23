@@ -7,11 +7,11 @@ the branch state instead.
 
 - **Phase:** <e.g. MVP build / hardening / shipped>
 - **Stack:** <e.g. Next.js, Prisma, Postgres (Neon), Auth.js, Vercel>
-- **Branch:** `INT` — this file describes `INT` only; branches record their changes in `docs/project-state/branch-states/` and `sync-project-state` folds them in
+- **Branch:** `INT` — this file describes `INT` only; branches record their changes in `workflow/project-state/branch-states/` and `sync-project-state` folds them in
 - **Method:** <e.g. subagent-driven development; implementer then spec review then quality review>
 - **Last updated:** YYYY-MM-DD by <model / agent> — <what changed, five words>
 - **Last verified against repo:** YYYY-MM-DD
-- **Developer guide:** <not created — or: seeded from [spec](docs/superpowers/specs/....md) on YYYY-MM-DD>
+- **Developer guide:** <not created — or: seeded from [spec](workflow/specs/....md) on YYYY-MM-DD>
 
 Sections are ordered by how often they are needed: **1–3 say where we are, 4–5 say what the
 system is, 6–7 say what not to touch and what is stuck, 8–10 are the record.** Cite sections by
@@ -28,10 +28,10 @@ an agent who has never seen the repo knows what it is looking at.>
 
 | Path | What lives there |
 |---|---|
-| `docs/superpowers/specs/` | Design specs — one per feature-level workstream |
-| `docs/superpowers/plans/` | Implementation plans |
-| `docs/project-state/done-ledger.md` | The Done ledger — every change, newest first |
-| `docs/project-state/branch-states/` | One lean state file per in-flight branch; `archive/` holds folded ones |
+| `workflow/specs/` | Design specs — one per feature-level workstream |
+| `workflow/plans/` | Implementation plans |
+| `workflow/project-state/done-ledger.md` | The Done ledger — every change, newest first |
+| `workflow/project-state/branch-states/` | One lean state file per in-flight branch; `archive/` holds folded ones |
 | `<dir>` | <purpose> |
 
 ---
@@ -45,7 +45,7 @@ an agent who has never seen the repo knows what it is looking at.>
 **Upcoming** — planned workstreams and the todos handed over at each sync, in priority order.
 **The first row is the next action.** Remove a row when it is dropped, or when it starts and
 becomes a Workstream row. Sessions and in-flight branches are not tracked here: each branch keeps
-its own resume point in `docs/project-state/branch-states/`.
+its own resume point in `workflow/project-state/branch-states/`.
 
 | Item | Kind | Context / done when | Source | Added |
 |---|---|---|---|---|
@@ -66,7 +66,7 @@ only. Update it when a task starts, finishes, or blocks.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W1 | <name> | Building | [spec](docs/superpowers/specs/....md) | [plan](docs/superpowers/plans/....md) | Task 6/9 in flight: conflict engine | — |
+| W1 | <name> | Building | [spec](workflow/specs/....md) | [plan](workflow/plans/....md) | Task 6/9 in flight: conflict engine | — |
 | W2 | <name> | Blocked — needs human | [spec](...) | [plan](...) | Task 3/8 stopped: Q2 | — |
 | W3 | <name> | Not started | — | — | Deferred until W1 ships | — |
 
@@ -178,7 +178,7 @@ agent must do differently, or what test now guards it.>
 
 ## 10. Record
 
-The Done ledger lives in **[`docs/project-state/done-ledger.md`](docs/project-state/done-ledger.md)**
+The Done ledger lives in **[`workflow/project-state/done-ledger.md`](../../../workflow/project-state/done-ledger.md)**
 — every change, big or small, newest first. Write the line there, not here; a ledger inside this
 file crowds out the sections read every session, and it is consulted only to answer "when did
 this change, and why?".

@@ -15,7 +15,7 @@ and where `PROJECT_STATE.md` and the guide are written.
 
 | | `PROJECT_STATE.md` | Branch state |
 |---|---|---|
-| **Path** | repo root | `docs/project-state/branch-states/<slug>.md` (`<slug>` = branch name, `/` becomes `-`) |
+| **Path** | repo root | `workflow/project-state/branch-states/<slug>.md` (`<slug>` = branch name, `/` becomes `-`) |
 | **Describes** | `development`: what is merged there, decided and handed over (`main` receives it by release PR) | what one branch has added or changed |
 | **Written by** | the `sync-project-state` skill (the owner may hotfix it by hand) | every agent working on that branch |
 
@@ -28,7 +28,7 @@ and where `PROJECT_STATE.md` and the guide are written.
 - **Never reconstruct project state from source.** Code shows what is; it never shows what was decided, what was rejected, or what is half-built.
 - **When the document and the repo disagree:** the repo wins on what the code does; the document wins on what was decided and why. Never silently edit a decision to match a stray commit — that erases the only record the decision existed.
 - **If the file does not exist**, create it from
-  `.claude/skills/maintaining-project-state/project-state-template.md`, populating it from `docs/superpowers/specs/`, `docs/superpowers/plans/`, git history, and the source tree. Then tell the operator what you inferred and what you guessed.
+  `.claude/skills/maintaining-project-state/project-state-template.md`, populating it from `workflow/specs/`, `workflow/plans/`, git history, and the source tree. Then tell the operator what you inferred and what you guessed.
 - **It is an index, not a library** — with one exception. Status, decisions and pointers live there; depth lives in the specs and plans it links to. But a fact that contradicts or post-dates every spec and plan — a deviation, a discovered trap, an accepted limitation — has nowhere else to live and belongs in the document in full.
 
 ## 2. Update it as you go, not at the end
@@ -95,7 +95,7 @@ Cite sections by name — `§ Known Gaps` — not by number, so the file can be 
 
 | Size | Examples | Before coding | After |
 |---|---|---|---|
-| **Big** — feature level and above | New user-facing capability; new module, service, or page; schema or data-model change; new dependency or architectural shift; cross-cutting refactor; anything spanning more than one session | A design spec at `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`, an implementation plan at `docs/superpowers/plans/YYYY-MM-DD-<topic>.md`, and a Workstream row in the branch state linking both | Workstream status + a Changes line, both in the branch state |
+| **Big** — feature level and above | New user-facing capability; new module, service, or page; schema or data-model change; new dependency or architectural shift; cross-cutting refactor; anything spanning more than one session | A design spec at `workflow/specs/YYYY-MM-DD-<topic>-design.md`, an implementation plan at `workflow/plans/YYYY-MM-DD-<topic>.md`, and a Workstream row in the branch state linking both | Workstream status + a Changes line, both in the branch state |
 | **Small** | Bugfix within an existing design; copy or style tweak; single-function refactor; added tests; config change | Nothing — just do it | A Changes line in the branch state |
 
 **Ceremony scales with size; the written record does not.** A one-line fix needs no spec and no
@@ -208,14 +208,14 @@ integration commits touched 55–96 files and needed a follow-up repair. So:
 iteration and archiving the record) and `update-documentation` (checkpoints, section rules,
 diagrams). This file is the portable subset.*
 
-## 7. Ignore `docs/project-history/`
+## 7. Ignore `workflow/project-history/`
 
-Closed iterations of the project state are archived in `docs/project-history/` by the
+Closed iterations of the project state are archived in `workflow/project-history/` by the
 `refresh-project-state` skill. They are not the source of truth. The skill is run by hand by the
 project owner, on `development`, and only after the Developer Guide holds the context being archived
 (guide first, archive second). Agents never start a refresh on their own initiative.
 
-- **Never read `docs/project-history/` at session start**, and never take direction from it.
+- **Never read `workflow/project-history/` at session start**, and never take direction from it.
   Open it only to answer "why was X decided?".
 - **IDs continue across iterations.** `PROJECT_STATE.md` § Conventions records the highest ID
   used; never reuse one.

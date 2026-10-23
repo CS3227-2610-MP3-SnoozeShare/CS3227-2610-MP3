@@ -8,7 +8,7 @@
 
 **Tech Stack:** Java 25, JavaFX 25, FXML, CSS, JUnit 5, Gradle Checkstyle, SQLite mock DB.
 
-**Spec:** `docs/superpowers/specs/mp2 archive/2026-09-28-host-listing-pages-artifact-design.md`
+**Spec:** `workflow/specs/mp2 archive/2026-09-28-host-listing-pages-artifact-design.md`
 
 ## Global Constraints
 
@@ -88,7 +88,7 @@
 
 **Files:**
 - Modify: `PROJECT_STATE.md`
-- Modify: `docs/project-state/done-ledger.md`
+- Modify: `workflow/project-state/done-ledger.md`
 
 - [ ] **Step 1: Run focused UI tests** for Listings, form, breadcrumbs, and calendar, then run Checkstyle.
 - [ ] **Step 2: Run the full Gradle test suite** and record any unrelated baseline failure by exact test name.

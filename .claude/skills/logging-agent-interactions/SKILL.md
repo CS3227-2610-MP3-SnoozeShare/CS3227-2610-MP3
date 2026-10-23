@@ -60,11 +60,11 @@ empty log file.
 
 ## Session file
 
-Use one file for the whole agent session. Create it directly under `logs/` using the established
+Use one file for the whole agent session. Create it directly under `workflow/logs/` using the established
 timestamped filename convention:
 
 ```text
-logs/YYYY-MM-DD_HH-mm-ss_<branch>.md
+workflow/logs/YYYY-MM-DD_HH-mm-ss_<branch>.md
 ```
 
 The filename timestamp format is exactly `YYYY-MM-DD_HH-mm-ss`. Replace `/`, spaces, and other unsafe
@@ -75,7 +75,7 @@ must run on the same branch at the same second, append a short unique nonce whil
 required timestamp and branch portions. If session metadata is uncertain, use the safest unique
 filename and state the uncertainty in the entry instead of blocking project work.
 
-Do not use or recreate `logs/LLM_interactions.md`. There is intentionally no consolidated log yet.
+Do not use or recreate `workflow/logs/LLM_interactions.md`. There is intentionally no consolidated log yet.
 Parallel sessions get separate files because their session-start timestamps and/or branch slugs
 must make the targets distinct.
 
@@ -175,5 +175,5 @@ Session target:
 
 ```text
 Session on branch w1, with entries ordered chronologically
-→ logs/2026-09-23_14-44-51_w1.md
+→ workflow/logs/2026-09-23_14-44-51_w1.md
 ```

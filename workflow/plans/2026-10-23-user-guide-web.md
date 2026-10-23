@@ -68,7 +68,7 @@ Shared-file hazards: T2 and T3 both edit `docs/UserGuide.md`; execute them seria
 
 | Action | Path | What changes |
 |---|---|---|
-| Modify | `docs/superpowers/plans/2026-10-23-user-guide-web.md` (Traceability table) | Fill the checklist with exact route, label, limitation, and feature evidence while inspecting the repository. |
+| Modify | `workflow/plans/2026-10-23-user-guide-web.md` (Traceability table) | Fill the checklist with exact route, label, limitation, and feature evidence while inspecting the repository. |
 
 **Checklist**
 
@@ -124,12 +124,12 @@ Shared-file hazards: T2 and T3 both edit `docs/UserGuide.md`; execute them seria
 
 | Action | Path | What changes |
 |---|---|---|
-| Modify | `docs/superpowers/plans/2026-10-23-user-guide-web.md` (task status/checklists) | Tick completed plan steps and record verification results. |
+| Modify | `workflow/plans/2026-10-23-user-guide-web.md` (task status/checklists) | Tick completed plan steps and record verification results. |
 
 **Checklist**
 
-- [x] 1. Run `node .claude/skills/writing-specs-lite/scripts/lint.mjs spec docs/superpowers/specs/2026-10-23-user-guide-web-design.md --approved`.
-- [x] 2. Run `node .claude/skills/writing-specs-lite/scripts/lint.mjs plan docs/superpowers/plans/2026-10-23-user-guide-web.md --approved`.
+- [x] 1. Run `node .claude/skills/writing-specs-lite/scripts/lint.mjs spec workflow/specs/2026-10-23-user-guide-web-design.md --approved`.
+- [x] 2. Run `node .claude/skills/writing-specs-lite/scripts/lint.mjs plan workflow/plans/2026-10-23-user-guide-web.md --approved`.
 - [x] 3. Run `git diff --check`.
 - [x] 4. Audit every Markdown link, internal anchor, Jekyll page link, and `images/...` reference in `docs/UserGuide.md`.
 - [x] 5. Run `rg -n -i 'javafx|sqlite|snoozeshare-mock|gradlew|shadowJar|single-user|mocked authentication|email only' docs/UserGuide.md` and inspect every match.

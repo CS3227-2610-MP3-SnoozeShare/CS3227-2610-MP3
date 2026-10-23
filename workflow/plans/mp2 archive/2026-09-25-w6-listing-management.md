@@ -8,7 +8,7 @@
 
 **Tech Stack:** Java 25, JavaFX 25/FXML, Gradle, SQLite via plain JDBC, JUnit 5, TestFX-style headless UI tests, existing Checkstyle rules.
 
-**Spec:** `docs/superpowers/specs/mp2 archive/2026-09-25-w6-listing-management-design.md`
+**Spec:** `workflow/specs/mp2 archive/2026-09-25-w6-listing-management-design.md`
 
 ## Global Constraints
 
@@ -288,7 +288,7 @@ Run: `git add src/main/java/com/snoozeshare/ui/host/listings/HostListingsControl
 
 **Files:**
 - Modify: `PROJECT_STATE.md`
-- Modify: `docs/project-state/done-ledger.md`
+- Modify: `workflow/project-state/done-ledger.md`
 
 **Interfaces:**
 - Consumes: all W6 implementation tasks and their test evidence.
@@ -319,5 +319,5 @@ Set W6 to `In review`, record the completed implementation and verification evid
 
 - [ ] **Step 4: Commit the handoff record**
 
-Run: `git add PROJECT_STATE.md docs/project-state/done-ledger.md && git commit -m "docs: record W6 listing management completion"`
+Run: `git add PROJECT_STATE.md workflow/project-state/done-ledger.md && git commit -m "docs: record W6 listing management completion"`
 

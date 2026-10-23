@@ -13,7 +13,7 @@ after the branch merges.
 
 ---
 
-**Scope.** Follow-up to the merged W-AI-GATEWAY branch (`docs/project-state/branch-states/W-AI-GATEWAY.md`, still to be folded). It records the T8 live-check results against the real SoCLaaS service and changes three things they showed: two configuration defaults and one startup log line. Small change (`AGENTS.md` § 3), with the spec amended in place.
+**Scope.** Follow-up to the merged W-AI-GATEWAY branch (`workflow/project-state/branch-states/W-AI-GATEWAY.md`, still to be folded). It records the T8 live-check results against the real SoCLaaS service and changes three things they showed: two configuration defaults and one startup log line. Small change (`AGENTS.md` § 3), with the spec amended in place.
 
 ---
 
@@ -45,7 +45,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W~1 | W-AI-GATEWAY: shared SoCLaaS LLM gateway (follow-up to the merged branch) | Done | [spec](docs/superpowers/specs/2026-10-22-w-ai-gateway-design.md) | [plan](docs/superpowers/plans/2026-10-22-w-ai-gateway.md) | T8 checks recorded; Render reachable (owner, 2026-10-22) | — |
+| W~1 | W-AI-GATEWAY: shared SoCLaaS LLM gateway (follow-up to the merged branch) | Done | [spec](../../../specs/2026-10-22-w-ai-gateway-design.md) | [plan](../../../plans/2026-10-22-w-ai-gateway.md) | T8 checks recorded; Render reachable (owner, 2026-10-22) | — |
 
 ---
 

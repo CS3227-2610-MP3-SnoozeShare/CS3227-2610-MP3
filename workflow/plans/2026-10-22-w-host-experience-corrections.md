@@ -48,7 +48,7 @@ Tasks T2 and T3 both edit `frontend/src/components/host/hostTypes.ts`; perform t
 
 - Backend changed: run `./gradlew checkstyleMain checkstyleTest` and `./gradlew build` from `backend/` (separately to limit memory); targeted tests use `./gradlew test --tests <class>`.
 - Frontend changed: run `npm test`, `npm run lint`, and `npm run build` from `frontend/`; build requires `NEXT_PUBLIC_API_BASE_URL`.
-- Before finishing, both component gates are green; every F/N has an automated test or documented manual check; `node .claude/skills/writing-specs-lite/scripts/lint.mjs plan docs/superpowers/plans/2026-10-22-w-host-experience-corrections.md --closeout` passes.
+- Before finishing, both component gates are green; every F/N has an automated test or documented manual check; `node .claude/skills/writing-specs-lite/scripts/lint.mjs plan workflow/plans/2026-10-22-w-host-experience-corrections.md --closeout` passes.
 
 ---
 

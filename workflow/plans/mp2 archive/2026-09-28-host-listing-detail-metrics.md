@@ -8,7 +8,7 @@
 
 **Tech Stack:** Java 25, JavaFX 25, JDBC/SQLite, JUnit 5, Gradle Checkstyle.
 
-**Spec:** `docs/superpowers/specs/mp2 archive/2026-09-28-host-listing-detail-metrics-design.md`
+**Spec:** `workflow/specs/mp2 archive/2026-09-28-host-listing-detail-metrics-design.md`
 
 ## Global Constraints
 
@@ -66,7 +66,7 @@
 
 **Files:**
 - Modify: `PROJECT_STATE.md`
-- Modify: `docs/project-state/done-ledger.md`
+- Modify: `workflow/project-state/done-ledger.md`
 
 - [ ] **Step 1: Run `./gradlew test`.** Record any unrelated baseline failure by exact test name.
 - [ ] **Step 2: Run the app against a disposable mock DB copy** and confirm startup succeeds.

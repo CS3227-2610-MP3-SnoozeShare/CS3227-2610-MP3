@@ -1,7 +1,7 @@
 # MP3-0 Correctness Cluster — Design
 
 Date: 2026-10-18 · Workstream: MP3-0 (see `PROJECT_STATE.md` § Workstreams) ·
-Source: [`docs/MP2-feedback-triage.md`](../../MP2-feedback-triage.md) items B1, B3, B4, B5, D1, D2, D3, D5, P5.
+Source: [`workflow/MP2-feedback-triage.md`](../MP2-feedback-triage.md) items B1, B3, B4, B5, D1, D2, D3, D5, P5.
 
 ## 1. Problem
 

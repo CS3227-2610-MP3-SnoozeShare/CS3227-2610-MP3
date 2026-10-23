@@ -36,14 +36,14 @@ flowchart TD
 | Do | Who | Output |
 |---|---|---|
 | Pick the first Upcoming row (or the owner names one) and branch from `INT`: `git switch -c <workstream> origin/development` | Agent | the branch |
-| Copy `branch-state-template.md` to `docs/project-state/branch-states/<slug>.md`; keep **every** `PROJECT_STATE.md` heading, and write `No change.` where nothing changes | Agent | branch state, Status `Draft`, a session row |
+| Copy `branch-state-template.md` to `workflow/project-state/branch-states/<slug>.md`; keep **every** `PROJECT_STATE.md` heading, and write `No change.` where nothing changes | Agent | branch state, Status `Draft`, a session row |
 | Check the Upcoming row against Known Gaps, Conventions and out-of-scope (`AGENTS.md` § 4); if the request collides, stop and ask: keep the decision or reverse it | Agent | an answer, recorded as a decision |
 
 Anything feature-sized needs a spec and a plan. A bug fix or config tweak does not, but it still gets a Changes line.
 
 ## 2. Spec (`writing-specs-lite`)
 
-1. Agent writes the spec: an index at `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` plus a folder of component files
+1. Agent writes the spec: an index at `workflow/specs/YYYY-MM-DD-<topic>-design.md` plus a folder of component files
    (requirements, data model, API, UI, conventions, edge cases `E1..`, implementation order `T1..`).
 x
 3. `node .claude/skills/writing-specs-lite/scripts/lint.mjs spec <index.md>` has no errors.
@@ -57,7 +57,7 @@ Gate: the owner reads the spec. **Owner approves** (Status `Approved (name, date
 
 ## 3. Plan (`writing-plans-lite`)
 
-1. Agent writes `docs/superpowers/plans/YYYY-MM-DD-<topic>.md`: tasks `T1..Tn` mirror the spec's implementation order; exact
+1. Agent writes `workflow/plans/YYYY-MM-DD-<topic>.md`: tasks `T1..Tn` mirror the spec's implementation order; exact
    files; a checklist per task; snippets for tricky logic; a Traceability table for every `F`, `N` and `E` ID; Close-out last.
 2. Mark human-only work after the merge as a **`Post-merge`** task. Start any step that leaves the machine (push, PR, deploy,
    credentials) with **`GATE:`**.
@@ -115,11 +115,11 @@ Stop conditions:
 
 | Stage | Files |
 |---|---|
-| Branch | `docs/project-state/branch-states/<slug>.md` |
-| Spec | `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and its folder |
-| Plan | `docs/superpowers/plans/YYYY-MM-DD-<topic>.md` |
+| Branch | `workflow/project-state/branch-states/<slug>.md` |
+| Spec | `workflow/specs/YYYY-MM-DD-<topic>-design.md` and its folder |
+| Plan | `workflow/plans/YYYY-MM-DD-<topic>.md` |
 | Code | `desktop/`, `backend/`, `frontend/`, `docker-compose.yml`, `render.yaml` |
-| State | `PROJECT_STATE.md`, `docs/project-state/done-ledger.md`, `.../archive/` |
+| State | `PROJECT_STATE.md`, `workflow/project-state/done-ledger.md`, `.../archive/` |
 | Guide | `docs/DeveloperGuide.md` |
 
 ## Commit and branch rules

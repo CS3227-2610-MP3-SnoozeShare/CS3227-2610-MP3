@@ -107,7 +107,7 @@ Shared-file hazards: T2 edits Guest shell wiring and T3 edits the Guest wallet p
 
 | Action | Path | What changes |
 |---|---|---|
-| Modify | `docs/project-state/branch-states/W-GUEST-UI-ALIGN.md` | Record progress, tests, changes, and final handoff state. |
+| Modify | `workflow/project-state/branch-states/W-GUEST-UI-ALIGN.md` | Record progress, tests, changes, and final handoff state. |
 
 **Checklist**
 

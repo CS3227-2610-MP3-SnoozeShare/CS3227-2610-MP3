@@ -8,7 +8,7 @@
 
 **Tech Stack:** Java 25, JavaFX 25/FXML, Gradle, SQLite via `org.xerial:sqlite-jdbc`, plain JDBC, JUnit 5, TestFX, Checkstyle.
 
-**Spec:** `docs/superpowers/specs/mp2 archive/2026-09-23-w1-shared-foundation-design.md`
+**Spec:** `workflow/specs/mp2 archive/2026-09-23-w1-shared-foundation-design.md`
 
 ## Global Constraints
 
@@ -408,7 +408,7 @@ git commit -m "feat: add shared application shell and routing"
 - Create: `src/test/java/com/snoozeshare/architecture/LayerDependencyTest.java`
 - Modify: `build.gradle` only if a narrowly scoped architecture-test dependency or test task is required
 - Modify: `PROJECT_STATE.md`
-- Modify: `docs/project-state/done-ledger.md`
+- Modify: `workflow/project-state/done-ledger.md`
 
 **Interfaces:**
 - The integration test exercises migration → registration → wallet provisioning → login → role routing → wallet ledger write → event publication → audit persistence using the real SQLite adapters.
@@ -433,7 +433,7 @@ Expected: PASS with Checkstyle, unit tests, repository integration tests, archit
 - [ ] **Step 7: Commit**
 
 ```bash
-git add build.gradle PROJECT_STATE.md docs/project-state/done-ledger.md src/test/java/com/snoozeshare/foundation src/test/java/com/snoozeshare/architecture
+git add build.gradle PROJECT_STATE.md workflow/project-state/done-ledger.md src/test/java/com/snoozeshare/foundation src/test/java/com/snoozeshare/architecture
 git commit -m "test: verify complete shared foundation"
 ```
 
