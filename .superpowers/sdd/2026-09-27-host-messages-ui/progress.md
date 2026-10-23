@@ -1,4 +1,4 @@
-# SDD ledger — plan: docs/superpowers/plans/2026-09-27-host-messages-ui.md
+# SDD ledger — plan: workflow/plans/2026-09-27-host-messages-ui.md
 
 Pre-flight: Tasks 1→2 share the host ticket candidate/service boundary; Tasks 2→3 share the
 HostConversationRow and booking bubble renderer; Tasks 3→4 share the New Ticket callback; Tasks

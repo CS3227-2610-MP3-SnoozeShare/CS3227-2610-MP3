@@ -6,14 +6,14 @@ do not let it expand into a project audit.
 ## Steps
 
 1. **Copy the skeleton** from [project-state-template.md](project-state-template.md) to
-   `PROJECT_STATE.md` at the repo root, and create `docs/project-state/branch-states/archive/`
+   `PROJECT_STATE.md` at the repo root, and create `workflow/project-state/branch-states/archive/`
    (add a `.gitkeep`). Branches will write their own state there, copied from
    [branch-state-template.md](branch-state-template.md); the project's `AGENTS.md` should say so.
 2. **Harvest what already exists**, in this order — earlier sources beat later ones on intent:
-   - `docs/superpowers/specs/*` — purpose, decisions with reasons, explicit non-goals. The
+   - `workflow/specs/*` — purpose, decisions with reasons, explicit non-goals. The
      non-goals are gold: they populate § Known Gaps directly, and the spec's architecture
      section is the skeleton of § Architecture.
-   - `docs/superpowers/plans/*` — task breakdowns, which become Workstreams. An unchecked task
+   - `workflow/plans/*` — task breakdowns, which become Workstreams. An unchecked task
      list tells you the real progress.
    - `git log --oneline` — the early Done entries, and the true current state.
    - README, package scripts, CI config — the How to Resume commands.
@@ -25,7 +25,7 @@ do not let it expand into a project audit.
    each saying what exists today; mark anything settled but unbuilt *(planned)*. Move every
    decision that shaped a part into that part's table, leaving process decisions in
    § Decisions. If no code exists yet, the areas are the spec's, all *(planned)*.
-5. **Backfill the ledger coarsely.** Create `docs/project-state/done-ledger.md` and write one
+5. **Backfill the ledger coarsely.** Create `workflow/project-state/done-ledger.md` and write one
    line per milestone, not per commit; link it from § Record. History is context, not an audit
    trail — the ledger starts being precise from today.
 6. **Mark what you inferred.** Anything deduced rather than read gets "(inferred)" on the entry.

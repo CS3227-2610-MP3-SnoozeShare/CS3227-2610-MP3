@@ -15,7 +15,7 @@ Open the current web deployment at [SnoozeShare](https://cs3227-snoozeshare.verc
 - [`config/checkstyle/`](config/checkstyle) — Checkstyle ruleset shared by `desktop/` and `backend/`
 - [`docker-compose.yml`](docker-compose.yml) — local Postgres for the backend
 - [`docs/`](docs) — [User Guide](docs/UserGuide.md), [Developer Guide](docs/DeveloperGuide.md), [Product Backlog](docs/ProductBacklog.md), [Reflections](docs/Reflections.md), [dev-environment runbook](docs/runbooks/dev-environment.md)
-- [`logs/`](logs) — per-agent-session interaction logs, named with SGT timestamp and branch
+- [`workflow/`](workflow/README.md) — the agentic-SE workflow records: specs, plans, project state and history, agent session logs, the prompt-tuning kit (see the Developer Guide § 0)
 
 The three components build independently; there is no root build.
 

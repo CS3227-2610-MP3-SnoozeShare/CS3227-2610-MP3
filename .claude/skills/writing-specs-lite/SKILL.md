@@ -31,7 +31,7 @@ A spec says **what the system must be and how it must behave**, never **how to b
 8. **Run the lint script**, then self-check against the checklist at the bottom:
 
 ```bash
-node .claude/skills/writing-specs-lite/scripts/lint.mjs spec docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md
+node .claude/skills/writing-specs-lite/scripts/lint.mjs spec workflow/specs/YYYY-MM-DD-<topic>-design.md
 ```
 
 Fix every error it prints before asking for approval (add `--approved` once the operator approves, to enforce 'no open Q'). Do this before the review pass so reviewers spend effort on judgement.
@@ -42,8 +42,8 @@ Fix every error it prints before asking for approval (add `--approved` once the 
 Spec location follows `AGENTS.md` § 3; the folder holds the components:
 
 ```
-docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md      <- index (always)
-docs/superpowers/specs/YYYY-MM-DD-<topic>-design/
+workflow/specs/YYYY-MM-DD-<topic>-design.md      <- index (always)
+workflow/specs/YYYY-MM-DD-<topic>-design/
     requirements.md      <- only when functional + non-functional requirements exceed 6
     data-model.md        <- when data or state changes
     api.md               <- when any interface (service method, endpoint, event, CLI) is added or changed

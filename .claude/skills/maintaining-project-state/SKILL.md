@@ -11,7 +11,7 @@ Two documents carry the project's memory:
 
 | | `PROJECT_STATE.md` | Branch state |
 |---|---|---|
-| **Path** | repo root | `docs/project-state/branch-states/<slug>.md` |
+| **Path** | repo root | `workflow/project-state/branch-states/<slug>.md` |
 | **Describes** | `INT` — what is merged, decided and handed over | what **one branch** has added or changed |
 | **Written by** | the `sync-project-state` skill (the owner may edit it directly for a hotfix) | every agent working on that branch |
 | **Lives** | permanently | until the branch merges and is folded in, then archived |
@@ -53,12 +53,12 @@ If `PROJECT_STATE.md` does not exist — [bootstrapping.md](bootstrapping.md).
 |  | **Big** — feature level and above | **Small** |
 |---|---|---|
 | **Examples** | New user-facing capability; new module, service, or page; schema or data-model change; new dependency or architectural shift; cross-cutting refactor; anything spanning more than one session | Bugfix inside an existing design; copy or style tweak; single-function refactor; added tests; config change |
-| **Before coding** | Spec → `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`, plan → `docs/superpowers/plans/YYYY-MM-DD-<topic>.md`, and a Workstream row in the branch state linking both | Nothing. Just do it |
+| **Before coding** | Spec → `workflow/specs/YYYY-MM-DD-<topic>-design.md`, plan → `workflow/plans/YYYY-MM-DD-<topic>.md`, and a Workstream row in the branch state linking both | Nothing. Just do it |
 | **After** | Workstream status + a Changes line, both in the branch state | A Changes line in the branch state |
 
 A **Changes line** is one line in the branch state's § Changes: what changed and why, with a
 commit as the reference. At sync it is copied into the Done ledger,
-`docs/project-state/done-ledger.md`, which is where "when did this change?" is answered.
+`workflow/project-state/done-ledger.md`, which is where "when did this change?" is answered.
 
 **Small never means unrecorded.** Ceremony scales with size; the written record does not. A
 one-line fix still gets a Changes line, and if it diverges from a plan, contradicts a spec, or

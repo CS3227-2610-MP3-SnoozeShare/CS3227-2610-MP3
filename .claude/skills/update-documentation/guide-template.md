@@ -2,7 +2,7 @@
 
 Handover brief for developers taking over this project. It describes **confirmed** work only and
 is updated at checkpoints, so it can lag behind the code. For current status, work in flight, and
-what to build next, read [`PROJECT_STATE.md`](../PROJECT_STATE.md) — that is the source of truth.
+what to build next, read [`PROJECT_STATE.md`](../../../workflow/project-history/iteration-1/PROJECT_STATE.md) — that is the source of truth.
 
 **Last updated:** YYYY-MM-DD — covers <e.g. "W1, W3" or "scope and requirements (seeded from spec)">
 

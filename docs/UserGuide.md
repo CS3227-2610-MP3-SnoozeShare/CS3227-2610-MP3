@@ -1,7 +1,7 @@
 ---
 layout: default
 title: User Guide
-nav_order: 3
+permalink: /user-guide/
 ---
 
 # SnoozeShare User Guide
@@ -27,10 +27,9 @@ real payment provider is connected.
 
 ## Quick start
 
-1. Open the current frontend deployment: [SnoozeShare](https://cs3227-snoozeshare.vercel.app).
+1. Open the current frontend deployment: [SnoozeShare](https://cs3227-snoozeshare.vercel.app/login).
 2. Choose **Create account** or sign in with an existing account.
 3. Select the workspace for your role from the header.
-4. If the app reports that the backend is unreachable, wait briefly and choose **Re-check**.
 
 > **Startup warning:** Because of hosting-platform limitations, the backend may take **one to
 > two minutes** to boot on the first launch or after a period of inactivity. During this time,
@@ -40,13 +39,11 @@ real payment provider is connected.
 The deployed frontend is connected to the hosted API. Registration codes for privileged roles
 are intentionally not published here; request the current code from the project administrator.
 
-For local development, follow the frontend instructions in the repository [README](../README.md)
-and the [development environment runbook](runbooks/dev-environment.md). The frontend normally
+For local development, follow the frontend instructions in the repository [README](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/README.md)
+and the [development environment runbook](../runbooks/dev-environment.html). The frontend normally
 runs at `http://localhost:3000` and expects the API at `http://localhost:8080` unless
 `NEXT_PUBLIC_API_BASE_URL` is configured. Local development requires the backend and its
 PostgreSQL environment; this is not a standalone desktop mode.
-
-![Quick-start image](images/quickstart-db-folder.png)
 
 
 ## Account access
@@ -59,7 +56,17 @@ authentication; the old email-only desktop login flow no longer applies.
 Choose **Forgot password?** to request a reset email. A successful request tells you to check
 your email. Check spam and verify the address if the message does not arrive.
 
-![Sign-in screen](images/login.png)
+### Sample accounts
+
+Use these seeded accounts to try each workspace on the hosted demo:
+
+| Role | Email | Password |
+| --- | --- | --- |
+| Guest | `guest01@snoozeshare.test` | `guest123` |
+| Host | `host01@snoozeshare.test` | `host123` |
+| Support Agent | `agent01@snoozeshare.test` | `agent123` |
+
+![Sign-in screen](../images/login.png)
 
 
 ### Create an account
@@ -70,7 +77,7 @@ code. Host and Support Agent registration requires a current administrator-provi
 
 Use **Sign out** from the account menu when finished on a shared device.
 
-![Registration screen](images/register.png)
+![Registration screen](../images/register.png)
 
 
 ## Navigation and workspaces
@@ -102,8 +109,8 @@ or contains conflicting details. The request is limited in length and the assist
 temporarily unavailable or return a degraded result. If that happens, use the manual City,
 Check-in, Check-out, Guests, and Max rate filters instead.
 
-![Guest search](images/guest-search.png)
-![Guest listing detail](images/guest-listing-detail.png)
+![Guest search](../images/guest-search.png)
+![Guest listing detail](../images/guest-listing-detail.png)
 
 
 ### Trips
@@ -113,9 +120,9 @@ state, a trip card can offer cancellation with the applicable refund calculation
 ticket after a stay has started and within the dispute window, or a review for an eligible
 completed stay.
 
-![Guest trips](images/guest-trips.png)
-![Guest cancellation dialog](images/guest-cancel-dialog.png)
-![Guest review dialog](images/guest-review-dialog.png)
+![Guest trips](../images/guest-trips.png)
+![Guest cancellation dialog](../images/guest-cancel-dialog.png)
+![Guest review dialog](../images/guest-review-dialog.png)
 
 
 ### Messages
@@ -124,8 +131,8 @@ completed stay.
 read it and reply. Choose **File Ticket** to open a dispute form and select the booking when
 prompted. Resolved ticket conversations are read-only.
 
-![Guest dispute form](images/guest4.png)
-![Guest messages](images/guest-messages.png)
+![Guest dispute form](../images/guest4.png)
+![Guest messages](../images/guest-messages.png)
 
 
 ### Wallet
@@ -135,8 +142,8 @@ simulated funds and **Withdraw** removes available simulated funds. The statemen
 holds, releases, charges, refunds, payouts, top-ups, and withdrawals. Funds held in escrow
 cannot be withdrawn. Hosted wallet amounts currently use SGD.
 
-![Guest wallet](images/wallet-dashboard.png)
-![Wallet top-up dialog](images/wallet-topup-dialog.png)
+![Guest wallet](../images/wallet-dashboard.png)
+![Wallet top-up dialog](../images/wallet-topup-dialog.png)
 
 
 ## Host workspace
@@ -149,10 +156,10 @@ check-in/check-out times, and amenities such as Wi-Fi, parking, air conditioning
 washer, and work desk. Save the listing after required fields are valid. A listing's
 **Booking Calendar** lets you review availability and block dates.
 
-![Host listings](images/host1_1.png)
-![Host listing detail](images/host-listing-detail.png)
-![Host listing form](images/host1_2.png)
-![Host calendar](images/host2.png)
+![Host listings](../images/host1_1.png)
+![Host listing detail](../images/host-listing-detail.png)
+![Host listing form](../images/host1_2.png)
+![Host calendar](../images/host2.png)
 
 
 ### AI Description Assistant
@@ -176,15 +183,15 @@ unavailable. If that happens, edit the description manually and save the listing
 expected net earning, then choose **Approve** or **Decline**; an optional message can accompany
 the response.
 
-![Host requests](images/host3.png)
-![Host approval dialog](images/host-approve-dialog.png)
+![Host requests](../images/host3.png)
+![Host approval dialog](../images/host-approve-dialog.png)
 
 
 **Messages** combines booking and support-ticket threads. Select a thread to load it, mark it
 read, and reply. Use the ticket thread for support cases and the booking thread for stay
 coordination.
 
-![Host messages](images/host-messages.png)
+![Host messages](../images/host-messages.png)
 
 
 **Wallet** shows the Host balance and statement. Top-ups, withdrawals, escrow entries, and
@@ -194,7 +201,7 @@ payouts are simulated. Host payouts are net of the platform fee described below.
 
 Agent access is intended for authorized staff.
 
-![Agent shell](images/agent-shell-overview.png)
+![Agent shell](../images/agent-shell-overview.png)
 
 
 - **Disputes:** filter the queue, open a ticket, review booking and escrow details, read Guest
@@ -202,25 +209,25 @@ Agent access is intended for authorized staff.
   include rejecting, accepting, or applying a manual remedy such as a full Host payout, full
   Guest refund, or custom adjustment. A reason is required.
 
-  ![Dispute queue](images/admin1_1.png)
-  ![Dispute detail](images/admin1_2.png)
-  ![Resolution dialog](images/admin2_1.png)
+  ![Dispute queue](../images/admin1_1.png)
+  ![Dispute detail](../images/admin1_2.png)
+  ![Resolution dialog](../images/admin2_1.png)
 
 - **Accounts:** search Guest and Host accounts, then suspend or reactivate an account with a
   required reason.
 
-  ![Accounts table](images/admin4.png)
-  ![Suspend dialog](images/agent-suspend-dialog.png)
+  ![Accounts table](../images/admin4.png)
+  ![Suspend dialog](../images/agent-suspend-dialog.png)
 
 - **Audit Log:** search by user, booking, ticket, or user ID; filter by action and date range;
   clear filters; and load more results.
 
-  ![Audit log](images/admin5.png)
+  ![Audit log](../images/admin5.png)
 
 - **Categories:** add, rename, activate, deactivate, or delete ticket categories. A category
   used by tickets cannot be deleted; deactivate it instead.
 
-  ![Ticket categories](images/admin3.png)
+  ![Ticket categories](../images/admin3.png)
 
 
 ### Ticket clarification assistant
@@ -297,8 +304,8 @@ filters or write the description manually.
 | AI search unavailable | Use the manual City, date, Guests, and Max rate filters. |
 | Wallet action fails | Check that the amount is positive and that withdrawal does not exceed available funds. |
 
-For local failures, see the [development environment runbook](runbooks/dev-environment.md) and
-the repository [README](../README.md).
+For local failures, see the [development environment runbook](../runbooks/dev-environment.html) and
+the repository [README](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/README.md).
 
 ## Glossary
 
@@ -314,4 +321,4 @@ the repository [README](../README.md).
 
 ---
 
-For product requirements and developer handover information, see the [Developer Guide](DeveloperGuide.md).
+For product requirements and developer handover information, see the [Developer Guide](../developer-guide/).
