@@ -10,6 +10,7 @@ public final class TestDataReset {
     private TestDataReset() { }
 
     public static void reset(JdbcTemplate jdbc) {
+        jdbc.update("delete from ticket_assistants");
         jdbc.update("delete from message_reads");
         jdbc.update("delete from booking_message_reads");
         jdbc.update("delete from messages");

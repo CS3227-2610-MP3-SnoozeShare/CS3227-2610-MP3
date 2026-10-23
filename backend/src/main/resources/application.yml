@@ -21,6 +21,13 @@ snoozeshare:
   audit:
     # Audit From/To dates are whole days in this zone
     zone: Asia/Singapore
+  assistant:
+    # Ticket clarification assistant; the AI gateway switch (snoozeshare.ai.enabled) stays the production off switch
+    enabled: ${SNOOZESHARE_ASSISTANT_ENABLED:true}
+    max-rounds: ${SNOOZESHARE_ASSISTANT_MAX_ROUNDS:3}
+    threads: ${SNOOZESHARE_ASSISTANT_THREADS:2}
+    queue: ${SNOOZESHARE_ASSISTANT_QUEUE:50}
+    stale-after-minutes: ${SNOOZESHARE_ASSISTANT_STALE_AFTER_MINUTES:10}
 management:
   endpoints:
     web:

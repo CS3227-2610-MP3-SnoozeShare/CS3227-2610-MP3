@@ -1,4 +1,5 @@
 import { authenticatedFetch } from './api';
+import type { MessageRole } from './message-role';
 
 /* ─── Types ─── */
 
@@ -118,7 +119,7 @@ export type TicketResponse = {
 export type MessageResponse = {
   id: string;
   authorId: string;
-  authorRole: string;
+  authorRole: MessageRole;
   body: string;
   sentAt: string;
 };

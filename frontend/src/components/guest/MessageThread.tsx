@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { MessageResponse } from '@/lib/guest-api';
 import { BackendApiError } from '@/lib/api';
+import { authorRoleLabel } from '@/lib/message-role';
 
 export function MessageThread({
   messages,

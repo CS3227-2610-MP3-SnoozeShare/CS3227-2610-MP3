@@ -30,6 +30,7 @@ import com.snoozeshare.repository.MessageRepository;
 import com.snoozeshare.repository.PropertyRepository;
 import com.snoozeshare.repository.TicketRepository;
 import com.snoozeshare.repository.UserRepository;
+import com.snoozeshare.service.AuditService;
 import com.snoozeshare.service.ConversationSummary;
 import com.snoozeshare.service.MessageService;
 import com.snoozeshare.service.NotFoundException;
@@ -89,6 +90,25 @@ public class MessageServiceImpl implements MessageService {
         Instant now = clock.instant();
         Message saved = messages.save(new Message(UUID.randomUUID(), ticketId, channel, authorId,
                 authorRole, body.trim(), now));
+        publishAfterCommit(new MessagePostedEvent(saved.getId(), ticketId, now));
+        return saved;
+    }
+
+    @Override
+    @Transactional
+    public Message postAssistant(UUID ticketId, String body) {
+        DomainValidation.requireText(body, "body");
+        String trimmed = body.trim();
+        if (trimmed.length() > 2000) {
+            throw new IllegalArgumentException("body must not exceed 2000 characters");
+        }
+        Ticket ticket = ticket(ticketId);
+        if (!isOpen(ticket)) {
+            throw new IllegalStateException("Ticket is resolved");
+        }
+        Instant now = clock.instant();
+        Message saved = messages.save(new Message(UUID.randomUUID(), ticketId, ThreadChannel.GUEST,
+                AuditService.SYSTEM_ACTOR_ID, Role.SYSTEM, trimmed, now));
         publishAfterCommit(new MessagePostedEvent(saved.getId(), ticketId, now));
         return saved;
     }

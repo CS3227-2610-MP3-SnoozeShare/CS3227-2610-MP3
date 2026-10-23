@@ -113,6 +113,17 @@ class AgentAuditControllerTest extends AgentApiIntegrationTest {
                 .andExpect(jsonPath("$", hasItem("TOP_UP")));
     }
 
+    @Test
+    void assistantActionsAreListedAndFilterable() throws Exception { // E62
+        insert(UUID.randomUUID(), agent.id(), "System", "ASSISTANT_STATE", Instant.now());
+        insert(UUID.randomUUID(), agent.id(), "System", "ASSISTANT_MESSAGE", Instant.now());
+        mockMvcActions().andExpect(status().isOk()).andExpect(jsonPath("$", hasItem("ASSISTANT_STATE")))
+                .andExpect(jsonPath("$", hasItem("ASSISTANT_MESSAGE")));
+        search("?actions=ASSISTANT_STATE").andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].actionType").value("ASSISTANT_STATE"));
+        search("?actions=ASSISTANT_STATE,ASSISTANT_MESSAGE").andExpect(jsonPath("$", hasSize(2)));
+    }
+
     private ResultActions mockMvcActions() throws Exception {
         return mockMvc.perform(get("/api/agent/audit/actions").header("Authorization", "Bearer " + agent.token()));
     }

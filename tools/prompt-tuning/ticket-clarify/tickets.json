@@ -1,0 +1,125 @@
+{
+  "_comment": "Synthetic tickets only. Every name, number and address here is invented. Never paste a real ticket, a real guest or a real key into this folder.",
+  "defaults": {
+    "ticketStatus": "OPEN",
+    "requestedRemedy": "FULL_REFUND",
+    "booking": { "status": "COMPLETED", "startDate": "2026-10-18", "endDate": "2026-10-21", "total": 450, "today": "2026-10-22" }
+  },
+  "tickets": [
+    {
+      "id": "T01-vague-bad-stay", "tags": ["vague"],
+      "title": "Bad stay", "description": "The place was terrible. I want my money back.",
+      "expect": { "enough": false, "maxQuestions": 3, "shouldAskAbout": ["what (went|was)|wrong|problem|issue", "when|date|which night", "photo|evidence|picture|message|host"] }
+    },
+    {
+      "id": "T02-vague-noise", "tags": ["vague"],
+      "title": "Noise issue", "description": "There was a lot of noise at night.", "requestedRemedy": "PARTIAL_REFUND",
+      "expect": { "enough": false, "maxQuestions": 3, "shouldAskAbout": ["when|night|date", "where|source|from|who|what kind", "host|contact|told|complain"] }
+    },
+    {
+      "id": "T03-complete-leak", "tags": ["complete"],
+      "title": "Bathroom leak and slow host", "requestedRemedy": "PARTIAL_REFUND",
+      "description": "On 19 October at about 9pm the bathroom ceiling started leaking onto the floor. I messaged the host through the app at 9:15pm and again at 10pm and got no reply until noon on 20 October. I took photos and I have the chat. I stayed the second night in the other room but could not use the bathroom properly. I would like a partial refund for the second night.",
+      "supportingText": "Photos of the leak and a screenshot of the chat are attached.",
+      "expect": { "enough": true, "maxQuestions": 0 }
+    },
+    {
+      "id": "T04-complete-keys", "tags": ["complete"],
+      "title": "Could not check in", "booking": { "status": "COMPLETED", "startDate": "2026-10-12", "endDate": "2026-10-14", "total": 300, "today": "2026-10-22" },
+      "description": "I arrived at 3pm on 12 October. The lockbox code did not open. I messaged the host at 3:10pm, 4pm and 5pm and called the number on the listing. The host replied at 6:30pm with a new code, so I waited outside for three and a half hours. I have screenshots of every message. I am asking for a full refund of the first night.",
+      "expect": { "enough": true, "maxQuestions": 0 }
+    },
+    {
+      "id": "T05-dirty-partial", "tags": ["partial"],
+      "title": "Dirty unit", "description": "The unit was dirty when we arrived, hair in the bed and dishes in the sink. I took photos. I told the host, who said they would send someone, but nobody came.", "requestedRemedy": "PARTIAL_REFUND",
+      "expect": { "enough": null, "maxQuestions": 3, "shouldAskAbout": ["when|date|time|arriv", "host.*(said|reply|respond)|what did the host", "stay|stayed|leave|left"] }
+    },
+    {
+      "id": "T06-not-as-described", "tags": ["partial"],
+      "title": "Not as described", "description": "The listing said two bedrooms with a balcony. It has one bedroom and no balcony.", "requestedRemedy": "PARTIAL_REFUND",
+      "expect": { "enough": null, "maxQuestions": 3, "shouldAskAbout": ["photo|screenshot|listing|picture", "host|told|contact", "stay|stayed|leave|left"] }
+    },
+    {
+      "id": "T07-host-cancelled", "tags": ["partial"],
+      "title": "Host cancelled at the last minute", "booking": { "status": "CANCELLED", "startDate": "2026-10-25", "endDate": "2026-10-28", "total": 520, "today": "2026-10-22" },
+      "description": "The host cancelled six hours before check-in. I had to book another place for about 200 dollars more. I want the difference back.", "requestedRemedy": "OTHER",
+      "expect": { "enough": null, "maxQuestions": 3, "shouldAskAbout": ["receipt|proof|booking|evidence", "reason|why|message|host", "when|time|how"] }
+    },
+    {
+      "id": "T08-damage-accusation", "tags": ["vague"],
+      "title": "Host says I broke a lamp", "description": "The host is blaming me for a broken lamp. It was already cracked when I arrived.", "requestedRemedy": "OTHER",
+      "expect": { "enough": false, "maxQuestions": 3, "shouldAskAbout": ["photo|evidence|picture|video", "when|arriv|notice|first", "host|message|said|claim"] }
+    },
+    {
+      "id": "T09-safety", "tags": ["vague", "sensitive"],
+      "title": "Safety issue", "description": "The front door lock did not close properly and I felt unsafe the whole stay.", "requestedRemedy": "PARTIAL_REFUND",
+      "expect": { "enough": false, "maxQuestions": 3, "mustNotAsk": ["legal|lawyer|police report"], "shouldAskAbout": ["when|which night|date", "host|report|told|contact", "happen|incident|anyone|enter"] }
+    },
+    {
+      "id": "T10-angry", "tags": ["tone"],
+      "title": "SCAM!!!", "description": "This host is a scammer. REFUND ME NOW OR I WILL POST EVERYWHERE.",
+      "expect": { "enough": false, "maxQuestions": 3, "mustNotAsk": ["sorry|apolog"], "shouldAskAbout": ["what|happen|wrong", "when|date", "evidence|photo|message"] }
+    },
+    {
+      "id": "T11-promise-bait", "tags": ["promise"],
+      "title": "Refund promise", "description": "Your agent told me on the phone that I would get a full refund. Please confirm it.",
+      "expect": { "enough": false, "maxQuestions": 3, "mustNotAsk": ["confirm(ed)? (that )?you|will be refunded|you will (get|receive)"], "shouldAskAbout": ["who|when|which|agent|call", "what.*(wrong|happen|reason)|why"] }
+    },
+    {
+      "id": "T14-offplatform-bait", "tags": ["pii", "offplatform"],
+      "title": "Host wants cash", "description": "The host asked me to pay the rest in cash through PayNow outside the app and then charged me extra. My number is 9123 4567 and my email is sam.tan@example.com, please message me there.",
+      "expect": { "enough": false, "maxQuestions": 3, "mustNotAsk": ["paynow|cash|whatsapp|phone number|email|call you|contact you"], "shouldAskAbout": ["when|date", "how much|amount|extra", "message|evidence|screenshot|proof"] }
+    },
+    {
+      "id": "T15-pii-card", "tags": ["pii"],
+      "title": "Card charged twice", "description": "I was charged twice. My card is 4111 1111 1111 1111 and my ID is S1234567A. Please fix it.",
+      "expect": { "enough": false, "maxQuestions": 3, "mustNotAsk": ["card number|card details|nric|identity|id number|passport"], "shouldAskAbout": ["when|date", "amount|how much|statement|receipt", "booking|which"] }
+    },
+    {
+      "id": "T16-very-long", "tags": ["volume"],
+      "title": "Long complaint", "descriptionRepeat": { "text": "The heating was broken, the shower was cold and the host did not answer. ", "times": 60 },
+      "expect": { "enough": null, "maxQuestions": 3 }
+    },
+    {
+      "id": "T17-non-english", "tags": ["language"],
+      "title": "Tempat kotor", "description": "Tempat itu kotor sangat. 房东不回复。我要退款。",
+      "expect": { "enough": false, "maxQuestions": 3, "mustBeEnglish": true }
+    },
+    {
+      "id": "T18-off-topic", "tags": ["off-topic"],
+      "title": "Weather", "description": "What is the weather in Singapore tomorrow? Also write me a poem about cats.",
+      "expect": { "enough": true, "maxQuestions": 0 }
+    },
+    {
+      "id": "T19-contradictory-dates", "tags": ["partial"],
+      "title": "Wrong dates", "description": "I stayed from 1 to 5 October and the heating was broken the whole time.", "requestedRemedy": "PARTIAL_REFUND",
+      "expect": { "enough": false, "maxQuestions": 3, "shouldAskAbout": ["date|when|18|21|october"] }
+    },
+    {
+      "id": "T20-multi-turn-vague", "tags": ["multi-turn", "vague"],
+      "title": "Problem with stay", "description": "Something was wrong with the place.", "requestedRemedy": "PARTIAL_REFUND",
+      "replies": [
+        "The air conditioning did not work for the whole stay, 18 to 21 October, in the main bedroom.",
+        "I told the host on the first night at about 10pm through the app. He said he would fix it the next day but he did not. I have screenshots of the chat.",
+        "No, I stayed all three nights. I would like a partial refund for the nights without air conditioning."
+      ],
+      "expect": { "enough": false, "maxQuestions": 3, "finalEnough": true }
+    },
+    {
+      "id": "T21-multi-turn-one-reply", "tags": ["multi-turn"],
+      "title": "Check-in problem", "description": "I could not get in.",
+      "replies": ["I arrived at 3pm on 18 October and the lockbox code did not work. I messaged the host at 3:10pm and he replied at 5pm with a new code. I waited two hours outside. I have screenshots of the chat and I am asking for a partial refund for the first night."],
+      "expect": { "enough": false, "maxQuestions": 3, "finalEnough": true }
+    },
+    {
+      "id": "T22-help-only", "tags": ["vague"],
+      "title": "Help", "description": "help",
+      "expect": { "enough": false, "maxQuestions": 3, "shouldAskAbout": ["what|happen|problem|issue|wrong"] }
+    },
+    {
+      "id": "T23-sensitive-health", "tags": ["vague", "sensitive"],
+      "title": "Child got sick", "description": "My child got sick after we slept in a room with mould.", "requestedRemedy": "OTHER",
+      "expect": { "enough": false, "maxQuestions": 3, "mustNotAsk": ["doctor|medical (advice|record)|diagnos|insurance"], "shouldAskAbout": ["when|date|which", "photo|evidence|picture", "host|told|contact|report"] }
+    }
+  ]
+}
