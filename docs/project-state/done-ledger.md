@@ -7,6 +7,7 @@ Iteration 2 started; earlier entries: [docs/project-history/iteration-1/done-led
 
 | Date | What changed | Workstream | Ref |
 |---|---|---|---|
+| 2026-10-23 | Updated the Developer Guide for confirmed W-AI-HOST: Host AI component/API behavior, requirements, gateway limitations, automated coverage and manual browser verification | W-AI-HOST | `docs/DeveloperGuide.md` § 4.26, W-AI-HOST requirements and testing |
 | 2026-10-23 | W-AI-HOST Host AI Listing Optimisation Assistant: conditional Host endpoint, grounded Evaluate/Generate modal, Apply-only updates, minimum-detail eligibility, responsive modal refinements; backend/frontend verification and live modal verification pass | W-AI-HOST | [spec](../superpowers/specs/2026-10-22-w-ai-host-design.md), [plan](../superpowers/plans/2026-10-22-w-ai-host.md), PR #20 |
 | 2026-10-23 | Folded the W-AI-HOST branch state into `PROJECT_STATE.md` (decisions C155–C161, deviations D113–D115, new § 4.17 Host AI assistant); W-AI-HOST is Done, guide confirmation pending | W-AI-HOST | [archive](branch-states/archive/2026-10-23-W-AI-HOST.md) |
 | 2026-10-23 | Updated the Developer Guide for confirmed W-AGENT: new § 4.24 (shared web API foundation) and § 4.25 (Agent REST API and web pages, with a resolve-a-dispute sequence diagram and a frontend component diagram), plus updates to § 1, § 2 (`SNOOZESHARE_AUDIT_ZONE`), § 3.2 key decisions, § 4.18, § 4.21–4.23, § 5 (web Agent requirements, NFRs and Known Limitations), § 6 and § 7 | W-AGENT | `docs/DeveloperGuide.md` §§ 4.24–4.25 |
