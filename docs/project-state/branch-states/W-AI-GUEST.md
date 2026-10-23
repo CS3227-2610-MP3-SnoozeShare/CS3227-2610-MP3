@@ -7,8 +7,8 @@ after the branch merges.
 - **Branch:** W-AI-GUEST (from `development` at `f50f437`)
 - **Base:** f50f437
 - **Owner:** Nathan
-- **Status:** In review
-- **Approved:** —
+- **Status:** Approved
+- **Approved:** Nathan, 2026-10-23
 - **Last updated:** 2026-10-23 by Claude Opus 4.6 — all tasks done, close-out complete
 
 ---
