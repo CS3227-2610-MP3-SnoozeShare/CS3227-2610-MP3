@@ -9,7 +9,7 @@ after the branch merges.
 - **Owner:** Xiao-Congchen
 - **Status:** Draft
 - **Approved:** —
-- **Last updated:** 2026-10-23 by Codex — gate 1 approved; plan writing started
+- **Last updated:** 2026-10-23 by Codex — plan written, lint clean and reviewed; gate 2 next
 
 ---
 
@@ -35,13 +35,12 @@ Row added to `PROJECT_STATE.md` § Orientation:
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-23 | Codex | W-AI-AGENT | Building | Gate 1 approved by Xiao-Congchen; writing the High-risk plan with `writing-plans-lite` | Verify spec files and repository seams, write the T1–T10 plan, lint, dispatch read-only lite-reviewer, then ask gate 2 | 2026-10-23 |
 
 **Remaining**
 
 - [x] Gate 1: spec reviewed and Approved (Xiao-Congchen, 2026-10-23)
 - [ ] The operator tunes the prompt with `tools/prompt-tuning/ticket-clarify/` in parallel with the build; the committed prompt needs a `KEEP` row in that kit's `CHANGELOG.md` before merge (spec conventions R15)
-- [ ] Gate 2: plan written, reviewed and approved
+- [ ] Gate 2: plan written and reviewed, awaiting operator approval. Ask approval of `docs/superpowers/plans/2026-10-23-w-ai-agent.md` (10 tasks, five waves). On yes write Approved (Xiao-Congchen, date), lint plan --approved, mark workstream Planned, then start executing-plans-lite. No implementation before that yes.
 - [ ] Execute the plan (`executing-plans-lite`)
 - [ ] **Handover:** `docs/DeveloperGuide.md` needs the assistant (data, flow, configuration) at its guide checkpoint
 - [ ] **Handover:** the live SoCLaaS check of the assistant (a real ticket, a real reply) is a post-merge step
@@ -52,7 +51,7 @@ Row added to `PROJECT_STATE.md` § Orientation:
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AI-AGENT | Ticket clarification assistant and draft report for the Support Agent | Spec'd | [spec](docs/superpowers/specs/2026-10-23-w-ai-agent-design.md) | — | Gate 1 approved; verifying seams for the High-risk plan | — |
+| W-AI-AGENT | Ticket clarification assistant and draft report for the Support Agent | Spec'd | [spec](docs/superpowers/specs/2026-10-23-w-ai-agent-design.md) | [plan](docs/superpowers/plans/2026-10-23-w-ai-agent.md) | Plan reviewed without blockers; gate 2 approval next | — |
 
 ---
 
@@ -99,7 +98,7 @@ No change: Q~1 was raised and resolved on this branch (C~7).
 
 ## 9. Deviations
 
-No change.
+- **D~1 (planning, 2026-10-23):** Existing notes save/textarea limits are 4,000 characters; approved drafts allow 6,000 and insertion appends existing notes. Plan preserves full local insertion and existing server validation, so an Agent may need to edit down before saving. No silent truncation or limit increase. Carry this UX limitation to review/Handover.
 
 ---
 
@@ -107,6 +106,8 @@ No change.
 
 | Date | What changed | Workstream | Ref |
 |---|---|---|---|
+| 2026-10-23 | Finish plan: 10 tasks/five waves, all 85 E rows mapped; read-only lite-reviewer Implementer lens found no blockers/questions. Clarify inherited fixture ordering, broaden legacy-suite opt-out to PostgresIntegrationTest, and link spec to plan. Spec/plan lint clean; source/build tests not run because only planning documents changed. Session and reviewer retired; gate 2 next | W-AI-AGENT | This session |
+| 2026-10-23 | Draft T1–T10 implementation plan across five waves with all 85 edge cases traced; verify repository seams and run clean plan lint; begin required read-only lite-reviewer round | W-AI-AGENT | This session |
 | 2026-10-23 | Record gate 1 spec approval by Xiao-Congchen and start plan writing; implementation remains gated on plan approval | W-AI-AGENT | This session |
 | 2026-10-23 | Assess operator's proposed Medium tier: recommend retaining High because C67 covers personal data and the feature adds draft visibility, automated messages and transactional state; gateway controls leave steered-prose residual risk. Spec lint: zero errors/warnings. Gate 1 remains open; no plan written | W-AI-AGENT | This session |
 | 2026-10-23 | Open the branch state with the operator's scoping decisions (C~1 to C~6) | W-AI-AGENT | `ec5a98e` |
