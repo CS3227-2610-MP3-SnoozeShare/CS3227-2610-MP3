@@ -63,6 +63,12 @@ The worst case of the draft fields is 500 + 900 + 1,200 + 600 + 750 + 800 = 4,75
 | Logging | Ticket id, author role, decision |
 | Compatibility | `MessageServiceImpl.post` is unchanged. A Guest reply or Agent post returns before any assistant work except one database write whose worst-case wait is bounded by the `RowLocks` timeout (5 seconds); the write races harmlessly with the applier because both take the assistant row lock (an Agent's stop that waits for the applier runs after it commits and still wins; if it ran first, the applier finds the row no longer `PENDING` and discards the result) |
 
+## Catch-up replay selection (SD23)
+
+Before constructing turns, select the stored GUEST-thread messages in ascending `(sent_at, id)` order. Let G be its newest Guest message and Q its newest recognized SYSTEM question message (R6). Omit Q from this call's replay only when G exists, G precedes Q in that order, and G is newer than the assistant row's `last_message_id` (any Guest message qualifies when that cursor is null). This is the one exception to replaying each recognized question in the Job Inputs row and R6. It handles a reply that arrived during the generation of Q: that reply was absent from the call that produced Q, so the immediate follow-up analyses it without pretending that it answered Q.
+
+Omit at most that one question message. Preserve the order and content of every surviving message; merge adjacent USER texts as before. Do not delete or modify Q in storage, change the round count, reconstruct its body, duplicate a Guest reply, or add a synthetic USER turn. The newest Guest included still becomes the next call's `last_message_id`. If the selected turns still do not end with USER, the unchanged E84 defensive path makes no call. A reply after Q, or no Guest newer than the cursor, uses ordinary replay. All open/PENDING, Guest-role/account, Agent-takeover, flagged/enough/cap and audit guards remain unchanged; at most `max-rounds + 1` calls still follows from consuming one posted question round per WAITING_GUEST transition. The exact number of calls for a burst depends on when its replies arrive: E49 specifies a staged schedule that needs four calls; E94's single mid-call burst needs three until a later reply. Selection uses only this ticket's stored rows, never event or model values. No persistence, UI, prompt or gateway contract changes.
+
 ## Job: one assistant turn
 | Field | Definition |
 |---|---|

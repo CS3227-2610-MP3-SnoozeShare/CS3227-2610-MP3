@@ -26,6 +26,8 @@ No other table changes. `tickets`, `audit_log` and `booking_messages` are unchan
 **Thread order.** A thread is ordered by `(sent_at, id)` ascending wherever this spec says "newer", "newest" or "last". `MessageRepository.findThread` returns it descending, so the job reverses it. "Newer than `last_message_id`" means a Guest-authored message with a greater `(sent_at, id)` than that message; when `last_message_id` is null it means any Guest-authored message in the thread.
 
 ## Keys and relationships
+
+**SD23 call selection:** api.md § Catch-up replay selection may omit one stored question from a call. The database thread order and `last_message_id` definition above are unchanged; this is a read-side selection rule, with no row, migration or round-count change.
 | From | To | Cardinality | On delete | Ownership / tenancy scope |
 |---|---|---|---|---|
 | `ticket_assistants.ticket_id` | `tickets.id` | 1 to 0..1 | no cascade (tickets are never deleted) | read only through Agent endpoints; a Guest or Host endpoint never returns it |

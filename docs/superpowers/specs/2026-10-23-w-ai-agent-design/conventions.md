@@ -23,6 +23,8 @@ Existing § Conventions are cited, not restated: the role AI rules (call `LlmGat
 
 ## Pattern lists (applied to cleaned text; written as regular expressions)
 
+**R6 catch-up exception (SD23):** apply api.md § Catch-up replay selection before R6 replay. Only its identified newest question is omitted for that call; every other selected question retains its stored numbered lines exactly, including the fixed support-email instruction. Storage, rounds, recognition and all other R6 behavior stay unchanged.
+
 ### Fixed support-email exception (SD22)
 
 The only exception to the no-off-platform-contact rule is the backend-built supporting-documents instruction. A model may include the exact question marker `[supporting-documents]` when supporting documents would help establish the reported facts, or when the Guest asks how to submit them. The prompt requires `enough = false` with this marker while a question round remains. It counts as one of the existing three questions and one existing question round; it never creates an extra call, message or round, and the normal cap/enough/flagged/failure precedence still applies.

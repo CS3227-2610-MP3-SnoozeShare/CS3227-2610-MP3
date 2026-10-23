@@ -9,7 +9,7 @@ after the branch merges.
 - **Owner:** Xiao-Congchen
 - **Status:** Draft
 - **Approved:** —
-- **Last updated:** 2026-10-23 by Codex — Wave 1 verified/committed; T2/T6 verification in flight
+- **Last updated:** 2026-10-23 by Codex — paused at Wave 3 blocker per operator; SD23 reviewed, gate 1 pending
 
 ---
 
@@ -35,17 +35,20 @@ Row added to `PROJECT_STATE.md` § Orientation:
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| SD22 execution | 2026-10-23 | Codex lead | W-AI-AGENT | Building | T4 runner/boundary tests written; T7 parallel | Record runner red, implement bounded queue and idle/shutdown tracking | 2026-10-23 |
-| T4 orchestration | 2026-10-23 | Codex implementer | W-AI-AGENT | Building | T4 steps 2–5: focused context/flow green; concurrency verification | Complete race/fixture regressions, then full backend gate | 2026-10-23 |
 
 **Remaining**
+
+- [ ] **Paused at Wave 3 blocker (C~17):** T7 is Done/committed at `93482d1`; T4 cannot finish until Q~3. On operator resumption first obtain approval of the reviewed SD23 High-risk spec, then revise the plan to trace E93/E94 and E49's 50-reply schedule and obtain gate 2. Do not start Wave 4 now.
+- [ ] Resume T4 by implementing api.md § Catch-up replay selection in AssistantContextBuilder; keep at most one omitted newest question, surviving stored order, E84 and call/round guards. Add E93 unit cases and E94 integration; change E49 fixture from 25+25+seed (51) to 24+25+seed (50). Run all T4 tests without exclusions, AiBoundaryTest, then full backend tests/Checkstyle/package. Only after green mark T4 Done and commit worker and orchestration slices. T5/T9 remain Not started.
+- [ ] Partial T4 code intentionally remains uncommitted: AssistantContextBuilder/Job/Applier/Runner, AssistantContextBuilderTest/FlowTest/ConcurrencyTest/RunnerTest/BoundaryTest, testsupport/AssistantIntegrationTest, and the two shared base opt-outs. Existing source is the pre-SD23 replay behavior; E8/E49 still fail. Do not lose, stage as completed, or silently weaken those tests.
 
 - [x] Original gate 1: Approved (Xiao-Congchen, 2026-10-23), before SD22.
 - [x] SD22 gate 1: Approved (Xiao-Congchen, 2026-10-23), operator: "approve and continue building". Revised-plan gate 2 remains separate.
 - [ ] The operator tunes the prompt with `tools/prompt-tuning/ticket-clarify/` in parallel with the build; the committed prompt needs a `KEEP` row in that kit's `CHANGELOG.md` before merge (spec conventions R15)
-- [x] Tuning-kit gross-gap review and offline corrections completed (D~4/C~15); SD22 decision resolved. Preliminary live comparison complete (3 cases x 1 run per prompt); operator transcript vetting and KEEP decision remain.
+- [x] Tuning-kit gross-gap review and offline corrections completed (D~4/C~15); SD22 decision resolved. Live comparison now covers all 21 cases, one run per prompt and case (T01/T10/T14 were run twice); operator transcript vetting and KEEP decision remain.
 - [x] Gate 2: Approved (Xiao-Congchen, 2026-10-23); operator said "approve" to the plan approval question. Start executing-plans-lite without another implementation approval.
 - [x] Revised-plan gate 2: Approved (Xiao-Congchen, 2026-10-23), operator: "approve and resume building". Includes current T10 tuning-kit adjustment; resume T3 step 7 and T8 step 5, then Wave 2 after verification. No push/PR or live service action authorized.
+- [x] Operator pause applied at the current Wave 3 blocker after independent T4 checks and SD23 review; no Wave 4 work started.
 - [ ] **Handover:** `docs/DeveloperGuide.md` needs the assistant (data, flow, configuration) at its guide checkpoint
 - [ ] **Handover:** the live SoCLaaS check of the assistant (a real ticket, a real reply) is a post-merge step
 
@@ -55,7 +58,7 @@ Row added to `PROJECT_STATE.md` § Orientation:
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AI-AGENT | Ticket clarification assistant and draft report for the Support Agent | Building | [spec](docs/superpowers/specs/2026-10-23-w-ai-agent-design.md) | [plan](docs/superpowers/plans/2026-10-23-w-ai-agent.md) | Wave 3: T4 orchestration and T7 Agent screens next | — |
+| W-AI-AGENT | Ticket clarification assistant and draft report for the Support Agent | Blocked — needs human | [spec](docs/superpowers/specs/2026-10-23-w-ai-agent-design.md) | [plan](docs/superpowers/plans/2026-10-23-w-ai-agent.md) | Paused at Wave 3: T7 Done, T4 awaiting SD23 approval Q~3 | — |
 
 ---
 
@@ -103,7 +106,7 @@ No new accepted limitations beyond the provisional prompt and existing screen/pr
 
 | ID | What is needed | What it blocks | Raised |
 |---|---|---|---|
-No open design question. SD22 and revised plan approved; apology variants remain outside approved P10.
+| Q~3 | On resumption approve reviewed SD23 catch-up selection plus explicit E49/E94 burst schedules; then revise/reapprove plan before fixing E8/E49. High-risk Implementer/Tester rounds 1–2 and Maintainer/Attacker round 1 have no remaining blockers. Spec lint 0 errors/1 near-cap warning | T4 completion and Waves 4–5; operator paused C~17 | 2026-10-23 |
 
 ---
 
@@ -111,6 +114,8 @@ No open design question. SD22 and revised plan approved; apology variants remain
 
 | ID | Date | Decision | Why / who asked | Source |
 |---|---|---|---|---|
+| C~17 | 2026-10-23 | Pause before Wave 4; T4 catch-up conflict prevents finishing current Wave 3 without SD23 approval. Finish independent checks and prepare the amendment for review, then leave the resume point | Operator: "pause after the current wave". No SD23 behavior change, further wave, push or PR authorized by this request | Operator conversation |
+| C~16 | 2026-10-23 | Proposed, not approved: SD23 omits only the newest question from one catch-up replay when a newer-than-cursor Guest reply precedes it. Preserve stored order/body, round/call caps and E84 otherwise | Codex proposes after E8/E49 failed: chronological replay ends ASSISTANT, preventing required follow-up. Proposal rejects fabricated/reordered Guest turns, uncounted question rounds and silently dropping catch-up. Operator decision pending | T4 concurrency evidence; D~5 |
 | C~14 | 2026-10-23 | Approved (Xiao-Congchen, 2026-10-23): revised SD22 plan, including current scoped T10 tuning-kit adjustment; resume execution | Operator: "approve and resume building" to revised-plan gate 2. Reopened Wave 1 precedes Wave 2; no push/PR or live-service authorization | Operator conversation |
 | C~15 | 2026-10-23 | The prompt-tuning runner assesses question quality and supports human review of factual summaries; dedicated model-hijack attempts stay in backend security tests. Print each bounded full transcript and treat any score as a human-vetted suggestion, not an automatic KEEP gate | Operator: backend has the more comprehensive hijack evaluation; operator wants to vet the full, short conversation and final summary. Rejected duplicating dedicated hijack cases in prompt ranking or making automated summary scores authoritative | Operator conversation |
 | C~13 | 2026-10-23 | Approved (Xiao-Congchen, 2026-10-23): SD22 amended High-risk spec, fixed support email via backend expansion | Operator: "approve and continue building" in response to amended-spec approval question. Continue through revised-plan gate; this does not approve an unwritten plan revision or push/PR | Operator conversation |
@@ -131,7 +136,9 @@ No open design question. SD22 and revised plan approved; apology variants remain
 
 ## 9. Deviations
 
-- **D~4 (tuning review, 2026-10-23):** The operator narrowed this kit to prompt-quality evaluation because backend tests own dedicated hijack attempts (C~15). The runner now rejects unknown fields, duplicate JSON keys and normalized/escaped links; mirrors the approved support-document marker and fixed displayed instruction; prints bounded conversations and per-turn drafts; fingerprints run settings, runner and data; and compares only matching runs. The documented compare CLI was broken by argument parsing and is now fixed with a selftest. It has no automatic summary factuality/completeness judge; the operator reviews transcripts and decides any KEEP. The input-sanitizer/injection-detector mirror remains approximate and is not a security evaluation. Preliminary live sample: T01/T10/T14, one run per prompt; v1 all schema-invalid (missing `hostPoints`), v2 100% schema-valid/one `mustNotAsk` hit, v3 100% schema-valid/no deterministic issues. Suggested transcript scores are in the changelog for operator vetting; no KEEP decision.
+- **D~5 (T4, 2026-10-23):** E8/E49 fail with 2 calls instead of 3/4. A reply arrives during a call, before its new question in stored order. Catch-up claims PENDING, but exact replay ends ASSISTANT and E84 returns WAITING_GUEST without a call. These approved requirements conflict. SD23 proposes one-question replay selection (C~16/Q~3); spec and plan approval reopened. No behavior workaround or test weakening. Partial T4 source/tests remain uncommitted; no full-backend-green claim. Independent checks are recorded separately.
+
+- **D~4 (tuning review, 2026-10-23):** The operator narrowed this kit to prompt-quality evaluation because backend tests own dedicated hijack attempts (C~15). The runner now rejects unknown fields, duplicate JSON keys and normalized/escaped links; mirrors the approved support-document marker and fixed displayed instruction; prints bounded conversations and per-turn drafts; fingerprints run settings, runner and data; and compares only matching runs. The documented compare CLI was broken by argument parsing and is now fixed with a selftest. It has no automatic summary factuality/completeness judge; the operator reviews transcripts and decides any KEEP. The input-sanitizer/injection-detector mirror remains approximate and is not a security evaluation. Live coverage: all 21 cases, one run per prompt and case, with T01/T10/T14 repeated in an initial sample. On the remaining 18, v2 led schema validity (86.4%) and no-issue rate (77.8%), while v3 led first-call `enough` accuracy (100%) and question-topic coverage (70.0%); no universal winner. Full bounded transcripts are in ignored result files; changelog has the summary. Operator transcript vetting and KEEP decision remain.
 
 - **D~1 (planning, 2026-10-23):** Existing notes save/textarea limits are 4,000 characters; approved drafts allow 6,000 and insertion appends existing notes. Plan preserves full local insertion and existing server validation, so an Agent may need to edit down before saving. No silent truncation or limit increase. Carry this UX limitation to review/Handover.
 - **D~2 (baseline, 2026-10-23):** Restricted Gradle/Docker access required escalated build commands. All component builds passed; frontend npm ci/lint/build passed. Default frontend suite had six timeout failures, two-worker retry had two different timeout failures (308/310 passed); full single-worker suite passed unchanged (49 files, 310/310 tests), without changing timeouts/assertions. Use --maxWorkers=1. Existing docs/Reflections.md changes are operator work and stay untouched.
@@ -142,10 +149,14 @@ No open design question. SD22 and revised plan approved; apology variants remain
 ## 10. Changes
 
 | Date | What changed | Workstream | Ref |
+|---|---|---|---|
+| 2026-10-23 | Pause at Wave 3 blocker as requested: T7 committed/350 frontend tests green; T4 independent 50 tests/6 classes pass with no failures/errors/skips, Checkstyle/package pass, but E8/E49 remain red and no full-current-backend pass is claimed. SD23 reviewed by four lenses, exact burst-count finding fixed (E49/E94), spec lint 0 errors/1 near-cap warning. All sessions/reviewers retired; owner resumption/spec gate 1, revised-plan gate 2, then T4 fix/tests next. No push/PR | W-AI-AGENT | This session |
+| 2026-10-23 | T4 partial: scalar read snapshot, guarded transactional applier/job, shared enabled fixture with pre-reset worker drain and legacy opt-out. Missing-type reds recorded; E31 cursor regression red then repaired. Independent focused 50/50 across six classes; Checkstyle and packaging pass with test task excluded. E8/E49 remain red from chronological catch-up/USER-last spec conflict; no full suite or task completion claimed. Steps 1–4 checked, 5–6 held for SD23. Implementer session retired; root owns review/amendment/integration | W-AI-AGENT | This session |
+| 2026-10-23 | T4 concurrency found D~5 after initial focused context/flow/runner/boundary checks passed. Draft SD23 replay selection/E93 without changing application behavior; reopen spec/plan approval. T7 committed at 93482d1 (350 frontend tests, lint/build pass). Preserve concurrent tuning/reflection work | W-AI-AGENT | This session |
 | 2026-10-23 | T7 done: seven-field nullable frontend projection, every assistant panel state/warning, full manual dirty-note insertion with permission/busy guards, SYSTEM labels and literal pre-wrapped thread text. Focused37/37; full frontend350/350 across53files, eslint and production build pass. Existing4,000notes limit retained/tested with full6,000draft; Agent session retired, root owns commit | W-AI-AGENT | This session |
 | 2026-10-23 | T7 red recorded: 21/36 focused tests fail for absent panel/labels/pre-wrap. Build Agent panel, nullable frontend projection, manual insertion and shared thread labels; expand test inventory with ThreadPanel.test.tsx. Initial green attempt exposed test-only timer flush issue; await initial notes and wrap the new polling path in act | W-AI-AGENT | This session |
-|---|---|---|---|
 | 2026-10-23 | Run preliminary prompt comparison on T01/T10/T14 with one run each for v1/v2/v3; v1 omitted `hostPoints` in all outputs, v2 had one `mustNotAsk` hit, v3 had no deterministic issues. Fix `--compare` CLI parser and add selftest. Human transcript scores suggested but not approved; no KEEP decision | W-AI-AGENT | This session |
+| 2026-10-23 | Expand live prompt comparison to the remaining 18 cases, one run per prompt; all 21 cases now covered. v2 leads schema validity/no-issue rate, v3 leads `enough` accuracy/topic coverage; single-run results remain directional. Operator transcript vetting/KEEP pending | W-AI-AGENT | This session |
 | 2026-10-23 | T2 Done: internal SYSTEM/GUEST posting, bounded input/open-ticket errors, Host isolation, Guest unread increase and commit-only events. Shared Wave 2 full gate 618/618 across 101 classes, style/package pass; root independently confirms actual AssistantPostingTest 4/4 and read API 5/5 XML. Frontend/desktop unchanged reuse Wave 1 gate | W-AI-AGENT | This session |
 | 2026-10-23 | T6 done: nullable seven-field Agent-only assistant snapshot, read-only transaction and runtime-independent settings/stale calculation; detail-returning actions preserve projection, Guest/Host recursive privacy coverage. Red missing constructor; focused API35/35; shared full backend618/618 across101classes, Checkstyle and packaging pass (also covers T2). Test-only Host endpoint typo corrected from controller contract. Session retired; root owns commit | W-AI-AGENT | This session |
 | 2026-10-23 | T6/API focused checks pass 35/35: private read projection/stale/auth/action responses. Corrected filter accounting: service.assistant.AssistantPostingTest matched no T2 class; unfiltered full suite will verify actual service.AssistantPostingTest, not yet claimed green. Plan Create-path lint waits until task completion as designed | W-AI-AGENT | This session |
