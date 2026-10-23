@@ -31,7 +31,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-23 16:00 | Claude Opus 4.6 (lead) | W-AI-GUEST | Active | Plan approved; ready to execute | Start `executing-plans-lite` at T1 | 2026-10-23 17:00 |
+| S1 | 2026-10-23 16:00 | Claude Opus 4.6 (lead) | W-AI-GUEST | Active | T1 done; starting T2 | T2 step 1: create DTOs | 2026-10-23 |
 
 **Remaining**
 
@@ -45,7 +45,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AI-GUEST | AI Search Assistant — Guest natural language search via LLM | Planned | [spec](docs/superpowers/specs/2026-10-23-w-ai-guest-design.md) | [plan](docs/superpowers/plans/2026-10-23-w-ai-guest.md) | Plan approved; T1 next | — |
+| W-AI-GUEST | AI Search Assistant — Guest natural language search via LLM | Building | [spec](docs/superpowers/specs/2026-10-23-w-ai-guest-design.md) | [plan](docs/superpowers/plans/2026-10-23-w-ai-guest.md) | T1 done; T2 next | — |
 
 ---
 
@@ -99,3 +99,4 @@ No deviations yet.
 |---|---|---|---|
 | 2026-10-23 | W-AI-GUEST design spec written and approved — 7 functional requirements, 3 non-functional, 36 edge cases, 5 tasks across 4 waves. Three review lenses (Implementer, Tester, Attacker) run and findings merged | W-AI-GUEST | `086588b` |
 | 2026-10-23 | W-AI-GUEST implementation plan written and approved — 5 tasks, 4 waves, 21 edge-case tests in T3, reviewed by lite-reviewer | W-AI-GUEST | plan commit |
+| 2026-10-23 | T1: AiSearchFilters record, GuestAiConfig bean (guest.search), unit test — @ConditionalOnDatabase added to avoid datasource-free context failure | W-AI-GUEST | T1 commit |
