@@ -67,7 +67,6 @@ the rules are in [`AGENTS.md`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS
 | `workflow/workstream-workflow.md` | The end-to-end workstream procedure with a flow diagram | Owner |
 | `workflow/logs/` | Agent session logs, `YYYY-MM-DD_HH-mm-ss_<branch>.md` (SGT) | The `logging-agent-interactions` skill, at session end |
 | `workflow/tools/prompt-tuning/` | Kit for tuning the ticket clarification assistant's prompt: runner, synthetic tickets, prompt variants, changelog of runs | Run by hand with an API key held in the terminal |
-| `workflow/sdd/` | Progress ledger of one subagent-driven execution (Host messages UI) | Agent, during that execution |
 | `workflow/MP2-feedback-triage.md` | Triage of the MP2 grade report that produced the MP3-0 workstream | Written once, 2026-10-18 |
 
 **Where to start.** To resume work, read `PROJECT_STATE.md`, then the branch state of the branch you
