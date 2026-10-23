@@ -7,6 +7,34 @@ Iteration 2 started; earlier entries: [docs/project-history/iteration-1/done-led
 
 | Date | What changed | Workstream | Ref |
 |---|---|---|---|
+| 2026-10-23 | Updated the Developer Guide for confirmed W-AGENT: new § 4.24 (shared web API foundation) and § 4.25 (Agent REST API and web pages, with a resolve-a-dispute sequence diagram and a frontend component diagram), plus updates to § 1, § 2 (`SNOOZESHARE_AUDIT_ZONE`), § 3.2 key decisions, § 4.18, § 4.21–4.23, § 5 (web Agent requirements, NFRs and Known Limitations), § 6 and § 7 | W-AGENT | `docs/DeveloperGuide.md` §§ 4.24–4.25 |
+| 2026-10-23 | Folded the W-AGENT branch state into `PROJECT_STATE.md` (decisions C143–C154, deviations D94–D112, new § 4.15 shared web API foundation and § 4.16 Agent API and pages); W-AGENT is `Done`, guide confirmation pending | W-AGENT | [archive](branch-states/archive/2026-10-23-W-AGENT.md) |
+| 2026-10-23 | T12 close-out: E57 performance test (the queue was 5.2 s p95 and is now about 70 ms), merged W-HOST and W-GUEST from development and patched the contract drift (D105 to D109), Host controllers moved behind view classes, pages rebuilt from the artifact and desktop screens (D110 to D112), queue status filter and Unassign added; backend full suite, Checkstyle, 310 frontend tests, lint and a production build pass | W-AGENT | T12 commits |
+| 2026-10-22 | T11 categories page: add, edit, switch with revert on failure, inline delete confirm; 141 frontend tests, lint, tsc and build pass | W-AGENT | T11 commits |
+| 2026-10-22 | T10 audit log page: filters from the backend action list, Apply, Clear, Load more after a full page | W-AGENT | T10 commits |
+| 2026-10-22 | T9 accounts page: search, status pills, suspend and reactivate reason dialog; usePolling accepts 0 (on demand) | W-AGENT | T9 commits |
+| 2026-10-22 | T8 disputes pages: queue, detail, two thread panels, notes, Accept/Reject/Manual dialogs; 123 frontend tests, lint, tsc and build pass | W-AGENT | T8 commits |
+| 2026-10-22 | T6 category endpoints: list, add, rename, toggle, delete (409 when used); full backend suite passed and Checkstyle clean | W-AGENT | T6 commits |
+| 2026-10-22 | T5 audit endpoints: search (text, actions, Singapore-day From/To, paging) and action list; `AuditQueryService`; LIKE wildcards in search text are now literal (`ESCAPE '!'`); the actions parameter is a `List` (not a `Set`) so 41 items is rejected even with duplicates; no class-level `@Validated` (it would give a 500) | W-AGENT | T5 commits |
+| 2026-10-22 | T4 account endpoints: list (Guests and Hosts), suspend, reactivate; target user row locked first (`UserRepository.findByIdForUpdate`); two-thread test proves one refund; E68 rollback test; full suite and Checkstyle clean | W-AGENT | T4 commits |
+| 2026-10-22 | T3 thread endpoints: read and post both channels; the audit and ledger spies moved into the shared API test base class so all API tests share one Spring context; full backend suite and Checkstyle clean | W-AGENT | T3 commits |
+| 2026-10-22 | T2 dispute endpoints: queue, detail, assign, notes, resolve with constraints; full backend suite 435 tests pass and Checkstyle clean; fixed a hidden empty-400 bug in the T1 error handler (D101), the layering test rules (now verified against real controllers) and the test connection pool | W-AGENT | T2 commits |
+| 2026-10-22 | T2 row lock: ticket row is the first read of assign, notes, unassign and resolve; settlement locks it too; two-thread tests for E10, E20, E76 pass and fail without the lock | W-AGENT | T2 commits |
+| 2026-10-22 | T2 ledger fix: dispute resolution works on PostgreSQL (D100) | W-AGENT | T2 commits |
+| 2026-10-22 | Plan-only fix: the frontend build command needs the CI placeholder Firebase variables | W-AGENT | T7 close |
+| 2026-10-22 | T7 frontend foundation: `apiJson` and `isSessionFailure`, `usePolling`, `SessionNotice`, `AgentDialog`, agent navbar links without the wallet pill, `/agent` redirect, API types and formatting; 101 frontend tests, lint and build pass | W-AGENT | T7 commits |
+| 2026-10-22 | `development` merged into the branch (W-AI-GATEWAY folded; no conflict with the spec) | W-AGENT | merge commit |
+| 2026-10-22 | Applied the T1 history split: 23 replacement commits (maximum 133 changed lines); all later T7/T2 commits and the T3 draft stash preserved; implementation parity and every rewritten commit budget verified; per-commit checks skipped at the operator's request | W-AGENT | commit organization |
+| 2026-10-22 | Recorded the operator's commit cap in AGENTS.md; T1 history split finished; per-commit checks waived by the operator; line budgets and implementation parity verified; concurrent later commits preserved | W-AGENT | commit organization |
+| 2026-10-22 | T1 Slice E adds consistent API errors and safe logging; `RowLocks` and ArchUnit boundary rules; full backend Checkstyle and tests pass | W-AGENT | T1 complete |
+| 2026-10-22 | T1 Slice D adds token-derived actor resolution and fail-closed missing-actor handling; backend suite passes | W-AGENT | T1 Slice D |
+| 2026-10-22 | T1 Slice C guards decoded agent paths, applies no-store and caps request bodies; full backend tests pass | W-AGENT | T1 Slice C |
+| 2026-10-22 | T1 Slice B adds typed not-found failures for tickets, threads, categories and governed users | W-AGENT | T1 Slice B |
+| 2026-10-22 | T1 Slice A adds shared API fixtures and ArchUnit dependency; baseline and auth regression pass | W-AGENT | T1 Slice A |
+| 2026-10-22 | Plan approved by Xiao-Congchen; T1 started | W-AGENT | this commit |
+| 2026-10-22 | Plan for the agent REST API and pages written, linted and reviewed once; spec text amended for plan refinements (C150, C151) | W-AGENT | next commit |
+| 2026-10-22 | Spec for the agent REST API and pages drafted, linted, reviewed in two rounds and approved | W-AGENT | `ecfc451` |
+| 2026-10-22 | Branch W-AGENT cut from `development` and its branch state created | W-AGENT | `7823c4b` |
 | 2026-10-22 | Updated the Developer Guide for confirmed W-GUEST: new § 4.23 (guest REST controllers, frontend pages, endpoints, shared infrastructure, invariants, tests), updated § 1 (delivered features), § 3.2 (diagram and flow steps), § 4.18 and § 4.19 (purpose lines), § 4.22 (dependencies), § 5 (known limitations: wallet locking, Agent-only shells), § 7 (testing: 5 backend + 4 frontend test suites) | W-GUEST | `docs/DeveloperGuide.md` |
 | 2026-10-22 | Folded the W-GUEST branch state into `PROJECT_STATE.md` (deviations D91–D93, new § 4.14 guest controllers/pages); W-GUEST is `Done`, guide confirmation pending | W-GUEST | [archive](branch-states/archive/2026-10-22-W-GUEST.md) |
 | 2026-10-22 | Updated the Developer Guide for confirmed W-HOST and W-HOST-API behavior, including authenticated Host architecture, pages/API, unbounded-collection limitation, tests and read-only browser acceptance | W-HOST / W-HOST-API | `docs/DeveloperGuide.md` §§ 3.2, 4.18–4.22, 5, 7 |

@@ -43,7 +43,7 @@ export function HostListingDetail({ listing }: { listing: ListingDetail }) {
 
           <section aria-labelledby="listing-description-heading">
             <h2 className="text-base font-semibold" id="listing-description-heading">Description</h2>
-            <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">{listing.description}</p>
+            <p className="mt-2 whitespace-pre-line text-sm leading-6 text-[var(--text-muted)]">{listing.description}</p>
           </section>
 
           <section aria-labelledby="listing-amenities-heading">

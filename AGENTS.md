@@ -175,12 +175,22 @@ integration commits touched 55–96 files and needed a follow-up repair. So:
 
 - **One logical change per commit** — a fix, a refactor, a doc update, a test. Do not mix a
   behaviour change with unrelated formatting or cleanup.
+- **Keep each commit a reviewable logical unit, not a line count.** Do not pile hundreds of
+  changed lines across many files or several unrelated behaviours into one commit, and do not
+  chop a cohesive change (a feature with its tests, one rule with its fixtures) into fragments
+  that mean nothing alone just to stay small. When a commit grows large, ask whether it holds
+  two logical changes; if it does, split there.
 - **Each commit builds and passes tests** (the build command of each component you changed, from `PROJECT_STATE.md` § How to Resume). Never commit a known-red tree to
   "fix it in the next commit".
 - **Aim for a handful of files per commit.** If a change touches more than about 15 files,
   stop and split it (extract the refactor first, then the behaviour change), unless it is a
   mechanical rename or a generated file.
 - **Commit as you go, per plan task** — not once at the end of a session or workstream.
+- **Verify in proportion.** After a change, run only the test classes it touches, with the
+  warm Gradle daemon (no `--no-daemon`), and batch several related tests per run. Run the full
+  suite and Checkstyle once per task, before its final tick, and the full build at each wave
+  and at close-out. Keep spy and mock beans in a shared test base class so tests reuse one
+  Spring context.
 - **Integrate branches in small steps.** Merge or rebase a feature branch before it grows
   large; resolve API drift at the merge, in the merge commit, with the build run first. Do not
   land stale-API repairs as a separate "fix after integration" commit.

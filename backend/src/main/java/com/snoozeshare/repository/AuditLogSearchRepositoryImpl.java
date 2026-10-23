@@ -84,19 +84,19 @@ public class AuditLogSearchRepositoryImpl
 
     @Override
     public Set<UUID> findUserIdsByName(String fragment) {
-        String pattern = "%" + fragment.toLowerCase() + "%";
+        String pattern = "%" + escapeLike(fragment.toLowerCase()) + "%";
 
         List<UUID> fromUsers = em.createQuery(
                 "SELECT u.id FROM User u "
-                        + "WHERE LOWER(u.displayName) LIKE :p "
-                        + "OR LOWER(u.email) LIKE :p",
+                        + "WHERE LOWER(u.displayName) LIKE :p ESCAPE '!' "
+                        + "OR LOWER(u.email) LIKE :p ESCAPE '!'",
                 UUID.class)
                 .setParameter("p", pattern)
                 .getResultList();
 
         List<UUID> fromActors = em.createQuery(
                 "SELECT DISTINCT a.actorUserId FROM AuditLogEntry a "
-                        + "WHERE LOWER(a.actorName) LIKE :p",
+                        + "WHERE LOWER(a.actorName) LIKE :p ESCAPE '!'",
                 UUID.class)
                 .setParameter("p", pattern)
                 .getResultList();
@@ -104,7 +104,7 @@ public class AuditLogSearchRepositoryImpl
         List<UUID> fromSubjects = em.createQuery(
                 "SELECT DISTINCT a.subjectUserId "
                         + "FROM AuditLogEntry a "
-                        + "WHERE LOWER(a.subjectName) LIKE :p "
+                        + "WHERE LOWER(a.subjectName) LIKE :p ESCAPE '!' "
                         + "AND a.subjectUserId IS NOT NULL",
                 UUID.class)
                 .setParameter("p", pattern)
@@ -114,5 +114,10 @@ public class AuditLogSearchRepositoryImpl
         result.addAll(fromActors);
         result.addAll(fromSubjects);
         return result;
+    }
+
+    /** Makes the escape character and the two wildcards literal; pairs with {@code ESCAPE '!'}. */
+    private static String escapeLike(String text) {
+        return text.replace("!", "!!").replace("%", "!%").replace("_", "!_");
     }
 }

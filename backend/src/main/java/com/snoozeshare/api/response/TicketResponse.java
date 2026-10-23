@@ -20,7 +20,6 @@ public record TicketResponse(
         String supportingText,
         TicketStatus status,
         UUID assignedAgentId,
-        String agentNotes,
         String resolutionReason,
         Instant createdAt,
         Instant resolvedAt) {
@@ -29,7 +28,7 @@ public record TicketResponse(
         return new TicketResponse(t.getId(), t.getBookingId(), t.getRaisedByUserId(),
                 t.getRaisedByRole(), t.getCategory(), t.getTitle(), t.getDescription(),
                 t.getRequestedRemedy(), t.getSupportingText(), t.getStatus(),
-                t.getAssignedAgentId(), t.getAgentNotes(), t.getResolutionReason(),
+                t.getAssignedAgentId(), t.getResolutionReason(),
                 t.getCreatedAt(), t.getResolvedAt());
     }
 }

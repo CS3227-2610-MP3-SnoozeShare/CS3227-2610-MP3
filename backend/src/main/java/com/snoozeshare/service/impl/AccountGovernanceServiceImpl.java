@@ -27,12 +27,14 @@ import com.snoozeshare.infra.events.BookingCancelledEvent;
 import com.snoozeshare.repository.AvailabilityBlockRepository;
 import com.snoozeshare.repository.BookingRepository;
 import com.snoozeshare.repository.PropertyRepository;
+import com.snoozeshare.repository.RowLocks;
 import com.snoozeshare.repository.UserRepository;
 import com.snoozeshare.repository.WalletRepository;
 import com.snoozeshare.service.AccountGovernanceService;
 import com.snoozeshare.service.AccountSummary;
 import com.snoozeshare.service.AuditRecord;
 import com.snoozeshare.service.AuditService;
+import com.snoozeshare.service.NotFoundException;
 
 @Service
 @ConditionalOnDatabase
@@ -50,6 +52,7 @@ public class AccountGovernanceServiceImpl implements AccountGovernanceService {
     private final ApplicationEventPublisher publisher;
     private final AuditService audit;
     private final Clock clock;
+    private final RowLocks rowLocks;
 
     @SuppressWarnings("checkstyle:ParameterNumber")
     public AccountGovernanceServiceImpl(UserRepository users, BookingRepository bookings,
@@ -57,7 +60,8 @@ public class AccountGovernanceServiceImpl implements AccountGovernanceService {
                                         AvailabilityBlockRepository blocks,
                                         WalletRepository wallets, LedgerWriter ledger,
                                         ApplicationEventPublisher publisher,
-                                        AuditService audit, Clock clock) {
+                                        AuditService audit, Clock clock,
+                                        RowLocks rowLocks) {
         this.users = users;
         this.bookings = bookings;
         this.properties = properties;
@@ -67,12 +71,12 @@ public class AccountGovernanceServiceImpl implements AccountGovernanceService {
         this.publisher = publisher;
         this.audit = audit;
         this.clock = clock;
+        this.rowLocks = rowLocks;
     }
 
     @Override
-    public List<AccountSummary> listAccounts() {
-        return users.findAllByOrderByCreatedAtAscIdAsc().stream()
-                .filter(user -> user.getRole() != Role.SYSTEM)
+    public List<AccountSummary> listGovernableAccounts() {
+        return users.findByRoleInOrderByCreatedAtAscIdAsc(List.of(Role.GUEST, Role.HOST)).stream()
                 .map(AccountSummary::from)
                 .toList();
     }
@@ -203,8 +207,9 @@ public class AccountGovernanceServiceImpl implements AccountGovernanceService {
     }
 
     private User requireGovernable(UUID userId) {
-        User target = users.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User does not exist"));
+        rowLocks.timeout();
+        User target = users.findByIdForUpdate(userId)
+                .orElseThrow(() -> new NotFoundException("User does not exist"));
         if (target.getRole() == Role.AGENT || target.getRole() == Role.SYSTEM) {
             throw new IllegalArgumentException(
                     "Support agent accounts cannot be suspended or reactivated");

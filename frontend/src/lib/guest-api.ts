@@ -110,7 +110,6 @@ export type TicketResponse = {
   supportingText: string | null;
   status: string;
   assignedAgentId: string | null;
-  agentNotes: string | null;
   resolutionReason: string | null;
   createdAt: string;
   resolvedAt: string | null;

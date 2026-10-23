@@ -168,6 +168,15 @@ describe('Host listing components', () => {
     expect(screen.getByText('Rate / night must be positive with at most 2 decimal places')).toBeInTheDocument();
   });
 
+  it('gates the AI trigger consistently on New and Edit forms', () => {
+    const { unmount } = render(<HostFixtureProvider adapter={createHostFixtureAdapter('empty')}><HostListingForm /></HostFixtureProvider>);
+    expect(screen.getByRole('button', { name: 'Open AI assistant' })).toBeDisabled();
+    unmount();
+
+    render(<HostFixtureProvider><HostListingForm listing={createHostFixtureAdapter().getListing('lakeside-cabin').data!} /></HostFixtureProvider>);
+    expect(screen.getByRole('button', { name: 'Open AI assistant' })).toBeEnabled();
+  });
+
   it('validates check-in and check-out and reports bedroom and bathroom requirements inline', async () => {
     render(<HostFixtureProvider adapter={createHostFixtureAdapter('empty')}><HostListingForm /></HostFixtureProvider>);
     fireEvent.click(screen.getByRole('button', { name: 'Save listing' }));

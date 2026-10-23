@@ -12,6 +12,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.snoozeshare.api.filter.NoStoreFilter;
+import com.snoozeshare.api.filter.RequestSizeFilter;
 import com.snoozeshare.auth.security.ClientIpResolver;
 import com.snoozeshare.auth.security.FirebaseAuthFilter;
 import com.snoozeshare.auth.security.FirebaseTokenVerifier;
@@ -55,11 +57,16 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/actuator/health").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/registration-code/validate").permitAll()
+                .requestMatchers("/api/guest/**").hasRole("GUEST")
+                .requestMatchers("/api/host/**").hasRole("HOST")
+                .requestMatchers("/api/agent/**").hasRole("AGENT")
                 .requestMatchers("/api/auth/**", "/api/guest/**", "/api/host/**", "/api/agent/**")
                     .authenticated()
                 .anyRequest().permitAll())
             .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
-            .addFilterAfter(roleFilter, FirebaseAuthFilter.class);
+            .addFilterBefore(new NoStoreFilter(), FirebaseAuthFilter.class)
+            .addFilterAfter(roleFilter, FirebaseAuthFilter.class)
+            .addFilterAfter(new RequestSizeFilter(), RoleAuthorizationFilter.class);
         return http.build();
     }
 

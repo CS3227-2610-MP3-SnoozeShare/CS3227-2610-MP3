@@ -14,4 +14,7 @@ public interface DisputeQueryService {
     List<DisputeSummary> queue(TicketStatus status, AssigneeFilter assignee, UUID agentId);
 
     DisputeDetail detail(UUID ticketId);
+
+    /** Open tickets nobody has taken yet, whatever filter the queue is showing. */
+    int unassignedCount();
 }

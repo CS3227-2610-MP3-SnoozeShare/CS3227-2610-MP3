@@ -1,7 +1,6 @@
 package com.snoozeshare.api.controller;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -17,21 +16,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.snoozeshare.api.error.HostApiException;
-import com.snoozeshare.api.mapper.ListingMapper;
+import com.snoozeshare.api.host.HostListingViews;
 import com.snoozeshare.api.request.CreateListingRequest;
 import com.snoozeshare.api.request.UpdateListingRequest;
 import com.snoozeshare.api.request.UpdateListingStatusRequest;
 import com.snoozeshare.api.response.HostListingDetailResponse;
 import com.snoozeshare.api.response.HostListingSummaryResponse;
-import com.snoozeshare.api.response.ListingMetricsResponse;
 import com.snoozeshare.api.response.PropertyResponse;
 import com.snoozeshare.auth.security.FirebaseTokenVerifier.FirebaseAuthentication;
 import com.snoozeshare.auth.service.HostIdentityResolver;
-import com.snoozeshare.domain.model.Property;
-import com.snoozeshare.service.ListingMetricsService;
-import com.snoozeshare.service.ListingService;
-import com.snoozeshare.service.ListingSummaryMetrics;
 
 import jakarta.validation.Valid;
 
@@ -43,41 +36,24 @@ import jakarta.validation.Valid;
 public class HostListingController {
 
     private final HostIdentityResolver identityResolver;
-    private final ListingService listings;
-    private final ListingMetricsService metrics;
+    private final HostListingViews views;
 
-    public HostListingController(
-        HostIdentityResolver identityResolver,
-        ListingService listings,
-        ListingMetricsService metrics) {
+    public HostListingController(HostIdentityResolver identityResolver, HostListingViews views) {
         this.identityResolver = identityResolver;
-        this.listings = listings;
-        this.metrics = metrics;
+        this.views = views;
     }
 
     @GetMapping
     public List<HostListingSummaryResponse> list(
         @AuthenticationPrincipal FirebaseAuthentication identity) {
-        UUID hostId = identityResolver.resolve(identity);
-        List<Property> properties = listings.findByHostId(hostId);
-        if (properties.isEmpty()) {
-            return List.of();
-        }
-        Map<UUID, ListingSummaryMetrics> summaries = metrics.summaryMetricsForHost(hostId);
-        return properties.stream()
-            .map(property -> HostListingSummaryResponse.from(property,
-                summaries.getOrDefault(property.getId(), new ListingSummaryMetrics(0, 0.0))))
-            .toList();
+        return views.summaries(identityResolver.resolve(identity));
     }
 
     @GetMapping("/{listingId}")
     public HostListingDetailResponse detail(
         @AuthenticationPrincipal FirebaseAuthentication identity,
         @PathVariable UUID listingId) {
-        UUID hostId = identityResolver.resolve(identity);
-        Property property = requireOwnedListing(listingId, hostId);
-        return new HostListingDetailResponse(
-            PropertyResponse.from(property), ListingMetricsResponse.from(metrics.metricsFor(property.getId())));
+        return views.detail(listingId, identityResolver.resolve(identity));
     }
 
     @PostMapping
@@ -85,8 +61,7 @@ public class HostListingController {
     public PropertyResponse create(
         @AuthenticationPrincipal FirebaseAuthentication identity,
         @Valid @RequestBody CreateListingRequest request) {
-        UUID hostId = identityResolver.resolve(identity);
-        return PropertyResponse.from(listings.create(ListingMapper.toDraft(request), hostId));
+        return views.create(request, identityResolver.resolve(identity));
     }
 
     @PutMapping("/{listingId}")
@@ -94,9 +69,7 @@ public class HostListingController {
         @AuthenticationPrincipal FirebaseAuthentication identity,
         @PathVariable UUID listingId,
         @Valid @RequestBody UpdateListingRequest request) {
-        UUID hostId = identityResolver.resolve(identity);
-        requireOwnedListing(listingId, hostId);
-        return PropertyResponse.from(listings.update(ListingMapper.toDraft(listingId, request), hostId));
+        return views.update(listingId, request, identityResolver.resolve(identity));
     }
 
     @PutMapping("/{listingId}/status")
@@ -104,25 +77,6 @@ public class HostListingController {
         @AuthenticationPrincipal FirebaseAuthentication identity,
         @PathVariable UUID listingId,
         @Valid @RequestBody UpdateListingStatusRequest request) {
-        UUID hostId = identityResolver.resolve(identity);
-        requireOwnedListing(listingId, hostId);
-        return PropertyResponse.from(listings.updateStatus(listingId, request.status(), hostId));
-    }
-
-    private Property requireOwnedListing(UUID listingId, UUID hostId) {
-        Property property;
-        try {
-            property = listings.getDetail(listingId);
-        } catch (IllegalArgumentException exception) {
-            throw notFound();
-        }
-        if (!hostId.equals(property.getHostId())) {
-            throw notFound();
-        }
-        return property;
-    }
-
-    private HostApiException notFound() {
-        return new HostApiException(HttpStatus.NOT_FOUND, "NOT_FOUND");
+        return views.updateStatus(listingId, request.status(), identityResolver.resolve(identity));
     }
 }

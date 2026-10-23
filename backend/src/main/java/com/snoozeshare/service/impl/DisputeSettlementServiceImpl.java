@@ -33,12 +33,14 @@ import com.snoozeshare.infra.events.TicketResolvedEvent;
 import com.snoozeshare.repository.BookingRepository;
 import com.snoozeshare.repository.LedgerRepository;
 import com.snoozeshare.repository.PropertyRepository;
+import com.snoozeshare.repository.RowLocks;
 import com.snoozeshare.repository.TicketRepository;
 import com.snoozeshare.repository.UserRepository;
 import com.snoozeshare.repository.WalletRepository;
 import com.snoozeshare.service.AuditRecord;
 import com.snoozeshare.service.AuditService;
 import com.snoozeshare.service.DisputeSettlementService;
+import com.snoozeshare.service.NotFoundException;
 import com.snoozeshare.service.Settlement;
 
 @Service
@@ -55,6 +57,7 @@ public class DisputeSettlementServiceImpl implements DisputeSettlementService {
     private final AuditService audit;
     private final ApplicationEventPublisher publisher;
     private final Clock clock;
+    private final RowLocks rowLocks;
 
     @SuppressWarnings("checkstyle:ParameterNumber")
     public DisputeSettlementServiceImpl(TicketRepository tickets,
@@ -66,7 +69,8 @@ public class DisputeSettlementServiceImpl implements DisputeSettlementService {
                                         LedgerRepository ledgerEntries,
                                         AuditService audit,
                                         ApplicationEventPublisher publisher,
-                                        Clock clock) {
+                                        Clock clock,
+                                        RowLocks rowLocks) {
         this.tickets = tickets;
         this.bookings = bookings;
         this.properties = properties;
@@ -77,6 +81,7 @@ public class DisputeSettlementServiceImpl implements DisputeSettlementService {
         this.audit = audit;
         this.publisher = publisher;
         this.clock = clock;
+        this.rowLocks = rowLocks;
     }
 
     @Override
@@ -94,8 +99,9 @@ public class DisputeSettlementServiceImpl implements DisputeSettlementService {
 
     private Settlement apply(UUID ticketId, ResolutionMode mode, BigDecimal guestRefund,
                              UUID agentId, String reason, Instant now) {
-        Ticket ticket = tickets.findById(ticketId)
-                .orElseThrow(() -> new IllegalArgumentException("Ticket does not exist"));
+        rowLocks.timeout();
+        Ticket ticket = tickets.findByIdForUpdate(ticketId)
+                .orElseThrow(() -> new NotFoundException("Ticket does not exist"));
         if (ticket.getStatus() != TicketStatus.IN_REVIEW) {
             throw new IllegalStateException("Ticket is not in review");
         }

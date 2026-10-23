@@ -3,6 +3,8 @@ package com.snoozeshare.controller.guest;
 import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -17,6 +19,7 @@ import jakarta.validation.ConstraintViolationException;
  * for all controllers in the guest package.
  */
 @RestControllerAdvice(basePackages = "com.snoozeshare.controller.guest")
+@Order(Ordered.HIGHEST_PRECEDENCE)
 @ConditionalOnDatabase
 public class GuestExceptionHandler {
 

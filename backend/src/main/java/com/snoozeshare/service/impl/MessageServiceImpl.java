@@ -32,6 +32,7 @@ import com.snoozeshare.repository.TicketRepository;
 import com.snoozeshare.repository.UserRepository;
 import com.snoozeshare.service.ConversationSummary;
 import com.snoozeshare.service.MessageService;
+import com.snoozeshare.service.NotFoundException;
 
 @Service
 @ConditionalOnDatabase
@@ -198,7 +199,7 @@ public class MessageServiceImpl implements MessageService {
 
     private Ticket ticket(UUID ticketId) {
         return tickets.findById(ticketId)
-                .orElseThrow(() -> new IllegalArgumentException("Ticket does not exist"));
+                .orElseThrow(() -> new NotFoundException("Ticket does not exist"));
     }
 
     private Booking booking(Ticket ticket) {

@@ -8,7 +8,8 @@ import com.snoozeshare.domain.model.User;
 /** Agent account governance: list accounts, suspend with a cascade, reactivate. */
 public interface AccountGovernanceService {
 
-    List<AccountSummary> listAccounts();
+    /** Guests and Hosts only, oldest first: the accounts an agent may suspend. */
+    List<AccountSummary> listGovernableAccounts();
 
     User suspend(UUID userId, UUID agentId, String reason);
 
