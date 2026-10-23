@@ -3,6 +3,7 @@ package com.snoozeshare.api.response;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import com.snoozeshare.api.mapper.AssistantMapper;
 import com.snoozeshare.domain.enums.BookingStatus;
 import com.snoozeshare.service.DisputeDetail;
 
@@ -20,7 +21,8 @@ public record DisputeDetailResponse(
         BigDecimal escrowAmount,
         boolean escrowHeld,
         String phaseLabel,
-        String agentNotes) {
+        String agentNotes,
+        AssistantResponse assistant) {
 
     public static DisputeDetailResponse from(DisputeDetail d) {
         return new DisputeDetailResponse(
@@ -29,6 +31,6 @@ public record DisputeDetailResponse(
                 d.guestName(), d.hostName(), d.raisedByName(),
                 d.assignedAgentName(), d.bookingStatus(),
                 d.escrowAmount(), d.escrowHeld(), d.phaseLabel(),
-                d.ticket().getAgentNotes());
+                d.ticket().getAgentNotes(), AssistantMapper.from(d.assistant()));
     }
 }

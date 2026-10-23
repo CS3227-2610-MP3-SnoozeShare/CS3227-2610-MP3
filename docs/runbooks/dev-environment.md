@@ -61,6 +61,18 @@ Every LLM call in the backend goes through `LlmGateway.run` (package `com.snooze
   5. Render `LlmResult.value` as plain text, never as HTML or Markdown, and return it through a response DTO.
   6. Treat a degraded result as final: do not loop on it.
 
+## Ticket clarification assistant
+
+When a Guest files a ticket, the assistant (package `com.snoozeshare.service.assistant`) asks the Guest up to a fixed number of clarifying questions in the ticket's GUEST thread, as the SYSTEM user, and keeps a draft report the Support Agent can insert into the notes by hand. It calls the AI gateway, so it only does anything while `SNOOZESHARE_AI_ENABLED` is true (or mock mode is on); with the gateway off the first call answers `DISABLED`, the assistant row is deleted and the Guest sees nothing.
+
+- **Variables** (all optional): `SNOOZESHARE_ASSISTANT_ENABLED` (default `true`), `SNOOZESHARE_ASSISTANT_MAX_ROUNDS` (3, range 1 to 5), `SNOOZESHARE_ASSISTANT_THREADS` (2, range 1 to 4), `SNOOZESHARE_ASSISTANT_QUEUE` (50, range 1 to 500), `SNOOZESHARE_ASSISTANT_STALE_AFTER_MINUTES` (10, range 2 to 120). An out-of-range value stops startup and the error names the key. The gateway switch stays the production off switch; set `SNOOZESHARE_ASSISTANT_ENABLED=false` to remove the assistant beans and listeners entirely.
+- **State:** one row per ticket in `ticket_assistants` (`PENDING`, `WAITING_GUEST`, `DONE`, `STOPPED`, `UNAVAILABLE`). Diagnose with `select state, rounds, flagged, updated_at from ticket_assistants where ticket_id = :id`. A row that stays `PENDING` past the stale threshold is shown as stale to the Agent: the process restarted or a result failed to apply during the call. There is no recovery sweep and no retry after `UNAVAILABLE`; the Agent proceeds without the draft.
+- **Audit:** the assistant writes `ASSISTANT_STATE` (state change) and `ASSISTANT_MESSAGE` (question or closing, `after_state` is `question` or `closing`) rows as the System user; the gateway writes its own `AI_CALL` rows. Correlate them by `ticket_id`. No prompt, question, reply or draft text is stored in the audit log.
+- **Overload:** a full worker queue ends the new ticket's row `UNAVAILABLE` (with a closing message if a round was already asked). Raise `THREADS` or `QUEUE` only within the gateway's `max-rpm` and `max-concurrent` limits.
+- **Restart:** shutdown stops the workers; a row that was `PENDING` stays `PENDING` and is not resumed. A `WAITING_GUEST` row resumes on the Guest's next reply.
+- **Migration V006:** creates `ticket_assistants` and widens the `messages.author_role` CHECK to include `SYSTEM`. Re-validating the CHECK briefly locks `messages`. Rollback after a successful run is manual and in this order: delete `message_reads` rows that reference SYSTEM messages, delete messages whose `author_role` is `SYSTEM`, drop `ticket_assistants`, then restore the CHECK without `SYSTEM`. The previous application version ignores both.
+- **Live check (pending, post-merge):** with the owner's authorization, file a development ticket and reply with live SoCLaaS; confirm the Guest receives questions, the Agent sees the draft, the Host sees nothing, and the audit rows hold metadata only. Record safe timestamped evidence under Evidence below. Never paste keys, prompts, reports or real ticket text.
+
 ## Neon connection string
 
 Neon shows a libpq string (`postgresql://USER:PASSWORD@HOST/DB?sslmode=require&channel_binding=require`). The backend needs a JDBC URL and separate credentials, so convert it:

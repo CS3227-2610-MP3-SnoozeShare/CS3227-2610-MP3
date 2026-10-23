@@ -12,7 +12,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
  * restarts on a new port for each subclass while Spring reuses the cached context, which then points at
  * a dead port.
  */
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, properties = "snoozeshare.assistant.enabled=false")
 public abstract class PostgresIntegrationTest {
 
     @ServiceConnection

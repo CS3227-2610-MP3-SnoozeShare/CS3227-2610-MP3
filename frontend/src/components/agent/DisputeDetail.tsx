@@ -12,6 +12,7 @@ import { STATUS } from './DisputeQueue';
 import { ResolutionDialog, type ResolutionKind } from './ResolutionDialogs';
 import { SessionNotice } from './SessionNotice';
 import { ResizeGrip } from './ResizeGrip';
+import { AssistantPanel } from './AssistantPanel';
 import { ThreadPanel } from './ThreadPanel';
 import { usePolling } from './usePolling';
 
@@ -170,8 +171,23 @@ export function DisputeDetail({ ticketId }: { ticketId: string }) {
         </div>
       )}
 
-      <div className="flex flex-wrap gap-4">
+      <div className={`grid grid-cols-1 gap-4 ${detail.assistant ? 'lg:grid-cols-[2fr_1fr_2fr]' : 'lg:grid-cols-2'}`}>
         <ThreadPanel detail={detail} channel="GUEST" canSend={!unassigned && !resolved} resolved={resolved} height={chatHeight} onResize={setChatHeight} />
+        {detail.assistant && (
+          <AssistantPanel
+            assistant={detail.assistant}
+            resolved={resolved}
+            canInsert={mine && !busy}
+            onInsert={(draft) => {
+              setNotes((current) => current === '' ? draft : `${current}
+
+${draft}`);
+              setDirty(true);
+            }}
+            height={chatHeight}
+            onResize={setChatHeight}
+          />
+        )}
         <ThreadPanel detail={detail} channel="HOST" canSend={!unassigned && !resolved} resolved={resolved} height={chatHeight} onResize={setChatHeight} />
       </div>
 
@@ -189,7 +205,7 @@ export function DisputeDetail({ ticketId }: { ticketId: string }) {
             setDirty(true);
           }}
           style={{ height: notesHeight }}
-          className="agent-scroll box-border block w-full resize-none rounded-lg border border-border bg-background px-3 py-2.5 text-xs disabled:opacity-60"
+          className="agent-scroll box-border block w-full resize-none rounded-lg border border-border bg-card px-3 py-2.5 text-xs disabled:opacity-60"
         />
         <ResizeGrip height={notesHeight} min={NOTES_MIN_HEIGHT} max={NOTES_MAX_HEIGHT} onChange={setNotesHeight} label="Resize notes" />
         {!resolved && (

@@ -1,6 +1,7 @@
 package com.snoozeshare.service;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 
 import com.snoozeshare.domain.enums.BookingStatus;
@@ -19,6 +20,11 @@ public record DisputeDetail(
         BookingStatus bookingStatus,
         BigDecimal escrowAmount,
         boolean escrowHeld,
-        String phaseLabel
+        String phaseLabel,
+        AssistantSnapshot assistant
 ) {
+    /** Public projection only; persistence bookkeeping stays inside the service. */
+    public record AssistantSnapshot(String state, int rounds, int maxRounds, boolean flagged,
+                                    boolean stale, String draft, Instant draftUpdatedAt) {
+    }
 }

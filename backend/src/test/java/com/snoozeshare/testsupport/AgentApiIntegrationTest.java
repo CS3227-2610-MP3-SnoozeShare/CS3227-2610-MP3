@@ -22,7 +22,7 @@ import com.snoozeshare.service.impl.LedgerWriter;
 /** Shared authenticated API fixture backed by the real Postgres auth repository. */
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.MOCK,
-    properties = "snoozeshare.security.enabled=true")
+    properties = {"snoozeshare.security.enabled=true", "snoozeshare.assistant.enabled=false"})
 @AutoConfigureMockMvc
 @Import(AgentApiIntegrationTest.AgentApiTestConfiguration.class)
 public abstract class AgentApiIntegrationTest extends PostgresIntegrationTest {

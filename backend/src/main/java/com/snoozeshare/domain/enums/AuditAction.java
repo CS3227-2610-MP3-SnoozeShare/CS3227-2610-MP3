@@ -36,7 +36,9 @@ public enum AuditAction {
     HOST_BLOCK_CREATED,
     HOST_BLOCK_REMOVED,
     AI_CALL,
-    AI_CALL_REJECTED;
+    AI_CALL_REJECTED,
+    ASSISTANT_STATE,
+    ASSISTANT_MESSAGE;
 
     /** Money rows reuse the wallet transaction type's name so the two ledgers line up. */
     public static AuditAction forWallet(WalletTransactionType type) {

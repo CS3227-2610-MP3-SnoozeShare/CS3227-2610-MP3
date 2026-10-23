@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { MessageResponse } from '@/lib/guest-api';
 import { BackendApiError } from '@/lib/api';
+import { authorRoleLabel } from '@/lib/message-role';
 
 export function MessageThread({
   messages,
@@ -46,7 +47,7 @@ export function MessageThread({
           return (
             <div key={m.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
               <div className={`max-w-[75%] rounded-lg px-3 py-2 text-sm ${isMe ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                {!isMe && <p className="mb-0.5 text-[10px] font-medium text-muted-foreground">{m.authorRole}</p>}
+                {!isMe && <p className="mb-0.5 text-[10px] font-medium text-muted-foreground">{authorRoleLabel(m.authorRole)}</p>}
                 <p className="whitespace-pre-wrap">{m.body}</p>
                 <p className={`mt-0.5 text-[10px] ${isMe ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
                   {new Date(m.sentAt).toLocaleString()}
