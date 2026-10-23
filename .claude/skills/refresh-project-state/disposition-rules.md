@@ -13,7 +13,7 @@ holds it, so the entry is Archive in the state file and the guide section is cit
 | Old section | Default | Rule |
 |---|---|---|
 | Header | Carry | Rewrite: phase, stack, branch, last updated, iteration, history link, guide line |
-| 1. Orientation | Carry | Keep the purpose paragraph and repo map; add `docs/project-history/` |
+| 1. Orientation | Carry | Keep the purpose paragraph and repo map; add `workflow/project-history/` |
 | 2. How to Resume | Carry | Commands as-is. Upcoming rows carry. Session rows must already be gone |
 | 3. Workstreams | Split | `Done` and `Abandoned` → Archive. Open ones (`Spec'd`, `Planned`, `Building`, `In review`, `Blocked — needs human`, `Not started`) → Carry as rows with spec/plan links |
 | 4. Architecture | Carry | Each area's **Now** and Paths table carry (tighten wording; delete progress narration like "in progress" notes that are now stale). Per-area **decision tables**: see Decisions below. The map diagram carries |

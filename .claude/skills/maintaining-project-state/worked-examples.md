@@ -51,7 +51,7 @@ This is the section that stops the next agent from "fixing" it back.
 
 ## Done Ledger — Small Change
 
-Small changes are recorded too. They just get one line in `docs/project-state/done-ledger.md`
+Small changes are recorded too. They just get one line in `workflow/project-state/done-ledger.md`
 instead of a workstream.
 
 > ❌ | 2026-09-17 | Fixed a bug | — | — |

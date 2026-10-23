@@ -13,6 +13,7 @@ on:
       - 'PROJECT_STATE.md'
       - 'AGENTS.md'
       - 'docs/**'
+      - 'workflow/**'
   pull_request:
 
 concurrency:
@@ -104,14 +105,14 @@ jobs:
         run: |
           files=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/files" --paginate \
             --jq '.[] | select(.status != "removed") | .filename' \
-            | grep -E '^docs/project-state/branch-states/[^/]+\.md$' || true)
+            | grep -E '^workflow/project-state/branch-states/[^/]+\.md$' || true)
           if [ -z "$files" ]; then
             # A branch carries its own branch state (AGENTS.md § 2, § 8); only the fold PR, which archives it, has none.
             if [[ "$HEAD_REF" == sync/* ]]; then
               echo "Sync pull request ($HEAD_REF): no branch state expected."
               exit 0
             fi
-            echo "::error::This pull request has no branch state under docs/project-state/branch-states/. Every branch writes one and the owner approves it before the PR is opened (AGENTS.md § 8, gate 3)."
+            echo "::error::This pull request has no branch state under workflow/project-state/branch-states/. Every branch writes one and the owner approves it before the PR is opened (AGENTS.md § 8, gate 3)."
             exit 1
           fi
           bash .github/scripts/check-branch-states.sh $files
