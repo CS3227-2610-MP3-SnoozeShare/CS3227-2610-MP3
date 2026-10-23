@@ -14,6 +14,7 @@ what to build next, read [`PROJECT_STATE.md`](https://github.com/CS3227-2610-MP3
 
 ## Contents
 
+0. [Agentic workflow map](#0-agentic-workflow-map)
 1. [Overview & Scope](#1-overview--scope)
 2. [Setting Up](#2-setting-up)
 3. [Architecture](#3-architecture)
@@ -22,6 +23,56 @@ what to build next, read [`PROJECT_STATE.md`](https://github.com/CS3227-2610-MP3
 6. [Glossary](#6-glossary)
 7. [Testing](#7-testing)
 8. [Acknowledgements](#8-acknowledgements)
+
+---
+
+## 0. Agentic workflow map
+
+SnoozeShare was built with AI agents following a written process, and the records of that process are
+part of the deliverable. This section is the index to them. Each location is a link to the repository
+(the workflow folder is not part of this published site), and each row says who writes the file and
+when. The records are consolidated under [`workflow/`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/tree/main/workflow)
+(see its [README](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/workflow/README.md));
+the few files that tools discover by path stay where the tool expects them.
+
+**How work flows.** A feature branch is cut from `development`. For a big change the agent writes a
+**spec**, then a **plan**, then implements the plan task by task, recording progress in the branch's
+**branch state**. The owner approves at gates (spec, plan, review); after the merge the branch state
+is folded into `PROJECT_STATE.md` and the Done ledger, and the Developer Guide is updated at the
+workstream's checkpoint. The full sequence, with who acts at each step, is
+[`workflow/workstream-workflow.md`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/workflow/workstream-workflow.md);
+the rules are in [`AGENTS.md`](https://github.com/CS3227-2610-MP3-SnoozeShare/CS3227-2610-MP3/blob/main/AGENTS.md).
+
+### 0.1 Files that stay where tools expect them
+
+| Path | What it is | Written by / when |
+|---|---|---|
+| `AGENTS.md`, `CLAUDE.md` | Rules every agent follows (branches, state files, spec/plan sizing, approval gates). `CLAUDE.md` imports `AGENTS.md` | Owner; changed only when the process changes |
+| `PROJECT_STATE.md` | Source of truth for `development`: orientation, resume points, workstreams, architecture, decisions, known gaps | The `sync-project-state` skill, when a merged branch state is folded in |
+| `.claude/skills/` | The project's skills: `maintaining-project-state`, `sync-project-state`, `refresh-project-state`, `update-documentation`, `logging-agent-interactions`, the lite workflow (`writing-specs-lite`, `writing-plans-lite`, `executing-plans-lite`) and the `brainstorming` and `writing-plans` alternatives that are used only when the operator names them | Owner and agents; revised after trials |
+| `.claude/agents/lite-reviewer.md` | The read-only agent that reviews specs and plans, one lens per run | Used during spec and plan review |
+| `.claude/skills/writing-specs-lite/scripts/lint.mjs` | Lints specs and plans (`node lint.mjs spec` or `plan`) before review | Run by the agent before each approval gate |
+| `.github/workflows/ci.yml`, `.github/scripts/check-branch-states.sh` | CI (`checkstyle`, `build`) and the check that blocks a PR into `development` unless its branch state is `Approved` with no live session rows | Runs on every push and PR |
+| `docs/` | The published site: this guide, the User Guide, the backlog and the reflections | Updated at guide checkpoints |
+
+### 0.2 Records under `workflow/`
+
+| Path | What it is | Written by / when |
+|---|---|---|
+| `workflow/specs/` | Design specs: an index file plus a sibling folder of component files per workstream; `mp2 archive/` holds the MP2 ones | Agent, before any big change; owner approves (gate 1) |
+| `workflow/plans/` | Implementation plans mirroring each spec's task order, with a checklist the agent ticks off | Agent, after the spec is approved; owner approves (gate 2) |
+| `workflow/project-state/branch-states/` | One lean state file per in-flight branch (status, sessions, changes, decisions, deviations); `archive/` holds folded ones | Every agent on that branch, continuously; owner sets `Approved` (gate 3) |
+| `workflow/project-state/done-ledger.md` | Every change in this iteration, newest first | Copied from branch states at fold |
+| `workflow/project-history/` | Closed iterations of the state file, ledger and branch states; not the source of truth | `refresh-project-state`, run by the owner |
+| `workflow/workstream-workflow.md` | The end-to-end workstream procedure with a flow diagram | Owner |
+| `workflow/logs/` | Agent session logs, `YYYY-MM-DD_HH-mm-ss_<branch>.md` (SGT) | The `logging-agent-interactions` skill, at session end |
+| `workflow/tools/prompt-tuning/` | Kit for tuning the ticket clarification assistant's prompt: runner, synthetic tickets, prompt variants, changelog of runs | Run by hand with an API key held in the terminal |
+| `workflow/sdd/` | Progress ledger of one subagent-driven execution (Host messages UI) | Agent, during that execution |
+| `workflow/MP2-feedback-triage.md` | Triage of the MP2 grade report that produced the MP3-0 workstream | Written once, 2026-10-18 |
+
+**Where to start.** To resume work, read `PROJECT_STATE.md`, then the branch state of the branch you
+are on. To learn why something was decided, search the Done ledger and the spec of its workstream. To
+see how an agent session went, open the matching file in `workflow/logs/`.
 
 ---
 
@@ -2238,7 +2289,7 @@ operator also verified the modal at desktop, tablet and 390px widths.
 
 **Configuration.** `SNOOZESHARE_ASSISTANT_ENABLED` (default true), `_MAX_ROUNDS` (3, range 1 to 5), `_THREADS` (2, 1 to 4), `_QUEUE` (50, 1 to 500) and `_STALE_AFTER_MINUTES` (10, 2 to 120). Out-of-range values stop startup with the key named. The assistant only calls the model while the AI gateway is enabled (`SNOOZESHARE_AI_ENABLED`); see the runbook for diagnosis, overload and migration rollback.
 
-**Prompt tuning.** `tools/prompt-tuning/ticket-clarify/` is a Node script and synthetic ticket set for comparing prompts against SoCLaaS by hand (`node run.mjs --selftest` runs offline). The committed `ClarifyPrompt` is the v3 examples prompt, pinned by `ClarifyFeatureTest` to `prompts/v3-snoozy-examples.txt` and recorded as KEEP in the kit's `CHANGELOG.md` (`prompts/v4-snoozy-support-documents.txt` is the earlier text it replaced).
+**Prompt tuning.** `workflow/tools/prompt-tuning/ticket-clarify/` is a Node script and synthetic ticket set for comparing prompts against SoCLaaS by hand (`node run.mjs --selftest` runs offline). The committed `ClarifyPrompt` is the v3 examples prompt, pinned by `ClarifyFeatureTest` to `prompts/v3-snoozy-examples.txt` and recorded as KEEP in the kit's `CHANGELOG.md` (`prompts/v4-snoozy-support-documents.txt` is the earlier text it replaced).
 
 **Deviations.** Chronological replay alone could not satisfy the late-reply and defensive no-call rules, which led to the catch-up selection above (D119); a 6,000-character draft can exceed the 4,000-character notes limit (D118).
 
@@ -2579,7 +2630,7 @@ measured for this guide.
 | Backend Guest AI: `GuestAiConfigTest`, `GuestAiSearchControllerTest` | Bean registration and `@ConditionalOnDatabase` activation; 10 integration tests (happy path, validation, degraded gateway) and 21 edge-case tests (vague query, flagged input, null filters, invalid LLM output, partial dates, Unicode, blocked/refused/auth errors, throttling, concurrency). `GuestWalletControllerTest` has 10 pre-existing failures in the full suite due to a Testcontainers context-cache issue (D116); it passes in isolation. |
 | Backend ticket assistant: `ClarifyFeatureTest`, `ClarifySafetyTest`, `ClarifyRenderingTest`, `AssistantPropertiesTest`, `AssistantContextBuilderTest`, `AssistantFlowTest`, `AssistantConcurrencyTest`, `AssistantRunnerTest`, `AssistantBoundaryTest`, `AssistantTriggerTest`, `AssistantSwitchTest`, `AssistantPostingTest`, `AssistantReadApiTest`, `TicketAssistantRepositoryTest`, `TicketAssistantMigrationTest`, `ClarifyGatewayContractTest`, `AssistantMockEndToEndTest` | Output contract and screens, fixed rendering, settings, trusted context and replay order, lifecycle and degraded matrix, row locking and cap chains (late replies, Agent takeover, duplicate events), bounded runner, listener failure containment, SYSTEM posting and Host isolation, the seven-field Agent projection, V006 on a populated database, the real gateway against a stub transport, and the whole flow in mock mode without credentials |
 | Frontend ticket assistant: `DisputeDetail.test.tsx`, `ThreadPanel.test.tsx`, `MessageThread.test.tsx`, `ConversationList.test.tsx`, `message-role.test.ts`, `AuditLogView.test.tsx` | Every panel state and warning, headed draft sections, 40/20/40 layout and shared resize, insertion permissions and dirty-notes preservation, literal rendering of hostile text, SYSTEM labels and alignment, ticket previews, and the assistant audit actions |
-| Tuning kit: `node tools/prompt-tuning/ticket-clarify/run.mjs --selftest` | Offline checks of the runner, screens mirror and synthetic ticket set (no network) |
+| Tuning kit: `node workflow/tools/prompt-tuning/ticket-clarify/run.mjs --selftest` | Offline checks of the runner, screens mirror and synthetic ticket set (no network) |
 | Frontend Guest pages: `search/page.test.tsx`, `trips/page.test.tsx`, `messages/page.test.tsx`, `wallet/page.test.tsx` | Listing search and detail sheet, trip cards with cancel/review dialogs, conversation list with message threads and ticket filing, wallet balance/transaction display, and 7 AI search bar tests (renders, disabled states, explanation display, degraded alert, clear action, manual fallback). Firebase and backend requests are mocked. |
 | Backend Agent API integration: `AgentDisputeControllerTest`, `AgentMessageControllerTest`, `AgentAccountControllerTest`, `AgentAuditControllerTest`, `AgentCategoryControllerTest`, `AgentCrossRoleContractTest` | Every agent operation, its validation and error rows, the audit rows, the Singapore-day boundary, literal `%` and `_` in search, the cascade and its rollback, and the contract with the Guest and Host APIs. They extend `AgentApiIntegrationTest` (security on, database reset before and after each test, shared service spies). |
 | Backend Agent concurrency and performance: `AgentDisputeConcurrencyTest`, `AgentAccountConcurrencyTest`, `AgentListPerformanceTest` | Two real threads race for one ticket or one account and exactly one wins (the tests fail without the row lock); the queue, accounts and audit lists stay under 5 s at 300 tickets, 300 accounts and 2,000 audit rows, with the 95th percentile logged. |
