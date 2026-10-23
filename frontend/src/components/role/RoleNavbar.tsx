@@ -4,7 +4,10 @@ import { cn } from 'cn';
 export type WorkspaceRole = 'GUEST' | 'HOST' | 'AGENT';
 
 const navigation: Record<WorkspaceRole, { label: string; href: string }[]> = {
-  GUEST: ['Search', 'Trips', 'Messages', 'Wallet'].map((label) => ({ label, href: '/guest' })),
+  GUEST: [
+    { label: 'Search', href: '/guest/search' }, { label: 'Trips', href: '/guest/trips' },
+    { label: 'Messages', href: '/guest/messages' }, { label: 'Wallet', href: '/guest/wallet' },
+  ],
   HOST: [
     { label: 'Listings', href: '/host/listings' }, { label: 'Requests', href: '/host/requests' },
     { label: 'Messages', href: '/host/messages' }, { label: 'Wallet', href: '/host/wallet' },
@@ -33,7 +36,7 @@ export function RoleNavbar({ role, onLogout, walletLabel, activePath }: { role: 
         <div data-testid="workspace-navbar-divider" className="-mx-6 mt-3 border-t border-[var(--border-muted)]" />
         <div data-testid="workspace-navbar-tabs" className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2">
           {navigation[role].map((item, index) => {
-            const isActive = activePath ? (role === 'HOST' ? activePath === item.href || activePath.startsWith(`${item.href}/`) : index === 0) : index === 0;
+            const isActive = activePath ? activePath === item.href || activePath.startsWith(`${item.href}/`) : index === 0;
             return (
             <Link
               key={item.label}
