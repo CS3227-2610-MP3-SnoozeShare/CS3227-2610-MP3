@@ -124,6 +124,14 @@ The worst case of the draft fields is 500 + 900 + 1,200 + 600 + 750 + 800 = 4,75
 | Compatibility | One new nullable field; existing readers ignore it. `DisputeDetail` (service value object) and `DisputeDetailResponse.from` gain the field; the dispute queue and every other Agent endpoint are unchanged. The frontend contract test asserts the field names with `jsonPath` (§ 5 Web layering) |
 
 ## Configuration (`snoozeshare.assistant.*`, record `AssistantProperties`, validated at startup with a message naming the key)
+
+### Fixed supporting-documents instruction (SD22)
+
+P3's contact prohibition has one server-owned exception, defined in conventions.md § Fixed support-email exception. Add P13: when supporting documents would help or the Guest asks how to submit them, use the exact question marker `[supporting-documents]`, with `enough = false` while another question round is available. Never emit an address, ticket id, subject or alternate contact channel yourself. This marker uses the existing `questions` list and counts toward its cap; no output-schema or gateway change is needed.
+
+The R6 builder accepts the stored ticket UUID and expands only that marker after R4. `MessageService.postAssistant` still receives an already built body and needs no new parameter. The applier passes its locked ticket's id into the builder. The public HTTP contract, principal, tenancy scope, audit shape and transaction boundaries are unchanged. Model-supplied emails remain rejected; only the final deterministic backend line can contain the fixed support email. The assistant sends no email and reads no attachments.
+
+### Property defaults
 | Key | Default | Range |
 |---|---|---|
 | `enabled` | true | boolean |

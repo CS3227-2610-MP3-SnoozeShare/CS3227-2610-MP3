@@ -9,7 +9,7 @@ after the branch merges.
 - **Owner:** Xiao-Congchen
 - **Status:** Draft
 - **Approved:** —
-- **Last updated:** 2026-10-23 by Codex — gate 2 approved; execution baseline in progress
+- **Last updated:** 2026-10-23 by Codex — Wave 1 original scope committed; SD22 reviewed, amended-spec gate 1 next
 
 ---
 
@@ -35,15 +35,15 @@ Row added to `PROJECT_STATE.md` § Orientation:
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S2 | 2026-10-23 | Codex + read-only SD22 reviewer lenses | W-AI-AGENT | Building | SD22 email amendment written; T8 committed; T1 focused green | Review fixed marker/address/subject exception, resolve findings, ask amended-spec gate 1; revised plan gate 2 follows that approval | 2026-10-23 |
 
 **Remaining**
 
-- [x] Gate 1: spec reviewed and Approved (Xiao-Congchen, 2026-10-23)
+- [x] Original gate 1: Approved (Xiao-Congchen, 2026-10-23), before SD22.
+- [ ] SD22 gate 1: ask operator approval of amended High-risk spec after four-lens review (no blockers). On explicit yes write Approved (Xiao-Congchen, current date), run spec lint --approved, then revise plan for E89–E92/marker-builder signature/tuning parity and obtain separate gate 2 approval before code resumes.
 - [ ] The operator tunes the prompt with `tools/prompt-tuning/ticket-clarify/` in parallel with the build; the committed prompt needs a `KEEP` row in that kit's `CHANGELOG.md` before merge (spec conventions R15)
 - [ ] Tuning-kit gross-gap review completed (D~4); resolve Q~2, address evaluator parity/scoring gaps, then run matched repeated variants. No live eval yet; `SOCLAAS_API_KEY` is absent from the review shell.
 - [x] Gate 2: Approved (Xiao-Congchen, 2026-10-23); operator said "approve" to the plan approval question. Start executing-plans-lite without another implementation approval.
-- [ ] Execute the plan (`executing-plans-lite`)
+- [ ] Resume executing-plans-lite after SD22 spec and revised-plan approvals. Original T1/T3/T8 are Done and committed; reopen T3/T8 as needed for SD22 test/marker changes before Wave 2. Do not start T2/T6 until amendment gates clear.
 - [ ] **Handover:** `docs/DeveloperGuide.md` needs the assistant (data, flow, configuration) at its guide checkpoint
 - [ ] **Handover:** the live SoCLaaS check of the assistant (a real ticket, a real reply) is a post-merge step
 
@@ -81,7 +81,7 @@ Row added to `PROJECT_STATE.md` § Orientation:
 
 ## 6. Known Gaps
 
-No change: nothing is built yet.
+No new accepted limitations beyond the provisional prompt and existing screen/prose residuals recorded in the spec; runtime orchestration is not built.
 
 ---
 
@@ -126,6 +126,7 @@ No change: nothing is built yet.
 
 | Date | What changed | Workstream | Ref |
 |---|---|---|---|
+| 2026-10-23 | SD22 amendment reviewed: Implementer/Tester/Maintainer round 1 and Attacker rounds 1–2; forged-subject finding fixed with subject/header/UUID screening and explicit R12 residual, normalized-marker and expanded-replay cases clarified. Spec lint: zero errors, one size warning. Plan intentionally awaits SD22 traceability/revision after spec approval. All implementation/reviewer sessions retired; gate 1 next | W-AI-AGENT | This session |
 | 2026-10-23 | T3 original scope done: six production/four test files; focused 22/22, full backend 604/604, Checkstyle and packaging pass; offline kit 35/35. Fix E6 test expectation for shifted newline, not renderer behavior. Provisional prompt excludes unapproved concurrent email/apology changes. SD22 unimplemented; agent retired | W-AI-AGENT | This session |
 | 2026-10-23 | T1 done: V006 schema, entity/repository, audit enums and cleanup/migration coverage. Red missing types recorded; focused persistence tests pass; full backend 604 tests/99 classes pass, corrected Checkstyle and packaging pass. Shared full gate also covers provisional T3 | W-AI-AGENT | This session |
 | 2026-10-23 | T8 done: seven files, focused 15/15, full frontend 325/325 across 52 files, lint and production build pass. Shared helper ready for T7; auth and booking presentation unchanged; agent retired | W-AI-AGENT | This session |

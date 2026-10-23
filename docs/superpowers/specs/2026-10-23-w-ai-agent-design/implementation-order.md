@@ -31,3 +31,5 @@ The plan will mirror these tasks one for one. Waves group tasks that can run tog
 | T10 Verification and close-out | T5, T7, T8, T9 | - | 5 |
 
 Shared-file hazards: T2 and T6 touch different files (`MessageService*` against `DisputeDetail*`); T7 and T8 both touch frontend role types, but they are in different waves (3 and 1), so T8 lands first and T7 builds on it; T1 adds the `AuditAction` constants that T4 and T9 use; T9 edits `application*.yml` that T3's properties record reads, which is safe because T3 finishes in wave 1.
+
+SD22 amendment keeps every task and dependency unchanged: T3 adds the exact marker to P13, R4 screening and the ticket-id-taking R6 builder plus E89/E90/E92 unit tests; T4 supplies the locked stored ticket id and tests E89/E91 lifecycle behavior; T7/T8 test literal fixed-line rendering; T10 includes these rows in final traceability and reconciles the tuning-kit contract before its KEEP gate. No new table, endpoint, gateway change or email service is added.

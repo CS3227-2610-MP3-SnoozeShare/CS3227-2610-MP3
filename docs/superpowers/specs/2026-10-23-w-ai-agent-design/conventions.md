@@ -23,6 +23,16 @@ Existing § Conventions are cited, not restated: the role AI rules (call `LlmGat
 
 ## Pattern lists (applied to cleaned text; written as regular expressions)
 
+### Fixed support-email exception (SD22)
+
+The only exception to the no-off-platform-contact rule is the backend-built supporting-documents instruction. A model may include the exact question marker `[supporting-documents]` when supporting documents would help establish the reported facts, or when the Guest asks how to submit them. The prompt requires `enough = false` with this marker while a question round remains. It counts as one of the existing three questions and one existing question round; it never creates an extra call, message or round, and the normal cap/enough/flagged/failure precedence still applies.
+
+R4 cleans first. A cleaned question equal to the marker ignoring case is canonicalized to `[supporting-documents]`, deduplicated and kept. A question containing that marker plus any other text is dropped. Every other question still passes lists A/B, `@` rejection and the digit-run rule. Also drop an ordinary question matching `\b(subject|header)\b` or the canonical UUID shape `\b[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}\b`, using the same Unicode/case flags, so explicit subject/header overrides and forged ticket UUIDs cannot appear beside the fixed line. Summary/hostPoints screens and the shared gateway remain unchanged; the model is told never to emit the address itself, a ticket id, an email subject or an alternative recipient.
+
+R6 message construction takes the server-loaded ticket UUID in addition to the screened question list. It replaces the canonical marker with exactly `Please email supporting documents to support@snoozeshare.com with the subject "{ticketId}: Supporting Documents".` The subject's UUID comes from the ticket being processed, never from model output or a Guest field. No other string expansion is performed. This guarantees the values in the backend-built recipient and subject; it does not prove that every possible semantic redirection in arbitrary prose is detected. Unlisted steered phrasings remain the accepted R12 limitation; the new subject/header rule also deliberately drops harmless uses of those words. A missing ticket UUID fails the internal message builder with `IllegalArgumentException` before any message is written. The fixed line is plain text, without a link or mailto URI; it fits the existing 300-character question bound and 2,000-character message bound.
+
+Recognition/replay remains R6: stored question messages are recognized by the unchanged first line, and the stored numbered lines are replayed through normal gateway sanitizing. The closing message is unchanged. If `enough`, the round cap or `flagged` ends the exchange, the marker does not bypass those guards and no extra email-guidance message is sent. There is no new output field, table, endpoint, email sender or attachment ingestion. UI tests must distinguish this fixed backend line from arbitrary model-supplied contact text.
+
 List A - promises and outcomes (questions, summary, hostPoints):
 ```
 \b(we|i)\s*('ll|will|shall|can(?!'t)|would|'d|are going to|am going to|'re going to|'m going to)\b

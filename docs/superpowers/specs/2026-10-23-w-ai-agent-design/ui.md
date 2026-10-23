@@ -45,4 +45,8 @@ Navigation: unchanged.
 The HOST channel of the Agent's thread panel never contains assistant messages and is unchanged.
 
 ## Shared rule
+
+### Supporting-documents line (SD22)
+
+The backend expands a screened `[supporting-documents]` question into `Please email supporting documents to support@snoozeshare.com with the subject "{ticketId}: Supporting Documents".` Both thread UIs show that stored line as plain text, left aligned with the other assistant questions. The subject carries the ticket's canonical UUID. There is no clickable email link, upload control, automatic email action or new frontend request. This is one question within the existing round and message limits; no extra line is posted when the cap, enough or flagged stops questions. Existing question headers, numbering, closing text and role labels stay unchanged.
 One helper maps an author role to its label: `GUEST` to `Guest`, `HOST` to `Host`, `AGENT` to `Support agent`, `SYSTEM` to `Snoozy · Automated assistant`; both thread components use it. The `Role` type in the frontend API types gains `SYSTEM`.

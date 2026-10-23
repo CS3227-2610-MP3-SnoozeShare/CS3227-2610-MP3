@@ -18,6 +18,8 @@ Ordered so that a requirement comes after anything it depends on. "The assistant
 | F11 | Every transition into `WAITING_GUEST` (from `PENDING`, except the defensive move), `DONE`, `UNAVAILABLE` or `STOPPED`, and every message the assistant posts, is audited with the exact rows of conventions.md R7, metadata only; the row delete writes none | Given any applied result When it commits Then an `ASSISTANT_STATE` row exists and, if a message was posted, an `ASSISTANT_MESSAGE` row; neither contains message or draft text |
 
 ## Non-functional
+
+**SD22 clarification to F2/F7 and N3:** one screened question may be the `[supporting-documents]` marker. When an ordinary question round is posted, the backend replaces that marker with the exact fixed support-email instruction and the stored ticket UUID subject (conventions.md § Fixed support-email exception). Arbitrary model contact details remain forbidden. This introduces no new call/round allowance, and `enough`, flagged and cap precedence still wins.
 | ID | Category | Requirement | Acceptance criterion |
 |---|---|---|---|
 | N1 | Reliability | The assistant adds no work to the request thread of filing a ticket or posting a message beyond handing a job to the executor and one short database write, and no assistant failure reaches that request | Given the gateway stub blocks for 5 seconds When a Guest files a ticket Then the filing response returns in under 1 second; given a listener's database write fails Then the posting request still succeeds |
