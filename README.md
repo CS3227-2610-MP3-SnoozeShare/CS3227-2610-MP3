@@ -2,6 +2,11 @@
 
 A production-level app with multiple user roles for a formal setting as part of CS3227's month-long Mini Project 3.
 
+## Try the hosted app
+
+Open the current web deployment at [SnoozeShare](https://cs3227-snoozeshare.vercel.app). The
+[User Guide](docs/UserGuide.md) explains the Guest, Host, and Support Agent workflows.
+
 ## Project Layout
 
 - [`desktop/`](desktop) — the JavaFX desktop app (`com.snoozeshare`) with its own Gradle build and SQLite mock DB
@@ -25,50 +30,30 @@ The three components build independently; there is no root build.
 | Node | 22 (`frontend/.nvmrc`; `engine-strict` rejects other majors) |
 | Next.js | 15.5.28 |
 
-## Building & Running
+## Local development
 
-Commands are PowerShell; on macOS/Linux use `./gradlew`.
-
-### Desktop
-
-Run on a copy of the mock DB so the committed file is not written:
-
-```shell
-cd desktop
-New-Item -ItemType Directory -Force build
-Copy-Item db/snoozeshare-mock.db build/acceptance.db
-$env:SNOOZESHARE_DB_URL='jdbc:sqlite:build/acceptance.db'
-.\gradlew run
-.\gradlew build
-```
-
-### Backend
-
-Needs Docker (local Postgres, and Testcontainers for tests).
+The hosted site is the primary way to use SnoozeShare. Contributors can run the web app locally
+with Docker, the backend, and the frontend:
 
 ```shell
 docker compose up -d postgres
 cd backend
-.\gradlew bootRun
-.\gradlew build
+./gradlew bootRun
 ```
-
-The `dev` profile is the default and connects to the compose database. If port 5432 is taken, pick another: `$env:POSTGRES_PORT='5433'; docker compose up -d postgres`, with the same variable set when running the backend. Health check: `http://localhost:8080/actuator/health` returns `{"status":"UP"}`. Local secrets go in a gitignored `backend/src/main/resources/application-local.yml`.
-
-On a low-memory machine run `.\gradlew checkstyleMain checkstyleTest` and `.\gradlew test` as separate commands.
-
-### Frontend
 
 ```shell
 cd frontend
 npm ci
 npm run dev
-npm test
-npm run lint
-npm run build
 ```
 
-Copy `.env.example` to `.env.local` to change `NEXT_PUBLIC_API_BASE_URL` (default `http://localhost:8080`). With the backend running, the home page shows `Backend: UP`. Production builds fail unless the variable is set.
+The frontend uses `http://localhost:8080` by default; copy `frontend/.env.example` to
+`frontend/.env.local` only when changing that API URL. See the
+[development environment runbook](docs/runbooks/dev-environment.md) for environment variables,
+deployment, and testing details.
+
+The legacy JavaFX component remains under [`desktop/`](desktop) with its own Gradle build; it is
+not the primary hosted application.
 
 ## Continuous integration
 
