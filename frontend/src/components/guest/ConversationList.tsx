@@ -47,34 +47,36 @@ export function ConversationList({
   }
 
   return (
-    <ul data-testid="conversation-list" className="divide-y">
+    <div data-testid="conversation-list" className="divide-y divide-[var(--border-muted)]">
       {items.map((item) => {
         const id = itemId(item);
         const active = id === selectedId;
         const unread = item.data.unreadCount > 0;
+        const isTicket = item.kind === 'ticket';
+        const statusLabel = item.data.open ? 'OPEN' : 'RESOLVED';
+        const statusClass = item.data.open ? 'bg-[var(--warning-subtle)] text-[var(--warning)]' : 'bg-[var(--success-subtle)] text-[var(--success)]';
         return (
-          <li key={id}>
-            <button type="button" onClick={() => onSelect(id, item)}
-              className={`flex w-full items-start gap-2 px-3 py-2.5 text-left text-sm transition-colors ${active ? 'bg-primary/10' : 'hover:bg-muted/50'}`}>
-              <span className="mt-0.5 shrink-0 text-xs text-muted-foreground">{item.kind === 'ticket' ? '🎫' : '💬'}</span>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between gap-1">
-                  <span className={`truncate ${unread ? 'font-semibold' : ''}`}>{itemLabel(item)}</span>
-                  {unread && (
-                    <span className="shrink-0 rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
-                      {item.data.unreadCount}
-                    </span>
-                  )}
-                </div>
-                <p className="truncate text-xs text-muted-foreground">{item.data.counterpartName}</p>
-                {item.kind === 'ticket' && item.data.lastMessage && (
-                  <p className="truncate text-xs text-muted-foreground">{item.data.lastMessage.body}</p>
-                )}
-              </div>
-            </button>
-          </li>
+          <button
+            key={id}
+            type="button"
+            onClick={() => onSelect(id, item)}
+            className={`w-full rounded-none px-3 py-2 text-left ${active ? 'bg-[var(--surface-inset)]' : 'hover:bg-[var(--surface-inset)]'}`}
+          >
+            <span className="mt-2 flex items-center justify-between gap-2">
+              <span className="flex items-center gap-1 truncate text-sm"><span className="shrink-0">{isTicket ? '🎫' : '💬'}</span><strong>{itemLabel(item)}</strong></span>
+              <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${statusClass}`}>{statusLabel}</span>
+            </span>
+            <span className="mt-1 mb-2 flex items-center justify-between gap-1 text-xs text-[var(--text-subtle)]">
+              <span className="truncate">{item.data.counterpartName}</span>
+              {unread && (
+                <span className="shrink-0 rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
+                  {item.data.unreadCount}
+                </span>
+              )}
+            </span>
+          </button>
         );
       })}
-    </ul>
+    </div>
   );
 }

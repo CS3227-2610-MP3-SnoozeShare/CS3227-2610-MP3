@@ -1,9 +1,7 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
 import { RouteGuard } from '@/components/auth/RouteGuard';
-import { RoleShell } from '@/components/role/RoleShell';
+import { GuestRoleShell } from '@/components/guest/GuestRoleShell';
 export default function GuestLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname() ?? '/guest/search';
-  return <RouteGuard role="GUEST"><RoleShell role="GUEST" activePath={pathname}>{children}</RoleShell></RouteGuard>;
+  return <RouteGuard role="GUEST"><GuestRoleShell>{children}</GuestRoleShell></RouteGuard>;
 }
