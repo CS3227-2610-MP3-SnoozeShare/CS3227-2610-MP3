@@ -58,7 +58,7 @@ Row added to `PROJECT_STATE.md` § Orientation:
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AI-AGENT | Ticket clarification assistant and draft report for the Support Agent | Blocked — needs human | [spec](docs/superpowers/specs/2026-10-23-w-ai-agent-design.md) | [plan](docs/superpowers/plans/2026-10-23-w-ai-agent.md) | Paused at Wave 3: T7 Done, T4 awaiting SD23 approval Q~3 | — |
+| W-AI-AGENT | Ticket clarification assistant and draft report for the Support Agent | Building | [spec](docs/superpowers/specs/2026-10-23-w-ai-agent-design.md) | [plan](docs/superpowers/plans/2026-10-23-w-ai-agent.md) | Wave 3 done (T4, T7); Wave 4 next: T5 triggers, T9 config | — |
 
 ---
 
@@ -86,7 +86,7 @@ Row added to `PROJECT_STATE.md` § Orientation:
 
 ### Ticket assistant feature definition
 
-**Now:** `service.assistant` defines validated `ClarifyOutput`, bounded configuration, the conditional Guest-only `ticket.clarify` feature, deterministic R4/R4b screens and fixed plain-text report/message rendering. The provisional prompt includes approved P13 marker guidance; R4 canonicalizes the document marker and rejects mixed/contact/subject/UUID overrides. R6 requires a server-loaded ticket UUID and expands only the canonical marker to the fixed support instruction. Final live tuning evidence remains T10. The runtime now reads immutable snapshots in a read-only transaction, calls the gateway outside transactions, and applies guarded state/message/audit changes in a REQUIRES_NEW transaction. A private bounded asynchronous runner tracks follow-up handoffs through idle waits. Listeners are not built yet.
+**Now:** `service.assistant` defines validated `ClarifyOutput`, bounded configuration, the conditional Guest-only `ticket.clarify` feature, deterministic R4/R4b screens and fixed plain-text report/message rendering. The provisional prompt includes approved P13 marker guidance; R4 canonicalizes the document marker and rejects mixed/contact/subject/UUID overrides. R6 requires a server-loaded ticket UUID and expands only the canonical marker to the fixed support instruction. Final live tuning evidence remains T10. The runtime now reads immutable snapshots in a read-only transaction, calls the gateway outside transactions, and applies guarded state/message/audit changes in a REQUIRES_NEW transaction. A private bounded asynchronous runner tracks follow-up handoffs through idle waits. Catch-up calls omit only the newest question when an unseen Guest reply precedes it (SD23). Listeners are not built yet.
 
 ---
 
