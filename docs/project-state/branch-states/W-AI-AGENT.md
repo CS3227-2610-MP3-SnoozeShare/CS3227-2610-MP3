@@ -9,7 +9,7 @@ after the branch merges.
 - **Owner:** Xiao-Congchen
 - **Status:** Draft
 - **Approved:** —
-- **Last updated:** 2026-10-23 by Codex — revised plan approved; resumed T3/T8 SD22 implementation
+- **Last updated:** 2026-10-23 by Codex — Wave 1 verified/committed; T2/T6 verification in flight
 
 ---
 
@@ -35,7 +35,7 @@ Row added to `PROJECT_STATE.md` § Orientation:
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| SD22 execution | 2026-10-23 | Codex lead | W-AI-AGENT | Building | Wave 1 verified; begin Wave 2 | T2 step 1 posting tests; dispatch T6 read projection | 2026-10-23 |
+| SD22 execution | 2026-10-23 | Codex lead | W-AI-AGENT | Building | Wave 2 verified; integrate task commits | Begin T4 orchestration and T7 Agent screens | 2026-10-23 |
 
 **Remaining**
 
@@ -54,7 +54,7 @@ Row added to `PROJECT_STATE.md` § Orientation:
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AI-AGENT | Ticket clarification assistant and draft report for the Support Agent | Building | [spec](docs/superpowers/specs/2026-10-23-w-ai-agent-design.md) | [plan](docs/superpowers/plans/2026-10-23-w-ai-agent.md) | Wave 2: T2 posting and T6 read API in flight | — |
+| W-AI-AGENT | Ticket clarification assistant and draft report for the Support Agent | Building | [spec](docs/superpowers/specs/2026-10-23-w-ai-agent-design.md) | [plan](docs/superpowers/plans/2026-10-23-w-ai-agent.md) | Wave 3: T4 orchestration and T7 Agent screens next | — |
 
 ---
 
@@ -67,6 +67,14 @@ Row added to `PROJECT_STATE.md` § Orientation:
 ### Guest message presentation
 
 **Now:** Guest ticket messages share an author-role label helper including `Snoozy · Automated assistant`; ticket conversation entries show the stored last-message body as plain text. Authentication roles and booking conversation presentation are unchanged.
+
+### Internal assistant message posting
+
+**Now:** `MessageService.postAssistant` trims and bounds the body, requires an open ticket, and writes SYSTEM-authored messages only to the GUEST channel. It joins the caller transaction and publishes only after commit; the applier will own its audit. No HTTP route exposes this method.
+
+### Agent assistant read projection
+
+**Now:** dispute detail reads its assistant row in a read-only transaction and returns only the seven public fields through a nullable service snapshot and response mapper. Defaults/configured round and stale settings are read independently of runtime feature beans; strict stale age applies only to PENDING rows on open tickets. Queue and Guest/Host contracts remain unchanged.
 
 ### Ticket assistant feature definition
 
@@ -130,6 +138,10 @@ No open design question. SD22 and revised plan approved; apology variants remain
 
 | Date | What changed | Workstream | Ref |
 |---|---|---|---|
+| 2026-10-23 | T2 Done: internal SYSTEM/GUEST posting, bounded input/open-ticket errors, Host isolation, Guest unread increase and commit-only events. Shared Wave 2 full gate 618/618 across 101 classes, style/package pass; root independently confirms actual AssistantPostingTest 4/4 and read API 5/5 XML. Frontend/desktop unchanged reuse Wave 1 gate | W-AI-AGENT | This session |
+| 2026-10-23 | T6 done: nullable seven-field Agent-only assistant snapshot, read-only transaction and runtime-independent settings/stale calculation; detail-returning actions preserve projection, Guest/Host recursive privacy coverage. Red missing constructor; focused API35/35; shared full backend618/618 across101classes, Checkstyle and packaging pass (also covers T2). Test-only Host endpoint typo corrected from controller contract. Session retired; root owns commit | W-AI-AGENT | This session |
+| 2026-10-23 | T6/API focused checks pass 35/35: private read projection/stale/auth/action responses. Corrected filter accounting: service.assistant.AssistantPostingTest matched no T2 class; unfiltered full suite will verify actual service.AssistantPostingTest, not yet claimed green. Plan Create-path lint waits until task completion as designed | W-AI-AGENT | This session |
+| 2026-10-23 | T2 red: missing postAssistant signature. Implement internal bounded SYSTEM/GUEST posting with commit-only event; focused three tests pass, fourth corrected to preserve existing Host conversation with null preview rather than assuming no conversation. T6 compile-red tests now own build slot; rerun combined focused checks when projection compiles | W-AI-AGENT | This session |
 | 2026-10-23 | T3 SD22 done: marker normalization/deduplication and mixed/contact/subject/UUID screens; required server UUID expands fixed support line and preserves stored replay; P13 prompt. Red: six missing-signature compilation errors. Focused 17/17; full backend 609/609 across 99 classes, Checkstyle and packaging pass. Current offline kit selftest 40/40 (concurrent kit edits preserved). Agent retired; root owns commit | W-AI-AGENT | This session |
 | 2026-10-23 | Close tuning-kit gross-gap review per C~15: validator parity for unknown/duplicate/link outputs, approved fixed-email marker display, 21 prompt-quality cases without dedicated hijack tests, bounded full transcripts with manual review guidance, and run fingerprints/comparability. Node syntax check, all 42 offline selftests and T01 dry run pass. No live model evaluation or KEEP decision | W-AI-AGENT | This session |
 | 2026-10-23 | T8 SD22 continuation done: E89 literal stored email/UUID thread and preview regressions; focused 13/13 and full frontend 327/327 across 52 files pass, eslint and production build pass. Two test files only; no UI behavior change. Guest session retired | W-AI-AGENT | This session |

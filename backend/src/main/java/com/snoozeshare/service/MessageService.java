@@ -16,6 +16,9 @@ public interface MessageService {
 
     Message post(UUID ticketId, ThreadChannel channel, UUID authorId, Role authorRole, String body);
 
+    /** Internal assistant delivery to the Guest channel; no HTTP route exposes this operation. */
+    Message postAssistant(UUID ticketId, String body);
+
     List<ConversationSummary> conversationsFor(UUID userId, Role role);
 
     int unreadCount(UUID userId, Role role);
