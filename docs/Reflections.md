@@ -193,106 +193,110 @@ The following project files illustrate the points made above.
 
 ## Trevor's Reflections
 
-### What tasks was the AI agent customized to perform, and how did I determine the appropriate skill set?
+#### AI security
 
-For this project, I customized the agent for two closely related areas: maintaining a shared foundation that multiple developers could build on, and implementing the Host-facing parts of SnoozeShare. The shared-foundation work included architecture, SQLite setup, project-state continuity, interaction logging, common services, and the shared application shell. The Host work then built on that foundation through listing management, booking calendars and date overrides, wallet management, and repeated UI refinement.
+The main attack surfaces I considered were not limited to a chat box. They included listing
+descriptions and other Host-controlled fields passed to the Host AI assistant, Guest ticket and
+message text passed to the Support Agent assistant, generated text returned by the model, and
+configuration boundaries such as Firebase credentials and registration codes. The W-AI-HOST
+log is a concrete example: the proposed prompt explicitly treats listing information as
+untrusted data rather than instructions, and tells the model not to invent amenities,
+facilities, attractions, policies, or other facts. This is a defence against indirect prompt
+injection through a property description, not just the obvious “ignore previous instructions”
+attack.
 
-The most important customization, however, was the logging-agent-interactions skill created during the W1 interaction on 23 September. I asked:
+I also saw why output validation matters. During local Host AI testing, Evaluate worked while
+Generate returned degraded responses. Later logs recorded `INVALID_OUTPUT` and a response being
+rejected because the generated description fell outside the selected word band. These failures
+were useful security and reliability signals: the application did not blindly display every
+model response as valid. The gateway contract and response validation provided a boundary
+between model output and application state, while the UI gave the Host a manual fallback.
 
-> “Generate an agent interaction logging skill. This should be part of workstream 1.”
+The limits I would keep are deliberately narrow. The model should not approve a booking, issue
+a refund, change wallet balances, suspend an account, or alter ticket status. It should return
+structured suggestions or analysis only. Generated descriptions require the Host to review and
+explicitly apply them. AI failures should degrade to a safe manual workflow rather than block
+the core product. Secrets must remain outside the repository: the W-AUTH log distinguishes
+frontend Firebase configuration from the backend service-account credential, and the project
+does not publish privileged registration codes.
 
-I then specified the operating context:
+Approval gates were also a security control. The W-AI-HOST log contains several explicit
+approval points around resolving contradictions, starting implementation, and continuing after
+failures. This prevents an agent from silently changing the trust boundary or accepting a
+weaker gateway contract. Human oversight is strongest when the approval is tied to a written
+spec or plan and a person can inspect the resulting tests, rather than approving a vague
+summary after implementation.
 
-> “Interactions should be logged by agent session, in logs/. Naming convention should include timestamp in SGT (YYYY-MM-DD_HH-mm-ss) and branch name”
+#### Spec-driven development
 
-We clarified that branch names were more reliable than copied numeric session labels, and I later asked:
+A useful specification must make the desired behaviour, non-goals, failure behaviour, security
+boundary, and verification method clear before implementation begins. For example, “add an AI
+description assistant” is not precise enough. The W-AI-HOST work became implementable only after
+the workflow distinguished Evaluate from Generate, defined when the assistant is eligible,
+specified the Apply action, bounded generated output, and described degraded responses.
 
-> “Can this skill be manually called at the end of an agent session instead”
+I can tell that a spec is precise enough when another agent can implement it without repeatedly
+asking product questions and when a tester can derive checks from it without guessing. The
+W-HOST log shows the opposite case in the UI work: requirements such as “make the page match the
+artifact” still needed follow-up decisions about full-width layouts, independent card heights,
+dropdown placement, typography, and button styling. Those corrections were not failures of
+coding; they showed that visual requirements had not been stated at sufficient resolution.
 
-The skill was changed accordingly. This was particularly useful for a multi-branch project because it made decisions and corrections recoverable instead of leaving them only in an individual chat window.
+Requirement changes should flow through the spec, plan, implementation, and tests in that order.
+The W-HOST interaction demonstrates this repeatedly: a request was clarified, the agent changed
+the relevant UI, and the user then checked the rendered result and asked for the next correction.
+The W-AI-HOST log shows the same process for a more technical requirement: when generated output
+was rejected as outside the word band, the response contract and validation behaviour had to be
+understood before treating the issue as an implementation bug.
 
-### How did I define a specific skill and make sure that it was working?
+Tests should express the intent of a requirement, not merely repeat its wording. For the AI
+feature, this means testing that untrusted listing text cannot become an instruction, malformed
+or overlong model output is rejected, and an unavailable gateway leaves the Host with a manual
+path. For the Host UI, a test that a button exists is weaker than checking that it opens the
+correct page, preserves the intended layout relationship, and does not change neighbouring
+sections when a status switch is toggled. Human visual inspection remains necessary for spacing
+and hierarchy, but the tests should protect the behaviours that the visual review depends on.
 
-I defined the logging skill through concrete operating rules rather than a vague instruction to “keep notes.” It specifies when a session should be logged, the filename format, what counts as a material interaction, the chronological structure of entries, and the trade-off of manual invocation: a normally ended session is captured cleanly, but an unexpectedly terminated session may not be recoverable. I checked that the generated files followed the convention and that the skill’s decisions were reflected in the project state, specification, plan, and Done ledger.
+#### Basic multi-agent software engineering
 
-The wider project-state workflow was tested in the same way. I required the agent to read `PROJECT_STATE.md`, compare it with Git history and status, record decisions as they happened, and keep workstreams resumable. During the Host work, the W7 interaction exposed an invalid `BorderPane.hgrow` property that caused the calendar page to fail during FXML loading. The agent traced it to the actual JavaFX boundary, removed it, and added a regression assertion. Later, an invalid date such as `2026-02` exposed an unhandled `DateTimeParseException`; the agent added a user-facing validation message and tests. These examples gave me more confidence than a successful happy-path run alone.
+Specialized agents are most useful at boundaries where the required judgement changes. An
+analyst can extract requirements and unknowns; an architect can define contracts and data flow;
+an implementer can change code; a tester can attack edge cases and verify behaviour; and a
+reviewer can check that the result matches the approved scope. For W-AUTH, this separation was
+especially valuable because authentication involved Firebase, Spring Security, PostgreSQL,
+role routing, registration codes, and local environment configuration. The W-AUTH log records a
+real failure where PostgreSQL connected to an instance without the expected `snoozeshare` role.
+A dedicated environment-focused check was more useful than asking an implementation agent to
+guess at the cause.
 
-### What tasks were handled effectively and improved productivity, code quality, or testing efficiency?
+Specialized agents still need disciplined inputs and outputs. Each handoff should carry the
+approved requirement, relevant decisions, changed paths, test commands and results, known
+limitations, and the next action. `PROJECT_STATE.md`, branch state, plans, and the interaction
+logs provide that continuity. The W-HOST-to-development log is a good example of preserving
+branch lineage and recording what was completed before moving to backend integration. Without
+that record, a later agent could repeat the UI work or incorrectly treat a fixture-backed page
+as a finished backend feature.
 
-The agent was most effective when the requirements were specific and the work could be verified in small vertical slices. In the W6 Host listing interaction on 25 September, I wrote:
+The main places for malicious or incorrect instructions to slip through are the seams. A
+spec-writing agent may accept an unsafe requirement, an implementation agent may treat user
+content as trusted instructions, or a reviewer may validate only that the requested words appear
+in the code. A reviewer could also share the same blind spot as the implementer. I would reduce
+that risk by requiring the security reviewer to inspect trust boundaries separately from the
+feature reviewer, and by making untrusted inputs and authority limits explicit in both the spec
+and tests.
 
-> “Create listing should be a new page, with a back button to go back to listings”
+Each agent should leave evidence that a person can verify: the source-backed spec, a task-level
+plan, a focused test result, a diff or file inventory, recorded failures and deviations, and an
+approval decision with its scope. The new logs are useful evidence but also reveal a limitation:
+many entries say that tests were “not run for log generation.” That is honest, but it means the
+log is a continuity record rather than proof that the implementation passed. The final proof
+must come from reproducible commands and reviewable artefacts, not from the agent’s summary alone.
 
-and then clarified:
+#### Closing reflection
 
-> “Each listing should also have an edit button, which brings them to an Edit Listing page”
-
-The agent translated those requirements into FXML, controllers, CSS, navigation, and tests while keeping the Host flow aligned with the existing application structure.
-
-The W7 Host calendar interaction was also productive. I described the required flow as follows:
-
-> “Each listing card should have an ‘Open booking calendar’ button”
-
-> “Calendar displayed, should take up most of the page. A form on the right (from, to, reason (optional)) for manual blocking.”
-
-The agent implemented the complete flow, then handled follow-up requirements such as inclusive end dates, single-day blocks, removable override rows, and visible date-format errors. This showed the value of using the agent for both initial implementation and targeted regression work.
-
-The W9 Host wallet interaction demonstrated another useful pattern. I supplied mockup-driven behaviour:
-
-> “For the top up modal, clicking the fixed dollar values below the input should fill in the input box with the value.”
-
-> “For the withdraw modal, clicking the text below the input should fill in the input box with the full balance value.”
-
-The agent moved the shared wallet pieces into common code so the Host and Guest wallet experiences could remain consistent, then styled the transaction table to match the Host booking and agent table rhythm. This improved reuse while still preserving role-specific navigation.
-
-Across these sessions, automated tests and Checkstyle made the agent’s changes easier to review. The agent could implement a slice, run focused tests, address failures, and then run the broader suite. The project-state and interaction logs also reduced repeated explanations when work moved between branches such as W6, W7, W8, and W9.
-
-### Where did the agent require additional guidance or correction?
-
-The agent still needed human direction for product boundaries and visual judgement. For example, in W7 I clarified:
-
-> “Current overrides shows all manual blocks, not restricted by the month currently displayed on the calendar.”
-
-and:
-
-> “Manual blocking should be inclusive of end date, and allow single-date blocking.”
-
-These were not implementation details that could be safely inferred from the first request. Similarly, the W9 mockup requirements were explicit because the wallet behaviour and the Host/Guest reuse boundary mattered.
-
-The Host UI touch-up sessions showed that passing automated tests did not guarantee that the page looked correct. I had to inspect the running application and report:
-
-> “Make the square swatches actually square”
-
-and later:
-
-> “Reason is still not bold.”
-
-> “Days of the week are still not bolded and centered.”
-
-The agent then corrected the CSS and layout. This created some additional work, but it was productive additional work: visual acceptance required a human because screenshots, spacing, hierarchy, and perceived consistency were part of the requirement.
-
-Another limitation was that the agent sometimes needed a reminder to separate a new feature from a neighbouring workstream. I asked:
-
-> “Check if displaying of user bookings in host portal should fall under W7”
-
-The agent reasoned that this belonged in the later Host request-management workstream. This reinforced that an effective agent should ask before silently expanding scope, especially in a multi-branch project.
-
-### What would I change in the instructions or skill set if I repeated the task?
-
-I would make the logging skill automatically suggest a session summary at likely stopping points while retaining the option to approve or edit it before writing. Manual logging gives control, but it also creates a recovery gap if a session ends unexpectedly. I would also add a compact branch-lineage field to each session log so that a future agent can see not only the branch name, but also which branch and commit it started from.
-
-For Host UI work, I would add a dedicated visual-verification checklist to the project instructions. It would cover page insets, typography, alignment, scroll behaviour, modal sizing, button hierarchy, and consistency with neighbouring Host pages. The existing tests caught structural and behavioural regressions, but a checklist would make the manual review more systematic and reduce repeated correction cycles.
-
-I would also improve the shared-foundation skill with clearer rules for distinguishing a cross-cutting change from a feature-local change. The current workflow handled this well overall, but the W7 scope question showed that workstream boundaries can be ambiguous even when the implementation itself is straightforward. A small decision template listing affected roles, services, persistence, UI pages, and branches would help the agent identify when a request needs a new spec or a handoff.
-
-### What did I learn about designing an effective single AI agent for software engineering tasks?
-
-I learned that an effective single AI agent needs more than a capable model or a detailed one-off prompt. It needs clear goals, explicit boundaries, useful context, and a reliable way to verify and resume work.
-
-The work my groupmate did on `PROJECT_STATE.md` and the Done ledger was extremely helpful in making this possible. `PROJECT_STATE.md` gave the agent a current view of the architecture, decisions, workstreams, known gaps, and how to resume. The Done ledger showed what had already been completed and prevented the agent from repeating work or treating an accepted limitation as an unfinished task. This saved substantial time when work moved across different branches and sessions, because I did not have to re-explain the project history every time.
-
-This also connects briefly to the lecture concepts. The workstream and feature records acted like a Mission Brief by making scope and constraints visible. `PROJECT_STATE.md` and the session logs acted like a Continuity Pack by preserving the history and current state. The main lesson for me was that these artefacts made the single agent more predictable, helped it make better decisions, and allowed it to spend more effort on implementation and testing instead of reconstructing context.
-
-I also learned that the human and the agent have different but complementary roles. The human should provide goals, constraints, visual judgement, and approval at important boundaries, while the agent can handle decomposition, implementation, testing, and repetitive record-keeping.
-
-Overall, the combination of good project memory and clear instructions made the single agent more useful across multiple sessions without removing the need for human review.
+This iteration reinforced that AI assistance is safest when the agent is given less authority,
+more structure, and better evidence. The most productive workflow was not a single agent acting
+continuously; it was a sequence of agents and human decisions connected by specs, tests, branch
+state, and logs. The human still owns scope, security boundaries, visual acceptance, and
+approval. The agents are most valuable when they make the implementation and verification of
+those decisions faster without being allowed to redefine them silently.
