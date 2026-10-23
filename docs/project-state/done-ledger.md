@@ -7,6 +7,7 @@ Iteration 2 started; earlier entries: [docs/project-history/iteration-1/done-led
 
 | Date | What changed | Workstream | Ref |
 |---|---|---|---|
+| 2026-10-23 | Developer guide updated for W-AI-AGENT: new § 4.28 Ticket clarification assistant, § 1 overview and feature row, § 2 settings, § 3 key decisions (C172, C174–C176, C180, C184, C185), § 4.23 and § 4.25 cross-references, § 5 requirements (F1–F11, N1–N6) and known limitations, § 6 glossary, § 7 test suites | W-AI-AGENT | guide checkpoint |
 | 2026-10-23 | Folded the W-AI-AGENT branch state into `PROJECT_STATE.md` (decisions C169–C188, deviations D117–D121, workstream row, § 4.18 ticket assistant); W-AI-AGENT is Done, guide confirmation given | W-AI-AGENT | [archive](branch-states/archive/2026-10-23-W-AI-AGENT.md) |
 | 2026-10-23 | Gate 3 re-approved by Xiao-Congchen after the v3-P13 prompt change (full backend build green, session table emptied). Agent portal UI: assistant card moved between Guest and Host chats in a 40/20/40 grid sharing one resize height, rendered as a headed table; SYSTEM bubbles align with Agent bubbles; synthetic "ticket opened" bubble removed (remedy kept in the opening bubble); notes box uses the chat background | W-AI-AGENT | This session |
 | 2026-10-23 | Full backend build (tests, Checkstyle, package) passes on the tree with the v3-P13 `ClarifyPrompt` and its pin test, after the merge of `development`. Prompt and state committed | W-AI-AGENT | This session |
