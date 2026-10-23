@@ -31,12 +31,12 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-23 16:00 | Claude Opus 4.6 (lead) | W-AI-GUEST | Active | T3/T4 done; starting T5 | T5 step 1: frontend tests | 2026-10-23 |
+| S1 | 2026-10-23 16:00 | Claude Opus 4.6 (lead) | W-AI-GUEST | Active | T5 done; close-out next | Close-out: lint, build, code review | 2026-10-23 |
 
 **Remaining**
 
 - [x] Write the implementation plan (`writing-plans-lite`)
-- [ ] Implement T1-T5 (`executing-plans-lite`)
+- [x] Implement T1-T5 (`executing-plans-lite`)
 - [ ] Close-out and review
 
 ---
@@ -45,7 +45,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AI-GUEST | AI Search Assistant — Guest natural language search via LLM | Building | [spec](docs/superpowers/specs/2026-10-23-w-ai-guest-design.md) | [plan](docs/superpowers/plans/2026-10-23-w-ai-guest.md) | T3/T4 done; T5 next | — |
+| W-AI-GUEST | AI Search Assistant — Guest natural language search via LLM | Building | [spec](docs/superpowers/specs/2026-10-23-w-ai-guest-design.md) | [plan](docs/superpowers/plans/2026-10-23-w-ai-guest.md) | T5 done; close-out next; guide out of date: AI search assistant | — |
 
 ---
 
@@ -105,3 +105,4 @@ No change.
 | 2026-10-23 | T2: POST /api/guest/ai/search — DTOs, GuestAiSearchService, GuestAiSearchController, 10 integration tests (happy path, validation, degraded, auth, role) | W-AI-GUEST | T2 commit |
 | 2026-10-23 | T3: 21 edge-case tests — vague query, flagged input, null filters, invalid output, partial dates, Unicode, blocked/refused/auth, throttling, concurrency | W-AI-GUEST | T3 commit |
 | 2026-10-23 | T4: AI search bar on Guest search page — types, aiSearch function, AI form, explanation card, filter chips, clear action | W-AI-GUEST | T4 commit |
+| 2026-10-23 | T5: 7 Vitest tests for AI search bar (renders, disabled states, explanation, degraded alert, clear, manual fallback) + checkstyle import order fix in GuestAiSearchController | W-AI-GUEST | T5 commit |

@@ -1,8 +1,5 @@
 package com.snoozeshare.controller.guest;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
-
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,6 +8,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.snoozeshare.api.request.AiSearchRequest;
 import com.snoozeshare.api.response.AiSearchResponse;
 import com.snoozeshare.config.ConditionalOnDatabase;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 
 /**
  * AI-assisted search for guests.
