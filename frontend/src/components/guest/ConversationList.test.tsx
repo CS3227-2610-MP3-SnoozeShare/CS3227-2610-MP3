@@ -35,6 +35,24 @@ describe('ConversationList', () => {
     expect(screen.queryByText('2')).not.toBeInTheDocument();
   });
 
+  it('E89 preserves the stored support-email preview and unread badge without a contact action', () => {
+    const ticketId = 'd0000000-0000-4000-8000-000000000089';
+    const instruction = `Please email supporting documents to support@snoozeshare.com with the subject "${ticketId}: Supporting Documents".`;
+    const body = `To help our support team review your ticket, please answer these in one message:\n1. ${instruction}\n2. When did the issue start?`;
+    const item = { kind: 'ticket' as const, data: { ...ticket, ticketId, lastMessage: { ...ticket.lastMessage!, body } } };
+    const onSelect = vi.fn();
+    const { container } = render(<ConversationList items={[item]} selectedId={`ticket:${ticketId}`} onSelect={onSelect} />);
+
+    const preview = screen.getByText((_, element) => element?.classList.contains('truncate') === true && element.textContent === body);
+    expect(preview.textContent).toBe(body);
+    expect(preview.textContent).toContain(`1. ${instruction}`);
+    expect(screen.getByText('2')).toBeInTheDocument();
+    expect(container.textContent).not.toContain('[supporting-documents]');
+    expect(container.querySelector('a')).toBeNull();
+    fireEvent.click(screen.getByRole('button'));
+    expect(onSelect).toHaveBeenCalledWith(`ticket:${ticketId}`, item);
+  });
+
   it('preserves booking title, stay date and counterpart presentation', () => {
     render(<ConversationList items={[{ kind: 'booking', data: booking }]} selectedId={null} onSelect={vi.fn()} />);
     expect(screen.getByText('Beach House (2026-11-01)')).toBeInTheDocument();

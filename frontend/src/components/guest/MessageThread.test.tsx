@@ -36,6 +36,21 @@ describe('MessageThread', () => {
     },
   );
 
+  it('E89 shows the stored support-email instruction literally on the left without a contact action', () => {
+    const ticketId = 'd0000000-0000-4000-8000-000000000089';
+    const instruction = `Please email supporting documents to support@snoozeshare.com with the subject "${ticketId}: Supporting Documents".`;
+    const body = `To help our support team review your ticket, please answer these in one message:\n1. ${instruction}\n2. When did the issue start?`;
+    const { container } = render(<MessageThread messages={[message('SYSTEM', body)]} currentUserId="guest" onSend={vi.fn()} />);
+
+    const text = container.querySelector('.whitespace-pre-wrap');
+    expect(text?.textContent).toBe(body);
+    expect(text?.textContent).toContain(`1. ${instruction}`);
+    expect(screen.getByText('Snoozy · Automated assistant').parentElement?.parentElement).toHaveClass('justify-start');
+    expect(container.textContent).not.toContain('[supporting-documents]');
+    expect(container.querySelector('a')).toBeNull();
+    expect(screen.getByRole('textbox')).toBeEnabled();
+  });
+
   it('keeps own messages right aligned and sends a trimmed reply', async () => {
     const onSend = vi.fn().mockResolvedValue(undefined);
     render(<MessageThread messages={[message('GUEST', 'My message', 'guest')]} currentUserId="guest" onSend={onSend} />);
