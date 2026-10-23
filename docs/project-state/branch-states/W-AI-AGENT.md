@@ -36,7 +36,6 @@ Row added to `PROJECT_STATE.md` § Orientation:
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
 | S2 | 2026-10-23 | Codex + read-only SD22 reviewer lenses | W-AI-AGENT | Building | SD22 email amendment written; T8 committed; T1 focused green | Review fixed marker/address/subject exception, resolve findings, ask amended-spec gate 1; revised plan gate 2 follows that approval | 2026-10-23 |
-| S3 | 2026-10-23 | Codex feature_definition subagent | W-AI-AGENT | Building | T3 focused 22/22 and offline kit 35/35 pass; full backend gate active | Finish existing full tests, rerun corrected Checkstyle/build; freeze email implementation pending SD22 gates | 2026-10-23 |
 
 **Remaining**
 
@@ -54,7 +53,7 @@ Row added to `PROJECT_STATE.md` § Orientation:
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AI-AGENT | Ticket clarification assistant and draft report for the Support Agent | Building | [spec](docs/superpowers/specs/2026-10-23-w-ai-agent-design.md) | [plan](docs/superpowers/plans/2026-10-23-w-ai-agent.md) | T8 done; T1/T3 checks; SD22 email amendment review next | — |
+| W-AI-AGENT | Ticket clarification assistant and draft report for the Support Agent | Building | [spec](docs/superpowers/specs/2026-10-23-w-ai-agent-design.md) | [plan](docs/superpowers/plans/2026-10-23-w-ai-agent.md) | Wave 1 original scope done; SD22 spec approval next | — |
 
 ---
 
@@ -62,15 +61,15 @@ Row added to `PROJECT_STATE.md` § Orientation:
 
 ### Repository and persistence
 
-**Now (verification in flight):** migration V006 adds `ticket_assistants` keyed by ticket id with bounded state, rounds and draft, and widens ticket-message authorship to SYSTEM. `TicketAssistant` maps the row; `TicketAssistantRepository` supplies a conflict-safe PENDING insert, WAITING_GUEST compare-and-set and pessimistic locked read. Reset helpers delete assistant rows before messages. No runtime assistant orchestration is built yet.
+**Now:** migration V006 adds `ticket_assistants` keyed by ticket id with bounded state, rounds and draft, and widens ticket-message authorship to SYSTEM. `TicketAssistant` maps the row; `TicketAssistantRepository` supplies a conflict-safe PENDING insert, WAITING_GUEST compare-and-set and pessimistic locked read. Reset helpers delete assistant rows before messages. No runtime assistant orchestration is built yet.
 
 ### Guest message presentation
 
-**Now (verification in flight):** Guest ticket messages share an author-role label helper including `Snoozy · Automated assistant`; ticket conversation entries show the stored last-message body as plain text. Authentication roles and booking conversation presentation are unchanged.
+**Now:** Guest ticket messages share an author-role label helper including `Snoozy · Automated assistant`; ticket conversation entries show the stored last-message body as plain text. Authentication roles and booking conversation presentation are unchanged.
 
 ### Ticket assistant feature definition
 
-**Now (verification in flight):** `service.assistant` defines validated `ClarifyOutput`, bounded configuration, the conditional Guest-only `ticket.clarify` feature, deterministic R4/R4b screens and fixed plain-text report/message rendering. The provisional prompt follows the committed tuning variant plus approved delimiter/personhood rules; Q~2 holds the concurrent email variant. Runtime orchestration and listeners are not built yet.
+**Now:** `service.assistant` defines validated `ClarifyOutput`, bounded configuration, the conditional Guest-only `ticket.clarify` feature, deterministic R4/R4b screens and fixed plain-text report/message rendering. The provisional prompt follows the committed tuning variant plus approved delimiter/personhood rules; Q~2 holds the concurrent email variant. Runtime orchestration and listeners are not built yet.
 
 ---
 
@@ -127,6 +126,7 @@ No change: nothing is built yet.
 
 | Date | What changed | Workstream | Ref |
 |---|---|---|---|
+| 2026-10-23 | T3 original scope done: six production/four test files; focused 22/22, full backend 604/604, Checkstyle and packaging pass; offline kit 35/35. Fix E6 test expectation for shifted newline, not renderer behavior. Provisional prompt excludes unapproved concurrent email/apology changes. SD22 unimplemented; agent retired | W-AI-AGENT | This session |
 | 2026-10-23 | T1 done: V006 schema, entity/repository, audit enums and cleanup/migration coverage. Red missing types recorded; focused persistence tests pass; full backend 604 tests/99 classes pass, corrected Checkstyle and packaging pass. Shared full gate also covers provisional T3 | W-AI-AGENT | This session |
 | 2026-10-23 | T8 done: seven files, focused 15/15, full frontend 325/325 across 52 files, lint and production build pass. Shared helper ready for T7; auth and booking presentation unchanged; agent retired | W-AI-AGENT | This session |
 | 2026-10-23 | Write SD22 support-email amendment per operator choice (C~12), four new edge rows; new behavior held for spec and revised-plan gates. Preserve concurrent tuning-review records D~4 and operator variants | W-AI-AGENT | This session |
