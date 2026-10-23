@@ -122,4 +122,14 @@ class ClarifyFeatureTest {
     private void assertValid(String json, boolean expected) {
         assertThat(validator.validate(json, "stop", feature.output(), "").ok()).as(json).isEqualTo(expected);
     }
+
+    /** The tuning kit's v4 file is the committed prompt; R15 requires them to stay identical. */
+    @Test
+    void committedPromptMatchesTheTuningKitV4File() throws java.io.IOException {
+        java.nio.file.Path file = java.nio.file.Path.of("..", "tools", "prompt-tuning", "ticket-clarify", "prompts",
+            "v4-snoozy-support-documents.txt");
+        org.junit.jupiter.api.Assumptions.assumeTrue(java.nio.file.Files.exists(file));
+        String kit = java.nio.file.Files.readString(file).replace("\r\n", "\n").trim();
+        org.assertj.core.api.Assertions.assertThat(ClarifyPrompt.TEXT.trim()).isEqualTo(kit);
+    }
 }
