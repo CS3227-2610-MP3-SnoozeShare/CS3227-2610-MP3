@@ -31,7 +31,7 @@ No change.
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S1 | 2026-10-23 16:00 | Claude Opus 4.6 (lead) | W-AI-GUEST | Active | T1 done; starting T2 | T2 step 1: create DTOs | 2026-10-23 |
+| S1 | 2026-10-23 16:00 | Claude Opus 4.6 (lead) | W-AI-GUEST | Active | T2 done; starting T3/T4 (wave 3) | T3 step 1: edge-case tests | 2026-10-23 |
 
 **Remaining**
 
@@ -45,7 +45,7 @@ No change.
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AI-GUEST | AI Search Assistant — Guest natural language search via LLM | Building | [spec](docs/superpowers/specs/2026-10-23-w-ai-guest-design.md) | [plan](docs/superpowers/plans/2026-10-23-w-ai-guest.md) | T1 done; T2 next | — |
+| W-AI-GUEST | AI Search Assistant — Guest natural language search via LLM | Building | [spec](docs/superpowers/specs/2026-10-23-w-ai-guest-design.md) | [plan](docs/superpowers/plans/2026-10-23-w-ai-guest.md) | T2 done; T3/T4 next (wave 3) | — |
 
 ---
 
@@ -89,7 +89,9 @@ No change.
 
 ## 9. Deviations
 
-No deviations yet.
+| ID | What | Consequence | Action |
+|---|---|---|---|
+| D~1 | `GuestWalletControllerTest` fails (10 tests) in the full suite but passes in isolation — pre-existing Testcontainers context-cache issue, present on the base commit too | No impact on this branch's code; full `./gradlew build` shows 10 failures not caused by W-AI-GUEST | Recorded; not fixed here — it affects the base branch |
 
 ---
 
@@ -100,3 +102,4 @@ No deviations yet.
 | 2026-10-23 | W-AI-GUEST design spec written and approved — 7 functional requirements, 3 non-functional, 36 edge cases, 5 tasks across 4 waves. Three review lenses (Implementer, Tester, Attacker) run and findings merged | W-AI-GUEST | `086588b` |
 | 2026-10-23 | W-AI-GUEST implementation plan written and approved — 5 tasks, 4 waves, 21 edge-case tests in T3, reviewed by lite-reviewer | W-AI-GUEST | plan commit |
 | 2026-10-23 | T1: AiSearchFilters record, GuestAiConfig bean (guest.search), unit test — @ConditionalOnDatabase added to avoid datasource-free context failure | W-AI-GUEST | T1 commit |
+| 2026-10-23 | T2: POST /api/guest/ai/search — DTOs, GuestAiSearchService, GuestAiSearchController, 10 integration tests (happy path, validation, degraded, auth, role) | W-AI-GUEST | T2 commit |
