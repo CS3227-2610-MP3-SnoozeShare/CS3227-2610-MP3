@@ -35,6 +35,49 @@ describe('DisputeDetail (F4, F14)', () => {
     api.fetchThread.mockResolvedValue([]);
   });
 
+  it('places the assistant between the Guest and Host chats in a 40/20/40 row that resizes together', async () => {
+    api.fetchDispute.mockResolvedValue(detail({ assistant: assistant() }));
+    render(<DisputeDetail ticketId="t-1" />);
+    const ai = await screen.findByRole('region', { name: 'AI assistant draft' });
+    const guest = screen.getByRole('region', { name: 'Guest messages' });
+    const host = screen.getByRole('region', { name: 'Host messages' });
+    expect(guest.compareDocumentPosition(ai) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(ai.compareDocumentPosition(host) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(ai.parentElement).toHaveClass('lg:grid-cols-[2fr_1fr_2fr]');
+    const grip = within(ai).getByRole('separator', { name: 'Resize AI assistant' });
+    fireEvent.keyDown(grip, { key: 'ArrowDown' });
+    await waitFor(() => expect(guest.style.height).toBe('476px'));
+    expect([ai.style.height, host.style.height]).toEqual(['476px', '476px']);
+  });
+
+  it('keeps two equal columns without an assistant and gives notes the chat background', async () => {
+    api.fetchDispute.mockResolvedValue(detail({ assistant: null }));
+    render(<DisputeDetail ticketId="t-1" />);
+    const notes = await screen.findByLabelText(/Internal notes/);
+    expect(screen.getByRole('region', { name: 'Guest messages' }).parentElement).toHaveClass('lg:grid-cols-2');
+    expect(notes).toHaveClass('bg-card');
+    expect(notes).not.toHaveClass('bg-background');
+  });
+
+  it('renders a standard draft as headed table rows without losing text', async () => {
+    const draft = [
+      "AI-assisted draft. Everything below comes from the Guest's own statements and is unverified.",
+      'Summary: Leak reported.',
+      'Timeline (as reported):',
+      '- 16 Oct: leak',
+      'Guest claims:',
+      '- (none listed)',
+    ].join('\n');
+    api.fetchDispute.mockResolvedValue(detail({ assistant: assistant({ draft }) }));
+    render(<DisputeDetail ticketId="t-1" />);
+    const panel = await screen.findByRole('region', { name: 'AI assistant draft' });
+    expect(within(panel).getByRole('heading', { name: 'Summary:' })).toHaveClass('font-bold');
+    expect(within(panel).getByText('Leak reported.')).toBeInTheDocument();
+    expect(within(panel).getByRole('heading', { name: 'Timeline (as reported):' })).toBeInTheDocument();
+    expect(within(panel).getByText('- 16 Oct: leak')).toBeInTheDocument();
+    expect(within(panel).getByText('- (none listed)')).toBeInTheDocument();
+  });
+
   it('F6 hides the assistant panel for a null projection', async () => {
     api.fetchDispute.mockResolvedValue(detail({ assistant: null }));
     render(<DisputeDetail ticketId="t-1" />);
@@ -103,7 +146,7 @@ describe('DisputeDetail (F4, F14)', () => {
     const panel = await screen.findByRole('region', { name: 'Guest messages' });
     const text = await within(panel).findByText(/Please email supporting documents/);
     expect(text.textContent).toBe(body);
-    expect(text.closest('article')).toHaveClass('self-start');
+    expect(text.closest('article')).toHaveClass('self-end');
     expect(panel.textContent).not.toContain('[supporting-documents]');
     expect(panel.querySelector('a')).toBeNull();
   });

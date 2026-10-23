@@ -23,7 +23,7 @@ describe('ThreadPanel assistant presentation', () => {
       <ThreadPanel detail={snapshot} channel="HOST" canSend resolved={false} height={460} onResize={vi.fn()} /></>);
     const guest = screen.getByRole('region', { name: 'Guest messages' });
     const label = await within(guest).findByText('Snoozy · Automated assistant');
-    expect(label.closest('article')).toHaveClass('self-start');
+    expect(label.closest('article')).toHaveClass('self-end');
     const text = within(guest).getByText(/Please email supporting documents/);
     expect(text.textContent).toBe(body);
     expect(text).toHaveClass('whitespace-pre-wrap');

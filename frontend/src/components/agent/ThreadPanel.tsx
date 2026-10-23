@@ -83,7 +83,7 @@ export function ThreadPanel({ detail, channel, canSend, resolved, height, onResi
     <section
       aria-label={`${isGuest ? 'Guest' : 'Host'} messages`}
       style={{ height }}
-      className="flex min-w-[320px] flex-1 flex-col overflow-hidden rounded-xl border border-border bg-card"
+      className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-card"
     >
       <h2 className="m-0 flex min-h-[38px] items-center gap-2 bg-muted px-4 py-2.5 text-xs font-bold uppercase text-[var(--text-muted)]">
         <span className="min-w-0 truncate">{isGuest ? 'Guest' : 'Host'} messages · {name}</span>
@@ -95,11 +95,7 @@ export function ThreadPanel({ detail, channel, canSend, resolved, height, onResi
             <article className={`${bubble} self-start bg-muted`}>
               <div className="text-xs">{detail.ticket.description}</div>
               {detail.ticket.supportingText && <div className="mt-1 text-xs">{detail.ticket.supportingText}</div>}
-              <div className={stamp}>{formatDateTime(detail.ticket.createdAt)}</div>
-            </article>
-            <article className={`${bubble} self-end bg-accent`}>
-              <div className="text-xs font-bold text-primary">Ticket {detail.ticketLabel} opened</div>
-              <div className="text-xs">Requested remedy: {REMEDY[detail.ticket.requestedRemedy] ?? detail.ticket.requestedRemedy}</div>
+              <div className="mt-1 text-[10px] text-[var(--text-muted)]">Requested remedy: {REMEDY[detail.ticket.requestedRemedy] ?? detail.ticket.requestedRemedy}</div>
               <div className={stamp}>{formatDateTime(detail.ticket.createdAt)}</div>
             </article>
           </>
@@ -109,7 +105,7 @@ export function ThreadPanel({ detail, channel, canSend, resolved, height, onResi
         {messages.map((message) => (
           <article
             key={message.id}
-            className={`${bubble} ${message.authorRole === 'AGENT' ? 'self-end bg-accent' : 'self-start bg-muted'}`}
+            className={`${bubble} ${message.authorRole === 'AGENT' || message.authorRole === 'SYSTEM' ? 'self-end bg-accent' : 'self-start bg-muted'}`}
           >
             <div className="mb-1 text-[10px] font-bold text-[var(--text-muted)]">{authorRoleLabel(message.authorRole)}</div>
             <div className="whitespace-pre-wrap text-xs">{message.body}</div>
