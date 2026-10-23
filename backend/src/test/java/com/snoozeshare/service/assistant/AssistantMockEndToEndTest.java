@@ -103,8 +103,10 @@ class AssistantMockEndToEndTest extends AgentApiIntegrationTest {
         MvcResult spoof = guestPost(s, "{\"body\":\"x\",\"authorRole\":\"SYSTEM\"}");
         idle();
         List<Message> after = thread(id);
-        assertThat(spoof.getResponse().getStatus() >= 400
-            || after.stream().noneMatch(m -> m.getAuthorRole() == Role.SYSTEM && "x".equals(m.getBody()))).isTrue();
+        assertThat(after.stream().filter(m -> "x".equals(m.getBody())))
+            .allMatch(m -> m.getAuthorRole() == Role.GUEST);
+        assertThat(after.stream().noneMatch(m -> m.getAuthorRole() == Role.SYSTEM && "x".equals(m.getBody())))
+            .isTrue();
         assertThat(after.size()).isGreaterThanOrEqualTo(before);
 
         AgentTestUsers.TestUser other = testUsers.create(Role.GUEST);
@@ -119,7 +121,7 @@ class AssistantMockEndToEndTest extends AgentApiIntegrationTest {
         assertThat(foreign.getResponse().getStatus()).isGreaterThanOrEqualTo(400);
         assertThat(thread(id).stream().noneMatch(m -> "intruder".equals(m.getBody()))).isTrue();
         assertThat(jdbc.queryForObject("select count(*) from audit_log where action_type = 'AI_CALL' "
-            + "and ticket_id = ?", Integer.class, id)).isGreaterThanOrEqualTo(calls);
-        assertThat(assistants.findById(id).orElseThrow().getRounds()).isGreaterThanOrEqualTo(state.getRounds());
+            + "and ticket_id = ?", Integer.class, id)).isEqualTo(calls);
+        assertThat(assistants.findById(id).orElseThrow().getRounds()).isEqualTo(state.getRounds());
     }
 }

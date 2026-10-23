@@ -187,7 +187,7 @@ class AssistantTriggerTest extends AssistantIntegrationTest {
         idle();
         assertThat(row(id).getState()).isEqualTo(State.DONE);
         assertThat(row(id).getRounds()).isEqualTo((short) 3);
-        assertThat(calls.get()).isLessThanOrEqualTo(4);
+        assertThat(calls.get()).isEqualTo(4);
     }
 
     @Test

@@ -7,7 +7,7 @@ after the branch merges.
 - **Branch:** W-AI-AGENT (from `development` at `4f87cfa`)
 - **Base:** `42128e6` (development tip after the W-AGENT fold and guide update; merged into this branch 2026-10-23, diff of `PROJECT_STATE.md` checked: only the Guide cell and the guide rows changed, nothing this branch edits)
 - **Owner:** Xiao-Congchen
-- **Status:** Draft
+- **Status:** In review
 - **Approved:** —
 - **Last updated:** 2026-10-23 by Claude Sonnet 5.5 — SD23 approved (C~18); plan revised, gate 2 pending
 
@@ -38,10 +38,8 @@ Row added to `PROJECT_STATE.md` § Orientation:
 
 **Remaining**
 
-- [ ] **Paused at Wave 3 blocker (C~17):** T7 is Done/committed at `93482d1`; T4 cannot finish until Q~3. On operator resumption first obtain approval of the reviewed SD23 High-risk spec, then revise the plan to trace E93/E94 and E49's 50-reply schedule and obtain gate 2. Do not start Wave 4 now.
-- [ ] Resume T4 by implementing api.md § Catch-up replay selection in AssistantContextBuilder; keep at most one omitted newest question, surviving stored order, E84 and call/round guards. Add E93 unit cases and E94 integration; change E49 fixture from 25+25+seed (51) to 24+25+seed (50). Run all T4 tests without exclusions, AiBoundaryTest, then full backend tests/Checkstyle/package. Only after green mark T4 Done and commit worker and orchestration slices. T5/T9 remain Not started.
-- [ ] Partial T4 code intentionally remains uncommitted: AssistantContextBuilder/Job/Applier/Runner, AssistantContextBuilderTest/FlowTest/ConcurrencyTest/RunnerTest/BoundaryTest, testsupport/AssistantIntegrationTest, and the two shared base opt-outs. Existing source is the pre-SD23 replay behavior; E8/E49 still fail. Do not lose, stage as completed, or silently weaken those tests.
 
+- [x] Waves 1–4 complete and committed (T4 finished after SD23, C~18/C~19); T10 steps 1–2 done. Remaining: step 3 operator tuning KEEP (Q~4), code review, gate 3.
 - [x] Original gate 1: Approved (Xiao-Congchen, 2026-10-23), before SD22.
 - [x] SD22 gate 1: Approved (Xiao-Congchen, 2026-10-23), operator: "approve and continue building". Revised-plan gate 2 remains separate.
 - [ ] The operator tunes the prompt with `tools/prompt-tuning/ticket-clarify/` in parallel with the build; the committed prompt needs a `KEEP` row in that kit's `CHANGELOG.md` before merge (spec conventions R15)
@@ -50,6 +48,7 @@ Row added to `PROJECT_STATE.md` § Orientation:
 - [x] Revised-plan gate 2: Approved (Xiao-Congchen, 2026-10-23), operator: "approve and resume building". Includes current T10 tuning-kit adjustment; resume T3 step 7 and T8 step 5, then Wave 2 after verification. No push/PR or live service action authorized.
 - [x] Operator pause applied at the current Wave 3 blocker after independent T4 checks and SD23 review; no Wave 4 work started.
 - [ ] **Handover:** `docs/DeveloperGuide.md` needs the assistant (data, flow, configuration) at its guide checkpoint
+- [ ] **Handover (pre-merge, blocking, plan T10 step 3):** the operator runs `tools/prompt-tuning/ticket-clarify/` on `prompts/v4-snoozy-support-documents.txt` (identical to `ClarifyPrompt`, pinned by `ClarifyFeatureTest`) with a SoCLaaS key held in the terminal, vets the transcripts, and adds a `KEEP` row to its `CHANGELOG.md` (spec R15). Also: the uncommitted tuning-kit edits in `tools/prompt-tuning/ticket-clarify/` (README, run.mjs, tickets.json, v1–v3 prompts, CHANGELOG) predate this session and still need the operator's commit.
 - [ ] **Handover:** the live SoCLaaS check of the assistant (a real ticket, a real reply) is a post-merge step
 
 ---
@@ -58,7 +57,7 @@ Row added to `PROJECT_STATE.md` § Orientation:
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AI-AGENT | Ticket clarification assistant and draft report for the Support Agent | Building | [spec](docs/superpowers/specs/2026-10-23-w-ai-agent-design.md) | [plan](docs/superpowers/plans/2026-10-23-w-ai-agent.md) | Waves 1–4 done; T10 steps 1–2 done, GATE 3 (operator tuning KEEP) and close-out remain | — |
+| W-AI-AGENT | Ticket clarification assistant and draft report for the Support Agent | Building | [spec](docs/superpowers/specs/2026-10-23-w-ai-agent-design.md) | [plan](docs/superpowers/plans/2026-10-23-w-ai-agent.md) | Waves 1–4 done; T10 steps 1–2 done; operator KEEP (Q~4), code review and gate 3 remain | — |
 
 ---
 
@@ -88,17 +87,29 @@ Row added to `PROJECT_STATE.md` § Orientation:
 
 **Now:** `service.assistant` defines validated `ClarifyOutput`, bounded configuration, the conditional Guest-only `ticket.clarify` feature, deterministic R4/R4b screens and fixed plain-text report/message rendering. The provisional prompt includes approved P13 marker guidance; R4 canonicalizes the document marker and rejects mixed/contact/subject/UUID overrides. R6 requires a server-loaded ticket UUID and expands only the canonical marker to the fixed support instruction. Final live tuning evidence remains T10. The runtime now reads immutable snapshots in a read-only transaction, calls the gateway outside transactions, and applies guarded state/message/audit changes in a REQUIRES_NEW transaction. A private bounded asynchronous runner tracks follow-up handoffs through idle waits. Catch-up calls omit only the newest question when an unseen Guest reply precedes it (SD23). `TicketOpenedListener` (after commit; conflict-safe PENDING insert, then submit) and `MessagePostedListener` (plain listener; a Guest reply claims WAITING_GUEST, an Agent post in the GUEST channel stops the row) start and stop turns, each catching every failure. Settings live under `snoozeshare.assistant` in `application.yml` (`SNOOZESHARE_ASSISTANT_*`); the runbook has the diagnosis and rollback notes.
 
+### 4.17 Ticket assistant (`com.snoozeshare.service.assistant`)
+
+**Now:** after a Guest files a ticket, `TicketOpenedListener` (after commit) inserts a `ticket_assistants` row in `PENDING` and submits an `AssistantJob` to the private bounded `AssistantRunner` (daemon threads, abort-on-full queue, never the request thread). The job loads a read-only snapshot (`AssistantContextBuilder`: eight trusted facts, the ticket text, stored question and Guest turns, no Host, Agent, listing or category text), calls the `ticket.clarify` feature on the shared gateway outside any transaction, then `AssistantApplier` applies the result in one `REQUIRES_NEW` transaction under ticket-then-assistant locks: screened questions are posted as SYSTEM messages in the GUEST thread (the fixed support-email line is expanded server-side from the canonical marker), the draft is replaced, and every state change and message gets an `ASSISTANT_STATE` / `ASSISTANT_MESSAGE` audit row with metadata only. `MessagePostedListener` resumes a `WAITING_GUEST` row on a Guest reply (compare-and-set) and stops it on an Agent post in the GUEST channel. A follow-up call runs when a Guest reply arrived during a call; its replay leaves out only the newest question when an unseen reply precedes it (SD23). Rounds are capped (`max-rounds`, default 3), calls are bounded by `max-rounds + 1`, and every failure ends in `UNAVAILABLE`/`STOPPED` with no retry or sweep. The Agent sees the draft only through dispute detail and inserts it into notes by hand. A SYSTEM-authored ticket-thread message means the automated assistant (C~7).
+
+| ID | Decision |
+|---|---|
+| C~1 | The draft lives in a separate field and is never written to `tickets.agent_notes` by the system |
+| C~7 | The assistant uses the existing SYSTEM role; the frontend labels it "Snoozy · Automated assistant" |
+| C~16 / C~18 | SD23 catch-up replay selection (approved) |
+
 ---
 
 ## 5. Conventions
 
+- A SYSTEM-authored message in a ticket GUEST thread is the automated assistant; do not use the SYSTEM role for anything else there (C~7). Agent text is treated as trusted-for-stop only and never enters the prompt.
+- Assistant tests that file tickets must start from `pending()` in `AssistantIntegrationTest` (real listeners run on filing; the helper files with a DISABLED gateway and clears invocations).
 - `TicketAssistant` is explicitly keyed by `ticket_id` (approved data model), an exception to the ordinary entity `id` column convention; it is a one-to-one extension of the existing ticket.
 
 ---
 
 ## 6. Known Gaps
 
-No new accepted limitations beyond the provisional prompt and existing screen/prose residuals recorded in the spec; runtime orchestration is not built.
+Accepted limitations are the spec's R12 list (conventions.md): a call lost at a restart leaves the row `PENDING` (shown stale) with no sweep; screens are a floor, not a proof, and drop some harmless text; no re-run after `UNAVAILABLE`; model questions are Guest-influenced; steered prose matching no pattern passes; `flagged` is pattern-based; the feature shares the gateway budget with the other role features and many throwaway Guest accounts can fill the two worker threads and fifty-job queue; drafts and assistant messages persist with the ticket (owner W-SECURITY); with the gateway disabled each ticket still costs a row insert, a job and a delete. The ticket-opened listener inserts its row in a REQUIRES_NEW transaction during the after-commit phase, which can need a second pool connection per filing request under heavy load (code review, not load-tested). Also D~1: a 6,000-character draft can exceed the 4,000-character notes limit, so the Agent may need to edit before saving.
 
 ---
 
@@ -106,7 +117,7 @@ No new accepted limitations beyond the provisional prompt and existing screen/pr
 
 | ID | What is needed | What it blocks | Raised |
 |---|---|---|---|
-| — | None open. Q~3 resolved: SD23 (C~18) and the revised plan (C~19) approved | — | 2026-10-23 |
+| Q~4 | Operator tuning-kit run and `KEEP` row for the exact committed prompt (plan T10 step 3); also decide who commits the pre-existing tuning-kit edits | Merge (spec R15); gate 3 can still be reviewed | 2026-10-23 |
 
 ---
 
@@ -152,6 +163,7 @@ No new accepted limitations beyond the provisional prompt and existing screen/pr
 
 | Date | What changed | Workstream | Ref |
 |---|---|---|---|
+| 2026-10-23 | Close-out: architecture 4.17, conventions and Known Gaps written; code review (7 findings): strengthened E44/E45/E8 assertions and imports, connection-pool risk recorded as a gap. Backend build/Checkstyle, frontend 351 tests/lint/build and kit selftest pass. Operator tuning KEEP (Q~4) not run | W-AI-AGENT | This session |
 | 2026-10-23 | Pause at Wave 3 blocker as requested: T7 committed/350 frontend tests green; T4 independent 50 tests/6 classes pass with no failures/errors/skips, Checkstyle/package pass, but E8/E49 remain red and no full-current-backend pass is claimed. SD23 reviewed by four lenses, exact burst-count finding fixed (E49/E94), spec lint 0 errors/1 near-cap warning. All sessions/reviewers retired; owner resumption/spec gate 1, revised-plan gate 2, then T4 fix/tests next. No push/PR | W-AI-AGENT | This session |
 | 2026-10-23 | T4 partial: scalar read snapshot, guarded transactional applier/job, shared enabled fixture with pre-reset worker drain and legacy opt-out. Missing-type reds recorded; E31 cursor regression red then repaired. Independent focused 50/50 across six classes; Checkstyle and packaging pass with test task excluded. E8/E49 remain red from chronological catch-up/USER-last spec conflict; no full suite or task completion claimed. Steps 1–4 checked, 5–6 held for SD23. Implementer session retired; root owns review/amendment/integration | W-AI-AGENT | This session |
 | 2026-10-23 | T4 concurrency found D~5 after initial focused context/flow/runner/boundary checks passed. Draft SD23 replay selection/E93 without changing application behavior; reopen spec/plan approval. T7 committed at 93482d1 (350 frontend tests, lint/build pass). Preserve concurrent tuning/reflection work | W-AI-AGENT | This session |

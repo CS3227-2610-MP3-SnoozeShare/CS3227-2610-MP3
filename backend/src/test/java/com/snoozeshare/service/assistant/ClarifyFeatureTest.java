@@ -1,7 +1,11 @@
 package com.snoozeshare.service.assistant;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -125,11 +129,11 @@ class ClarifyFeatureTest {
 
     /** The tuning kit's v4 file is the committed prompt; R15 requires them to stay identical. */
     @Test
-    void committedPromptMatchesTheTuningKitV4File() throws java.io.IOException {
-        java.nio.file.Path file = java.nio.file.Path.of("..", "tools", "prompt-tuning", "ticket-clarify", "prompts",
+    void committedPromptMatchesTheTuningKitV4File() throws IOException {
+        Path file = Path.of("..", "tools", "prompt-tuning", "ticket-clarify", "prompts",
             "v4-snoozy-support-documents.txt");
-        org.junit.jupiter.api.Assumptions.assumeTrue(java.nio.file.Files.exists(file));
-        String kit = java.nio.file.Files.readString(file).replace("\r\n", "\n").trim();
-        org.assertj.core.api.Assertions.assertThat(ClarifyPrompt.TEXT.trim()).isEqualTo(kit);
+        assumeTrue(Files.exists(file));
+        String kit = Files.readString(file).replace("\r\n", "\n").trim();
+        assertThat(ClarifyPrompt.TEXT.trim()).isEqualTo(kit);
     }
 }
