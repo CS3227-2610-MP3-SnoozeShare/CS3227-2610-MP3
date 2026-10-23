@@ -7,6 +7,7 @@ Iteration 2 started; earlier entries: [docs/project-history/iteration-1/done-led
 
 | Date | What changed | Workstream | Ref |
 |---|---|---|---|
+| 2026-10-23 | Developer guide updated for W-AI-GUEST: new § 4.27 Guest AI Search Assistant, § 1 delivered-features row, § 4.23 cross-reference, § 5 requirements (F1–F7, N1–N3), known limitation (C168), § 7 test suites, § 3.2 key decisions (C162, C165) | W-AI-GUEST | guide checkpoint |
 | 2026-10-23 | Folded the W-AI-GUEST branch state into `PROJECT_STATE.md` (decisions C162–C168, deviation D116, workstream row); W-AI-GUEST is Done, guide confirmation pending | W-AI-GUEST | [archive](branch-states/archive/2026-10-23-W-AI-GUEST.md) |
 | 2026-10-23 | T5: 7 Vitest tests for AI search bar (renders, disabled states, explanation, degraded alert, clear, manual fallback) + checkstyle import order fix in GuestAiSearchController | W-AI-GUEST | T5 commit |
 | 2026-10-23 | T4: AI search bar on Guest search page — types, aiSearch function, AI form, explanation card, filter chips, clear action | W-AI-GUEST | T4 commit |
