@@ -9,7 +9,7 @@ after the branch merges.
 - **Owner:** Xiao-Congchen
 - **Status:** Draft
 - **Approved:** —
-- **Last updated:** 2026-10-23 by Codex — plan written, lint clean and reviewed; gate 2 next
+- **Last updated:** 2026-10-23 by Codex — gate 2 approved; execution baseline in progress
 
 ---
 
@@ -35,12 +35,13 @@ Row added to `PROJECT_STATE.md` § Orientation:
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
+| S2 | 2026-10-23 | Codex | W-AI-AGENT | Building | Approved plan; checking all component baselines before T1 | Finish baseline builds and Docker checks; resolve sandbox cache/network access, then start T1 step 1 | 2026-10-23 |
 
 **Remaining**
 
 - [x] Gate 1: spec reviewed and Approved (Xiao-Congchen, 2026-10-23)
 - [ ] The operator tunes the prompt with `tools/prompt-tuning/ticket-clarify/` in parallel with the build; the committed prompt needs a `KEEP` row in that kit's `CHANGELOG.md` before merge (spec conventions R15)
-- [ ] Gate 2: plan written and reviewed, awaiting operator approval. Ask approval of `docs/superpowers/plans/2026-10-23-w-ai-agent.md` (10 tasks, five waves). On yes write Approved (Xiao-Congchen, date), lint plan --approved, mark workstream Planned, then start executing-plans-lite. No implementation before that yes.
+- [x] Gate 2: Approved (Xiao-Congchen, 2026-10-23); operator said "approve" to the plan approval question. Start executing-plans-lite without another implementation approval.
 - [ ] Execute the plan (`executing-plans-lite`)
 - [ ] **Handover:** `docs/DeveloperGuide.md` needs the assistant (data, flow, configuration) at its guide checkpoint
 - [ ] **Handover:** the live SoCLaaS check of the assistant (a real ticket, a real reply) is a post-merge step
@@ -51,7 +52,7 @@ Row added to `PROJECT_STATE.md` § Orientation:
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AI-AGENT | Ticket clarification assistant and draft report for the Support Agent | Spec'd | [spec](docs/superpowers/specs/2026-10-23-w-ai-agent-design.md) | [plan](docs/superpowers/plans/2026-10-23-w-ai-agent.md) | Plan reviewed without blockers; gate 2 approval next | — |
+| W-AI-AGENT | Ticket clarification assistant and draft report for the Support Agent | Planned | [spec](docs/superpowers/specs/2026-10-23-w-ai-agent-design.md) | [plan](docs/superpowers/plans/2026-10-23-w-ai-agent.md) | Gate 2 approved; execution baseline in flight | — |
 
 ---
 
@@ -83,6 +84,7 @@ No change: Q~1 was raised and resolved on this branch (C~7).
 
 | ID | Date | Decision | Why / who asked | Source |
 |---|---|---|---|---|
+| C~11 | 2026-10-23 | Approved (Xiao-Congchen, 2026-10-23): implementation plan at gate 2; proceed to execution | Operator said "approve" to the explicit plan approval question (10 tasks, five waves). No push, PR, merge or live service action is authorized | Operator conversation |
 | C~10 | 2026-10-23 | Approved (Xiao-Congchen, 2026-10-23): retain High risk and approve the spec at gate 1; proceed to plan writing | Operator: "ok fine approve, proceed", after the High-risk rationale and explicit spec approval question. Medium rejected because personal data triggers C67 and feature-specific output and concurrency risks remain | Operator conversation |
 | C~1 | 2026-10-23 | The assistant's report is stored in a separate AI draft field, never written into `tickets.agent_notes` by the system; the Agent inserts it into notes on request | Operator: "most flexibility". Rejected: writing straight into `agent_notes`, which the Agent also edits | Operator conversation |
 | C~2 | 2026-10-23 | The assistant posts in the ticket's GUEST thread as the SYSTEM user, labelled as an automated assistant | Operator: "thats kinda like how apps do it anyway". The role value is Q~1 | Operator conversation |
@@ -106,6 +108,7 @@ No change: Q~1 was raised and resolved on this branch (C~7).
 
 | Date | What changed | Workstream | Ref |
 |---|---|---|---|
+| 2026-10-23 | Record plan approval at gate 2 and start baseline verification before implementation. Existing operator changes to docs/Reflections.md are preserved and excluded from all task commits; clean-tree precondition is interpreted as no unrelated agent changes | W-AI-AGENT | This session |
 | 2026-10-23 | Finish plan: 10 tasks/five waves, all 85 E rows mapped; read-only lite-reviewer Implementer lens found no blockers/questions. Clarify inherited fixture ordering, broaden legacy-suite opt-out to PostgresIntegrationTest, and link spec to plan. Spec/plan lint clean; source/build tests not run because only planning documents changed. Session and reviewer retired; gate 2 next | W-AI-AGENT | This session |
 | 2026-10-23 | Draft T1–T10 implementation plan across five waves with all 85 edge cases traced; verify repository seams and run clean plan lint; begin required read-only lite-reviewer round | W-AI-AGENT | This session |
 | 2026-10-23 | Record gate 1 spec approval by Xiao-Congchen and start plan writing; implementation remains gated on plan approval | W-AI-AGENT | This session |
