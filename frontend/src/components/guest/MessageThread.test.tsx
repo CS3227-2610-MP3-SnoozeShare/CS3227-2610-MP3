@@ -25,7 +25,7 @@ describe('MessageThread', () => {
     expect(label.parentElement?.parentElement).toHaveClass('justify-start');
     const text = container.querySelector('.whitespace-pre-wrap');
     expect(text?.textContent).toBe(body);
-    expect(container.querySelector('img, strong')).toBeNull();
+    expect(text?.querySelector('img, strong')).toBeNull();
     expect(screen.getByRole('textbox')).toBeEnabled();
   });
 

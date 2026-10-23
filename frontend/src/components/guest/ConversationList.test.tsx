@@ -20,10 +20,11 @@ describe('ConversationList', () => {
   it('F7/R11 shows the stored assistant preview literally with unread count and selection', () => {
     const onSelect = vi.fn();
     const item = { kind: 'ticket' as const, data: ticket };
-    const { container } = render(<ConversationList items={[item]} selectedId="ticket:ticket" onSelect={onSelect} />);
-    expect(screen.getByText(ticket.lastMessage!.body)).toBeInTheDocument();
+    render(<ConversationList items={[item]} selectedId="ticket:ticket" onSelect={onSelect} />);
+    const preview = screen.getByText(ticket.lastMessage!.body);
+    expect(preview).toBeInTheDocument();
     expect(screen.getByText('2')).toBeInTheDocument();
-    expect(container.querySelector('img, strong')).toBeNull();
+    expect(preview.querySelector('img, strong')).toBeNull();
     fireEvent.click(screen.getByRole('button'));
     expect(onSelect).toHaveBeenCalledWith('ticket:ticket', item);
   });

@@ -45,14 +45,15 @@ export function MessageThread({
         {messages.length === 0 && <p className="text-center text-sm text-[var(--text-subtle)]">No messages yet.</p>}
         {messages.map((m) => {
           const isMe = m.authorId === currentUserId;
+          const authorLabel = isMe ? 'You' : authorRoleLabel(m.authorRole);
           return (
             <div key={m.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
               <div
-                aria-label={`Message from ${isMe ? 'You' : m.authorRole}`}
+                aria-label={`Message from ${authorLabel}`}
                 className={`max-w-[80%] rounded-lg px-3 py-2 text-[13px] ${isMe ? 'bg-[var(--accent)]' : 'bg-[var(--surface-inset)]'}`}
                 role="group"
               >
-                <strong className="text-xs">{isMe ? 'You' : m.authorRole}</strong>
+                <strong className="text-xs">{authorLabel}</strong>
                 <p className="mt-1 whitespace-pre-wrap text-[13px]">{m.body}</p>
                 <p className="mt-0.5 text-[10px] text-[var(--text-subtle)]">
                   {new Date(m.sentAt).toLocaleString()}

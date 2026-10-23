@@ -66,6 +66,9 @@ export function ConversationList({
               <span className="flex items-center gap-1 truncate text-sm"><span className="shrink-0">{isTicket ? '🎫' : '💬'}</span><strong>{itemLabel(item)}</strong></span>
               <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${statusClass}`}>{statusLabel}</span>
             </span>
+            {isTicket && item.data.lastMessage && (
+              <span className="mt-1 block truncate text-xs text-[var(--text-subtle)]">{item.data.lastMessage.body}</span>
+            )}
             <span className="mt-1 mb-2 flex items-center justify-between gap-1 text-xs text-[var(--text-subtle)]">
               <span className="truncate">{item.data.counterpartName}</span>
               {unread && (
