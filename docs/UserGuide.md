@@ -59,6 +59,16 @@ authentication; the old email-only desktop login flow no longer applies.
 Choose **Forgot password?** to request a reset email. A successful request tells you to check
 your email. Check spam and verify the address if the message does not arrive.
 
+### Sample accounts
+
+Use these seeded accounts to try each workspace on the hosted demo:
+
+| Role | Email | Password |
+| --- | --- | --- |
+| Guest | `guest01@snoozeshare.test` | `guest123` |
+| Host | `host01@snoozeshare.test` | `host123` |
+| Support Agent | `agent01@snoozeshare.test` | `agent123` |
+
 ![Sign-in screen](images/login.png)
 
 
