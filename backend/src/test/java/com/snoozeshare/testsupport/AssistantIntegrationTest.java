@@ -2,6 +2,7 @@ package com.snoozeshare.testsupport;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
 
@@ -74,9 +75,15 @@ public abstract class AssistantIntegrationTest extends AgentApiIntegrationTest {
         super.cleanApiFixture();
     }
 
+    /**
+     * Files a ticket with the real listeners disabled by a DISABLED gateway, so the filing job removes its own row
+     * and leaves no call or audit trace, then installs a clean PENDING row for the test to drive by hand.
+     */
     protected Ticket pending() {
+        doReturn(degraded(LlmErrorCode.DISABLED)).when(gateway).run(any(), any());
         Ticket ticket = scenarios.openDispute(RemedyType.FULL_REFUND).ticket();
         assertThat(runner.awaitIdle(Duration.ofSeconds(20))).isTrue();
+        clearInvocations(gateway, audit);
         jdbc.update("delete from ticket_assistants where ticket_id = ?", ticket.getId());
         applier.insertPending(ticket.getId());
         return ticket;
