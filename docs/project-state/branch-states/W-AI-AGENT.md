@@ -35,12 +35,14 @@ Row added to `PROJECT_STATE.md` § Orientation:
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S2 | 2026-10-23 | Codex | W-AI-AGENT | Building | Approved plan; checking all component baselines before T1 | Finish baseline builds and Docker checks; resolve sandbox cache/network access, then start T1 step 1 | 2026-10-23 |
+| S2 | 2026-10-23 | Codex | W-AI-AGENT | Building | T1 focused persistence tests pass; full backend gate pending T3 render fix | Await full backend gate, then commit T1 and continue Wave 2 after Wave 1 finishes | 2026-10-23 |
+| S3 | 2026-10-23 | Codex feature_definition subagent | W-AI-AGENT | Building | T3 focused batch: one renderer 6000-boundary assertion fails; 27/28 batch tests pass | Diagnose E6 boundary without weakening it, rerun focused classes, then full backend gate; owns backend test slot | 2026-10-23 |
 
 **Remaining**
 
 - [x] Gate 1: spec reviewed and Approved (Xiao-Congchen, 2026-10-23)
 - [ ] The operator tunes the prompt with `tools/prompt-tuning/ticket-clarify/` in parallel with the build; the committed prompt needs a `KEEP` row in that kit's `CHANGELOG.md` before merge (spec conventions R15)
+- [ ] Tuning-kit gross-gap review completed (D~4); resolve Q~2, address evaluator parity/scoring gaps, then run matched repeated variants. No live eval yet; `SOCLAAS_API_KEY` is absent from the review shell.
 - [x] Gate 2: Approved (Xiao-Congchen, 2026-10-23); operator said "approve" to the plan approval question. Start executing-plans-lite without another implementation approval.
 - [ ] Execute the plan (`executing-plans-lite`)
 - [ ] **Handover:** `docs/DeveloperGuide.md` needs the assistant (data, flow, configuration) at its guide checkpoint
@@ -52,19 +54,29 @@ Row added to `PROJECT_STATE.md` § Orientation:
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AI-AGENT | Ticket clarification assistant and draft report for the Support Agent | Planned | [spec](docs/superpowers/specs/2026-10-23-w-ai-agent-design.md) | [plan](docs/superpowers/plans/2026-10-23-w-ai-agent.md) | Gate 2 approved; execution baseline in flight | — |
+| W-AI-AGENT | Ticket clarification assistant and draft report for the Support Agent | Building | [spec](docs/superpowers/specs/2026-10-23-w-ai-agent-design.md) | [plan](docs/superpowers/plans/2026-10-23-w-ai-agent.md) | T8 done; T1/T3 checks; SD22 email amendment review next | — |
 
 ---
 
 ## 4. Architecture
 
-No change: nothing is built yet. The spec proposes a new area, the ticket assistant, which the plan's execution will describe here.
+### Repository and persistence
+
+**Now (verification in flight):** migration V006 adds `ticket_assistants` keyed by ticket id with bounded state, rounds and draft, and widens ticket-message authorship to SYSTEM. `TicketAssistant` maps the row; `TicketAssistantRepository` supplies a conflict-safe PENDING insert, WAITING_GUEST compare-and-set and pessimistic locked read. Reset helpers delete assistant rows before messages. No runtime assistant orchestration is built yet.
+
+### Guest message presentation
+
+**Now (verification in flight):** Guest ticket messages share an author-role label helper including `Snoozy · Automated assistant`; ticket conversation entries show the stored last-message body as plain text. Authentication roles and booking conversation presentation are unchanged.
+
+### Ticket assistant feature definition
+
+**Now (verification in flight):** `service.assistant` defines validated `ClarifyOutput`, bounded configuration, the conditional Guest-only `ticket.clarify` feature, deterministic R4/R4b screens and fixed plain-text report/message rendering. The provisional prompt follows the committed tuning variant plus approved delimiter/personhood rules; Q~2 holds the concurrent email variant. Runtime orchestration and listeners are not built yet.
 
 ---
 
 ## 5. Conventions
 
-No change: nothing is built yet.
+- `TicketAssistant` is explicitly keyed by `ticket_id` (approved data model), an exception to the ordinary entity `id` column convention; it is a one-to-one extension of the existing ticket.
 
 ---
 
@@ -76,7 +88,9 @@ No change: nothing is built yet.
 
 ## 7. Needs a Human
 
-No change: Q~1 was raised and resolved on this branch (C~7).
+| ID | What is needed | What it blocks | Raised |
+|---|---|---|---|
+| Q~2 | Operator chose fixed support email; SD22 amendment is written for exact marker/backend expansion. Review and explicit amended-spec approval are next, then revised plan approval. The concurrently edited apology variant remains unapproved; the original persona rule still applies | New email adoption and subsequent execution; unaffected T8 and T1/T3 verification can be recorded | 2026-10-23 |
 
 ---
 
@@ -84,6 +98,7 @@ No change: Q~1 was raised and resolved on this branch (C~7).
 
 | ID | Date | Decision | Why / who asked | Source |
 |---|---|---|---|---|
+| C~12 | 2026-10-23 | Operator reverses the blanket contact prohibition only for a fixed support-email instruction. SD22 proposes exact model marker expanded by backend to support@snoozeshare.com with stored ticket UUID subject; amendment review/approval pending | Operator selected revise spec for fixed support email. Rejected retaining the blanket prohibition; arbitrary addresses/subjects remain forbidden. No apology-rule reversal authorized | Operator async answer |
 | C~11 | 2026-10-23 | Approved (Xiao-Congchen, 2026-10-23): implementation plan at gate 2; proceed to execution | Operator said "approve" to the explicit plan approval question (10 tasks, five waves). No push, PR, merge or live service action is authorized | Operator conversation |
 | C~10 | 2026-10-23 | Approved (Xiao-Congchen, 2026-10-23): retain High risk and approve the spec at gate 1; proceed to plan writing | Operator: "ok fine approve, proceed", after the High-risk rationale and explicit spec approval question. Medium rejected because personal data triggers C67 and feature-specific output and concurrency risks remain | Operator conversation |
 | C~1 | 2026-10-23 | The assistant's report is stored in a separate AI draft field, never written into `tickets.agent_notes` by the system; the Agent inserts it into notes on request | Operator: "most flexibility". Rejected: writing straight into `agent_notes`, which the Agent also edits | Operator conversation |
@@ -100,7 +115,11 @@ No change: Q~1 was raised and resolved on this branch (C~7).
 
 ## 9. Deviations
 
+- **D~4 (tuning review, 2026-10-23):** The kit is not ready for reliable prompt ranking. Its validator accepts unknown fields, duplicate keys and escaped URLs that the backend rejects; its injection detection runs before control-character removal and misses a split phrase the backend detects. The judge has no draft factuality/coverage check (a fabricated T03 summary passes), mostly checks first-turn questions, and fixed multi-turn replies reveal facts regardless of what was asked. Summaries omit temperature, maxTokens, round cap and dataset/runner fingerprints, and compare does not require matching case sets/settings. Next: resolve Q~2, correct parity and scoring, then compare identical cases/settings with repeated runs; manually review factuality and question relevance before any KEEP decision. No live call made; review shell has no SOCLAAS_API_KEY.
+
 - **D~1 (planning, 2026-10-23):** Existing notes save/textarea limits are 4,000 characters; approved drafts allow 6,000 and insertion appends existing notes. Plan preserves full local insertion and existing server validation, so an Agent may need to edit down before saving. No silent truncation or limit increase. Carry this UX limitation to review/Handover.
+- **D~2 (baseline, 2026-10-23):** Restricted Gradle/Docker access required escalated build commands. All component builds passed; frontend npm ci/lint/build passed. Default frontend suite had six timeout failures, two-worker retry had two different timeout failures (308/310 passed); full single-worker suite passed unchanged (49 files, 310/310 tests), without changing timeouts/assertions. Use --maxWorkers=1. Existing docs/Reflections.md changes are operator work and stay untouched.
+- **D~3 (concurrent work, 2026-10-23):** Operator tuning-kit variants changed during T3 reads, including an email instruction contrary to approved P3/R4. Variants stay untouched and excluded from agent commits; Q~2 asks keep/reverse. T3's provisional prompt freezes the committed variant plus already approved P4/P12, pending a scoped decision.
 
 ---
 
@@ -108,6 +127,10 @@ No change: Q~1 was raised and resolved on this branch (C~7).
 
 | Date | What changed | Workstream | Ref |
 |---|---|---|---|
+| 2026-10-23 | T8 done: seven files, focused 15/15, full frontend 325/325 across 52 files, lint and production build pass. Shared helper ready for T7; auth and booking presentation unchanged; agent retired | W-AI-AGENT | This session |
+| 2026-10-23 | Write SD22 support-email amendment per operator choice (C~12), four new edge rows; new behavior held for spec and revised-plan gates. Preserve concurrent tuning-review records D~4 and operator variants | W-AI-AGENT | This session |
+| 2026-10-23 | Review tuning workflow for gross gaps: 35/35 offline selftest checks and T01 dry run pass. In-memory probes reproduce acceptance of unknown fields, duplicate JSON keys and escaped links; a zero-width-split injection is missed; a fabricated T03 summary receives no issue. Email instruction is dropped by question screen. No runner/prompt changes or live calls; Q~2 remains pending; D~4 records follow-up. Review session retired; concurrent implementation sessions preserved | W-AI-AGENT | This tuning review |
+| 2026-10-23 | Baseline green: all three component builds, frontend npm ci/lint/build and 310/310 tests with one worker. Wave 1 red runs recorded for missing persistence/feature types and missing Guest labels/preview. T1 schema/entity/repository and reset changes implemented; T8 focused tests pass 15/15, full frontend gate in flight | W-AI-AGENT | This session |
 | 2026-10-23 | Record plan approval at gate 2 and start baseline verification before implementation. Existing operator changes to docs/Reflections.md are preserved and excluded from all task commits; clean-tree precondition is interpreted as no unrelated agent changes | W-AI-AGENT | This session |
 | 2026-10-23 | Finish plan: 10 tasks/five waves, all 85 E rows mapped; read-only lite-reviewer Implementer lens found no blockers/questions. Clarify inherited fixture ordering, broaden legacy-suite opt-out to PostgresIntegrationTest, and link spec to plan. Spec/plan lint clean; source/build tests not run because only planning documents changed. Session and reviewer retired; gate 2 next | W-AI-AGENT | This session |
 | 2026-10-23 | Draft T1–T10 implementation plan across five waves with all 85 edge cases traced; verify repository seams and run clean plan lint; begin required read-only lite-reviewer round | W-AI-AGENT | This session |

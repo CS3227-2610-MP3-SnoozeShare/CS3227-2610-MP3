@@ -67,6 +67,9 @@ export function ConversationList({
                   )}
                 </div>
                 <p className="truncate text-xs text-muted-foreground">{item.data.counterpartName}</p>
+                {item.kind === 'ticket' && item.data.lastMessage && (
+                  <p className="truncate text-xs text-muted-foreground">{item.data.lastMessage.body}</p>
+                )}
               </div>
             </button>
           </li>
