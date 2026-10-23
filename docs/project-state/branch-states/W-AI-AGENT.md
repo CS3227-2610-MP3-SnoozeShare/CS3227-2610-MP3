@@ -35,8 +35,8 @@ Row added to `PROJECT_STATE.md` § Orientation:
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| S2 | 2026-10-23 | Codex | W-AI-AGENT | Building | T1 focused persistence tests pass; full backend gate pending T3 render fix | Await full backend gate, then commit T1 and continue Wave 2 after Wave 1 finishes | 2026-10-23 |
-| S3 | 2026-10-23 | Codex feature_definition subagent | W-AI-AGENT | Building | T3 focused batch: one renderer 6000-boundary assertion fails; 27/28 batch tests pass | Diagnose E6 boundary without weakening it, rerun focused classes, then full backend gate; owns backend test slot | 2026-10-23 |
+| S2 | 2026-10-23 | Codex + read-only SD22 reviewer lenses | W-AI-AGENT | Building | SD22 email amendment written; T8 committed; T1 focused green | Review fixed marker/address/subject exception, resolve findings, ask amended-spec gate 1; revised plan gate 2 follows that approval | 2026-10-23 |
+| S3 | 2026-10-23 | Codex feature_definition subagent | W-AI-AGENT | Building | T3 focused 22/22 and offline kit 35/35 pass; full backend gate active | Finish existing full tests, rerun corrected Checkstyle/build; freeze email implementation pending SD22 gates | 2026-10-23 |
 
 **Remaining**
 
@@ -127,6 +127,7 @@ No change: nothing is built yet.
 
 | Date | What changed | Workstream | Ref |
 |---|---|---|---|
+| 2026-10-23 | T1 done: V006 schema, entity/repository, audit enums and cleanup/migration coverage. Red missing types recorded; focused persistence tests pass; full backend 604 tests/99 classes pass, corrected Checkstyle and packaging pass. Shared full gate also covers provisional T3 | W-AI-AGENT | This session |
 | 2026-10-23 | T8 done: seven files, focused 15/15, full frontend 325/325 across 52 files, lint and production build pass. Shared helper ready for T7; auth and booking presentation unchanged; agent retired | W-AI-AGENT | This session |
 | 2026-10-23 | Write SD22 support-email amendment per operator choice (C~12), four new edge rows; new behavior held for spec and revised-plan gates. Preserve concurrent tuning-review records D~4 and operator variants | W-AI-AGENT | This session |
 | 2026-10-23 | Review tuning workflow for gross gaps: 35/35 offline selftest checks and T01 dry run pass. In-memory probes reproduce acceptance of unknown fields, duplicate JSON keys and escaped links; a zero-width-split injection is missed; a fabricated T03 summary receives no issue. Email instruction is dropped by question screen. No runner/prompt changes or live calls; Q~2 remains pending; D~4 records follow-up. Review session retired; concurrent implementation sessions preserved | W-AI-AGENT | This tuning review |
