@@ -35,14 +35,15 @@ Row added to `PROJECT_STATE.md` § Orientation:
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| SD22 execution | 2026-10-23 | Codex lead | W-AI-AGENT | Building | Wave 2 verified; integrate task commits | Begin T4 orchestration and T7 Agent screens | 2026-10-23 |
+| SD22 execution | 2026-10-23 | Codex lead | W-AI-AGENT | Building | T4 runner/boundary tests written; T7 parallel | Record runner red, implement bounded queue and idle/shutdown tracking | 2026-10-23 |
+| T4 orchestration | 2026-10-23 | Codex implementer | W-AI-AGENT | Building | T4 steps 2–5: focused context/flow green; concurrency verification | Complete race/fixture regressions, then full backend gate | 2026-10-23 |
 
 **Remaining**
 
 - [x] Original gate 1: Approved (Xiao-Congchen, 2026-10-23), before SD22.
 - [x] SD22 gate 1: Approved (Xiao-Congchen, 2026-10-23), operator: "approve and continue building". Revised-plan gate 2 remains separate.
 - [ ] The operator tunes the prompt with `tools/prompt-tuning/ticket-clarify/` in parallel with the build; the committed prompt needs a `KEEP` row in that kit's `CHANGELOG.md` before merge (spec conventions R15)
-- [x] Tuning-kit gross-gap review and offline corrections completed (D~4/C~15); SD22 decision resolved. Live eval and operator transcript vetting/KEEP remain; no live eval recorded.
+- [x] Tuning-kit gross-gap review and offline corrections completed (D~4/C~15); SD22 decision resolved. Preliminary live comparison complete (3 cases x 1 run per prompt); operator transcript vetting and KEEP decision remain.
 - [x] Gate 2: Approved (Xiao-Congchen, 2026-10-23); operator said "approve" to the plan approval question. Start executing-plans-lite without another implementation approval.
 - [x] Revised-plan gate 2: Approved (Xiao-Congchen, 2026-10-23), operator: "approve and resume building". Includes current T10 tuning-kit adjustment; resume T3 step 7 and T8 step 5, then Wave 2 after verification. No push/PR or live service action authorized.
 - [ ] **Handover:** `docs/DeveloperGuide.md` needs the assistant (data, flow, configuration) at its guide checkpoint
@@ -68,6 +69,10 @@ Row added to `PROJECT_STATE.md` § Orientation:
 
 **Now:** Guest ticket messages share an author-role label helper including `Snoozy · Automated assistant`; ticket conversation entries show the stored last-message body as plain text. Authentication roles and booking conversation presentation are unchanged.
 
+### Agent assistant presentation
+
+**Now:** dispute detail shows the nullable assistant panel above internal notes with state, stale and injection warning copy. Insert into notes copies the complete draft into dirty local notes only for the assigned Agent; polling preserves dirty text and explicit Save retains the existing 4,000-character limit. Agent thread messages share role labels and render SYSTEM text left aligned with preserved line breaks.
+
 ### Internal assistant message posting
 
 **Now:** `MessageService.postAssistant` trims and bounds the body, requires an open ticket, and writes SYSTEM-authored messages only to the GUEST channel. It joins the caller transaction and publishes only after commit; the applier will own its audit. No HTTP route exposes this method.
@@ -78,7 +83,7 @@ Row added to `PROJECT_STATE.md` § Orientation:
 
 ### Ticket assistant feature definition
 
-**Now:** `service.assistant` defines validated `ClarifyOutput`, bounded configuration, the conditional Guest-only `ticket.clarify` feature, deterministic R4/R4b screens and fixed plain-text report/message rendering. The provisional prompt includes approved P13 marker guidance; R4 canonicalizes the document marker and rejects mixed/contact/subject/UUID overrides. R6 requires a server-loaded ticket UUID and expands only the canonical marker to the fixed support instruction. Final live tuning evidence remains T10. Runtime orchestration and listeners are not built yet.
+**Now:** `service.assistant` defines validated `ClarifyOutput`, bounded configuration, the conditional Guest-only `ticket.clarify` feature, deterministic R4/R4b screens and fixed plain-text report/message rendering. The provisional prompt includes approved P13 marker guidance; R4 canonicalizes the document marker and rejects mixed/contact/subject/UUID overrides. R6 requires a server-loaded ticket UUID and expands only the canonical marker to the fixed support instruction. Final live tuning evidence remains T10. The runtime now reads immutable snapshots in a read-only transaction, calls the gateway outside transactions, and applies guarded state/message/audit changes in a REQUIRES_NEW transaction. A private bounded asynchronous runner tracks follow-up handoffs through idle waits. Listeners are not built yet.
 
 ---
 
@@ -126,7 +131,7 @@ No open design question. SD22 and revised plan approved; apology variants remain
 
 ## 9. Deviations
 
-- **D~4 (tuning review, 2026-10-23):** The operator narrowed this kit to prompt-quality evaluation because backend tests own dedicated hijack attempts (C~15). The runner now rejects unknown fields, duplicate JSON keys and normalized/escaped links; mirrors the approved support-document marker and fixed displayed instruction; prints the bounded synthetic conversation and per-turn drafts; and fingerprints run settings, runner and data, with comparison limited to matching runs. It has no automatic summary factuality/completeness judge; the operator reviews transcripts and decides any KEEP. The input-sanitizer/injection-detector mirror remains approximate and is not a security evaluation. Offline selftest and T01 dry run pass; no live eval because SOCLAAS_API_KEY is not set.
+- **D~4 (tuning review, 2026-10-23):** The operator narrowed this kit to prompt-quality evaluation because backend tests own dedicated hijack attempts (C~15). The runner now rejects unknown fields, duplicate JSON keys and normalized/escaped links; mirrors the approved support-document marker and fixed displayed instruction; prints bounded conversations and per-turn drafts; fingerprints run settings, runner and data; and compares only matching runs. The documented compare CLI was broken by argument parsing and is now fixed with a selftest. It has no automatic summary factuality/completeness judge; the operator reviews transcripts and decides any KEEP. The input-sanitizer/injection-detector mirror remains approximate and is not a security evaluation. Preliminary live sample: T01/T10/T14, one run per prompt; v1 all schema-invalid (missing `hostPoints`), v2 100% schema-valid/one `mustNotAsk` hit, v3 100% schema-valid/no deterministic issues. Suggested transcript scores are in the changelog for operator vetting; no KEEP decision.
 
 - **D~1 (planning, 2026-10-23):** Existing notes save/textarea limits are 4,000 characters; approved drafts allow 6,000 and insertion appends existing notes. Plan preserves full local insertion and existing server validation, so an Agent may need to edit down before saving. No silent truncation or limit increase. Carry this UX limitation to review/Handover.
 - **D~2 (baseline, 2026-10-23):** Restricted Gradle/Docker access required escalated build commands. All component builds passed; frontend npm ci/lint/build passed. Default frontend suite had six timeout failures, two-worker retry had two different timeout failures (308/310 passed); full single-worker suite passed unchanged (49 files, 310/310 tests), without changing timeouts/assertions. Use --maxWorkers=1. Existing docs/Reflections.md changes are operator work and stay untouched.
@@ -137,7 +142,10 @@ No open design question. SD22 and revised plan approved; apology variants remain
 ## 10. Changes
 
 | Date | What changed | Workstream | Ref |
+| 2026-10-23 | T7 done: seven-field nullable frontend projection, every assistant panel state/warning, full manual dirty-note insertion with permission/busy guards, SYSTEM labels and literal pre-wrapped thread text. Focused37/37; full frontend350/350 across53files, eslint and production build pass. Existing4,000notes limit retained/tested with full6,000draft; Agent session retired, root owns commit | W-AI-AGENT | This session |
+| 2026-10-23 | T7 red recorded: 21/36 focused tests fail for absent panel/labels/pre-wrap. Build Agent panel, nullable frontend projection, manual insertion and shared thread labels; expand test inventory with ThreadPanel.test.tsx. Initial green attempt exposed test-only timer flush issue; await initial notes and wrap the new polling path in act | W-AI-AGENT | This session |
 |---|---|---|---|
+| 2026-10-23 | Run preliminary prompt comparison on T01/T10/T14 with one run each for v1/v2/v3; v1 omitted `hostPoints` in all outputs, v2 had one `mustNotAsk` hit, v3 had no deterministic issues. Fix `--compare` CLI parser and add selftest. Human transcript scores suggested but not approved; no KEEP decision | W-AI-AGENT | This session |
 | 2026-10-23 | T2 Done: internal SYSTEM/GUEST posting, bounded input/open-ticket errors, Host isolation, Guest unread increase and commit-only events. Shared Wave 2 full gate 618/618 across 101 classes, style/package pass; root independently confirms actual AssistantPostingTest 4/4 and read API 5/5 XML. Frontend/desktop unchanged reuse Wave 1 gate | W-AI-AGENT | This session |
 | 2026-10-23 | T6 done: nullable seven-field Agent-only assistant snapshot, read-only transaction and runtime-independent settings/stale calculation; detail-returning actions preserve projection, Guest/Host recursive privacy coverage. Red missing constructor; focused API35/35; shared full backend618/618 across101classes, Checkstyle and packaging pass (also covers T2). Test-only Host endpoint typo corrected from controller contract. Session retired; root owns commit | W-AI-AGENT | This session |
 | 2026-10-23 | T6/API focused checks pass 35/35: private read projection/stale/auth/action responses. Corrected filter accounting: service.assistant.AssistantPostingTest matched no T2 class; unfiltered full suite will verify actual service.AssistantPostingTest, not yet claimed green. Plan Create-path lint waits until task completion as designed | W-AI-AGENT | This session |

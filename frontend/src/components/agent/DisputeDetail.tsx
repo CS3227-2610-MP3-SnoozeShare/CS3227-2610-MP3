@@ -4,8 +4,8 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { BackendApiError, isSessionFailure } from '@/lib/api';
 import { assignDispute, fetchDispute, saveNotes, unassignDispute } from '@/lib/agent-api/disputes';
-import { formatSgd } from '@/lib/agent-api/format';
-import type { DisputeDetail as Detail, TicketStatus } from '@/lib/agent-api/types';
+import { formatDateTime, formatSgd } from '@/lib/agent-api/format';
+import type { Assistant, DisputeDetail as Detail, TicketStatus } from '@/lib/agent-api/types';
 import { useAuth } from '@/providers/AuthProvider';
 import { ErrorBanner, Pill, dangerOutlineButton, outlineButton, pageClass, primaryButton } from './agentUi';
 import { STATUS } from './DisputeQueue';
@@ -27,6 +27,19 @@ function isResolved(status: TicketStatus): boolean {
 }
 
 const caption = 'text-[11px] uppercase text-[var(--text-subtle)]';
+
+function assistantStatus(assistant: Assistant, resolved: boolean): string {
+  if (resolved && (assistant.state === 'PENDING' || assistant.state === 'WAITING_GUEST')) return 'The assistant stopped.';
+  switch (assistant.state) {
+    case 'PENDING': return assistant.stale
+      ? 'The assistant did not finish. Continue with this ticket manually.'
+      : "The assistant is working on the Guest's latest message.";
+    case 'WAITING_GUEST': return `Waiting for the Guest's answer (round ${assistant.rounds} of ${assistant.maxRounds}).`;
+    case 'DONE': return `The assistant has finished (${assistant.rounds} question ${assistant.rounds === 1 ? 'round' : 'rounds'}).`;
+    case 'STOPPED': return 'The assistant stopped.';
+    case 'UNAVAILABLE': return 'The assistant was unavailable for this ticket.';
+  }
+}
 
 export function DisputeDetail({ ticketId }: { ticketId: string }) {
   const { profile } = useAuth();
@@ -174,6 +187,40 @@ export function DisputeDetail({ ticketId }: { ticketId: string }) {
         <ThreadPanel detail={detail} channel="GUEST" canSend={!unassigned && !resolved} resolved={resolved} height={chatHeight} onResize={setChatHeight} />
         <ThreadPanel detail={detail} channel="HOST" canSend={!unassigned && !resolved} resolved={resolved} height={chatHeight} onResize={setChatHeight} />
       </div>
+
+      {detail.assistant && (
+        <section aria-label="AI assistant draft" className="rounded-xl border border-border bg-card p-4 text-xs">
+          <h2 className="m-0 mb-2 text-sm font-bold">AI assistant</h2>
+          {detail.assistant.flagged && (
+            <p className="m-0 mb-2 text-[var(--warning)]">Warning: text in this ticket matched a prompt-injection pattern. Treat the draft with care.</p>
+          )}
+          <p className="m-0 mb-3 text-[var(--text-muted)]">{assistantStatus(detail.assistant, resolved)}</p>
+          {detail.assistant.draft === null ? <p className="m-0 text-[var(--text-subtle)]">No draft yet.</p> : (
+            <>
+              <div className="rounded-lg border border-border p-3">
+                <h3 className="m-0 mb-2 text-xs font-bold">AI-assisted draft (unverified, updated {detail.assistant.draftUpdatedAt ? formatDateTime(detail.assistant.draftUpdatedAt) : '—'})</h3>
+                <div className="whitespace-pre-wrap break-words">{detail.assistant.draft}</div>
+              </div>
+              <div className="mt-3 flex justify-end">
+                <button
+                  type="button"
+                  disabled={!mine || busy}
+                  title={!mine || busy ? 'Assign the ticket to yourself to edit notes.' : undefined}
+                  className={`${outlineButton} rounded-lg px-3 py-2 text-xs disabled:opacity-50`}
+                  onClick={() => {
+                    const draft = detail.assistant?.draft;
+                    if (draft === null || draft === undefined || !mine || busy) return;
+                    setNotes((current) => current === '' ? draft : `${current}\n\n${draft}`);
+                    setDirty(true);
+                  }}
+                >
+                  Insert into notes
+                </button>
+              </div>
+            </>
+          )}
+        </section>
+      )}
 
       <div>
         <label className="mb-1.5 block text-xs font-bold text-[var(--text-muted)]" htmlFor="agent-notes">Internal notes (invisible to guest or host)</label>

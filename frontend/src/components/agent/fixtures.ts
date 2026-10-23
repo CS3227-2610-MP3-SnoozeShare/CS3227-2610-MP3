@@ -38,6 +38,7 @@ export function detail(overrides: Partial<DisputeDetail> = {}, ticketOverrides: 
     escrowHeld: true,
     phaseLabel: 'Completed',
     agentNotes: null,
+    assistant: null,
     ...overrides,
   };
 }

@@ -1,6 +1,8 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { BackendApiError } from '@/lib/api';
+import { formatDateTime } from '@/lib/agent-api/format';
+import type { Assistant } from '@/lib/agent-api/types';
 import { DisputeDetail } from './DisputeDetail';
 import { detail } from './fixtures';
 
@@ -22,10 +24,155 @@ const buttons = () => ({
   manual: screen.getByRole('button', { name: 'Manual adjustment…' }),
 });
 
+function assistant(overrides: Partial<Assistant> = {}): Assistant {
+  return { state: 'WAITING_GUEST', rounds: 2, maxRounds: 3, flagged: false, stale: false,
+    draft: 'AI-assisted draft\nSummary: Reported issue.', draftUpdatedAt: '2026-10-23T04:00:00Z', ...overrides };
+}
+
 describe('DisputeDetail (F4, F14)', () => {
   beforeEach(() => {
     Object.values(api).forEach((fn) => fn.mockReset());
     api.fetchThread.mockResolvedValue([]);
+  });
+
+  it('F6 hides the assistant panel for a null projection', async () => {
+    api.fetchDispute.mockResolvedValue(detail({ assistant: null }));
+    render(<DisputeDetail ticketId="t-1" />);
+    await screen.findByLabelText(/Internal notes/);
+    expect(screen.queryByRole('region', { name: 'AI assistant draft' })).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ['PENDING', false, 2, "The assistant is working on the Guest's latest message."],
+    ['PENDING', true, 2, 'The assistant did not finish. Continue with this ticket manually.'],
+    ['WAITING_GUEST', false, 2, "Waiting for the Guest's answer (round 2 of 3)."],
+    ['DONE', false, 0, 'The assistant has finished (0 question rounds).'],
+    ['DONE', false, 1, 'The assistant has finished (1 question round).'],
+    ['DONE', false, 2, 'The assistant has finished (2 question rounds).'],
+    ['STOPPED', false, 2, 'The assistant stopped.'],
+    ['UNAVAILABLE', false, 2, 'The assistant was unavailable for this ticket.'],
+  ] as const)('F6 shows %s stale=%s rounds=%s with the stored draft', async (state, stale, rounds, copy) => {
+    const snapshot = assistant({ state, stale, rounds });
+    api.fetchDispute.mockResolvedValue(detail({ assistant: snapshot }));
+    render(<DisputeDetail ticketId="t-1" />);
+    const panel = await screen.findByRole('region', { name: 'AI assistant draft' });
+    expect(within(panel).getByText(copy)).toBeInTheDocument();
+    expect(within(panel).getByText(`AI-assisted draft (unverified, updated ${formatDateTime(snapshot.draftUpdatedAt!)})`)).toBeInTheDocument();
+    expect(within(panel).getByRole('button', { name: 'Insert into notes' })).toBeEnabled();
+    const notes = screen.getByLabelText(/Internal notes/);
+    expect(panel.compareDocumentPosition(notes) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('F6 shows the injection warning above the status and no insert for an absent draft', async () => {
+    api.fetchDispute.mockResolvedValue(detail({ assistant: assistant({ flagged: true, draft: null, draftUpdatedAt: null }) }));
+    render(<DisputeDetail ticketId="t-1" />);
+    const panel = await screen.findByRole('region', { name: 'AI assistant draft' });
+    const warning = within(panel).getByText('Warning: text in this ticket matched a prompt-injection pattern. Treat the draft with care.');
+    const status = within(panel).getByText("Waiting for the Guest's answer (round 2 of 3).");
+    expect(warning.compareDocumentPosition(status) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(within(panel).getByText('No draft yet.')).toBeInTheDocument();
+    expect(within(panel).queryByRole('button', { name: 'Insert into notes' })).not.toBeInTheDocument();
+  });
+
+  it.each(['PENDING', 'WAITING_GUEST'] as const)('E59 renders resolved %s as stopped with insertion disabled', async (state) => {
+    api.fetchDispute.mockResolvedValue(detail({ assistant: assistant({ state, stale: true }) }, { status: 'RESOLVED_APPROVED' }));
+    render(<DisputeDetail ticketId="t-1" />);
+    const panel = await screen.findByRole('region', { name: 'AI assistant draft' });
+    expect(within(panel).getByText('The assistant stopped.')).toBeInTheDocument();
+    expect(within(panel).getByRole('button', { name: 'Insert into notes' })).toBeDisabled();
+    expect(within(panel).getByRole('button', { name: 'Insert into notes' })).toHaveAttribute('title', 'Assign the ticket to yourself to edit notes.');
+  });
+
+  it('E39 renders hostile HTML and Markdown in the draft as pre-wrapped text', async () => {
+    const draft = '<img src=x onerror=alert(1)>\n**bold**';
+    api.fetchDispute.mockResolvedValue(detail({ assistant: assistant({ draft }) }));
+    render(<DisputeDetail ticketId="t-1" />);
+    const panel = await screen.findByRole('region', { name: 'AI assistant draft' });
+    expect(within(panel).getByText(/\*\*bold\*\*/)).toHaveClass('whitespace-pre-wrap');
+    expect(within(panel).getByText(/\*\*bold\*\*/).textContent).toBe(draft);
+    expect(panel.querySelector('img, strong, a')).toBeNull();
+  });
+
+  it('E89 shows the stored fixed-email UUID instruction in the Agent Guest thread without an anchor', async () => {
+    const ticketId = 'd0000000-0000-4000-8000-000000000089';
+    const body = `To help our support team review your ticket, please answer these in one message:\n1. Please email supporting documents to support@snoozeshare.com with the subject "${ticketId}: Supporting Documents".`;
+    api.fetchDispute.mockResolvedValue(detail({ assistant: assistant() }, { id: ticketId }));
+    api.fetchThread.mockImplementation((_ticket, channel) => Promise.resolve(channel === 'GUEST'
+      ? [{ id: 'system', authorId: 'system', authorRole: 'SYSTEM', body, sentAt: '2026-10-23T04:00:00Z' }] : []));
+    render(<DisputeDetail ticketId={ticketId} />);
+    const panel = await screen.findByRole('region', { name: 'Guest messages' });
+    const text = await within(panel).findByText(/Please email supporting documents/);
+    expect(text.textContent).toBe(body);
+    expect(text.closest('article')).toHaveClass('self-start');
+    expect(panel.textContent).not.toContain('[supporting-documents]');
+    expect(panel.querySelector('a')).toBeNull();
+  });
+
+  it.each(['', 'existing notes'])('E68 inserts the entire draft into %s locally and saves only explicitly', async (existing) => {
+    const draft = ' draft with whitespace\nsecond line ';
+    api.fetchDispute.mockResolvedValue(detail({ agentNotes: existing, assistant: assistant({ draft }) }));
+    api.saveNotes.mockResolvedValue(detail({ agentNotes: existing ? `${existing}\n\n${draft}` : draft, assistant: assistant({ draft }) }));
+    render(<DisputeDetail ticketId="t-1" />);
+    const insert = await screen.findByRole('button', { name: 'Insert into notes' });
+    const box = screen.getByLabelText(/Internal notes/);
+    await waitFor(() => expect(box).toHaveValue(existing));
+    fireEvent.click(insert);
+    const expected = existing ? `${existing}\n\n${draft}` : draft;
+    expect(box).toHaveValue(expected);
+    expect(api.saveNotes).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Save notes' }));
+    await waitFor(() => expect(api.saveNotes).toHaveBeenCalledWith('t-1', expected));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Save notes' })).toBeDisabled());
+  });
+
+  it.each([
+    ['OPEN', null], ['IN_REVIEW', 'agent-2'], ['RESOLVED_REJECTED', 'agent-1'],
+  ] as const)('E68 disables insertion for %s assigned to %s', async (status, assignedAgentId) => {
+    api.fetchDispute.mockResolvedValue(detail({ assistant: assistant() }, { status, assignedAgentId }));
+    render(<DisputeDetail ticketId="t-1" />);
+    const insert = await screen.findByRole('button', { name: 'Insert into notes' });
+    expect(insert).toBeDisabled();
+    expect(insert).toHaveAttribute('title', 'Assign the ticket to yourself to edit notes.');
+  });
+
+  it('E68 disables insertion while an action is busy', async () => {
+    api.fetchDispute.mockResolvedValue(detail({ assistant: assistant() }));
+    api.saveNotes.mockReturnValue(new Promise(() => {}));
+    render(<DisputeDetail ticketId="t-1" />);
+    const insert = await screen.findByRole('button', { name: 'Insert into notes' });
+    fireEvent.click(insert);
+    fireEvent.click(screen.getByRole('button', { name: 'Save notes' }));
+    expect(insert).toBeDisabled();
+    expect(insert).toHaveAttribute('title', 'Assign the ticket to yourself to edit notes.');
+  });
+
+  it('E68 keeps inserted dirty notes through polling and retains the full over-limit draft on save failure', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      const draft = 'x'.repeat(6000);
+      api.fetchDispute.mockResolvedValue(detail({ agentNotes: 'local start', assistant: assistant({ draft }) }));
+      api.saveNotes.mockRejectedValue(new BackendApiError('VALIDATION_ERROR', 'Notes must be at most 4000 characters', undefined, 400));
+      render(<DisputeDetail ticketId="t-1" />);
+      const insert = await screen.findByRole('button', { name: 'Insert into notes' });
+      const box = screen.getByLabelText(/Internal notes/);
+      await waitFor(() => expect(box).toHaveValue('local start'));
+      await act(async () => { fireEvent.click(insert); });
+      const expected = `local start\n\n${draft}`;
+      expect(box).toHaveValue(expected);
+      expect(box).toHaveAttribute('maxlength', '4000');
+      expect(box).toBeEnabled();
+      api.fetchDispute.mockResolvedValue(detail({ agentNotes: 'changed remotely', assistant: assistant({ draft: 'new draft' }) }));
+      await act(async () => { await vi.advanceTimersByTimeAsync(10500); });
+      expect(box).toHaveValue(expected);
+      fireEvent.click(screen.getByRole('button', { name: 'Save notes' }));
+      expect(await screen.findByRole('alert')).toHaveTextContent('Notes must be at most 4000 characters');
+      expect(box).toHaveValue(expected);
+      expect(screen.getByRole('button', { name: 'Save notes' })).toBeEnabled();
+      fireEvent.change(box, { target: { value: 'edited down' } });
+      expect(box).toHaveValue('edited down');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('unassigned: Assign is offered, actions are disabled', async () => {

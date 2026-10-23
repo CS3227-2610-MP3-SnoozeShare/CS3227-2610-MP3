@@ -5,6 +5,7 @@ import { isSessionFailure } from '@/lib/api';
 import { fetchThread, postMessage } from '@/lib/agent-api/disputes';
 import { formatDateTime } from '@/lib/agent-api/format';
 import type { DisputeDetail, ThreadChannel } from '@/lib/agent-api/types';
+import { authorRoleLabel } from '@/lib/message-role';
 import { primaryButton } from './agentUi';
 import { ResizeGrip } from './ResizeGrip';
 import { SessionNotice } from './SessionNotice';
@@ -110,7 +111,8 @@ export function ThreadPanel({ detail, channel, canSend, resolved, height, onResi
             key={message.id}
             className={`${bubble} ${message.authorRole === 'AGENT' ? 'self-end bg-accent' : 'self-start bg-muted'}`}
           >
-            <div className="text-xs">{message.body}</div>
+            <div className="mb-1 text-[10px] font-bold text-[var(--text-muted)]">{authorRoleLabel(message.authorRole)}</div>
+            <div className="whitespace-pre-wrap text-xs">{message.body}</div>
             <div className={stamp}>{formatDateTime(message.sentAt)}</div>
           </article>
         ))}

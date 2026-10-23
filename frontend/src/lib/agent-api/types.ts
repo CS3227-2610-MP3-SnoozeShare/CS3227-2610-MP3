@@ -40,6 +40,16 @@ export type Ticket = {
   resolvedAt: string | null;
 };
 
+export type Assistant = {
+  state: 'PENDING' | 'WAITING_GUEST' | 'DONE' | 'STOPPED' | 'UNAVAILABLE';
+  rounds: number;
+  maxRounds: number;
+  flagged: boolean;
+  stale: boolean;
+  draft: string | null;
+  draftUpdatedAt: string | null;
+};
+
 export type DisputeDetail = {
   ticket: Ticket;
   ticketLabel: string;
@@ -55,6 +65,7 @@ export type DisputeDetail = {
   escrowHeld: boolean;
   phaseLabel: string;
   agentNotes: string | null;
+  assistant: Assistant | null;
 };
 
 export type ThreadMessage = { id: string; authorId: string; authorRole: Role; body: string; sentAt: string };
