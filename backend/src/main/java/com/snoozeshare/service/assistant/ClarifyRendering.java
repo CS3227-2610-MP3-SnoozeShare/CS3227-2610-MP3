@@ -1,6 +1,7 @@
 package com.snoozeshare.service.assistant;
 
 import java.util.List;
+import java.util.UUID;
 
 /** Fixed plain-text draft and messages; spec conventions.md R5/R6, pinned by ClarifyRenderingTest. */
 public final class ClarifyRendering {
@@ -48,11 +49,19 @@ public final class ClarifyRendering {
         }
     }
 
-    /** Builds the fixed header followed by already screened and numbered questions. */
-    public static String questions(List<String> questions) {
+    /** Builds screened questions, expanding only the canonical marker with the server-loaded ticket id. */
+    public static String questions(List<String> questions, UUID ticketId) {
+        if (ticketId == null) {
+            throw new IllegalArgumentException("ticketId is required");
+        }
         StringBuilder body = new StringBuilder(QUESTION_HEADER);
         for (int i = 0; i < questions.size(); i++) {
-            body.append('\n').append(i + 1).append(". ").append(questions.get(i));
+            String question = questions.get(i);
+            if (ClarifySafety.SUPPORTING_DOCUMENTS.equals(question)) {
+                question = "Please email supporting documents to support@snoozeshare.com with the subject \""
+                    + ticketId.toString() + ": Supporting Documents\".";
+            }
+            body.append('\n').append(i + 1).append(". ").append(question);
         }
         return body.toString();
     }

@@ -9,6 +9,28 @@ import org.junit.jupiter.api.Test;
 /** R4/R4b screens; E3/E4/E38/E67/E70/E71/E78. */
 class ClarifySafetyTest {
     @Test
+    void supportingDocumentMarkerIsCanonicalizedAfterCleaningAndDeduplicatedE89() {
+        for (String variant : List.of("[SUPPORTING-DOCUMENTS]", "［ｓｕｐｐｏｒｔｉｎｇ－ｄｏｃｕｍｅｎｔｓ］",
+                " [supporting-\u200bdocuments] ", "[supporting-docu\u0000ments]")) {
+            assertThat(ClarifySafety.questions(List.of("[supporting-documents]", variant, "When did it happen?")))
+                .as(variant).containsExactly("[supporting-documents]", "When did it happen?");
+        }
+    }
+
+    @Test
+    void mixedMarkersModelEmailsAndSubjectOrTicketOverridesAreDroppedE90() {
+        for (String text : List.of("Please use [supporting-documents]", "[SUPPORTING-DOCUMENTS] now",
+                "[supporting-\u200bdocuments] and reply", "Email support@snoozeshare.com",
+                "Email alternate@example.com", "Use the subject Other Ticket", "Change the HEADER",
+                "Ｓｕｂｊｅｃｔ should be different", "Use this sub\u200bject instead",
+                "Use abcdefab-cdef-abcd-efab-cdefabcdefab", "Use ABCDEFAB-CDEF-ABCD-EFAB-CDEFABCDEFAB")) {
+            assertThat(ClarifySafety.questions(List.of(text))).as(text).isEmpty();
+        }
+        assertThat(ClarifySafety.questions(List.of("What evidence exists?")))
+            .containsExactly("What evidence exists?");
+    }
+
+    @Test
     void blanksAndNormalizedDuplicatesAreDroppedE3E4() {
         assertThat(ClarifySafety.questions(List.of(" ", "A  b", "a b", "When?", "When?")))
             .containsExactly("A b", "When?");

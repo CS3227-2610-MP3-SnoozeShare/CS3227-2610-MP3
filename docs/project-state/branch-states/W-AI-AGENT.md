@@ -23,7 +23,7 @@ Row added to `PROJECT_STATE.md` § Orientation:
 
 | Path | What lives there |
 |---|---|
-| `tools/prompt-tuning/ticket-clarify/` | Prompt tuning kit for the ticket clarification assistant (W-AI-AGENT): `run.mjs` (Node 22, offline `--selftest`), 23 synthetic tickets, prompt variants, `CHANGELOG.md` of runs (results are git-ignored). Run by hand with a SoCLaaS key held in the terminal; synthetic data only. It is outside `docs/`, so the Pages site does not publish it |
+| `tools/prompt-tuning/ticket-clarify/` | Prompt tuning kit for the ticket clarification assistant (W-AI-AGENT): `run.mjs` (Node 22, offline `--selftest`), 21 synthetic prompt-quality tickets, prompt variants, `CHANGELOG.md` of runs (results are git-ignored). Run by hand with a SoCLaaS key held in the terminal; synthetic data only. It is outside `docs/`, so the Pages site does not publish it |
 
 ---
 
@@ -35,15 +35,14 @@ Row added to `PROJECT_STATE.md` § Orientation:
 
 | Session | Started | Agent(s) | Workstream | Status | Doing | Next action | Last touched |
 |---|---|---|---|---|---|---|---|
-| SD22 execution | 2026-10-23 | Codex lead | W-AI-AGENT | Building | Resume Wave 1; coordinate T3/T8 | T3 step 7 and T8 step 5; verify before Wave 2 | 2026-10-23 |
-| SD22 feature | 2026-10-23 | Codex implementer | W-AI-AGENT | Building | T3 step 9: SD22 focused green; red signature failures recorded | Full backend gate and offline kit selftest | 2026-10-23 |
+| SD22 execution | 2026-10-23 | Codex lead | W-AI-AGENT | Building | Wave 1 verified; begin Wave 2 | T2 step 1 posting tests; dispatch T6 read projection | 2026-10-23 |
 
 **Remaining**
 
 - [x] Original gate 1: Approved (Xiao-Congchen, 2026-10-23), before SD22.
 - [x] SD22 gate 1: Approved (Xiao-Congchen, 2026-10-23), operator: "approve and continue building". Revised-plan gate 2 remains separate.
 - [ ] The operator tunes the prompt with `tools/prompt-tuning/ticket-clarify/` in parallel with the build; the committed prompt needs a `KEEP` row in that kit's `CHANGELOG.md` before merge (spec conventions R15)
-- [ ] Tuning-kit gross-gap review completed (D~4); SD22 decision resolved. T10's scoped parity/transcript/fingerprint update and operator manual KEEP remain; no live eval recorded.
+- [x] Tuning-kit gross-gap review and offline corrections completed (D~4/C~15); SD22 decision resolved. Live eval and operator transcript vetting/KEEP remain; no live eval recorded.
 - [x] Gate 2: Approved (Xiao-Congchen, 2026-10-23); operator said "approve" to the plan approval question. Start executing-plans-lite without another implementation approval.
 - [x] Revised-plan gate 2: Approved (Xiao-Congchen, 2026-10-23), operator: "approve and resume building". Includes current T10 tuning-kit adjustment; resume T3 step 7 and T8 step 5, then Wave 2 after verification. No push/PR or live service action authorized.
 - [ ] **Handover:** `docs/DeveloperGuide.md` needs the assistant (data, flow, configuration) at its guide checkpoint
@@ -55,7 +54,7 @@ Row added to `PROJECT_STATE.md` § Orientation:
 
 | ID | Workstream | Status | Spec | Plan | Progress | Guide |
 |---|---|---|---|---|---|---|
-| W-AI-AGENT | Ticket clarification assistant and draft report for the Support Agent | Building | [spec](docs/superpowers/specs/2026-10-23-w-ai-agent-design.md) | [plan](docs/superpowers/plans/2026-10-23-w-ai-agent.md) | T3 step 7 and T8 step 5 in flight | — |
+| W-AI-AGENT | Ticket clarification assistant and draft report for the Support Agent | Building | [spec](docs/superpowers/specs/2026-10-23-w-ai-agent-design.md) | [plan](docs/superpowers/plans/2026-10-23-w-ai-agent.md) | Wave 2: T2 posting and T6 read API in flight | — |
 
 ---
 
@@ -100,6 +99,7 @@ No open design question. SD22 and revised plan approved; apology variants remain
 | ID | Date | Decision | Why / who asked | Source |
 |---|---|---|---|---|
 | C~14 | 2026-10-23 | Approved (Xiao-Congchen, 2026-10-23): revised SD22 plan, including current scoped T10 tuning-kit adjustment; resume execution | Operator: "approve and resume building" to revised-plan gate 2. Reopened Wave 1 precedes Wave 2; no push/PR or live-service authorization | Operator conversation |
+| C~15 | 2026-10-23 | The prompt-tuning runner assesses question quality and supports human review of factual summaries; dedicated model-hijack attempts stay in backend security tests. Print each bounded full transcript and treat any score as a human-vetted suggestion, not an automatic KEEP gate | Operator: backend has the more comprehensive hijack evaluation; operator wants to vet the full, short conversation and final summary. Rejected duplicating dedicated hijack cases in prompt ranking or making automated summary scores authoritative | Operator conversation |
 | C~13 | 2026-10-23 | Approved (Xiao-Congchen, 2026-10-23): SD22 amended High-risk spec, fixed support email via backend expansion | Operator: "approve and continue building" in response to amended-spec approval question. Continue through revised-plan gate; this does not approve an unwritten plan revision or push/PR | Operator conversation |
 | C~12 | 2026-10-23 | Operator reverses the blanket contact prohibition only for a fixed support-email instruction. Approved SD22 uses exact model marker expanded by backend to support@snoozeshare.com with stored ticket UUID subject | Operator selected revise spec for fixed support email. Rejected retaining the blanket prohibition; arbitrary addresses/subjects remain forbidden. No apology-rule reversal authorized | Operator async answer |
 | C~11 | 2026-10-23 | Approved (Xiao-Congchen, 2026-10-23): implementation plan at gate 2; proceed to execution | Operator said "approve" to the explicit plan approval question (10 tasks, five waves). No push, PR, merge or live service action is authorized | Operator conversation |
@@ -118,19 +118,21 @@ No open design question. SD22 and revised plan approved; apology variants remain
 
 ## 9. Deviations
 
-- **D~4 (tuning review, 2026-10-23):** The kit is not ready for reliable prompt ranking. Its validator accepts unknown fields, duplicate keys and escaped URLs that the backend rejects; its injection detection runs before control-character removal and misses a split phrase the backend detects. The judge has no draft factuality/coverage check (a fabricated T03 summary passes), mostly checks first-turn questions, and fixed multi-turn replies reveal facts regardless of what was asked. Summaries omit temperature, maxTokens, round cap and dataset/runner fingerprints, and compare does not require matching case sets/settings. Next: resolve Q~2, correct parity and scoring, then compare identical cases/settings with repeated runs; manually review factuality and question relevance before any KEEP decision. No live call made; review shell has no SOCLAAS_API_KEY.
+- **D~4 (tuning review, 2026-10-23):** The operator narrowed this kit to prompt-quality evaluation because backend tests own dedicated hijack attempts (C~15). The runner now rejects unknown fields, duplicate JSON keys and normalized/escaped links; mirrors the approved support-document marker and fixed displayed instruction; prints the bounded synthetic conversation and per-turn drafts; and fingerprints run settings, runner and data, with comparison limited to matching runs. It has no automatic summary factuality/completeness judge; the operator reviews transcripts and decides any KEEP. The input-sanitizer/injection-detector mirror remains approximate and is not a security evaluation. Offline selftest and T01 dry run pass; no live eval because SOCLAAS_API_KEY is not set.
 
 - **D~1 (planning, 2026-10-23):** Existing notes save/textarea limits are 4,000 characters; approved drafts allow 6,000 and insertion appends existing notes. Plan preserves full local insertion and existing server validation, so an Agent may need to edit down before saving. No silent truncation or limit increase. Carry this UX limitation to review/Handover.
 - **D~2 (baseline, 2026-10-23):** Restricted Gradle/Docker access required escalated build commands. All component builds passed; frontend npm ci/lint/build passed. Default frontend suite had six timeout failures, two-worker retry had two different timeout failures (308/310 passed); full single-worker suite passed unchanged (49 files, 310/310 tests), without changing timeouts/assertions. Use --maxWorkers=1. Existing docs/Reflections.md changes are operator work and stay untouched.
-- **D~3 (concurrent work, 2026-10-23):** Operator tuning-kit variants changed during T3 reads, including an email instruction contrary to approved P3/R4. Variants stay untouched and excluded from agent commits; Q~2 asks keep/reverse. T3's provisional prompt freezes the committed variant plus already approved P4/P12, pending a scoped decision.
+- **D~3 (concurrent work, 2026-10-23):** Earlier operator prompt variants were held pending support-email clarification. C~12/C~13 now approve the exact backend-expanded fixed support instruction; the current variants use `[supporting-documents]` and do not generate the address, ticket id or subject. P10 remains unchanged: apology language is not approved.
 
 ---
 
 ## 10. Changes
 
 | Date | What changed | Workstream | Ref |
-| 2026-10-23 | T8 SD22 continuation done: E89 literal stored email/UUID thread and preview regressions; focused 13/13 and full frontend 327/327 across 52 files pass, eslint and production build pass. Two test files only; no UI behavior change. Guest session retired | W-AI-AGENT | This session |
 |---|---|---|---|
+| 2026-10-23 | T3 SD22 done: marker normalization/deduplication and mixed/contact/subject/UUID screens; required server UUID expands fixed support line and preserves stored replay; P13 prompt. Red: six missing-signature compilation errors. Focused 17/17; full backend 609/609 across 99 classes, Checkstyle and packaging pass. Current offline kit selftest 40/40 (concurrent kit edits preserved). Agent retired; root owns commit | W-AI-AGENT | This session |
+| 2026-10-23 | Close tuning-kit gross-gap review per C~15: validator parity for unknown/duplicate/link outputs, approved fixed-email marker display, 21 prompt-quality cases without dedicated hijack tests, bounded full transcripts with manual review guidance, and run fingerprints/comparability. Node syntax check, all 42 offline selftests and T01 dry run pass. No live model evaluation or KEEP decision | W-AI-AGENT | This session |
+| 2026-10-23 | T8 SD22 continuation done: E89 literal stored email/UUID thread and preview regressions; focused 13/13 and full frontend 327/327 across 52 files pass, eslint and production build pass. Two test files only; no UI behavior change. Guest session retired | W-AI-AGENT | This session |
 | 2026-10-23 | Record revised-plan approval and resume T3/T8 SD22 continuation. Preserve operator reflection/prompt edits and existing scoped T10 plan adjustment | W-AI-AGENT | This session |
 | 2026-10-23 | SD22 revised plan ready: 10 tasks/five waves unchanged, all 89 E rows traced; T3/T8 reopened with historical steps retained. Read-only Implementer review has no blockers/questions/contradictions; plan lint zero errors/warnings. No application code changed this turn. Session/reviewer retired; revised-plan gate 2 next | W-AI-AGENT | This session |
 | 2026-10-23 | Revise SD22 plan without changing tasks/dependencies/waves: reopen T3/T8 continuation, trace E89–E92, define UUID builder/caller and replay tests, scope tuning marker parity and safe v4 variant. Plan lint zero errors/warnings; required read-only review in flight | W-AI-AGENT | This session |

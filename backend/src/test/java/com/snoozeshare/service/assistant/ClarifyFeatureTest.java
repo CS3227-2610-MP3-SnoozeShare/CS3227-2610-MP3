@@ -30,6 +30,12 @@ class ClarifyFeatureTest {
     static class GatewaySettings { }
 
     @Test
+    void promptPermitsOnlyServerExpandedSupportingDocumentMarkerP13E89() {
+        assertThat(feature.systemPrompt()).contains("[supporting-documents]", "enough", "false",
+            "another question round", "Never emit an address", "ticket id", "subject", "alternative recipient");
+    }
+
+    @Test
     void registrationMockAndPromptBoundE80() {
         new ApplicationContextRunner().withUserConfiguration(GatewaySettings.class).run(context -> {
             LlmProperties settings = context.getBean(LlmProperties.class);

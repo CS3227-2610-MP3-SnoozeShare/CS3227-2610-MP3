@@ -10,8 +10,13 @@ import java.util.regex.Pattern;
 
 /** One normalization and deterministic screening implementation for model text (R4/R4b). */
 public final class ClarifySafety {
+    /** The sole model marker expanded by the server after screening. */
+    public static final String SUPPORTING_DOCUMENTS = "[supporting-documents]";
     private static final int FLAGS = Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE | Pattern.UNICODE_CHARACTER_CLASS;
     private static final Pattern DIGITS = Pattern.compile("\\d(?:[ -]?\\d){6,}", FLAGS);
+    private static final Pattern SUBJECT_HEADER = Pattern.compile("\\b(subject|header)\\b", FLAGS);
+    private static final Pattern TICKET_UUID = Pattern.compile(
+        "\\b[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}\\b", FLAGS);
     private static final List<Pattern> LIST_A = List.of(
         Pattern.compile("\\b(we|i)\\s*('ll|will|shall|can(?!'t)|would|'d|are going to|am going to|"
             + "'re going to|'m going to)\\b", FLAGS),
@@ -74,8 +79,14 @@ public final class ClarifySafety {
         Set<String> seen = new HashSet<>();
         for (String value : values) {
             String text = clean(value);
+            if (text.equalsIgnoreCase(SUPPORTING_DOCUMENTS)) {
+                text = SUPPORTING_DOCUMENTS;
+            } else if (text.toLowerCase(Locale.ROOT).contains(SUPPORTING_DOCUMENTS)) {
+                continue;
+            }
             if (!text.isBlank() && !matches(LIST_A, text) && !matches(LIST_B, text)
                     && !text.contains("@") && !DIGITS.matcher(text).find()
+                    && !SUBJECT_HEADER.matcher(text).find() && !TICKET_UUID.matcher(text).find()
                     && seen.add(text.toLowerCase(Locale.ROOT))) {
                 kept.add(text);
                 if (kept.size() == 3) {

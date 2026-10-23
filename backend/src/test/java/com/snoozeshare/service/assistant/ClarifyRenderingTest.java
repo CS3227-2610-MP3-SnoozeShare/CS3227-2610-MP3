@@ -1,13 +1,46 @@
 package com.snoozeshare.service.assistant;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
 /** Exact template source: spec conventions.md R5; E6/E71/E72. */
 class ClarifyRenderingTest {
+    private static final UUID TICKET_ID = UUID.fromString("abcdefab-cdef-abcd-efab-cdefabcdefab");
+
+    @Test
+    void markerExpandsOnlyToFixedServerTicketInstructionAndReplaysStoredLineE89E72() {
+        String instruction = "Please email supporting documents to support@snoozeshare.com with the subject "
+            + "\"abcdefab-cdef-abcd-efab-cdefabcdefab: Supporting Documents\".";
+        String body = ClarifyRendering.questions(List.of("[supporting-documents]", "When?"), TICKET_ID);
+        assertThat(body).isEqualTo(ClarifyRendering.QUESTION_HEADER + "\n1. " + instruction + "\n2. When?")
+            .doesNotContain("[supporting-documents]", "mailto:");
+        assertThat(ClarifyRendering.isQuestion(body)).isTrue();
+        assertThat(ClarifyRendering.replayQuestions(body)).isEqualTo("1. " + instruction + "\n2. When?");
+    }
+
+    @Test
+    void missingTicketFailsBeforeBuildingEvenWithoutMarkerAndBoundedQuestionsFitE92() {
+        assertThatIllegalArgumentException().isThrownBy(() -> ClarifyRendering.questions(List.of("When?"), null));
+        assertThatIllegalArgumentException()
+            .isThrownBy(() -> ClarifyRendering.questions(List.of("[supporting-documents]"), null));
+        assertThatIllegalArgumentException().isThrownBy(() -> ClarifyRendering.questions(List.of(), null));
+        String normalBody = ClarifyRendering.questions(List.of("x".repeat(300), "y".repeat(300),
+            "z".repeat(300)), TICKET_ID);
+        assertThat(normalBody).hasSizeLessThanOrEqualTo(2000);
+        assertThat(normalBody.lines().skip(1).toList()).hasSize(3)
+            .allSatisfy(line -> assertThat(line.substring(3)).hasSize(300));
+        String body = ClarifyRendering.questions(List.of("x".repeat(300), "[supporting-documents]",
+            "y".repeat(300)), TICKET_ID);
+        assertThat(body).hasSizeLessThanOrEqualTo(2000);
+        assertThat(body.lines().skip(1).toList()).hasSize(3)
+            .allSatisfy(line -> assertThat(line.substring(3)).hasSizeLessThanOrEqualTo(300));
+    }
+
     private ClarifyOutput output(String summary) {
         return new ClarifyOutput(false, List.of("When?"), summary, List.of(), List.of(), List.of(),
             List.of(), List.of());
@@ -62,7 +95,7 @@ class ClarifyRenderingTest {
 
     @Test
     void exactMessageStringsAndReplayRecognitionE72() {
-        String body = ClarifyRendering.questions(List.of("When?", "Where?"));
+        String body = ClarifyRendering.questions(List.of("When?", "Where?"), TICKET_ID);
         assertThat(body).isEqualTo("To help our support team review your ticket, please answer these in one message:"
             + "\n1. When?\n2. Where?");
         assertThat(ClarifyRendering.CLOSING)
