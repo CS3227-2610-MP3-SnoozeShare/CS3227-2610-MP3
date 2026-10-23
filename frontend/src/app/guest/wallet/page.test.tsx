@@ -43,7 +43,7 @@ describe('WalletPage', () => {
       expect(screen.getByTestId('transaction-list')).toBeInTheDocument();
     });
     expect(screen.getByText('Top-up')).toBeInTheDocument();
-    expect(screen.getByText('+50.00')).toBeInTheDocument();
+    expect(screen.getByText('+$50.00')).toBeInTheDocument();
   });
 
   it('shows empty transactions state', async () => {

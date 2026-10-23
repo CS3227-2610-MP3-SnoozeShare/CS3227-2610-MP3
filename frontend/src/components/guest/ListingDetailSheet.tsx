@@ -79,7 +79,7 @@ export function ListingDetailSheet({
 
         <div className="flex-1 space-y-6 p-4">
           {loading && <p className="text-muted-foreground">Loading...</p>}
-          {error && <p className="text-red-600">{error}</p>}
+          {error && <p className="text-destructive">{error}</p>}
 
           {detail && (
             <>
@@ -135,33 +135,33 @@ export function ListingDetailSheet({
                   <div>
                     <label className="block text-xs font-medium text-muted-foreground">Check-in</label>
                     <input type="date" min={today} value={startDate} onChange={(e) => { setStartDate(e.target.value); setEstimate(null); setBookingSuccess(false); }}
-                      className="mt-1 w-full rounded border px-2 py-1 text-sm" />
+                      className="mt-1 w-full rounded-lg border border-input bg-background px-2 py-1 text-sm" />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-muted-foreground">Check-out</label>
                     <input type="date" min={startDate || today} value={endDate} onChange={(e) => { setEndDate(e.target.value); setEstimate(null); setBookingSuccess(false); }}
-                      className="mt-1 w-full rounded border px-2 py-1 text-sm" />
+                      className="mt-1 w-full rounded-lg border border-input bg-background px-2 py-1 text-sm" />
                   </div>
                 </div>
                 <button type="button" onClick={handleEstimate} disabled={!startDate || !endDate}
-                  className="w-full rounded bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground hover:opacity-90 disabled:opacity-50">
+                  className="w-full rounded-lg border border-[var(--border-muted)] bg-card px-4 py-2 text-sm font-semibold hover:bg-[var(--surface-inset)] disabled:opacity-50">
                   Estimate price
                 </button>
-                {estimateError && <p className="text-sm text-red-600">{estimateError}</p>}
+                {estimateError && <p className="text-sm text-destructive">{estimateError}</p>}
                 {estimate && (
-                  <div className="rounded bg-muted p-3 text-sm">
+                  <div className="rounded-lg bg-[var(--surface-inset)] p-3 text-sm">
                     <p>{estimate.nights} night{estimate.nights !== 1 ? 's' : ''} × ${estimate.nightlyRate.toFixed(0)}</p>
                     <p className="mt-1 text-lg font-bold">Total: ${estimate.totalAmount.toFixed(2)}</p>
                   </div>
                 )}
                 {estimate && !bookingSuccess && (
                   <button type="button" onClick={handleBook} disabled={booking}
-                    className="w-full rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50">
+                    className="w-full rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50">
                     {booking ? 'Booking...' : 'Confirm Booking'}
                   </button>
                 )}
-                {bookingError && <p className="text-sm text-red-600">{bookingError}</p>}
-                {bookingSuccess && <p className="text-sm font-medium text-green-700">Booking submitted! Check your trips.</p>}
+                {bookingError && <p className="text-sm text-destructive">{bookingError}</p>}
+                {bookingSuccess && <p className="text-sm font-medium text-[var(--success)]">Booking submitted! Check your trips.</p>}
               </div>
             </>
           )}

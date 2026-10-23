@@ -40,15 +40,20 @@ export function MessageThread({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex-1 space-y-2 overflow-y-auto p-4" data-testid="message-list">
+      <div aria-label="Message history" className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4" data-testid="message-list">
+        {messages.length === 0 && <p className="text-center text-sm text-[var(--text-subtle)]">No messages yet.</p>}
         {messages.map((m) => {
           const isMe = m.authorId === currentUserId;
           return (
             <div key={m.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[75%] rounded-lg px-3 py-2 text-sm ${isMe ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                {!isMe && <p className="mb-0.5 text-[10px] font-medium text-muted-foreground">{m.authorRole}</p>}
-                <p className="whitespace-pre-wrap">{m.body}</p>
-                <p className={`mt-0.5 text-[10px] ${isMe ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+              <div
+                aria-label={`Message from ${isMe ? 'You' : m.authorRole}`}
+                className={`max-w-[80%] rounded-lg px-3 py-2 text-[13px] ${isMe ? 'bg-[var(--accent)]' : 'bg-[var(--surface-inset)]'}`}
+                role="group"
+              >
+                <strong className="text-xs">{isMe ? 'You' : m.authorRole}</strong>
+                <p className="mt-1 whitespace-pre-wrap text-[13px]">{m.body}</p>
+                <p className="mt-0.5 text-[10px] text-[var(--text-subtle)]">
                   {new Date(m.sentAt).toLocaleString()}
                 </p>
               </div>
@@ -57,19 +62,22 @@ export function MessageThread({
         })}
         <div ref={endRef} />
       </div>
-      {!disabled && (
-        <form onSubmit={(e) => { e.preventDefault(); handleSend(); }}
-          className="flex gap-2 border-t p-3">
-          <input type="text" value={body} onChange={(e) => setBody(e.target.value)}
-            placeholder="Type a message..." maxLength={5000}
-            className="flex-1 rounded border px-3 py-1.5 text-sm" />
-          <button type="submit" disabled={sending || !body.trim()}
-            className="rounded bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50">
-            {sending ? 'Sending...' : 'Send'}
-          </button>
-        </form>
-      )}
-      {error && <p className="px-3 pb-2 text-xs text-red-600">{error}</p>}
+      {error && <p className="px-4 text-sm text-destructive" role="alert">{error}</p>}
+      <div className="flex flex-col gap-3 border-t border-[var(--border-muted)] px-4 pb-4 pt-3">
+        {!disabled && (
+          <div className="flex gap-2">
+            <input aria-label="Write a message…" type="text" value={body} onChange={(e) => setBody(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleSend(); } }}
+              placeholder="Write a message…" maxLength={5000}
+              className="min-w-0 flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+            <button type="button" onClick={handleSend} disabled={sending || !body.trim()}
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50">
+              {sending ? 'Sending…' : 'Send'}
+            </button>
+          </div>
+        )}
+        {disabled && <p className="rounded-md bg-[var(--surface-inset)] px-3 py-2 text-xs text-[var(--text-subtle)]">This conversation is closed and read-only.</p>}
+      </div>
     </div>
   );
 }

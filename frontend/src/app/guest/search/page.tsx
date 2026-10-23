@@ -102,13 +102,13 @@ export default function SearchPage() {
           placeholder="Describe what you're looking for..."
           maxLength={500}
           disabled={aiLoading}
-          className="flex-1 rounded border px-3 py-2 text-sm"
+          className="flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm"
         />
         <button
           data-testid="ai-search-button"
           type="submit"
           disabled={!aiQuery.trim() || aiLoading}
-          className="rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
+          className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50"
         >
           {aiLoading ? 'Searching...' : 'Search with AI'}
         </button>
@@ -116,7 +116,7 @@ export default function SearchPage() {
 
       {/* AI degraded alert */}
       {!aiAvailable && aiError && (
-        <div data-testid="ai-alert" role="alert" className="ss-card mb-4 border-orange-300 bg-orange-50 p-4 text-sm text-orange-800">
+        <div data-testid="ai-alert" role="alert" className="ss-card mb-4 border-[var(--warning)] bg-[var(--warning-subtle)] p-4 text-sm text-[var(--warning)]">
           AI search is temporarily unavailable. Please use the manual filters below.
         </div>
       )}
@@ -154,38 +154,38 @@ export default function SearchPage() {
         <div className="flex flex-col gap-1">
           <label className="text-xs font-medium text-muted-foreground">City</label>
           <input type="text" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Any city"
-            className="w-36 rounded border px-2 py-1.5 text-sm" />
+            className="w-36 rounded-lg border border-input bg-background px-2 py-1.5 text-sm" />
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-xs font-medium text-muted-foreground">Check-in</label>
           <input type="date" min={today} value={startDate} onChange={(e) => setStartDate(e.target.value)}
-            className="rounded border px-2 py-1.5 text-sm" />
+            className="rounded-lg border border-input bg-background px-2 py-1.5 text-sm" />
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-xs font-medium text-muted-foreground">Check-out</label>
           <input type="date" min={startDate || today} value={endDate} onChange={(e) => setEndDate(e.target.value)}
-            className="rounded border px-2 py-1.5 text-sm" />
+            className="rounded-lg border border-input bg-background px-2 py-1.5 text-sm" />
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-xs font-medium text-muted-foreground">Guests</label>
           <input type="number" min="1" value={guests} onChange={(e) => setGuests(e.target.value)} placeholder="Any"
-            className="w-20 rounded border px-2 py-1.5 text-sm" />
+            className="w-20 rounded-lg border border-input bg-background px-2 py-1.5 text-sm" />
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-xs font-medium text-muted-foreground">Max rate</label>
           <input type="number" min="0" value={maxRate} onChange={(e) => setMaxRate(e.target.value)} placeholder="Any"
-            className="w-24 rounded border px-2 py-1.5 text-sm" />
+            className="w-24 rounded-lg border border-input bg-background px-2 py-1.5 text-sm" />
         </div>
-        <button type="submit" className="rounded bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground hover:opacity-90">
+        <button type="submit" className="rounded-lg bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground hover:opacity-90">
           Search
         </button>
       </form>
 
       {/* Results */}
-      {loading && !showAiResults && <p className="text-muted-foreground">Loading listings...</p>}
-      {error && <p className="text-red-600">{error}</p>}
+      {loading && !showAiResults && <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{[1, 2, 3].map((id) => <div className="ss-card h-44 animate-pulse bg-[var(--surface-inset)]" key={id} />)}</div>}
+      {error && <div className="ss-card p-8 text-center text-destructive">{error}</div>}
       {!loading && !error && displayResults.length === 0 && !aiLoading && (
-        <p data-testid="empty-state" className="text-muted-foreground">No listings found. Try adjusting your filters.</p>
+        <div data-testid="empty-state" className="ss-card p-12 text-center text-[var(--text-subtle)]">No listings found. Try adjusting your filters.</div>
       )}
       {!error && displayResults.length > 0 && (
         <div data-testid="results-grid" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

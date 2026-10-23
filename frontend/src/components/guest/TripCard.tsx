@@ -40,13 +40,13 @@ export function TripCard({
       <div className="flex flex-wrap gap-2 pt-1">
         {trip.canCancel && (
           <button type="button" onClick={() => onCancel(b.id)}
-            className="rounded border border-red-300 px-3 py-1 text-xs font-medium text-red-700 hover:bg-red-50">
+            className="rounded-lg border border-destructive/30 px-3 py-1 text-xs font-semibold text-destructive hover:bg-destructive/5">
             Cancel
           </button>
         )}
         {!trip.hasReview && (b.status === 'COMPLETED' || b.status === 'FORCE_COMPLETED') && (
           <button type="button" onClick={() => onReview(b.id)}
-            className="rounded border border-primary/30 px-3 py-1 text-xs font-medium text-primary hover:bg-primary/5">
+            className="rounded-lg border border-primary/30 px-3 py-1 text-xs font-semibold text-primary hover:bg-primary/5">
             Leave review
           </button>
         )}
